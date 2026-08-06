@@ -5,17 +5,29 @@
   "chain": "solana",
   "mint": "53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
   "pairUrl": "https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7",
+  "images": {
+    "avatar": "https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg",
+    "token": "https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666",
+    "header": "https://cdn.dexscreener.com/cms/images/12deeeb94f75d332a3795390604d849aae5a2441a451dad49332bdfd17ded9e0"
+  },
   "links": {
     "x": "https://x.com/dash_eats",
+    "perryalpha": "https://x.com/PerryALPHA",
     "jupiter": "https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
     "dex": "https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7",
     "solscan": "https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
     "birdeye": "https://birdeye.so/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump?chain=solana",
     "rugcheck": "https://rugcheck.xyz/tokens/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
     "phantom": "https://phantom.com/tokens/solana/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
-    "telegram": "https://t.me/dashacommunity",
     "caPost": "https://x.com/dash_eats/status/2085405228078432279",
-    "sourcePost2025": "https://x.com/dash_eats/status/1886436372569027054"
+    "casinoLine": "https://x.com/dash_eats/status/2085405075686801789",
+    "holdPost2025": "https://x.com/dash_eats/status/1901740102289854513",
+    "perryCa": "https://x.com/PerryALPHA/status/2085406351937703996",
+    "perryHolding": "https://x.com/PerryALPHA/status/2085370284400328784",
+    "perrySpainBit": "https://x.com/PerryALPHA/status/2074960912805486623",
+    "repo": "https://github.com/Uuriko/dasha-desk",
+    "webflow": "https://johns-awesome-project-39b1b5.webflow.io/dasha",
+    "standalone": "https://files.catbox.moe/9qs77u.html"
   },
   "quotes": [
     {
@@ -28,7 +40,7 @@
       "source": "@dash_eats"
     },
     {
-      "text": "You’re not gonna believe this",
+      "text": "You're not gonna believe this",
       "source": "@dash_eats"
     },
     {
@@ -46,11 +58,46 @@
     {
       "text": "They are angels actually",
       "source": "@dash_eats"
+    },
+    {
+      "text": "PLEASE FREE TIBET",
+      "source": "@dash_eats"
+    },
+    {
+      "text": "If you harassed me today you can make it right by holding some $dasha",
+      "source": "@dash_eats",
+      "url": "https://x.com/dash_eats/status/1901740102289854513"
+    },
+    {
+      "text": "I'm still holding $dasha",
+      "source": "@PerryALPHA",
+      "url": "https://x.com/PerryALPHA/status/2085370284400328784",
+      "thirdParty": true
+    },
+    {
+      "text": "I have sad news to share. Dasha has died in Spain due to lack of air conditioning",
+      "source": "@PerryALPHA",
+      "url": "https://x.com/PerryALPHA/status/2074960912805486623",
+      "thirdParty": true
     }
+  ],
+  "gallery": [
+    "https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg",
+    "https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666",
+    "https://pbs.twimg.com/media/HMGsRZ8XgAEEPrS.jpg",
+    "https://pbs.twimg.com/media/HOpfTEyaIAAOVPy.jpg",
+    "https://pbs.twimg.com/media/HN37QhRXkAALZR4.jpg",
+    "https://pbs.twimg.com/media/HLbdLcXX0AEwa2X.jpg",
+    "https://pbs.twimg.com/media/HLDbupNXkAAzfhI.jpg",
+    "https://pbs.twimg.com/media/HJvwn-6XAAAORhZ.jpg",
+    "https://pbs.twimg.com/media/HJ-whecWoAEildo.jpg",
+    "https://pbs.twimg.com/media/HMu99HxXkAENYKI.jpg",
+    "https://pbs.twimg.com/media/Gkoqvc4WIAAYPJM.jpg",
+    "https://pbs.twimg.com/media/HHTIOCcXUAAcsUF.jpg"
   ],
   "theme": {
     "accent": "#a78bfa",
     "bg": "#07060a"
   },
-  "disclaimer": "Culture coin. Can go to zero. Not financial advice."
+  "disclaimer": "Culture coin. Can go to zero. Not financial advice. Association is not endorsement."
 }
