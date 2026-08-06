@@ -86,22 +86,44 @@
         $('s-1h').textContent = fmtPct(ch.h1);
         $('s-6h').textContent = fmtPct(ch.h6);
         $('s-24h').textContent = fmtPct(ch.h24);
+        if ($('dd-px')) $('dd-px').textContent = fmtUsd(p.priceUsd);
+        if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
         if (p.url) $('dd-chart').href = p.url;
+        var info = p.info || {};
+        if (info.imageUrl && $('dd-token-img')) $('dd-token-img').src = String(info.imageUrl).split('?')[0];
+        if (info.header && $('dd-banner')) $('dd-banner').src = String(info.header).split('?')[0];
         asof.textContent = new Date().toLocaleString() + ' · Dex';
         $('dd-live').textContent = 'live';
       })
       .catch(function(){
         asof.textContent = 'Dex offline — use Chart.';
         $('dd-live').textContent = 'offline';
+        if ($('dd-px')) $('dd-px').textContent = 'offline';
       });
   }
+  function hardenImages(){
+    var root = document.getElementById('dd-app');
+    if (!root) return;
+    root.querySelectorAll('img').forEach(function(img){
+      img.addEventListener('error', function(){
+        if (img.dataset.fallback === '1') return;
+        img.dataset.fallback = '1';
+        img.removeAttribute('src');
+        img.alt = img.alt || 'image unavailable';
+        img.classList.add('dd-img-broken');
+        img.style.minHeight = img.height ? img.height + 'px' : '88px';
+      }, { once: true });
+    });
+  }
   $('dd-copy').addEventListener('click', function(){ copy(CA, $('dd-copy')); });
-  $('dd-copy-short').addEventListener('click', function(){ copy(CA, $('dd-copy-short')); });
+  $('dd-copy-short').addEventListener('click', function(){ copy(CA.slice(0, 4) + '…' + CA.slice(-4), $('dd-copy-short')); });
+  if ($('dd-sticky-copy')) $('dd-sticky-copy').addEventListener('click', function(){ copy(CA, $('dd-sticky-copy')); });
   $('dd-copy-share').addEventListener('click', function(){ copy($('dd-share').value, $('dd-copy-share')); });
   $('dd-paste').addEventListener('input', verify);
   $('dd-paste').addEventListener('paste', function(){ setTimeout(verify, 0); });
   $('dd-refresh').addEventListener('click', loadMarket);
   setShare();
+  hardenImages();
   drawQr(CA);
   loadMarket();
   setInterval(loadMarket, 60000);
