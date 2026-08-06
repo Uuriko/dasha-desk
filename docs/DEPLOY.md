@@ -6,7 +6,7 @@
 |---------|-----|
 | **Repo** | https://github.com/Uuriko/dasha-desk |
 | **GitHub Pages** | https://uuriko.github.io/dasha-desk/ (after Actions/Pages enable) |
-| **Standalone single-file** | https://files.catbox.moe/cm5fmq.html |
+| **Standalone single-file** | https://files.catbox.moe/aughx9.html |
 | **Webflow shell** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
 
 ## Local
@@ -16,6 +16,17 @@ cd dasha-desk
 python3 -m http.server 8766
 # → http://127.0.0.1:8766/
 ```
+
+## Build gate
+
+Edit only `src/body.html`, `src/styles.css`, `src/app.js`, or `config/dasha.json`, then run:
+
+```bash
+node build.mjs --write
+node build.mjs --check
+```
+
+Do not hand-edit `src/app.html`, `index.html`, or `dist/index.html`; they are generated deployment surfaces.
 
 ## GitHub Pages
 
@@ -27,7 +38,7 @@ Until then, use **Webflow** (primary product surface) or **catbox** single-file.
 
 ## Single-file / zero-build host
 
-`dist/index.html` is a self-contained build (CSS+JS inlined). Re-upload to any static host:
+`dist/index.html` is the generated self-contained build (CSS+JS inlined). Re-upload to any static host:
 
 ```bash
 curl -sF "reqtype=fileupload" -F "fileToUpload=@dist/index.html" https://catbox.moe/user/api.php
@@ -40,3 +51,7 @@ Paste **`src/app.html`** into an **HtmlEmbed** (inline). Do **not** iframe catbo
 ## Cloudflare Pages / Netlify
 
 Connect `Uuriko/dasha-desk`, publish root, no build command.
+
+## Research notes
+
+Landing copy and media ledger: [`docs/X-RESEARCH-DASHA-2026-08-06.md`](X-RESEARCH-DASHA-2026-08-06.md).
