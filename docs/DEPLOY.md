@@ -19,9 +19,11 @@ python3 -m http.server 8766
 
 ## GitHub Pages
 
-1. Repo Settings → Pages → Source: **GitHub Actions** (or Deploy from branch `main` / root).
-2. Workflow: `.github/workflows/pages.yml` deploys the repo root on every push to `main`.
-3. First enable is one Settings toggle if Actions have never published Pages for this repo.
+Workflow: `.github/workflows/pages.yml` deploys the repo root on every push to `main`.
+
+**Status:** Actions workflow is live on the repo; `configure-pages` fails until Pages is first enabled for the repo (Settings → Pages → Source: **GitHub Actions**). After that one enable, subsequent pushes publish to https://uuriko.github.io/dasha-desk/.
+
+Until then, use **Webflow** (primary product surface) or **catbox** single-file.
 
 ## Single-file / zero-build host
 
