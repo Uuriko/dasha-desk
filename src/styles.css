@@ -1,0 +1,57 @@
+#dd-app.dd{--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.12);--text:#f4f0ff;--muted:#b8b0c9;--accent:#a78bfa;--ok:#7dffa3;--bad:#ff9b9b;--warn:#ffe08a;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);max-width:880px;margin:0 auto;padding:20px 16px 36px;box-sizing:border-box}
+#dd-app *{box-sizing:border-box}
+.dd-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
+.dd-brand{display:flex;gap:12px;align-items:center}
+.dd-mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(145deg,#c4a5ff,#6d4aff);display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:#12091c}
+.dd-name{font-size:18px;letter-spacing:-.02em}
+.dd-tag{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.dd-pills{display:flex;gap:8px;flex-wrap:wrap}
+.dd-pill{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.dd-pill-ok{color:var(--ok);border-color:rgba(125,255,163,.35)}
+.dd-hero-card,.dd-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.dd-hero-card{margin-bottom:14px;background:radial-gradient(700px 220px at 20% -20%,rgba(167,139,250,.18),transparent 60%),var(--card)}
+.dd-kicker{margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.16em;color:#c4a5ff}
+.dd-h1{margin:0 0 8px;font-size:clamp(42px,11vw,68px);line-height:1;letter-spacing:-.03em}
+.dd-lede{margin:0 0 14px;color:var(--muted);line-height:1.45;font-size:15px}
+.dd-quote{margin:0 0 14px;padding:12px 14px;border-left:3px solid var(--accent);background:rgba(0,0,0,.2);border-radius:0 12px 12px 0}
+.dd-quote p{margin:0 0 6px;font-size:15px;line-height:1.4;font-style:italic;color:#efe9ff}
+.dd-quote cite{font-size:12px;color:var(--muted);font-style:normal}
+.dd-quote-soft{border-left-color:rgba(255,255,255,.2);margin-bottom:12px}
+.dd-mint-box{padding:14px;border-radius:14px;border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.08);margin-bottom:14px}
+.dd-ca-label{margin:0 0 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#c4a5ff}
+.dd-ca{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.45;word-break:break-all;color:#efe9ff;margin-bottom:10px}
+.dd-mint-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.dd-hint{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+.dd-actions{display:flex;flex-wrap:wrap;gap:8px}
+.dd-btn{appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);min-height:42px;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.dd-btn-primary{background:var(--accent);color:#12091c;border-color:transparent}
+.dd-btn:focus{outline:2px solid #fff;outline-offset:2px}
+.dd-toast{font-size:12px;color:var(--ok);font-weight:700}
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:720px){.dd-grid{grid-template-columns:1fr}}
+.dd-card h2{margin:0 0 6px;font-size:16px}
+.dd-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dd-linkish{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;font-size:12px}
+.dd-meta{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.45}
+.dd-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dd-stat{padding:10px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06)}
+.dd-stat span{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.dd-stat strong{font-size:15px;font-variant-numeric:tabular-nums}
+.dd-label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.dd-input,.dd-textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--text);padding:12px;font:inherit;font-size:13px}
+.dd-input{font-family:ui-monospace,Menlo,Consolas,monospace;margin-bottom:10px}
+.dd-textarea{resize:vertical;line-height:1.45;margin-bottom:10px}
+.dd-verify{padding:12px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--line);background:rgba(0,0,0,.2);margin-bottom:10px}
+.dd-verify.ok{color:var(--ok);border-color:rgba(125,255,163,.35)}
+.dd-verify.bad{color:var(--bad);border-color:rgba(255,155,155,.35)}
+.dd-verify.warn{color:var(--warn);border-color:rgba(255,224,138,.35)}
+.dd-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.dd-tools a{font-size:12px;font-weight:700;color:var(--text);text-decoration:none;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.dd-qr-wrap{display:flex}
+#dd-qr{background:#fff;border-radius:12px;padding:6px}
+.dd-quotes-row{margin-bottom:14px}
+.dd-quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+@media(max-width:720px){.dd-quote-grid{grid-template-columns:1fr}}
+.dd-quote-grid .dd-quote{margin:0}
+.dd-foot{margin-top:4px;padding:12px 4px;color:var(--muted);font-size:12px;line-height:1.5;text-align:center}
+.dd-foot p{margin:0}
