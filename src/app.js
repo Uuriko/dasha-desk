@@ -51,7 +51,7 @@
     img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=148x148&data=' + encodeURIComponent(text);
   }
   function setShare(){
-    var line = '$dasha · ' + CA + ' · @dash_eats · ' + PAIR;
+    var line = 'How u crying at the casino and u can’t even get in\n$dasha ' + CA + '\n@dash_eats · still holding · ' + PAIR;
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = 'https://x.com/intent/tweet?text=' + encodeURIComponent(line);
   }
