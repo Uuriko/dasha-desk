@@ -6,7 +6,7 @@
 |---------|-----|
 | **Repo** | https://github.com/Uuriko/dasha-desk |
 | **GitHub Pages** | https://uuriko.github.io/dasha-desk/ (after Actions/Pages enable) |
-| **Standalone single-file** | https://files.catbox.moe/9qs77u.html |
+| **Standalone single-file** | https://files.catbox.moe/aughx9.html |
 | **Webflow shell** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
 
 ## Local

@@ -10,7 +10,7 @@ No backend. No wallet connect. No fake roadmap.
 |--|--|
 | **Repo** | https://github.com/Uuriko/dasha-desk |
 | **Live (Pages)** | https://uuriko.github.io/dasha-desk/ |
-| **Standalone** | https://files.catbox.moe/9qs77u.html |
+| **Standalone** | https://files.catbox.moe/aughx9.html |
 | **Webflow shell** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
 | **Mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
 
