@@ -319,12 +319,40 @@
 
 /* risk + jump + share room */
 .dd-risk{
-  margin:0 0 14px;padding:10px 14px;border-radius:12px;
+  margin:0 0 12px;padding:10px 14px;border-radius:12px;
   border:1px solid rgba(255,224,138,.28);
   background:rgba(255,224,138,.08);
   font-size:12px;line-height:1.4;color:#e8dfc0;letter-spacing:.01em;
   text-align:center;
 }
+.dd-proof{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  margin:0 0 14px;
+}
+@media(max-width:560px){.dd-proof{grid-template-columns:1fr 1fr}}
+.dd-proof-item{
+  padding:10px 12px;border-radius:14px;border:1px solid var(--line);
+  background:rgba(0,0,0,.28);text-align:center;
+}
+.dd-proof-item span{
+  display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:4px;
+}
+.dd-proof-item strong{
+  font-size:15px;font-variant-numeric:tabular-nums;color:var(--accent);
+}
+.dd-actions-primary{margin-top:4px}
+.dd-btn-lg{min-height:48px;padding:12px 18px;font-size:14px}
+.dd-why{
+  margin:14px 0 0;padding:0;list-style:none;
+  display:grid;gap:8px;
+}
+.dd-why li{
+  font-size:13px;color:var(--muted);line-height:1.4;
+  padding:10px 12px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(0,0,0,.2);
+}
+.dd-why strong{color:#e8dff8;font-weight:700}
 #dd-app.dd{max-width:720px;padding:16px 14px 40px}
 .dd-hero-card{padding:16px}
 .dd-banner-wrap{max-height:120px;margin:-4px -4px 12px}

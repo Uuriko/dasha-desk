@@ -5,21 +5,24 @@ const body = await read('./src/body.html');
 const css = await read('./src/styles.css');
 const js = await read('./src/app.js');
 
-const TOKEN_IMG =
-  'https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666';
+const TOKEN_IMG = 'https://files.catbox.moe/gpjyb0.jpg';
 
 const meta = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>dasha desk · $dasha</title>
-<meta name="description" content="dasha desk — $dasha mint, memes, quotes, chart. Casino open. Culture coin on Solana. NFA."/>
+<title>$dasha desk — buy, chart, share · Solana</title>
+<meta name="description" content="$dasha mint desk: copy CA, buy on Jupiter, chart on Dexscreener, share raid packs. Culture coin on Solana. Can go to zero. NFA. Association ≠ endorsement."/>
 <meta name="theme-color" content="#07060a"/>
-<meta property="og:title" content="$dasha desk"/>
-<meta property="og:description" content="How u crying at the casino and u can’t even get in. CA from @dash_eats."/>
+<meta property="og:title" content="$dasha — casino open"/>
+<meta property="og:description" content="How u crying at the casino and u can’t even get in. Copy the mint. Buy · chart · share. NFA."/>
 <meta property="og:image" content="${TOKEN_IMG}"/>
-<meta name="twitter:card" content="summary_large_image"/>`;
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="$dasha — casino open"/>
+<meta name="twitter:description" content="Copy CA · Buy Jupiter · Chart Dex · Share pack. NFA."/>
+<meta name="twitter:image" content="${TOKEN_IMG}"/>`;
 
 const pageEnd = '</body>\n</html>\n';
 

@@ -3,13 +3,17 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>dasha desk · $dasha</title>
-<meta name="description" content="dasha desk — $dasha mint, memes, quotes, chart. Casino open. Culture coin on Solana. NFA."/>
+<title>$dasha desk — buy, chart, share · Solana</title>
+<meta name="description" content="$dasha mint desk: copy CA, buy on Jupiter, chart on Dexscreener, share raid packs. Culture coin on Solana. Can go to zero. NFA. Association ≠ endorsement."/>
 <meta name="theme-color" content="#07060a"/>
-<meta property="og:title" content="$dasha desk"/>
-<meta property="og:description" content="How u crying at the casino and u can’t even get in. CA from @dash_eats."/>
-<meta property="og:image" content="https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666"/>
+<meta property="og:title" content="$dasha — casino open"/>
+<meta property="og:description" content="How u crying at the casino and u can’t even get in. Copy the mint. Buy · chart · share. NFA."/>
+<meta property="og:image" content="https://files.catbox.moe/gpjyb0.jpg"/>
+<meta property="og:type" content="website"/>
 <meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="$dasha — casino open"/>
+<meta name="twitter:description" content="Copy CA · Buy Jupiter · Chart Dex · Share pack. NFA."/>
+<meta name="twitter:image" content="https://files.catbox.moe/gpjyb0.jpg"/>
 <style>html,body{margin:0;padding:0;background:#07060a;min-height:100%}
 #dd-app.dd{
   --card:rgba(255,255,255,.05);
@@ -332,12 +336,40 @@
 
 /* risk + jump + share room */
 .dd-risk{
-  margin:0 0 14px;padding:10px 14px;border-radius:12px;
+  margin:0 0 12px;padding:10px 14px;border-radius:12px;
   border:1px solid rgba(255,224,138,.28);
   background:rgba(255,224,138,.08);
   font-size:12px;line-height:1.4;color:#e8dfc0;letter-spacing:.01em;
   text-align:center;
 }
+.dd-proof{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  margin:0 0 14px;
+}
+@media(max-width:560px){.dd-proof{grid-template-columns:1fr 1fr}}
+.dd-proof-item{
+  padding:10px 12px;border-radius:14px;border:1px solid var(--line);
+  background:rgba(0,0,0,.28);text-align:center;
+}
+.dd-proof-item span{
+  display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:4px;
+}
+.dd-proof-item strong{
+  font-size:15px;font-variant-numeric:tabular-nums;color:var(--accent);
+}
+.dd-actions-primary{margin-top:4px}
+.dd-btn-lg{min-height:48px;padding:12px 18px;font-size:14px}
+.dd-why{
+  margin:14px 0 0;padding:0;list-style:none;
+  display:grid;gap:8px;
+}
+.dd-why li{
+  font-size:13px;color:var(--muted);line-height:1.4;
+  padding:10px 12px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(0,0,0,.2);
+}
+.dd-why strong{color:#e8dff8;font-weight:700}
 #dd-app.dd{max-width:720px;padding:16px 14px 40px}
 .dd-hero-card{padding:16px}
 .dd-banner-wrap{max-height:120px;margin:-4px -4px 12px}
@@ -411,6 +443,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     Culture coin · can go to zero · NFA · association ≠ endorsement
   </aside>
 
+  <section class="dd-proof dd-reveal" id="dd-proof" aria-label="Live market snapshot">
+    <div class="dd-proof-item"><span>Mcap</span><strong id="p-mcap">—</strong></div>
+    <div class="dd-proof-item"><span>Liq</span><strong id="p-liq">—</strong></div>
+    <div class="dd-proof-item"><span>Vol 24h</span><strong id="p-vol">—</strong></div>
+    <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
+  </section>
+
   <section class="dd-hero-card dd-reveal" id="dd-mint">
     <div class="dd-banner-wrap">
       <img class="dd-banner" id="dd-banner" src="https://files.catbox.moe/qnvc7b.jpg" alt="" width="900" height="220" referrerpolicy="no-referrer" loading="lazy"/>
@@ -420,7 +459,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       <div>
         <p class="dd-kicker">@dash_eats · associated mint</p>
         <h1 class="dd-h1">$dasha</h1>
-        <p class="dd-lede">She posted the CA. Copy it, chart it, share it. Not a roadmap. Not official.</p>
+        <p class="dd-lede">She posted the CA. Buy on Jupiter, chart on Dex, share the pack. No roadmap. Not official.</p>
       </div>
     </div>
 
@@ -430,7 +469,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </blockquote>
 
     <div class="dd-mint-box">
-      <p class="dd-ca-label">Mint</p>
+      <p class="dd-ca-label">Mint — verify before you buy</p>
       <code id="dd-ca" class="dd-ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
       <div class="dd-mint-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy">Copy CA</button>
@@ -440,12 +479,18 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       </div>
     </div>
 
-    <div class="dd-actions">
-      <a class="dd-btn dd-btn-primary" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
-      <a class="dd-btn" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Chart</a>
-      <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats">@dash_eats</a>
+    <div class="dd-actions dd-actions-primary">
+      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy on Jupiter</a>
+      <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
+      <a class="dd-btn" id="dd-hero-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid on X</a>
       <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">CA post</a>
     </div>
+
+    <ul class="dd-why" id="dd-why">
+      <li><strong>Source:</strong> public @dash_eats CA post — not a brand deal.</li>
+      <li><strong>Verify:</strong> paste any DM mint below; fakes get rejected.</li>
+      <li><strong>Share:</strong> one-tap raid packs for X / group chats.</li>
+    </ul>
   </section>
 
   <section class="dd-grid dd-reveal" id="dd-numbers">
@@ -469,25 +514,27 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       </div>
     </article>
     <article class="dd-card" id="dd-share-room">
-      <h2>Share</h2>
-      <p class="dd-meta">Copy a pack or open a draft on X.</p>
+      <h2>Share = oxygen</h2>
+      <p class="dd-meta">Copy a pack. Post it. Chart + CA always included.</p>
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
         <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
+        <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
         <button type="button" class="dd-pack-tab" data-pack="verify" role="tab" aria-selected="false">Verify</button>
         <button type="button" class="dd-pack-tab" data-pack="meme" role="tab" aria-selected="false">Line</button>
       </div>
       <textarea id="dd-share" class="dd-textarea" rows="4" readonly aria-label="Share pack"></textarea>
       <div class="dd-actions">
-        <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-share">Copy</button>
+        <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-share">Copy pack</button>
         <a class="dd-btn" id="dd-tweet" target="_blank" rel="noopener noreferrer" href="#">Draft on X</a>
+        <button type="button" class="dd-btn" id="dd-native-share">Share…</button>
         <a class="dd-btn" id="dd-tweet-alt" target="_blank" rel="noopener noreferrer" href="#" hidden>Alt</a>
       </div>
     </article>
   </section>
 
   <section class="dd-card dd-section dd-reveal" id="dd-memes">
-    <h2>Lines</h2>
-    <p class="dd-meta">Tap to copy. Public posts · not merch · not endorsement.</p>
+    <h2>Lines that travel</h2>
+    <p class="dd-meta">Tap to copy a post-ready line. Public posts · not merch · not endorsement.</p>
     <div class="dd-meme-grid" id="dd-meme-grid">
       <button type="button" class="dd-meme dd-meme-a" data-share-quote="How u crying at the casino and u can’t even get in"><p>How u crying at the casino and u can’t even get in</p><small>@dash_eats</small></button>
       <button type="button" class="dd-meme dd-meme-e" data-share-quote="Go ahead and doubt me see what happens"><p>Go ahead and doubt me see what happens</p><small>@dash_eats</small></button>
@@ -539,10 +586,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     <article class="dd-card">
       <h2>Links</h2>
       <div class="dd-tools">
+        <a target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Jupiter</a>
+        <a target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Dexscreener</a>
         <a target="_blank" rel="noopener noreferrer" href="https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Solscan</a>
         <a target="_blank" rel="noopener noreferrer" href="https://rugcheck.xyz/tokens/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Rugcheck</a>
         <a target="_blank" rel="noopener noreferrer" href="https://birdeye.so/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump?chain=solana">Birdeye</a>
         <a target="_blank" rel="noopener noreferrer" href="https://phantom.com/tokens/solana/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Phantom</a>
+        <a target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats">@dash_eats</a>
         <a target="_blank" rel="noopener noreferrer" href="https://github.com/Uuriko/dasha-desk">OSS</a>
       </div>
       <div class="dd-qr-wrap">
@@ -555,13 +605,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     <code title="Associated mint">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
     <strong id="dd-sticky-px" style="font-size:13px;color:#c4a5ff">—</strong>
     <button type="button" class="dd-btn dd-btn-primary" id="dd-sticky-copy">Copy CA</button>
-    <a class="dd-btn" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
-    <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">X</a>
+    <a class="dd-btn dd-btn-primary" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
+    <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
   </div>
 
   <footer class="dd-foot dd-reveal">
     <p>Not affiliated with Dasha, Red Scare, or @dash_eats beyond public posts cited here. Can go to zero.</p>
-    <p><a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk</a></p>
+    <p><a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk</a> · <a id="dd-desk-url" href="https://johns-awesome-project-39b1b5.webflow.io/dasha">live desk</a></p>
   </footer>
 </div>
 <script>
@@ -570,46 +620,96 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   var PAIR = 'https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7';
   var CASINO = 'How u crying at the casino and u can’t even get in';
 
+  var DESK =
+    'https://johns-awesome-project-39b1b5.webflow.io/dasha';
+  var BUY =
+    'https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
+
   /** Pure share-pack builders — unit-tested via global.DDShare */
   function buildSharePack(kind) {
     kind = kind || 'raid';
     if (kind === 'discord') {
       return (
         '**$dasha** desk pack\n' +
-        '`' + CA + '`\n' +
-        CASINO + '\n' +
-        'Chart: ' + PAIR + '\n' +
+        '`' +
+        CA +
+        '`\n' +
+        CASINO +
+        '\n' +
+        'Buy: ' +
+        BUY +
+        '\n' +
+        'Chart: ' +
+        PAIR +
+        '\n' +
+        'Desk: ' +
+        DESK +
+        '\n' +
         'NFA · can go to zero · association ≠ endorsement'
       );
     }
     if (kind === 'verify') {
       return (
         'Verify this mint yourself:\n' +
-        CA + '\n' +
-        'Solscan: https://solscan.io/token/' + CA + '\n' +
-        'Rugcheck: https://rugcheck.xyz/tokens/' + CA + '\n' +
+        CA +
+        '\n' +
+        'Solscan: https://solscan.io/token/' +
+        CA +
+        '\n' +
+        'Rugcheck: https://rugcheck.xyz/tokens/' +
+        CA +
+        '\n' +
         'If a DM shows a different string, ignore it.'
       );
     }
     if (kind === 'meme') {
       return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
     }
-    // raid default
+    if (kind === 'boost') {
+      return (
+        'Still early on $dasha\n' +
+        CASINO +
+        '\n' +
+        'CA: ' +
+        CA +
+        '\n' +
+        'Chart: ' +
+        PAIR +
+        '\n' +
+        'Buy: ' +
+        BUY +
+        '\n' +
+        'Desk: ' +
+        DESK +
+        '\n' +
+        'NFA · can go to zero'
+      );
+    }
+    // raid default — short, postable, conversion-oriented
     return (
-      CASINO + '\n' +
-      '$dasha ' + CA + '\n' +
-      '@dash_eats · still holding · ' + PAIR
+      CASINO +
+      '\n' +
+      '$dasha ' +
+      CA +
+      '\n' +
+      'Buy → ' +
+      BUY +
+      '\n' +
+      'Chart → ' +
+      PAIR +
+      '\n' +
+      '@dash_eats · still holding · NFA'
     );
   }
 
   function buildQuoteShare(quote) {
     var q = String(quote || '').trim();
     if (!q) return '';
-    return q + '\n$dasha · Solana · NFA';
+    return q + '\n$dasha · ' + CA + '\nBuy ' + BUY + ' · NFA';
   }
 
   function buildMiniPack() {
-    return CASINO + '\n' + CA;
+    return CASINO + '\n' + CA + '\n' + BUY;
   }
 
   function intentTweet(text) {
@@ -619,6 +719,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   var DDShare = {
     CA: CA,
     PAIR: PAIR,
+    DESK: DESK,
+    BUY: BUY,
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
@@ -713,6 +815,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
     if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(buildSharePack('raid'));
+    if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
   }
 
   function normalizeMint(s) {
@@ -765,14 +868,21 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         });
         var p = pairs[0];
         var ch = p.priceChange || {};
+        var mcap = p.marketCap || p.fdv;
+        var liq = p.liquidity && p.liquidity.usd;
+        var vol = p.volume && p.volume.h24;
         $('s-price').textContent = fmtUsd(p.priceUsd);
-        $('s-mcap').textContent = fmtUsd(p.marketCap || p.fdv);
-        $('s-liq').textContent = fmtUsd(p.liquidity && p.liquidity.usd);
-        $('s-vol').textContent = fmtUsd(p.volume && p.volume.h24);
+        $('s-mcap').textContent = fmtUsd(mcap);
+        $('s-liq').textContent = fmtUsd(liq);
+        $('s-vol').textContent = fmtUsd(vol);
         $('s-5m').textContent = fmtPct(ch.m5);
         $('s-1h').textContent = fmtPct(ch.h1);
         $('s-6h').textContent = fmtPct(ch.h6);
         $('s-24h').textContent = fmtPct(ch.h24);
+        if ($('p-mcap')) $('p-mcap').textContent = fmtUsd(mcap);
+        if ($('p-liq')) $('p-liq').textContent = fmtUsd(liq);
+        if ($('p-vol')) $('p-vol').textContent = fmtUsd(vol);
+        if ($('p-24h')) $('p-24h').textContent = fmtPct(ch.h24);
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -789,11 +899,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         if (info.imageUrl && $('dd-token-img'))
           $('dd-token-img').src = String(info.imageUrl).split('?')[0];
         asof.textContent = new Date().toLocaleString() + ' · Dex';
-        $('dd-live').textContent = 'live';
+        if ($('dd-live')) $('dd-live').textContent = 'live';
       })
       .catch(function () {
-        asof.textContent = 'Dex offline — use Chart.';
-        $('dd-live').textContent = 'offline';
+        if (asof) asof.textContent = 'Dex offline — use Chart.';
+        if ($('dd-live')) $('dd-live').textContent = 'offline';
         if ($('dd-px')) $('dd-px').textContent = 'offline';
       });
   }
@@ -874,6 +984,19 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     $('dd-copy-oneliners').addEventListener('click', function () {
       copy($('dd-oneliners').textContent, $('dd-copy-oneliners'));
     });
+  if ($('dd-native-share'))
+    $('dd-native-share').addEventListener('click', function () {
+      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('raid');
+      if (navigator.share) {
+        navigator
+          .share({ title: '$dasha', text: text, url: DESK })
+          .catch(function () {
+            copy(text, $('dd-native-share'));
+          });
+      } else {
+        copy(text, $('dd-native-share'));
+      }
+    });
   if ($('dd-paste')) {
     $('dd-paste').addEventListener('input', verify);
     $('dd-paste').addEventListener('paste', function () {
@@ -887,7 +1010,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   hardenImages();
   drawQr(CA);
   loadMarket();
-  setInterval(loadMarket, 60000);
+  setInterval(loadMarket, 30000);
 })();
 </script>
 </body>

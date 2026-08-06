@@ -44,9 +44,16 @@ const meme = DD.buildSharePack('meme');
 assert.ok(meme.includes('$dasha'));
 assert.ok(meme.length > 20);
 
+const boost = DD.buildSharePack('boost');
+assert.ok(boost.includes(DD.CA), 'boost pack includes mint');
+assert.ok(boost.includes(DD.BUY) || boost.includes('jup.ag'), 'boost pack includes buy');
+assert.ok(boost.includes(DD.DESK) || boost.includes('webflow.io/dasha'), 'boost pack includes desk');
+
 const mini = DD.buildMiniPack();
 assert.ok(mini.includes(DD.CA));
+assert.ok(mini.includes(DD.BUY) || mini.includes('jup.ag'));
 assert.notEqual(mini, raid);
+assert.ok(DD.buildSharePack('raid').includes(DD.BUY) || DD.buildSharePack('raid').includes('jup.ag'));
 
 const q = DD.buildQuoteShare('They are angels actually');
 assert.ok(q.startsWith('They are angels actually'));
@@ -72,5 +79,9 @@ assert.ok(body.includes('53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump'));
 assert.ok(body.includes('data-pack="raid"'));
 assert.ok(body.includes('data-share-quote'));
 assert.ok(body.includes('dd-copy-share') && body.includes('dd-tweet'), 'two share affordances');
+assert.ok(body.includes('dd-buy') && body.includes('jup.ag'), 'buy CTA');
+assert.ok(body.includes('dd-proof') && body.includes('p-mcap'), 'live proof strip');
+assert.ok(body.includes('data-pack="boost"'), 'boost share pack tab');
+assert.ok(body.includes('Buy on Jupiter') || body.includes('dd-buy'), 'primary buy label');
 
 console.log('dasha-share.test.mjs: PASS');

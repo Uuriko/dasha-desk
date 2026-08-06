@@ -18,6 +18,13 @@
     Culture coin · can go to zero · NFA · association ≠ endorsement
   </aside>
 
+  <section class="dd-proof dd-reveal" id="dd-proof" aria-label="Live market snapshot">
+    <div class="dd-proof-item"><span>Mcap</span><strong id="p-mcap">—</strong></div>
+    <div class="dd-proof-item"><span>Liq</span><strong id="p-liq">—</strong></div>
+    <div class="dd-proof-item"><span>Vol 24h</span><strong id="p-vol">—</strong></div>
+    <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
+  </section>
+
   <section class="dd-hero-card dd-reveal" id="dd-mint">
     <div class="dd-banner-wrap">
       <img class="dd-banner" id="dd-banner" src="https://files.catbox.moe/qnvc7b.jpg" alt="" width="900" height="220" referrerpolicy="no-referrer" loading="lazy"/>
@@ -27,7 +34,7 @@
       <div>
         <p class="dd-kicker">@dash_eats · associated mint</p>
         <h1 class="dd-h1">$dasha</h1>
-        <p class="dd-lede">She posted the CA. Copy it, chart it, share it. Not a roadmap. Not official.</p>
+        <p class="dd-lede">She posted the CA. Buy on Jupiter, chart on Dex, share the pack. No roadmap. Not official.</p>
       </div>
     </div>
 
@@ -37,7 +44,7 @@
     </blockquote>
 
     <div class="dd-mint-box">
-      <p class="dd-ca-label">Mint</p>
+      <p class="dd-ca-label">Mint — verify before you buy</p>
       <code id="dd-ca" class="dd-ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
       <div class="dd-mint-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy">Copy CA</button>
@@ -47,12 +54,18 @@
       </div>
     </div>
 
-    <div class="dd-actions">
-      <a class="dd-btn dd-btn-primary" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
-      <a class="dd-btn" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Chart</a>
-      <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats">@dash_eats</a>
+    <div class="dd-actions dd-actions-primary">
+      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy on Jupiter</a>
+      <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
+      <a class="dd-btn" id="dd-hero-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid on X</a>
       <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">CA post</a>
     </div>
+
+    <ul class="dd-why" id="dd-why">
+      <li><strong>Source:</strong> public @dash_eats CA post — not a brand deal.</li>
+      <li><strong>Verify:</strong> paste any DM mint below; fakes get rejected.</li>
+      <li><strong>Share:</strong> one-tap raid packs for X / group chats.</li>
+    </ul>
   </section>
 
   <section class="dd-grid dd-reveal" id="dd-numbers">
@@ -76,25 +89,27 @@
       </div>
     </article>
     <article class="dd-card" id="dd-share-room">
-      <h2>Share</h2>
-      <p class="dd-meta">Copy a pack or open a draft on X.</p>
+      <h2>Share = oxygen</h2>
+      <p class="dd-meta">Copy a pack. Post it. Chart + CA always included.</p>
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
         <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
+        <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
         <button type="button" class="dd-pack-tab" data-pack="verify" role="tab" aria-selected="false">Verify</button>
         <button type="button" class="dd-pack-tab" data-pack="meme" role="tab" aria-selected="false">Line</button>
       </div>
       <textarea id="dd-share" class="dd-textarea" rows="4" readonly aria-label="Share pack"></textarea>
       <div class="dd-actions">
-        <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-share">Copy</button>
+        <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-share">Copy pack</button>
         <a class="dd-btn" id="dd-tweet" target="_blank" rel="noopener noreferrer" href="#">Draft on X</a>
+        <button type="button" class="dd-btn" id="dd-native-share">Share…</button>
         <a class="dd-btn" id="dd-tweet-alt" target="_blank" rel="noopener noreferrer" href="#" hidden>Alt</a>
       </div>
     </article>
   </section>
 
   <section class="dd-card dd-section dd-reveal" id="dd-memes">
-    <h2>Lines</h2>
-    <p class="dd-meta">Tap to copy. Public posts · not merch · not endorsement.</p>
+    <h2>Lines that travel</h2>
+    <p class="dd-meta">Tap to copy a post-ready line. Public posts · not merch · not endorsement.</p>
     <div class="dd-meme-grid" id="dd-meme-grid">
       <button type="button" class="dd-meme dd-meme-a" data-share-quote="How u crying at the casino and u can’t even get in"><p>How u crying at the casino and u can’t even get in</p><small>@dash_eats</small></button>
       <button type="button" class="dd-meme dd-meme-e" data-share-quote="Go ahead and doubt me see what happens"><p>Go ahead and doubt me see what happens</p><small>@dash_eats</small></button>
@@ -146,10 +161,13 @@
     <article class="dd-card">
       <h2>Links</h2>
       <div class="dd-tools">
+        <a target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Jupiter</a>
+        <a target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Dexscreener</a>
         <a target="_blank" rel="noopener noreferrer" href="https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Solscan</a>
         <a target="_blank" rel="noopener noreferrer" href="https://rugcheck.xyz/tokens/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Rugcheck</a>
         <a target="_blank" rel="noopener noreferrer" href="https://birdeye.so/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump?chain=solana">Birdeye</a>
         <a target="_blank" rel="noopener noreferrer" href="https://phantom.com/tokens/solana/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Phantom</a>
+        <a target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats">@dash_eats</a>
         <a target="_blank" rel="noopener noreferrer" href="https://github.com/Uuriko/dasha-desk">OSS</a>
       </div>
       <div class="dd-qr-wrap">
@@ -162,12 +180,12 @@
     <code title="Associated mint">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
     <strong id="dd-sticky-px" style="font-size:13px;color:#c4a5ff">—</strong>
     <button type="button" class="dd-btn dd-btn-primary" id="dd-sticky-copy">Copy CA</button>
-    <a class="dd-btn" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
-    <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">X</a>
+    <a class="dd-btn dd-btn-primary" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
+    <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
   </div>
 
   <footer class="dd-foot dd-reveal">
     <p>Not affiliated with Dasha, Red Scare, or @dash_eats beyond public posts cited here. Can go to zero.</p>
-    <p><a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk</a></p>
+    <p><a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk</a> · <a id="dd-desk-url" href="https://johns-awesome-project-39b1b5.webflow.io/dasha">live desk</a></p>
   </footer>
 </div>

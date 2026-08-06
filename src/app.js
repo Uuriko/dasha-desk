@@ -3,46 +3,96 @@
   var PAIR = 'https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7';
   var CASINO = 'How u crying at the casino and u can’t even get in';
 
+  var DESK =
+    'https://johns-awesome-project-39b1b5.webflow.io/dasha';
+  var BUY =
+    'https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
+
   /** Pure share-pack builders — unit-tested via global.DDShare */
   function buildSharePack(kind) {
     kind = kind || 'raid';
     if (kind === 'discord') {
       return (
         '**$dasha** desk pack\n' +
-        '`' + CA + '`\n' +
-        CASINO + '\n' +
-        'Chart: ' + PAIR + '\n' +
+        '`' +
+        CA +
+        '`\n' +
+        CASINO +
+        '\n' +
+        'Buy: ' +
+        BUY +
+        '\n' +
+        'Chart: ' +
+        PAIR +
+        '\n' +
+        'Desk: ' +
+        DESK +
+        '\n' +
         'NFA · can go to zero · association ≠ endorsement'
       );
     }
     if (kind === 'verify') {
       return (
         'Verify this mint yourself:\n' +
-        CA + '\n' +
-        'Solscan: https://solscan.io/token/' + CA + '\n' +
-        'Rugcheck: https://rugcheck.xyz/tokens/' + CA + '\n' +
+        CA +
+        '\n' +
+        'Solscan: https://solscan.io/token/' +
+        CA +
+        '\n' +
+        'Rugcheck: https://rugcheck.xyz/tokens/' +
+        CA +
+        '\n' +
         'If a DM shows a different string, ignore it.'
       );
     }
     if (kind === 'meme') {
       return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
     }
-    // raid default
+    if (kind === 'boost') {
+      return (
+        'Still early on $dasha\n' +
+        CASINO +
+        '\n' +
+        'CA: ' +
+        CA +
+        '\n' +
+        'Chart: ' +
+        PAIR +
+        '\n' +
+        'Buy: ' +
+        BUY +
+        '\n' +
+        'Desk: ' +
+        DESK +
+        '\n' +
+        'NFA · can go to zero'
+      );
+    }
+    // raid default — short, postable, conversion-oriented
     return (
-      CASINO + '\n' +
-      '$dasha ' + CA + '\n' +
-      '@dash_eats · still holding · ' + PAIR
+      CASINO +
+      '\n' +
+      '$dasha ' +
+      CA +
+      '\n' +
+      'Buy → ' +
+      BUY +
+      '\n' +
+      'Chart → ' +
+      PAIR +
+      '\n' +
+      '@dash_eats · still holding · NFA'
     );
   }
 
   function buildQuoteShare(quote) {
     var q = String(quote || '').trim();
     if (!q) return '';
-    return q + '\n$dasha · Solana · NFA';
+    return q + '\n$dasha · ' + CA + '\nBuy ' + BUY + ' · NFA';
   }
 
   function buildMiniPack() {
-    return CASINO + '\n' + CA;
+    return CASINO + '\n' + CA + '\n' + BUY;
   }
 
   function intentTweet(text) {
@@ -52,6 +102,8 @@
   var DDShare = {
     CA: CA,
     PAIR: PAIR,
+    DESK: DESK,
+    BUY: BUY,
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
@@ -146,6 +198,7 @@
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
     if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(buildSharePack('raid'));
+    if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
   }
 
   function normalizeMint(s) {
@@ -198,14 +251,21 @@
         });
         var p = pairs[0];
         var ch = p.priceChange || {};
+        var mcap = p.marketCap || p.fdv;
+        var liq = p.liquidity && p.liquidity.usd;
+        var vol = p.volume && p.volume.h24;
         $('s-price').textContent = fmtUsd(p.priceUsd);
-        $('s-mcap').textContent = fmtUsd(p.marketCap || p.fdv);
-        $('s-liq').textContent = fmtUsd(p.liquidity && p.liquidity.usd);
-        $('s-vol').textContent = fmtUsd(p.volume && p.volume.h24);
+        $('s-mcap').textContent = fmtUsd(mcap);
+        $('s-liq').textContent = fmtUsd(liq);
+        $('s-vol').textContent = fmtUsd(vol);
         $('s-5m').textContent = fmtPct(ch.m5);
         $('s-1h').textContent = fmtPct(ch.h1);
         $('s-6h').textContent = fmtPct(ch.h6);
         $('s-24h').textContent = fmtPct(ch.h24);
+        if ($('p-mcap')) $('p-mcap').textContent = fmtUsd(mcap);
+        if ($('p-liq')) $('p-liq').textContent = fmtUsd(liq);
+        if ($('p-vol')) $('p-vol').textContent = fmtUsd(vol);
+        if ($('p-24h')) $('p-24h').textContent = fmtPct(ch.h24);
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -222,11 +282,11 @@
         if (info.imageUrl && $('dd-token-img'))
           $('dd-token-img').src = String(info.imageUrl).split('?')[0];
         asof.textContent = new Date().toLocaleString() + ' · Dex';
-        $('dd-live').textContent = 'live';
+        if ($('dd-live')) $('dd-live').textContent = 'live';
       })
       .catch(function () {
-        asof.textContent = 'Dex offline — use Chart.';
-        $('dd-live').textContent = 'offline';
+        if (asof) asof.textContent = 'Dex offline — use Chart.';
+        if ($('dd-live')) $('dd-live').textContent = 'offline';
         if ($('dd-px')) $('dd-px').textContent = 'offline';
       });
   }
@@ -307,6 +367,19 @@
     $('dd-copy-oneliners').addEventListener('click', function () {
       copy($('dd-oneliners').textContent, $('dd-copy-oneliners'));
     });
+  if ($('dd-native-share'))
+    $('dd-native-share').addEventListener('click', function () {
+      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('raid');
+      if (navigator.share) {
+        navigator
+          .share({ title: '$dasha', text: text, url: DESK })
+          .catch(function () {
+            copy(text, $('dd-native-share'));
+          });
+      } else {
+        copy(text, $('dd-native-share'));
+      }
+    });
   if ($('dd-paste')) {
     $('dd-paste').addEventListener('input', verify);
     $('dd-paste').addEventListener('paste', function () {
@@ -320,5 +393,5 @@
   hardenImages();
   drawQr(CA);
   loadMarket();
-  setInterval(loadMarket, 60000);
+  setInterval(loadMarket, 30000);
 })();
