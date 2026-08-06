@@ -10,7 +10,7 @@ No backend. No wallet connect. No fake roadmap.
 |--|--|
 | **Repo** | https://github.com/Uuriko/dasha-desk |
 | **Live (Pages)** | https://uuriko.github.io/dasha-desk/ |
-| **Standalone** | https://files.catbox.moe/cm5fmq.html |
+| **Standalone** | https://files.catbox.moe/9qs77u.html |
 | **Webflow shell** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
 | **Mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
 
@@ -34,10 +34,20 @@ python3 -m http.server 8766
 | **Share** | Copy pack + draft on X |
 | **Rails** | Jupiter, Dex, Solscan, Birdeye, Rugcheck, Phantom |
 
-## Config
+## Source and build
 
-Coin-facing data: [`config/dasha.json`](config/dasha.json)  
-App body: [`src/app.html`](src/app.html) · full page: [`index.html`](index.html)
+Canonical sources: [`src/body.html`](src/body.html), [`src/styles.css`](src/styles.css), [`src/app.js`](src/app.js), and [`config/dasha.json`](config/dasha.json).
+
+```bash
+node build.mjs --write  # regenerate Webflow embed, standalone and single-file build
+node build.mjs --check  # fail if generated files drift
+```
+
+Generated surfaces: [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for normal hosting, and [`dist/index.html`](dist/index.html) for single-file hosting.
+
+## Research
+
+X scrape for landing voice/media: [`docs/X-RESEARCH-DASHA-2026-08-06.md`](docs/X-RESEARCH-DASHA-2026-08-06.md).
 
 ## Deploy
 

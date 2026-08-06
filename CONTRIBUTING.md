@@ -10,8 +10,9 @@
 ## How to help
 
 1. Fork + branch.
-2. Change `src/app.html` and/or `config/dasha.json`.
-3. Open a PR with a short why.
+2. Change `src/body.html`, `src/styles.css`, `src/app.js`, and/or `config/dasha.json`.
+3. Run `node build.mjs --write && node build.mjs --check`.
+4. Open a PR with a short why and verification result.
 
 ## Ideas welcome
 
@@ -19,4 +20,4 @@
 - Better mobile layout
 - Holder-count from public APIs
 - Multi-theme CSS variables
-- Tiny test suite for mint matcher
+- A repository-local browser interaction test with no duplicated application logic
