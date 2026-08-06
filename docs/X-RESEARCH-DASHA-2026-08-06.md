@@ -74,6 +74,15 @@ Use **short, deadpan, lowercase-energy** lines. Prefer her own posts over fan pa
 5. Hotlink X media with `referrerpolicy="no-referrer"`; images may 403 if blocked — fall back to gradient meme cards.
 6. Keep NFA footer.
 
+## Token art (Dex)
+
+Dex OG image endpoint often 422s. Use bare CMS assets from the pairs API `info.imageUrl` / `info.header` (strip query string):
+
+- Token: `https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666`
+- Header: `https://cdn.dexscreener.com/cms/images/12deeeb94f75d332a3795390604d849aae5a2441a451dad49332bdfd17ded9e0`
+
+Desk JS re-pulls these from Dex when available.
+
 ## Sources to open
 
 - https://x.com/dash_eats  
