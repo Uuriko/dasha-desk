@@ -8,7 +8,10 @@
   "images": {
     "avatar": "https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg",
     "token": "https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666",
-    "header": "https://cdn.dexscreener.com/cms/images/12deeeb94f75d332a3795390604d849aae5a2441a451dad49332bdfd17ded9e0"
+    "header": "https://cdn.dexscreener.com/cms/images/12deeeb94f75d332a3795390604d849aae5a2441a451dad49332bdfd17ded9e0",
+    "shareCasino": "https://files.catbox.moe/gpjyb0.jpg",
+    "shareVerify": "https://files.catbox.moe/nid4qy.jpg",
+    "auroraBanner": "https://files.catbox.moe/qnvc7b.jpg"
   },
   "links": {
     "x": "https://x.com/dash_eats",
@@ -27,11 +30,11 @@
     "perrySpainBit": "https://x.com/PerryALPHA/status/2074960912805486623",
     "repo": "https://github.com/Uuriko/dasha-desk",
     "webflow": "https://johns-awesome-project-39b1b5.webflow.io/dasha",
-    "standalone": "https://files.catbox.moe/9qs77u.html"
+    "standalone": "https://files.catbox.moe/sm5mo0.html"
   },
   "quotes": [
     {
-      "text": "How u crying at the casino and u can’t even get in",
+      "text": "How u crying at the casino and u can\u2019t even get in",
       "source": "@dash_eats",
       "url": "https://x.com/dash_eats/status/2085405075686801789"
     },
@@ -82,6 +85,9 @@
     }
   ],
   "gallery": [
+    "https://files.catbox.moe/qnvc7b.jpg",
+    "https://files.catbox.moe/nid4qy.jpg",
+    "https://files.catbox.moe/gpjyb0.jpg",
     "https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg",
     "https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666",
     "https://pbs.twimg.com/media/HMGsRZ8XgAEEPrS.jpg",

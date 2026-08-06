@@ -1,17 +1,21 @@
 # dasha desk
 
-**Open mint desk for `$dasha` on Solana.**
+**Unofficial, open-source mint desk for `$dasha` on Solana.**
 
 Static webapp: candidate mint evidence · @dash_eats quotes · live Dex numbers · CA comparison · share pack · buy/chart links.
 
 No backend. No wallet connect. No fake roadmap.
 
+> **Status:** early alpha. The Webflow page is the working demo; GitHub Pages is configured but currently returns 404 until Pages is enabled for the repository.
+
+![Dasha Desk landing page](receipts/concise-landing.png)
+
 | | |
 |--|--|
 | **Repo** | https://github.com/Uuriko/dasha-desk |
-| **Live (Pages)** | https://uuriko.github.io/dasha-desk/ |
-| **Standalone** | https://files.catbox.moe/aughx9.html |
-| **Webflow shell** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
+| **Working demo** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
+| **Pages (pending)** | https://uuriko.github.io/dasha-desk/ — currently unavailable |
+| **Standalone** | https://files.catbox.moe/sm5mo0.html |
 | **Mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
 
 ## Quick start
@@ -41,9 +45,22 @@ Canonical sources: [`src/body.html`](src/body.html), [`src/styles.css`](src/styl
 ```bash
 node build.mjs --write  # regenerate Webflow embed, standalone and single-file build
 node build.mjs --check  # fail if generated files drift
+node dasha-share.test.mjs
 ```
 
 Generated surfaces: [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for normal hosting, and [`dist/index.html`](dist/index.html) for single-file hosting.
+
+The CI workflow runs the same build-drift and behavior checks on every pull request before deployment can run.
+
+## Runtime boundaries
+
+| Provider | Used for | Failure behavior |
+|---|---|---|
+| Dexscreener API | price, liquidity, volume and chart URL | page stays usable and labels market data offline |
+| qrserver.com | mint QR image | canvas falls back to readable mint text |
+| X, Dexscreener CDN and Catbox | attributed media | broken images collapse to an unavailable placeholder |
+
+Third-party data and media are not endorsements. **Known alpha gap:** provider-supplied URLs still need HTTPS and host allowlisting before the first release.
 
 ## Research
 
@@ -58,7 +75,7 @@ See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) for project code and original documentation. Bundled media is **not automatically MIT-licensed**; see [`assets/ATTRIBUTION.md`](assets/ATTRIBUTION.md) for per-source terms and unresolved redistribution boundaries.
 
 **Not included:** claiming official endorsement by Dasha Nekrasova, Red Scare, or @dash_eats. Quotes are public posts for the `$dasha` instance.
 
@@ -69,3 +86,5 @@ Culture coins can go to zero. This software is not financial, legal, or tax advi
 ## Product
 
 **dasha desk** — open-source mint desk product. `$dasha` is the flagship config.
+
+Security-sensitive mistakes—wrong mint, substituted links, hostile provider data, or impersonation—belong in the private reporting path described in [`SECURITY.md`](SECURITY.md), not a public issue with exploit details.

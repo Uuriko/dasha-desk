@@ -11,315 +11,447 @@
 <meta property="og:image" content="https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666"/>
 <meta name="twitter:card" content="summary_large_image"/>
 <style>html,body{margin:0;padding:0;background:#07060a;min-height:100%}
-#dd-app.dd{--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.12);--text:#f4f0ff;--muted:#b8b0c9;--accent:#a78bfa;--ok:#7dffa3;--bad:#ff9b9b;--warn:#ffe08a;--pink:#f0abfc;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);max-width:960px;margin:0 auto;padding:16px 14px 40px;box-sizing:border-box}
+#dd-app.dd{
+  --card:rgba(255,255,255,.05);
+  --line:rgba(255,255,255,.13);
+  --text:#f6f1ff;
+  --muted:#b8b0c9;
+  --accent:#c4a5ff;
+  --accent-2:#8b5cf6;
+  --ok:#7dffa3;
+  --bad:#ff9b9b;
+  --warn:#ffe08a;
+  --pink:#f0abfc;
+  --glow:rgba(167,139,250,.45);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color:var(--text);
+  max-width:960px;
+  margin:0 auto;
+  padding:18px 16px 48px;
+  box-sizing:border-box;
+  position:relative;
+}
 #dd-app *{box-sizing:border-box}
-.dd-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
+#dd-app::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(900px 420px at 12% -8%,rgba(167,139,250,.22),transparent 55%),
+    radial-gradient(700px 380px at 92% 8%,rgba(240,171,252,.12),transparent 50%),
+    radial-gradient(600px 400px at 50% 100%,rgba(125,255,163,.06),transparent 55%);
+  animation:dd-aurora 14s ease-in-out infinite alternate;
+}
+#dd-app > *{position:relative;z-index:1}
+@keyframes dd-aurora{
+  from{transform:translate3d(0,0,0) scale(1);opacity:.95}
+  to{transform:translate3d(0,-12px,0) scale(1.03);opacity:1}
+}
+
+/* reveal */
+.dd-reveal{opacity:0;transform:translateY(14px);animation:dd-in .55s cubic-bezier(.2,.8,.2,1) forwards}
+.dd-reveal:nth-child(1){animation-delay:.02s}
+.dd-reveal:nth-child(2){animation-delay:.06s}
+.dd-reveal:nth-child(3){animation-delay:.1s}
+.dd-reveal:nth-child(4){animation-delay:.14s}
+.dd-reveal:nth-child(5){animation-delay:.18s}
+.dd-reveal:nth-child(6){animation-delay:.22s}
+.dd-reveal:nth-child(7){animation-delay:.26s}
+.dd-reveal:nth-child(8){animation-delay:.3s}
+.dd-reveal:nth-child(9){animation-delay:.34s}
+.dd-reveal:nth-child(10){animation-delay:.38s}
+.dd-reveal:nth-child(11){animation-delay:.42s}
+.dd-reveal:nth-child(12){animation-delay:.46s}
+@keyframes dd-in{to{opacity:1;transform:none}}
+
+.dd-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
 .dd-brand{display:flex;gap:12px;align-items:center}
-.dd-avatar{width:48px;height:48px;border-radius:14px;object-fit:cover;border:1px solid var(--line);background:#1a1224}
-.dd-mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(145deg,#c4a5ff,#6d4aff);display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:#12091c}
-.dd-name{font-size:18px;letter-spacing:-.02em}
-.dd-tag{margin:2px 0 0;font-size:12px;color:var(--muted)}
-.dd-pills{display:flex;gap:8px;flex-wrap:wrap}
-.dd-pill{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-.dd-pill-ok{color:var(--ok);border-color:rgba(125,255,163,.35)}
-.dd-marquee{overflow:hidden;border:1px solid var(--line);border-radius:999px;background:rgba(0,0,0,.25);margin-bottom:14px;white-space:nowrap}
-.dd-marquee-track{display:inline-block;padding:10px 0;animation:dd-scroll 42s linear infinite;font-size:13px;color:var(--pink)}
-.dd-marquee-track span{margin:0 1.2em;opacity:.9}
+.dd-avatar{
+  width:52px;height:52px;border-radius:16px;object-fit:cover;
+  border:1px solid rgba(196,165,255,.45);
+  background:#1a1224;
+  box-shadow:0 0 0 3px rgba(167,139,250,.12),0 8px 28px rgba(0,0,0,.35);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.dd-avatar:hover{transform:scale(1.04) rotate(-2deg);box-shadow:0 0 24px var(--glow)}
+.dd-name{font-size:19px;letter-spacing:-.03em;font-weight:800}
+.dd-tag{margin:3px 0 0;font-size:12px;color:var(--muted)}
+.dd-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.dd-pill{
+  font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  padding:7px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);
+  background:rgba(0,0,0,.2);backdrop-filter:blur(8px);
+  transition:border-color .2s,color .2s,transform .2s;
+}
+.dd-pill-ok{color:var(--ok);border-color:rgba(125,255,163,.4);box-shadow:0 0 16px rgba(125,255,163,.15)}
+.dd-pill-live{animation:dd-pulse 2s ease-in-out infinite}
+@keyframes dd-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(125,255,163,.25)}
+  50%{box-shadow:0 0 0 6px rgba(125,255,163,0)}
+}
+#dd-px{font-variant-numeric:tabular-nums;color:var(--accent);border-color:rgba(196,165,255,.35)}
+#dd-px.dd-flash{animation:dd-flash .55s ease}
+@keyframes dd-flash{
+  0%{background:rgba(196,165,255,.25)}
+  100%{background:transparent}
+}
+
+.dd-marquee{
+  overflow:hidden;border:1px solid var(--line);border-radius:999px;
+  background:linear-gradient(90deg,rgba(0,0,0,.35),rgba(40,20,70,.35),rgba(0,0,0,.35));
+  margin-bottom:16px;white-space:nowrap;
+  mask-image:linear-gradient(90deg,transparent,black 8%,black 92%,transparent);
+}
+.dd-marquee-track{display:inline-block;padding:11px 0;animation:dd-scroll 38s linear infinite;font-size:13px;color:var(--pink);font-weight:600}
+.dd-marquee-track span{margin:0 1.4em;opacity:.92}
+.dd-marquee-track span::before{content:"✦ ";opacity:.5}
 @keyframes dd-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.dd-hero-card,.dd-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
-.dd-hero-card{margin-bottom:14px;background:radial-gradient(700px 220px at 20% -20%,rgba(167,139,250,.18),transparent 60%),var(--card)}
-.dd-kicker{margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.16em;color:#c4a5ff}
-.dd-h1{margin:0 0 8px;font-size:clamp(42px,11vw,68px);line-height:1;letter-spacing:-.03em}
-.dd-lede{margin:0 0 14px;color:var(--muted);line-height:1.45;font-size:15px}
-.dd-quote{margin:0 0 14px;padding:12px 14px;border-left:3px solid var(--accent);background:rgba(0,0,0,.2);border-radius:0 12px 12px 0}
-.dd-quote p{margin:0 0 6px;font-size:15px;line-height:1.4;font-style:italic;color:#efe9ff}
+@media (hover:hover){.dd-marquee:hover .dd-marquee-track{animation-play-state:paused}}
+
+.dd-hero-card,.dd-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:18px;
+  backdrop-filter:blur(12px);
+  transition:border-color .25s, transform .25s, box-shadow .25s;
+}
+.dd-hero-card{
+  margin-bottom:16px;
+  background:
+    radial-gradient(800px 260px at 18% -30%,rgba(167,139,250,.28),transparent 60%),
+    radial-gradient(500px 200px at 100% 0%,rgba(240,171,252,.12),transparent 50%),
+    var(--card);
+  box-shadow:0 20px 50px rgba(0,0,0,.28);
+}
+.dd-card:hover{border-color:rgba(196,165,255,.28);box-shadow:0 12px 40px rgba(0,0,0,.22)}
+.dd-kicker{margin:0 0 8px;font-size:11px;font-weight:800;letter-spacing:.18em;color:#d4b8ff;text-transform:uppercase}
+.dd-h1{
+  margin:0 0 8px;font-size:clamp(48px,12vw,76px);line-height:.95;letter-spacing:-.04em;font-weight:900;
+  background:linear-gradient(135deg,#fff 20%,#d4b8ff 55%,#a78bfa 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 8px 24px rgba(167,139,250,.25));
+}
+.dd-lede{margin:0 0 14px;color:var(--muted);line-height:1.5;font-size:15px;max-width:48ch}
+.dd-quote{
+  margin:0 0 14px;padding:14px 16px;
+  border-left:3px solid var(--accent);
+  background:linear-gradient(90deg,rgba(167,139,250,.12),rgba(0,0,0,.15));
+  border-radius:0 14px 14px 0;
+  transition:transform .2s ease, background .2s;
+}
+.dd-quote:hover{transform:translateX(3px);background:linear-gradient(90deg,rgba(167,139,250,.18),rgba(0,0,0,.2))}
+.dd-quote p{margin:0 0 6px;font-size:16px;line-height:1.4;font-style:italic;color:#f3ecff}
 .dd-quote cite{font-size:12px;color:var(--muted);font-style:normal}
-.dd-quote-soft{border-left-color:rgba(255,255,255,.2);margin-bottom:12px}
-.dd-mint-box{padding:14px;border-radius:14px;border:1px solid rgba(167,139,250,.35);background:rgba(167,139,250,.08);margin-bottom:14px}
-.dd-ca-label{margin:0 0 6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#c4a5ff}
-.dd-ca{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.45;word-break:break-all;color:#efe9ff;margin-bottom:10px}
-.dd-mint-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
-.dd-hint{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+.dd-quote-soft{border-left-color:rgba(255,255,255,.22);margin-bottom:12px}
+
+.dd-mint-box{
+  padding:16px;border-radius:16px;
+  border:1px solid rgba(167,139,250,.4);
+  background:
+    linear-gradient(145deg,rgba(167,139,250,.14),rgba(0,0,0,.25));
+  margin-bottom:14px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 40px rgba(139,92,246,.12);
+  position:relative;
+  overflow:hidden;
+}
+.dd-mint-box::after{
+  content:"";position:absolute;inset:-40% auto auto -20%;width:60%;height:80%;
+  background:radial-gradient(circle,rgba(196,165,255,.2),transparent 70%);
+  pointer-events:none;animation:dd-shimmer 5s ease-in-out infinite;
+}
+@keyframes dd-shimmer{0%,100%{transform:translate(0,0);opacity:.5}50%{transform:translate(30%,10%);opacity:1}}
+.dd-ca-label{margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#d4b8ff;position:relative}
+.dd-ca{
+  display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.5;
+  word-break:break-all;color:#f6f1ff;margin-bottom:12px;position:relative;
+  text-shadow:0 0 20px rgba(196,165,255,.25);
+}
+.dd-mint-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px;position:relative}
+.dd-hint{margin:0;font-size:12px;color:var(--muted);line-height:1.45;position:relative}
 .dd-actions{display:flex;flex-wrap:wrap;gap:8px}
-.dd-btn{appearance:none;border:1px solid var(--line);background:transparent;color:var(--text);min-height:42px;padding:10px 14px;border-radius:999px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
-.dd-btn-primary{background:var(--accent);color:#12091c;border-color:transparent}
+.dd-btn{
+  appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--text);min-height:44px;padding:10px 16px;border-radius:999px;
+  font-size:13px;font-weight:700;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .15s ease, background .2s, border-color .2s, box-shadow .2s;
+}
+.dd-btn:hover{transform:translateY(-1px);border-color:rgba(196,165,255,.45);background:rgba(255,255,255,.06)}
+.dd-btn:active{transform:translateY(0) scale(.98)}
+.dd-btn-primary{
+  background:linear-gradient(135deg,#d4b8ff,#8b5cf6);
+  color:#12091c;border-color:transparent;
+  box-shadow:0 6px 24px rgba(139,92,246,.4);
+}
+.dd-btn-primary:hover{box-shadow:0 8px 28px rgba(139,92,246,.55);background:linear-gradient(135deg,#e0c9ff,#9b6dff)}
 .dd-btn:focus{outline:2px solid #fff;outline-offset:2px}
-.dd-toast{font-size:12px;color:var(--ok);font-weight:700}
+.dd-toast{
+  font-size:12px;color:var(--ok);font-weight:800;
+  animation:dd-pop .35s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes dd-pop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+
 .dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 @media(max-width:720px){.dd-grid{grid-template-columns:1fr}}
-.dd-card h2{margin:0 0 6px;font-size:16px}
+.dd-card h2{margin:0 0 6px;font-size:17px;letter-spacing:-.02em}
 .dd-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.dd-linkish{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;font-size:12px;min-height:42px;padding:8px}
+.dd-linkish{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;font-size:12px;min-height:42px;padding:8px;transition:opacity .2s}
+.dd-linkish:hover{opacity:.8}
 .dd-meta{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.45}
 .dd-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.dd-stat{padding:10px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06)}
-.dd-stat span{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
-.dd-stat strong{font-size:15px;font-variant-numeric:tabular-nums}
+.dd-stat{
+  padding:12px;border-radius:14px;background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.06);
+  transition:transform .2s, border-color .2s, background .2s;
+}
+.dd-stat:hover{transform:translateY(-2px);border-color:rgba(196,165,255,.3);background:rgba(167,139,250,.08)}
+.dd-stat span{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em}
+.dd-stat strong{font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .dd-label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-.dd-input,.dd-textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--text);padding:12px;font:inherit;font-size:13px}
+.dd-input,.dd-textarea{
+  width:100%;border-radius:14px;border:1px solid var(--line);
+  background:rgba(0,0,0,.32);color:var(--text);padding:13px;font:inherit;font-size:13px;
+  transition:border-color .2s, box-shadow .2s;
+}
+.dd-input:focus,.dd-textarea:focus{outline:none;border-color:rgba(196,165,255,.55);box-shadow:0 0 0 3px rgba(167,139,250,.18)}
 .dd-input{font-family:ui-monospace,Menlo,Consolas,monospace;margin-bottom:10px}
 .dd-textarea{resize:vertical;line-height:1.45;margin-bottom:10px}
-.dd-verify{padding:12px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--line);background:rgba(0,0,0,.2);margin-bottom:10px}
-.dd-verify.ok{color:var(--ok);border-color:rgba(125,255,163,.35)}
-.dd-verify.bad{color:var(--bad);border-color:rgba(255,155,155,.35)}
-.dd-verify.warn{color:var(--warn);border-color:rgba(255,224,138,.35)}
+.dd-verify{padding:12px;border-radius:12px;font-size:13px;font-weight:700;border:1px solid var(--line);background:rgba(0,0,0,.22);margin-bottom:10px;transition:all .25s}
+.dd-verify.ok{color:var(--ok);border-color:rgba(125,255,163,.4);box-shadow:0 0 20px rgba(125,255,163,.12)}
+.dd-verify.bad{color:var(--bad);border-color:rgba(255,155,155,.4)}
+.dd-verify.warn{color:var(--warn);border-color:rgba(255,224,138,.4)}
 .dd-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.dd-tools a{font-size:12px;font-weight:700;color:var(--text);text-decoration:none;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04)}
+.dd-tools a{
+  font-size:12px;font-weight:700;color:var(--text);text-decoration:none;
+  padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);
+  transition:transform .15s, border-color .2s, background .2s;
+}
+.dd-tools a:hover{transform:translateY(-1px);border-color:rgba(196,165,255,.4);background:rgba(167,139,250,.1)}
 .dd-qr-wrap{display:flex}
-#dd-qr{background:#fff;border-radius:12px;padding:6px}
+#dd-qr{background:#fff;border-radius:14px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .dd-quotes-row{margin-bottom:14px}
 .dd-quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
 @media(max-width:720px){.dd-quote-grid{grid-template-columns:1fr}}
 .dd-quote-grid .dd-quote{margin:0}
+
 .dd-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
 @media(max-width:720px){.dd-gallery{grid-template-columns:1fr 1fr}}
-.dd-gal-item{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:rgba(0,0,0,.3);position:relative}
-.dd-gal-item img{display:block;width:100%;height:140px;object-fit:cover;background:#12091c}
-.dd-gal-item figcaption{padding:8px 10px;font-size:11px;color:var(--muted);line-height:1.35}
+.dd-gal-item{
+  margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);
+  background:rgba(0,0,0,.35);position:relative;
+  transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s, border-color .3s;
+}
+.dd-gal-item:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:rgba(196,165,255,.4);z-index:2}
+.dd-gal-item img{
+  display:block;width:100%;height:148px;object-fit:cover;background:#12091c;
+  transition:transform .45s cubic-bezier(.2,.8,.2,1), filter .3s;
+}
+.dd-gal-item:hover img{transform:scale(1.06);filter:saturate(1.1) brightness(1.05)}
+.dd-gal-item figcaption{
+  padding:9px 11px;font-size:11px;color:var(--muted);line-height:1.35;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));
+  position:absolute;left:0;right:0;bottom:0;color:#e8e0f5;
+}
+
 .dd-meme-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
 @media(max-width:720px){.dd-meme-grid{grid-template-columns:1fr}}
-.dd-meme{border-radius:16px;padding:18px 16px;min-height:120px;display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line);position:relative;overflow:hidden}
+.dd-meme{
+  border-radius:18px;padding:20px 18px;min-height:128px;
+  display:flex;flex-direction:column;justify-content:center;
+  border:1px solid var(--line);position:relative;overflow:hidden;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s;
+}
+.dd-meme::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(400px 160px at 0% 0%,rgba(255,255,255,.1),transparent 60%);
+  pointer-events:none;
+}
+.dd-meme:hover{transform:translateY(-3px) rotate(-.3deg);box-shadow:0 16px 40px rgba(0,0,0,.35)}
 .dd-meme p{margin:0;font-size:clamp(16px,3.5vw,22px);font-weight:800;line-height:1.25;letter-spacing:-.02em;position:relative;z-index:1}
-.dd-meme small{margin-top:10px;font-size:11px;opacity:.75;position:relative;z-index:1}
-.dd-meme-a{background:linear-gradient(145deg,#3b1d6e,#12091c 70%)}
-.dd-meme-b{background:linear-gradient(145deg,#1d3b2a,#0a0f0c 70%)}
-.dd-meme-c{background:linear-gradient(145deg,#4a1d3a,#12080f 70%)}
-.dd-meme-d{background:linear-gradient(145deg,#1d2a4a,#080c14 70%)}
-.dd-meme-e{background:linear-gradient(145deg,#4a3a12,#141008 70%)}
-.dd-meme-f{background:linear-gradient(145deg,#2a1d4a,#0c0814 70%)}
+.dd-meme small{margin-top:10px;font-size:11px;opacity:.78;position:relative;z-index:1;letter-spacing:.02em}
+.dd-meme-a{background:linear-gradient(145deg,#4a2680,#160b24 68%)}
+.dd-meme-b{background:linear-gradient(145deg,#1f4a35,#0a120e 68%)}
+.dd-meme-c{background:linear-gradient(145deg,#5a2450,#160810 68%)}
+.dd-meme-d{background:linear-gradient(145deg,#243a6a,#080c16 68%)}
+.dd-meme-e{background:linear-gradient(145deg,#5a4818,#161008 68%)}
+.dd-meme-f{background:linear-gradient(145deg,#3a2870,#0e0818 68%)}
+
 .dd-timeline{list-style:none;margin:10px 0 0;padding:0}
-.dd-timeline li{position:relative;padding:0 0 14px 18px;border-left:2px solid rgba(167,139,250,.35);margin-left:6px}
+.dd-timeline li{position:relative;padding:0 0 16px 18px;border-left:2px solid rgba(167,139,250,.35);margin-left:6px}
 .dd-timeline li:last-child{padding-bottom:0}
-.dd-timeline li::before{content:"";position:absolute;left:-5px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
-.dd-timeline strong{display:block;font-size:12px;color:#c4a5ff;margin-bottom:2px}
+.dd-timeline li::before{
+  content:"";position:absolute;left:-5px;top:4px;width:8px;height:8px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 10px var(--glow);
+}
+.dd-timeline strong{display:block;font-size:12px;color:#d4b8ff;margin-bottom:2px}
 .dd-timeline span{font-size:13px;color:var(--muted);line-height:1.4}
 .dd-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-.dd-chip{font-size:12px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text)}
-.dd-tape{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;color:#d8d0ec;background:rgba(0,0,0,.35);border-radius:12px;padding:12px;border:1px solid var(--line);white-space:pre-wrap}
-.dd-banner-wrap{margin:-6px -6px 14px;border-radius:14px;overflow:hidden;border:1px solid var(--line);max-height:160px}
-.dd-banner{display:block;width:100%;height:140px;object-fit:cover;background:linear-gradient(120deg,#2a1840,#12091c)}
+.dd-chip{
+  font-size:12px;padding:8px 13px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(255,255,255,.04);color:var(--text);
+  transition:transform .15s, border-color .2s, background .2s;
+}
+.dd-chip:hover{transform:translateY(-1px);border-color:rgba(196,165,255,.4);background:rgba(167,139,250,.12)}
+.dd-tape{
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.55;color:#d8d0ec;
+  background:rgba(0,0,0,.4);border-radius:14px;padding:14px;border:1px solid var(--line);white-space:pre-wrap;
+  box-shadow:inset 0 0 40px rgba(167,139,250,.06);
+}
+.dd-banner-wrap{
+  margin:-6px -6px 14px;border-radius:16px;overflow:hidden;border:1px solid var(--line);max-height:168px;
+  box-shadow:0 12px 40px rgba(0,0,0,.3);
+}
+.dd-banner{display:block;width:100%;height:150px;object-fit:cover;background:linear-gradient(120deg,#2a1840,#12091c);transition:transform .6s ease}
+.dd-hero-card:hover .dd-banner{transform:scale(1.03)}
 .dd-token-hero{display:flex;gap:14px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
-.dd-token-hero img{width:88px;height:88px;border-radius:18px;object-fit:cover;border:1px solid var(--line);background:#1a1224}
-.dd-sticky{position:sticky;bottom:10px;z-index:5;margin:14px 0 0;padding:10px 12px;border-radius:14px;border:1px solid rgba(167,139,250,.4);background:rgba(12,8,18,.92);backdrop-filter:blur(10px);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.dd-token-hero img{
+  width:92px;height:92px;border-radius:20px;object-fit:cover;
+  border:1px solid rgba(196,165,255,.4);background:#1a1224;
+  box-shadow:0 0 0 4px rgba(167,139,250,.12),0 12px 32px rgba(0,0,0,.35);
+  transition:transform .3s ease, box-shadow .3s;
+}
+.dd-token-hero img:hover{transform:scale(1.05) rotate(-2deg);box-shadow:0 0 32px var(--glow)}
+.dd-section{margin-bottom:14px}
+.dd-sticky{
+  position:sticky;bottom:12px;z-index:5;margin:16px 0 0;padding:12px 14px;border-radius:16px;
+  border:1px solid rgba(167,139,250,.45);
+  background:rgba(12,8,18,.88);
+  backdrop-filter:blur(16px) saturate(1.2);
+  display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  box-shadow:0 12px 40px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.04) inset;
+  animation:dd-in .5s ease .4s both;
+}
 .dd-sticky code{font-size:11px;word-break:break-all;color:#efe9ff;flex:1;min-width:140px}
 .dd-img-broken{display:flex!important;align-items:center;justify-content:center;background:linear-gradient(145deg,#3b1d6e,#12091c);color:#c4a5ff;font-size:12px;font-weight:700;min-height:88px}
-.dd-section{margin-bottom:14px}
-.dd-foot{margin-top:4px;padding:12px 4px;color:var(--muted);font-size:12px;line-height:1.5;text-align:center}
+.dd-foot{margin-top:8px;padding:14px 4px;color:var(--muted);font-size:12px;line-height:1.55;text-align:center}
 .dd-foot p{margin:0 0 6px}
 .dd-foot a{color:var(--accent)}
+
+/* risk + jump + share room */
+.dd-risk{
+  margin:0 0 14px;padding:10px 14px;border-radius:12px;
+  border:1px solid rgba(255,224,138,.28);
+  background:rgba(255,224,138,.08);
+  font-size:12px;line-height:1.4;color:#e8dfc0;letter-spacing:.01em;
+  text-align:center;
+}
+#dd-app.dd{max-width:720px;padding:16px 14px 40px}
+.dd-hero-card{padding:16px}
+.dd-banner-wrap{max-height:120px;margin:-4px -4px 12px}
+.dd-banner{height:110px}
+.dd-h1{font-size:clamp(40px,11vw,64px)}
+.dd-lede{max-width:40ch;font-size:14px}
+.dd-meme{min-height:100px;padding:16px}
+.dd-meme p{font-size:clamp(15px,3.2vw,18px)}
+.dd-gallery{grid-template-columns:repeat(3,1fr);gap:8px}
+.dd-gal-item img{height:120px}
+.dd-section{margin-bottom:12px}
+.dd-grid{gap:12px;margin-bottom:12px}
+.dd-pack-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.dd-pack-tab{
+  appearance:none;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--muted);
+  min-height:40px;padding:8px 14px;border-radius:999px;font-size:12px;font-weight:800;cursor:pointer;
+  transition:border-color .2s, color .2s, background .2s, transform .15s;
+}
+.dd-pack-tab:hover{color:var(--text);border-color:rgba(196,165,255,.4)}
+.dd-pack-tab.is-on{
+  color:#12091c;background:linear-gradient(135deg,#d4b8ff,#8b5cf6);border-color:transparent;
+  box-shadow:0 4px 16px rgba(139,92,246,.35);
+}
+.dd-share-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+@media(max-width:720px){.dd-share-cards{grid-template-columns:1fr}}
+.dd-share-card{
+  margin:0;padding:10px;border-radius:16px;border:1px solid var(--line);
+  background:rgba(0,0,0,.28);display:flex;flex-direction:column;gap:8px;
+  transition:transform .2s, border-color .2s;
+}
+.dd-share-card:hover{transform:translateY(-2px);border-color:rgba(196,165,255,.4)}
+.dd-share-card img{width:100%;height:140px;object-fit:cover;border-radius:12px;background:#12091c}
+.dd-share-card figcaption{font-size:12px;color:var(--muted)}
+.dd-btn-sm{min-height:38px;padding:8px 12px;font-size:12px}
+button.dd-meme{
+  width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;
+}
+button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
+.dd-quote-tap{cursor:pointer}
+.dd-quote-tap:focus{outline:2px solid var(--accent);outline-offset:2px}
+.dd-quote-tap:hover{border-left-color:var(--pink)}
+.dd-steps{margin:0 0 14px;padding-left:1.2em;color:var(--muted);font-size:14px;line-height:1.55}
+.dd-steps li{margin-bottom:8px}
+.dd-steps li::marker{color:var(--accent)}
+
+@media (prefers-reduced-motion:reduce){
+  #dd-app::before,.dd-marquee-track,.dd-pill-live,.dd-mint-box::after,.dd-reveal,.dd-sticky{animation:none!important}
+  .dd-reveal{opacity:1;transform:none}
+  .dd-btn,.dd-gal-item,.dd-meme,.dd-stat,.dd-banner,.dd-token-hero img,.dd-share-card{transition:none}
+}
 </style>
 </head>
 <body>
 <div id="dd-app" class="dd">
-  <header class="dd-top">
+  <header class="dd-top dd-reveal">
     <div class="dd-brand">
-      <img class="dd-avatar" src="https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg" alt="" width="48" height="48" referrerpolicy="no-referrer" loading="lazy"/>
+      <img class="dd-avatar" src="https://files.catbox.moe/skjqyu.jpg" alt="" width="48" height="48" referrerpolicy="no-referrer" loading="lazy"/>
       <div>
         <strong class="dd-name">dasha desk</strong>
-        <p class="dd-tag">$dasha · casino open · still optimistic</p>
+        <p class="dd-tag">$dasha · casino open</p>
       </div>
     </div>
     <div class="dd-pills">
       <span class="dd-pill">Solana</span>
       <span class="dd-pill" id="dd-px">—</span>
-      <span class="dd-pill dd-pill-ok" id="dd-live">live</span>
+      <span class="dd-pill dd-pill-ok dd-pill-live" id="dd-live">live</span>
     </div>
   </header>
 
-  <div class="dd-marquee" aria-hidden="true">
-    <div class="dd-marquee-track">
-      <span>How u crying at the casino and u can’t even get in</span>
-      <span>Go ahead and doubt me see what happens</span>
-      <span>The pain of my entire life lifted at Erewhon Pasadena</span>
-      <span>Well Im still alive</span>
-      <span>And still Im optimistic</span>
-      <span>They are angels actually</span>
-      <span>You're not gonna believe this</span>
-      <span>I'm still holding $dasha</span>
-      <span>How u crying at the casino and u can’t even get in</span>
-      <span>Go ahead and doubt me see what happens</span>
-      <span>The pain of my entire life lifted at Erewhon Pasadena</span>
-      <span>Well Im still alive</span>
-      <span>And still Im optimistic</span>
-      <span>They are angels actually</span>
-      <span>You're not gonna believe this</span>
-      <span>I'm still holding $dasha</span>
-    </div>
-  </div>
+  <aside class="dd-risk dd-reveal" role="note">
+    Culture coin · can go to zero · NFA · association ≠ endorsement
+  </aside>
 
-  <section class="dd-hero-card">
+  <section class="dd-hero-card dd-reveal" id="dd-mint">
     <div class="dd-banner-wrap">
-      <img class="dd-banner" id="dd-banner" src="https://cdn.dexscreener.com/cms/images/12deeeb94f75d332a3795390604d849aae5a2441a451dad49332bdfd17ded9e0" alt="" width="900" height="220" referrerpolicy="no-referrer" loading="lazy"/>
+      <img class="dd-banner" id="dd-banner" src="https://files.catbox.moe/qnvc7b.jpg" alt="" width="900" height="220" referrerpolicy="no-referrer" loading="lazy"/>
     </div>
     <div class="dd-token-hero">
-      <img id="dd-token-img" src="https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666" alt="$dasha token art" width="88" height="88" referrerpolicy="no-referrer" loading="lazy"/>
+      <img id="dd-token-img" src="https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666" alt="$dasha" width="88" height="88" referrerpolicy="no-referrer" loading="lazy"/>
       <div>
-        <p class="dd-kicker">@DASH_EATS · FRESH CA</p>
+        <p class="dd-kicker">@dash_eats · associated mint</p>
         <h1 class="dd-h1">$dasha</h1>
-        <p class="dd-lede">She posted the mint. Casino open. Culture coin on Solana — association is not endorsement, safety, or a plan.</p>
+        <p class="dd-lede">She posted the CA. Copy it, chart it, share it. Not a roadmap. Not official.</p>
       </div>
     </div>
+
     <blockquote class="dd-quote">
       <p>“How u crying at the casino and u can’t even get in”</p>
-      <cite>— @dash_eats · then the CA · 2026-08-06</cite>
+      <cite>— @dash_eats</cite>
     </blockquote>
+
     <div class="dd-mint-box">
-      <p class="dd-ca-label">Associated mint</p>
+      <p class="dd-ca-label">Mint</p>
       <code id="dd-ca" class="dd-ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
       <div class="dd-mint-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy">Copy CA</button>
         <button type="button" class="dd-btn" id="dd-copy-short">Short</button>
+        <button type="button" class="dd-btn" id="dd-copy-pack-mini">CA + line</button>
         <span class="dd-toast" id="dd-toast" hidden>Copied</span>
       </div>
-      <p class="dd-hint">Linked by @dash_eats · symbol dasha · name dash_eats · verify every string yourself</p>
     </div>
-    <blockquote class="dd-quote dd-quote-soft">
-      <p>“Go ahead and doubt me see what happens”</p>
-      <cite>— @dash_eats</cite>
-    </blockquote>
+
     <div class="dd-actions">
       <a class="dd-btn dd-btn-primary" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
       <a class="dd-btn" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Chart</a>
       <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats">@dash_eats</a>
       <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">CA post</a>
-      <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/PerryALPHA">@PerryALPHA</a>
     </div>
   </section>
 
-  <section class="dd-card dd-section">
-    <h2>Meme wall</h2>
-    <p class="dd-meta">Text cards in the feed voice. Not official merch. Not financial advice.</p>
-    <div class="dd-meme-grid">
-      <div class="dd-meme dd-meme-a"><p>How u crying at the casino and u can’t even get in</p><small>@dash_eats · casino open</small></div>
-      <div class="dd-meme dd-meme-b"><p>I'm still holding $dasha</p><small>@PerryALPHA · bagholder tape</small></div>
-      <div class="dd-meme dd-meme-c"><p>The pain of my entire life lifted at Erewhon Pasadena</p><small>@dash_eats · wellness arc</small></div>
-      <div class="dd-meme dd-meme-d"><p>Well Im still alive · And still Im optimistic</p><small>@dash_eats · duality</small></div>
-      <div class="dd-meme dd-meme-e"><p>Go ahead and doubt me see what happens</p><small>@dash_eats · challenge</small></div>
-      <div class="dd-meme dd-meme-f"><p>Beautiful women want to be held by alpha males<br/>+ the CA</p><small>@PerryALPHA · co-post energy</small></div>
-    </div>
-  </section>
-
-  <section class="dd-card dd-section">
-    <h2>Image dump</h2>
-    <p class="dd-meta">Public posts / culture stills hotlinked from X. May fail if blocked — the text still holds.</p>
-    <div class="dd-gallery">
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg" alt="dash_eats avatar" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>@dash_eats · avatar</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666" alt="token" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>$dasha · Dex art</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HMGsRZ8XgAEEPrS.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>“Well well well”</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HOpfTEyaIAAOVPy.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>@dash_eats · Aug post</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HN37QhRXkAALZR4.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>@dash_eats · multi-post</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HLbdLcXX0AEwa2X.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>@dash_eats · summer dump</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HLDbupNXkAAzfhI.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>Daveigh Chase 💔</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HJvwn-6XAAAORhZ.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>Summer love line · w/ Anna</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HJ-whecWoAEildo.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>“The bounty is crazy work tho”</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HMu99HxXkAENYKI.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>Perry: Dasha / Spain AC bit</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/Gkoqvc4WIAAYPJM.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>NYMag · NIMBY line</figcaption>
-      </figure>
-      <figure class="dd-gal-item">
-        <img src="https://pbs.twimg.com/media/HHTIOCcXUAAcsUF.jpg" alt="" referrerpolicy="no-referrer" loading="lazy"/>
-        <figcaption>Community: “iconic Dasha meme”</figcaption>
-      </figure>
-    </div>
-  </section>
-
-  <section class="dd-card dd-quotes-row">
-    <h2>Voice board — her lines</h2>
-    <p class="dd-meta">Short public posts. Deadpan. No fake “roadmap.”</p>
-    <div class="dd-quote-grid">
-      <blockquote class="dd-quote dd-quote-soft"><p>“How u crying at the casino and u can’t even get in”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“The pain of my entire life lifted at Erewhon Pasadena”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“Go ahead and doubt me see what happens”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“They are angels actually”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“You're not gonna believe this”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“Well Im still alive”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“And still Im optimistic”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“PLEASE FREE TIBET”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“WHY can’t Tibet be free? If you even care…”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“Cmon”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“Free to be themselves”</p><cite>— @dash_eats</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“If you harassed me today you can make it right by holding some $dasha”</p><cite>— @dash_eats · 2025</cite></blockquote>
-    </div>
-    <div class="dd-chip-row">
-      <span class="dd-chip">casino open</span>
-      <span class="dd-chip">Erewhon arc</span>
-      <span class="dd-chip">still optimistic</span>
-      <span class="dd-chip">doubt me</span>
-      <span class="dd-chip">angels actually</span>
-      <span class="dd-chip">free Tibet bit</span>
-      <span class="dd-chip">bohemian layabouts</span>
-      <span class="dd-chip">free healthcare honey</span>
-    </div>
-  </section>
-
-  <section class="dd-grid">
-    <article class="dd-card">
-      <h2>Timeline chatter</h2>
-      <p class="dd-meta">Lore from public posts — not verified price history.</p>
-      <ul class="dd-timeline">
-        <li><strong>2025-03</strong><span>@dash_eats posts CA + “holding some $dasha” make-it-right line</span></li>
-        <li><strong>2026-06</strong><span>@PerryALPHA: “I love Dasha” · Red Scare adjacent spam</span></li>
-        <li><strong>2026-07</strong><span>Perry bit: “Dasha has died in Spain due to lack of air conditioning”</span></li>
-        <li><strong>2026-08-06</strong><span>Casino line → CA post · Perry: still holding + reposts CA</span></li>
-        <li><strong>ongoing</strong><span>Community: run it back · bagholder chants · NFA forever</span></li>
-      </ul>
-    </article>
-    <article class="dd-card">
-      <h2>Community tape</h2>
-      <p class="dd-meta">Third-party. Not her. Labeled.</p>
-      <div class="dd-tape">@PerryALPHA
-Beautiful women want to be held by alpha males
-The CA for $dasha is 53uxQt…pump
-
-@PerryALPHA
-I'm still holding $dasha
-
-@PerryALPHA
-I have sad news… Dasha has died in Spain due to lack of air conditioning
-
-community
-Run it back $DASHA
-
-folklore
-pumped / dumped / pumped harder (unverified chat)</div>
-    </article>
-  </section>
-
-  <section class="dd-grid">
+  <section class="dd-grid dd-reveal" id="dd-numbers">
     <article class="dd-card">
       <div class="dd-card-head">
-        <h2>Numbers</h2>
+        <h2>Live</h2>
         <button type="button" class="dd-linkish" id="dd-refresh">Refresh</button>
       </div>
       <p class="dd-meta" id="dd-asof">Loading Dex…</p>
@@ -327,45 +459,91 @@ pumped / dumped / pumped harder (unverified chat)</div>
         <div class="dd-stat"><span>Price</span><strong id="s-price">—</strong></div>
         <div class="dd-stat"><span>Mcap</span><strong id="s-mcap">—</strong></div>
         <div class="dd-stat"><span>Liq</span><strong id="s-liq">—</strong></div>
-        <div class="dd-stat"><span>Vol 24h</span><strong id="s-vol">—</strong></div>
+        <div class="dd-stat"><span>24h</span><strong id="s-24h">—</strong></div>
+      </div>
+      <div class="dd-stats dd-stats-row" style="margin-top:8px">
         <div class="dd-stat"><span>5m</span><strong id="s-5m">—</strong></div>
         <div class="dd-stat"><span>1h</span><strong id="s-1h">—</strong></div>
         <div class="dd-stat"><span>6h</span><strong id="s-6h">—</strong></div>
-        <div class="dd-stat"><span>24h</span><strong id="s-24h">—</strong></div>
+        <div class="dd-stat"><span>Vol</span><strong id="s-vol">—</strong></div>
       </div>
     </article>
-    <article class="dd-card">
-      <h2>Is this the mint?</h2>
-      <p class="dd-meta">Paste anything someone DMs you. Casino has fakes.</p>
-      <label class="dd-label" for="dd-paste">Mint</label>
-      <input id="dd-paste" class="dd-input" type="text" spellcheck="false" autocomplete="off" placeholder="paste here…" />
-      <div class="dd-verify" id="dd-verify" role="status">Waiting…</div>
-      <blockquote class="dd-quote dd-quote-soft">
-        <p>“You're not gonna believe this”</p>
-        <cite>— @dash_eats</cite>
-      </blockquote>
-    </article>
-  </section>
-
-  <section class="dd-grid">
-    <article class="dd-card">
-      <h2 id="dd-share-label">Post this</h2>
-      <textarea id="dd-share" class="dd-textarea" rows="4" readonly aria-labelledby="dd-share-label"></textarea>
+    <article class="dd-card" id="dd-share-room">
+      <h2>Share</h2>
+      <p class="dd-meta">Copy a pack or open a draft on X.</p>
+      <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
+        <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
+        <button type="button" class="dd-pack-tab" data-pack="verify" role="tab" aria-selected="false">Verify</button>
+        <button type="button" class="dd-pack-tab" data-pack="meme" role="tab" aria-selected="false">Line</button>
+      </div>
+      <textarea id="dd-share" class="dd-textarea" rows="4" readonly aria-label="Share pack"></textarea>
       <div class="dd-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-share">Copy</button>
         <a class="dd-btn" id="dd-tweet" target="_blank" rel="noopener noreferrer" href="#">Draft on X</a>
+        <a class="dd-btn" id="dd-tweet-alt" target="_blank" rel="noopener noreferrer" href="#" hidden>Alt</a>
       </div>
+    </article>
+  </section>
+
+  <section class="dd-card dd-section dd-reveal" id="dd-memes">
+    <h2>Lines</h2>
+    <p class="dd-meta">Tap to copy. Public posts · not merch · not endorsement.</p>
+    <div class="dd-meme-grid" id="dd-meme-grid">
+      <button type="button" class="dd-meme dd-meme-a" data-share-quote="How u crying at the casino and u can’t even get in"><p>How u crying at the casino and u can’t even get in</p><small>@dash_eats</small></button>
+      <button type="button" class="dd-meme dd-meme-e" data-share-quote="Go ahead and doubt me see what happens"><p>Go ahead and doubt me see what happens</p><small>@dash_eats</small></button>
+      <button type="button" class="dd-meme dd-meme-c" data-share-quote="The pain of my entire life lifted at Erewhon Pasadena"><p>The pain of my entire life lifted at Erewhon Pasadena</p><small>@dash_eats</small></button>
+      <button type="button" class="dd-meme dd-meme-d" data-share-quote="And still Im optimistic"><p>And still Im optimistic</p><small>@dash_eats</small></button>
+      <button type="button" class="dd-meme dd-meme-b" data-share-quote="I'm still holding $dasha"><p>I'm still holding $dasha</p><small>@PerryALPHA · third party</small></button>
+      <button type="button" class="dd-meme dd-meme-f" data-share-quote="They are angels actually"><p>They are angels actually</p><small>@dash_eats</small></button>
+    </div>
+  </section>
+
+  <section class="dd-card dd-section dd-reveal">
+    <h2>Look</h2>
+    <div class="dd-gallery">
+      <figure class="dd-gal-item">
+        <img src="https://files.catbox.moe/gpjyb0.jpg" alt="Casino open" referrerpolicy="no-referrer" loading="lazy"/>
+        <figcaption>Casino open</figcaption>
+      </figure>
+      <figure class="dd-gal-item">
+        <img src="https://files.catbox.moe/nid4qy.jpg" alt="Verify mint" referrerpolicy="no-referrer" loading="lazy"/>
+        <figcaption>Verify mint</figcaption>
+      </figure>
+      <figure class="dd-gal-item">
+        <img src="https://files.catbox.moe/qnvc7b.jpg" alt="Aurora" referrerpolicy="no-referrer" loading="lazy"/>
+        <figcaption>Aurora</figcaption>
+      </figure>
+      <figure class="dd-gal-item">
+        <img src="https://files.catbox.moe/skjqyu.jpg" alt="Portrait edit" referrerpolicy="no-referrer" loading="lazy"/>
+        <figcaption>Portrait · CC BY-SA edit</figcaption>
+      </figure>
+      <figure class="dd-gal-item">
+        <img src="https://files.catbox.moe/e1ir7s.jpg" alt="Casino night" referrerpolicy="no-referrer" loading="lazy"/>
+        <figcaption>Casino night</figcaption>
+      </figure>
+      <figure class="dd-gal-item">
+        <img src="https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666" alt="Token art" referrerpolicy="no-referrer" loading="lazy"/>
+        <figcaption>Token art</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="dd-grid dd-reveal" id="dd-verify-how">
+    <article class="dd-card">
+      <h2>Is this the mint?</h2>
+      <p class="dd-meta">Paste a string from a DM. Fakes exist.</p>
+      <label class="dd-label" for="dd-paste">Mint</label>
+      <input id="dd-paste" class="dd-input" type="text" spellcheck="false" autocomplete="off" placeholder="paste here…" />
+      <div class="dd-verify" id="dd-verify" role="status">Waiting…</div>
     </article>
     <article class="dd-card">
       <h2>Links</h2>
       <div class="dd-tools">
         <a target="_blank" rel="noopener noreferrer" href="https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Solscan</a>
-        <a target="_blank" rel="noopener noreferrer" href="https://birdeye.so/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump?chain=solana">Birdeye</a>
         <a target="_blank" rel="noopener noreferrer" href="https://rugcheck.xyz/tokens/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Rugcheck</a>
+        <a target="_blank" rel="noopener noreferrer" href="https://birdeye.so/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump?chain=solana">Birdeye</a>
         <a target="_blank" rel="noopener noreferrer" href="https://phantom.com/tokens/solana/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Phantom</a>
-        <a target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats/status/1901740102289854513">2025 hold post</a>
-        <a target="_blank" rel="noopener noreferrer" href="https://x.com/PerryALPHA/status/2085406351937703996">Perry CA post</a>
-        <a target="_blank" rel="noopener noreferrer" href="https://github.com/Uuriko/dasha-desk">Open source</a>
+        <a target="_blank" rel="noopener noreferrer" href="https://github.com/Uuriko/dasha-desk">OSS</a>
       </div>
       <div class="dd-qr-wrap">
         <canvas id="dd-qr" width="120" height="120" aria-label="QR of mint"></canvas>
@@ -373,108 +551,218 @@ pumped / dumped / pumped harder (unverified chat)</div>
     </article>
   </section>
 
-  <section class="dd-card dd-section">
-    <h2>Culture footnotes</h2>
-    <p class="dd-meta">Secondary public culture — use as color, not as endorsement.</p>
-    <div class="dd-quote-grid">
-      <blockquote class="dd-quote dd-quote-soft"><p>“I’m not a NIMBY… I don’t see why people don’t like NIMBYs.”</p><cite>— Dasha via NYMag</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>“I’d pay good money for a hot guy to chase me through the woods”</p><cite>— Red Scare era clip boards</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>bohemian layabouts · free healthcare honey</p><cite>— viral era shorthand</cite></blockquote>
-      <blockquote class="dd-quote dd-quote-soft"><p>Dasha has died in Spain due to lack of air conditioning</p><cite>— @PerryALPHA bit</cite></blockquote>
-    </div>
-  </section>
-
-  <div class="dd-sticky" role="region" aria-label="Mint bar">
+  <div class="dd-sticky dd-reveal" role="region" aria-label="Mint bar">
     <code title="Associated mint">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
     <strong id="dd-sticky-px" style="font-size:13px;color:#c4a5ff">—</strong>
     <button type="button" class="dd-btn dd-btn-primary" id="dd-sticky-copy">Copy CA</button>
     <a class="dd-btn" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
+    <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">X</a>
   </div>
 
-  <footer class="dd-foot">
-    <p>Culture coin. Can go to zero. Not financial advice. Not affiliated with Dasha, Red Scare, or @dash_eats beyond public posts cited on this page.</p>
-    <p><a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk OSS</a> · research: docs/X-RESEARCH-DASHA-2026-08-06.md</p>
+  <footer class="dd-foot dd-reveal">
+    <p>Not affiliated with Dasha, Red Scare, or @dash_eats beyond public posts cited here. Can go to zero.</p>
+    <p><a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk</a></p>
   </footer>
 </div>
 <script>
-(function(){
+(function () {
   var CA = '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
   var PAIR = 'https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7';
-  if (!document.getElementById('dd-app')) return;
-  function $(id){ return document.getElementById(id); }
-  function fmtUsd(n){
+  var CASINO = 'How u crying at the casino and u can’t even get in';
+
+  /** Pure share-pack builders — unit-tested via global.DDShare */
+  function buildSharePack(kind) {
+    kind = kind || 'raid';
+    if (kind === 'discord') {
+      return (
+        '**$dasha** desk pack\n' +
+        '`' + CA + '`\n' +
+        CASINO + '\n' +
+        'Chart: ' + PAIR + '\n' +
+        'NFA · can go to zero · association ≠ endorsement'
+      );
+    }
+    if (kind === 'verify') {
+      return (
+        'Verify this mint yourself:\n' +
+        CA + '\n' +
+        'Solscan: https://solscan.io/token/' + CA + '\n' +
+        'Rugcheck: https://rugcheck.xyz/tokens/' + CA + '\n' +
+        'If a DM shows a different string, ignore it.'
+      );
+    }
+    if (kind === 'meme') {
+      return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
+    }
+    // raid default
+    return (
+      CASINO + '\n' +
+      '$dasha ' + CA + '\n' +
+      '@dash_eats · still holding · ' + PAIR
+    );
+  }
+
+  function buildQuoteShare(quote) {
+    var q = String(quote || '').trim();
+    if (!q) return '';
+    return q + '\n$dasha · Solana · NFA';
+  }
+
+  function buildMiniPack() {
+    return CASINO + '\n' + CA;
+  }
+
+  function intentTweet(text) {
+    return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
+  }
+
+  var DDShare = {
+    CA: CA,
+    PAIR: PAIR,
+    buildSharePack: buildSharePack,
+    buildQuoteShare: buildQuoteShare,
+    buildMiniPack: buildMiniPack,
+    intentTweet: intentTweet,
+  };
+  if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
+  if (typeof window !== 'undefined') window.DDShare = DDShare;
+
+  if (typeof document === 'undefined' || !document.getElementById || !document.getElementById('dd-app')) {
+    return;
+  }
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+  function fmtUsd(n) {
     n = Number(n);
     if (!isFinite(n)) return '—';
-    if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + (n / 1e3).toFixed(2) + 'K';
     if (n >= 1) return '$' + n.toFixed(2);
     if (n >= 0.0001) return '$' + n.toFixed(6);
     return '$' + n.toExponential(2);
   }
-  function fmtPct(n){
+  function fmtPct(n) {
     if (n == null || !isFinite(Number(n))) return '—';
     var v = Number(n);
     return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
   }
-  function copy(text, el){
-    function ok(){
+  function copy(text, el) {
+    function ok() {
       var t = $('dd-toast');
-      if (t){ t.hidden = false; setTimeout(function(){ t.hidden = true; }, 1200); }
-      if (el){ var o = el.textContent; el.textContent = 'Copied'; setTimeout(function(){ el.textContent = o; }, 900); }
+      if (t) {
+        t.hidden = false;
+        setTimeout(function () {
+          t.hidden = true;
+        }, 1200);
+      }
+      if (el && el.textContent != null) {
+        var o = el.textContent;
+        el.textContent = 'Copied';
+        setTimeout(function () {
+          el.textContent = o;
+        }, 900);
+      }
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(ok).catch(fallback);
     } else fallback();
-    function fallback(){
+    function fallback() {
       var a = document.createElement('textarea');
-      a.value = text; document.body.appendChild(a); a.select();
-      try { document.execCommand('copy'); ok(); } catch(e) {}
+      a.value = text;
+      document.body.appendChild(a);
+      a.select();
+      try {
+        document.execCommand('copy');
+        ok();
+      } catch (e) {}
       document.body.removeChild(a);
     }
   }
-  function drawQr(text){
-    var c = $('dd-qr'); if (!c) return;
+  function drawQr(text) {
+    var c = $('dd-qr');
+    if (!c) return;
     var ctx = c.getContext('2d');
     var img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = function(){
+    img.onload = function () {
       ctx.fillStyle = '#fff';
-      ctx.fillRect(0,0,c.width,c.height);
-      ctx.drawImage(img, 6, 6, c.width-12, c.height-12);
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 6, 6, c.width - 12, c.height - 12);
     };
-    img.onerror = function(){
-      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
-      ctx.fillStyle = '#12091c'; ctx.font = '9px monospace';
-      (text.match(/.{1,16}/g) || []).forEach(function(line,i){ ctx.fillText(line, 6, 18 + i*11); });
+    img.onerror = function () {
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.fillStyle = '#12091c';
+      ctx.font = '9px monospace';
+      (text.match(/.{1,16}/g) || []).forEach(function (line, i) {
+        ctx.fillText(line, 6, 18 + i * 11);
+      });
     };
-    img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=148x148&data=' + encodeURIComponent(text);
+    img.src =
+      'https://api.qrserver.com/v1/create-qr-code/?size=148x148&data=' +
+      encodeURIComponent(text);
   }
-  function setShare(){
-    var line = 'How u crying at the casino and u can’t even get in\n$dasha ' + CA + '\n@dash_eats · still holding · ' + PAIR;
+
+  var currentPack = 'raid';
+  function setShare(kind) {
+    if (kind) currentPack = kind;
+    var line = buildSharePack(currentPack);
     if ($('dd-share')) $('dd-share').value = line;
-    if ($('dd-tweet')) $('dd-tweet').href = 'https://x.com/intent/tweet?text=' + encodeURIComponent(line);
+    if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
+    if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
+    if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(buildSharePack('raid'));
   }
-  function normalizeMint(s){
-    return String(s || '').trim().replace(/\s+/g,'').replace(/^["']|["']$/g,'');
+
+  function normalizeMint(s) {
+    return String(s || '')
+      .trim()
+      .replace(/\s+/g, '')
+      .replace(/^["']|["']$/g, '');
   }
-  function verify(){
+  function verify() {
     var raw = normalizeMint($('dd-paste').value);
     var box = $('dd-verify');
-    if (!raw){ box.className = 'dd-verify'; box.textContent = 'Waiting…'; return; }
-    if (raw === CA){ box.className = 'dd-verify ok'; box.textContent = 'Exact match for the associated mint shown above. Verify the source links.'; return; }
-    if (raw.toLowerCase() === CA.toLowerCase()){ box.className = 'dd-verify warn'; box.textContent = 'Close — mints are case-sensitive. Use the string above.'; return; }
-    if (raw.length < 32){ box.className = 'dd-verify bad'; box.textContent = 'Too short. Not a mint.'; return; }
-    box.className = 'dd-verify bad'; box.textContent = 'Does not match the associated mint shown above.';
+    if (!raw) {
+      box.className = 'dd-verify';
+      box.textContent = 'Waiting…';
+      return;
+    }
+    if (raw === CA) {
+      box.className = 'dd-verify ok';
+      box.textContent = 'Exact match for the associated mint shown above. Verify the source links.';
+      return;
+    }
+    if (raw.toLowerCase() === CA.toLowerCase()) {
+      box.className = 'dd-verify warn';
+      box.textContent = 'Close — mints are case-sensitive. Use the string above.';
+      return;
+    }
+    if (raw.length < 32) {
+      box.className = 'dd-verify bad';
+      box.textContent = 'Too short. Not a mint.';
+      return;
+    }
+    box.className = 'dd-verify bad';
+    box.textContent = 'Does not match the associated mint shown above.';
   }
-  function loadMarket(){
+  function loadMarket() {
     var asof = $('dd-asof');
     asof.textContent = 'Loading Dex…';
     fetch('https://api.dexscreener.com/latest/dex/tokens/' + CA, { cache: 'no-store' })
-      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function(data){
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
         var pairs = data.pairs || [];
         if (!pairs.length) throw new Error('No pairs');
-        pairs.sort(function(a,b){ return ((b.liquidity&&b.liquidity.usd)||0) - ((a.liquidity&&a.liquidity.usd)||0); });
+        pairs.sort(function (a, b) {
+          return (
+            ((b.liquidity && b.liquidity.usd) || 0) - ((a.liquidity && a.liquidity.usd) || 0)
+          );
+        });
         var p = pairs[0];
         var ch = p.priceChange || {};
         $('s-price').textContent = fmtUsd(p.priceUsd);
@@ -485,43 +773,117 @@ pumped / dumped / pumped harder (unverified chat)</div>
         $('s-1h').textContent = fmtPct(ch.h1);
         $('s-6h').textContent = fmtPct(ch.h6);
         $('s-24h').textContent = fmtPct(ch.h24);
-        if ($('dd-px')) $('dd-px').textContent = fmtUsd(p.priceUsd);
+        if ($('dd-px')) {
+          var el = $('dd-px');
+          var next = fmtUsd(p.priceUsd);
+          if (el.textContent !== next) {
+            el.textContent = next;
+            el.classList.remove('dd-flash');
+            void el.offsetWidth;
+            el.classList.add('dd-flash');
+          } else el.textContent = next;
+        }
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
         if (p.url) $('dd-chart').href = p.url;
         var info = p.info || {};
-        if (info.imageUrl && $('dd-token-img')) $('dd-token-img').src = String(info.imageUrl).split('?')[0];
-        if (info.header && $('dd-banner')) $('dd-banner').src = String(info.header).split('?')[0];
+        if (info.imageUrl && $('dd-token-img'))
+          $('dd-token-img').src = String(info.imageUrl).split('?')[0];
         asof.textContent = new Date().toLocaleString() + ' · Dex';
         $('dd-live').textContent = 'live';
       })
-      .catch(function(){
+      .catch(function () {
         asof.textContent = 'Dex offline — use Chart.';
         $('dd-live').textContent = 'offline';
         if ($('dd-px')) $('dd-px').textContent = 'offline';
       });
   }
-  function hardenImages(){
+  function hardenImages() {
     var root = document.getElementById('dd-app');
     if (!root) return;
-    root.querySelectorAll('img').forEach(function(img){
-      img.addEventListener('error', function(){
-        if (img.dataset.fallback === '1') return;
-        img.dataset.fallback = '1';
-        img.removeAttribute('src');
-        img.alt = img.alt || 'image unavailable';
-        img.classList.add('dd-img-broken');
-        img.style.minHeight = img.height ? img.height + 'px' : '88px';
-      }, { once: true });
+    root.querySelectorAll('img').forEach(function (img) {
+      img.addEventListener(
+        'error',
+        function () {
+          if (img.dataset.fallback === '1') return;
+          img.dataset.fallback = '1';
+          img.removeAttribute('src');
+          img.alt = img.alt || 'image unavailable';
+          img.classList.add('dd-img-broken');
+          img.style.minHeight = img.height ? img.height + 'px' : '88px';
+        },
+        { once: true },
+      );
     });
   }
-  $('dd-copy').addEventListener('click', function(){ copy(CA, $('dd-copy')); });
-  $('dd-copy-short').addEventListener('click', function(){ copy(CA.slice(0, 4) + '…' + CA.slice(-4), $('dd-copy-short')); });
-  if ($('dd-sticky-copy')) $('dd-sticky-copy').addEventListener('click', function(){ copy(CA, $('dd-sticky-copy')); });
-  $('dd-copy-share').addEventListener('click', function(){ copy($('dd-share').value, $('dd-copy-share')); });
-  $('dd-paste').addEventListener('input', verify);
-  $('dd-paste').addEventListener('paste', function(){ setTimeout(verify, 0); });
-  $('dd-refresh').addEventListener('click', loadMarket);
-  setShare();
+
+  function bindQuoteTaps() {
+    document.querySelectorAll('[data-share-quote]').forEach(function (el) {
+      function fire() {
+        var q = el.getAttribute('data-share-quote') || '';
+        copy(buildQuoteShare(q), el.querySelector('small') || el);
+      }
+      el.addEventListener('click', fire);
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          fire();
+        }
+      });
+    });
+  }
+
+  document.querySelectorAll('.dd-pack-tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.dd-pack-tab').forEach(function (b) {
+        b.classList.remove('is-on');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('is-on');
+      btn.setAttribute('aria-selected', 'true');
+      setShare(btn.getAttribute('data-pack') || 'raid');
+    });
+  });
+
+  document.querySelectorAll('[data-copy-line]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      copy(btn.getAttribute('data-copy-line') || '', btn);
+    });
+  });
+
+  if ($('dd-copy'))
+    $('dd-copy').addEventListener('click', function () {
+      copy(CA, $('dd-copy'));
+    });
+  if ($('dd-copy-short'))
+    $('dd-copy-short').addEventListener('click', function () {
+      copy(CA.slice(0, 4) + '…' + CA.slice(-4), $('dd-copy-short'));
+    });
+  if ($('dd-copy-pack-mini'))
+    $('dd-copy-pack-mini').addEventListener('click', function () {
+      copy(buildMiniPack(), $('dd-copy-pack-mini'));
+    });
+  if ($('dd-sticky-copy'))
+    $('dd-sticky-copy').addEventListener('click', function () {
+      copy(CA, $('dd-sticky-copy'));
+    });
+  if ($('dd-copy-share'))
+    $('dd-copy-share').addEventListener('click', function () {
+      copy($('dd-share').value, $('dd-copy-share'));
+    });
+  if ($('dd-copy-oneliners') && $('dd-oneliners'))
+    $('dd-copy-oneliners').addEventListener('click', function () {
+      copy($('dd-oneliners').textContent, $('dd-copy-oneliners'));
+    });
+  if ($('dd-paste')) {
+    $('dd-paste').addEventListener('input', verify);
+    $('dd-paste').addEventListener('paste', function () {
+      setTimeout(verify, 0);
+    });
+  }
+  if ($('dd-refresh')) $('dd-refresh').addEventListener('click', loadMarket);
+
+  setShare('raid');
+  bindQuoteTaps();
   hardenImages();
   drawQr(CA);
   loadMarket();
