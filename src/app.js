@@ -247,8 +247,10 @@
     if (v > 0) el.classList.add('dd-up');
     else if (v < 0) el.classList.add('dd-down');
   }
+  var packsCopied = 0;
   function copy(text, el) {
     function ok() {
+      packsCopied += 1;
       var t = $('dd-toast');
       if (t) {
         t.hidden = false;
@@ -262,6 +264,18 @@
         setTimeout(function () {
           el.textContent = o;
         }, 900);
+      }
+      var cc = $('dd-copy-count');
+      if (cc) {
+        cc.hidden = false;
+        cc.textContent =
+          packsCopied + (packsCopied === 1 ? ' pack copied · share it' : ' packs copied · keep going');
+      }
+      var app = $('dd-app');
+      if (app) {
+        app.classList.remove('dd-copy-burst');
+        void app.offsetWidth;
+        app.classList.add('dd-copy-burst');
       }
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -307,9 +321,10 @@
   var currentPack = 'raid';
   var raidAb = 'a';
   var smartPackPicked = false;
-  var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null };
+  var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null, delta: '—' };
   var lastRefreshAt = 0;
-  function updateTicker(mcap, liq, vol, ch24) {
+  var openMcap = null;
+  function updateTicker(mcap, liq, vol, ch24, delta) {
     var track = $('dd-ticker-track');
     if (!track) return;
     var bits = [
@@ -317,11 +332,9 @@
       '24h ' + ch24,
       'Vol ' + vol,
       'Liq ' + liq,
-      CASINO,
-      'Buy → Jupiter',
-      'Desk + ref · share the pack',
-      'NFA · can go to zero',
     ];
+    if (delta && delta !== '—') bits.push('Since open ' + delta);
+    bits.push(CASINO, 'Buy → Jupiter', 'Desk + ref · share the pack', 'NFA · can go to zero');
     // duplicate for seamless loop
     var html = bits.concat(bits).map(function (t) {
       return '<span>' + t + '</span>';
@@ -440,6 +453,22 @@
         lastProof.vol = fmtUsd(vol);
         lastProof.ch24n = Number(ch.h24);
         lastProof.m5n = Number(ch.m5);
+        // Session delta vs first Dex read this visit (honest, local only)
+        if (openMcap == null && isFinite(Number(mcap)) && Number(mcap) > 0) {
+          openMcap = Number(mcap);
+        }
+        if (openMcap != null && isFinite(Number(mcap)) && openMcap > 0) {
+          var dPct = ((Number(mcap) - openMcap) / openMcap) * 100;
+          lastProof.delta = (dPct > 0 ? '+' : '') + dPct.toFixed(2) + '%';
+          if ($('p-delta')) {
+            $('p-delta').textContent = lastProof.delta;
+            setTone($('p-delta'), dPct);
+          }
+          if ($('sp-delta')) {
+            $('sp-delta').textContent = lastProof.delta;
+            setTone($('sp-delta'), dPct);
+          }
+        }
         if ($('dd-fomo-main') && $('dd-fomo')) {
           var chN = lastProof.ch24n;
           var m5N = lastProof.m5n;
@@ -485,7 +514,13 @@
         }
         lastRefreshAt = Date.now();
         tickFomoAge();
-        updateTicker(lastProof.mcap, fmtUsd(liq), fmtUsd(vol), lastProof.ch24);
+        updateTicker(
+          lastProof.mcap,
+          fmtUsd(liq),
+          fmtUsd(vol),
+          lastProof.ch24,
+          lastProof.delta,
+        );
         if ($('dd-ticker')) {
           var hotT =
             (isFinite(lastProof.ch24n) && Math.abs(lastProof.ch24n) >= 5) ||

@@ -599,6 +599,27 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-ticker.is-hot{border-color:rgba(255,120,80,.5)}
 .dd-ticker.is-hot .dd-ticker-track{color:#ffd0b0;animation-duration:18s}
 .dd-fomo-age{font-size:10px;font-weight:700;color:var(--muted);opacity:.9}
+.dd-copy-count{font-size:10px;font-weight:700;color:#c4a5ff}
+#dd-app.dd-copy-burst::after{
+  content:"";position:fixed;left:50%;top:42%;width:12px;height:12px;margin:-6px 0 0 -6px;
+  border-radius:50%;pointer-events:none;z-index:80;
+  box-shadow:
+    0 0 0 0 rgba(196,165,255,.0),
+    -28px -18px 0 0 #ff8ec8,
+    32px -12px 0 0 #c4a5ff,
+    -18px 26px 0 0 #7dffa3,
+    24px 22px 0 0 #ffd0b0,
+    0 -34px 0 0 #ffb0e0,
+    -36px 8px 0 0 #b8a0ff,
+    38px 6px 0 0 #ffe0c8;
+  animation:dd-burst .7s ease-out forwards;
+}
+@keyframes dd-burst{
+  0%{opacity:1;transform:scale(.4)}
+  70%{opacity:.85;transform:scale(1.15)}
+  100%{opacity:0;transform:scale(1.6)}
+}
 @media(prefers-reduced-motion:reduce){
   .dd-ticker-track{animation:none;white-space:normal;display:block;padding:8px 10px}
+  #dd-app.dd-copy-burst::after{animation:none;display:none}
 }

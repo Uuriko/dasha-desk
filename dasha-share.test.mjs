@@ -195,8 +195,16 @@ const appJs = readFileSync(join(__dirname, 'src/app.js'), 'utf8');
 assert.ok(appJs.includes('function updateTicker'), 'updateTicker in app');
 assert.ok(appJs.includes('function tickFomoAge'), 'tickFomoAge in app');
 assert.ok(appJs.includes('lastRefreshAt'), 'lastRefreshAt clock');
-assert.ok(appJs.includes("updateTicker(lastProof.mcap"), 'loadMarket feeds ticker');
+assert.ok(appJs.includes("updateTicker(") && appJs.includes('lastProof.mcap'), 'loadMarket feeds ticker');
 assert.ok(appJs.includes('setInterval(tickFomoAge'), 'fomo age interval');
 assert.ok(appJs.includes("dd-ticker") && appJs.includes('is-hot'), 'ticker hot class');
+
+// session delta + copy burst (V12)
+assert.ok(body.includes('id="p-delta"') && body.includes('Since open'), 'since-open proof chip');
+assert.ok(body.includes('id="sp-delta"'), 'since-open sp chip');
+assert.ok(body.includes('id="dd-copy-count"'), 'packs-copied counter');
+assert.ok(appJs.includes('openMcap') && appJs.includes('lastProof.delta'), 'session mcap delta');
+assert.ok(appJs.includes('packsCopied') && appJs.includes('dd-copy-burst'), 'copy burst + count');
+assert.ok(kitStyles.includes('dd-copy-burst') && /@keyframes dd-burst/.test(kitStyles), 'burst styles');
 
 console.log('dasha-share.test.mjs: PASS');

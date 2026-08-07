@@ -35,6 +35,7 @@
     <div class="dd-proof-item"><span>Liq</span><strong id="p-liq">—</strong></div>
     <div class="dd-proof-item"><span>Vol 24h</span><strong id="p-vol">—</strong></div>
     <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
+    <div class="dd-proof-item"><span>Since open</span><strong id="p-delta">—</strong></div>
   </section>
   <div class="dd-sp-strip dd-reveal" id="dd-sp-strip">
     <div class="dd-sp-chips" aria-label="Live social proof">
@@ -42,6 +43,7 @@
       <span class="dd-sp-chip"><em>24h</em><strong id="sp-24h">—</strong></span>
       <span class="dd-sp-chip"><em>Vol</em><strong id="sp-vol">—</strong></span>
       <span class="dd-sp-chip"><em>Liq</em><strong id="sp-liq">—</strong></span>
+      <span class="dd-sp-chip"><em>Open</em><strong id="sp-delta">—</strong></span>
     </div>
     <button type="button" class="dd-social-proof" id="dd-social-proof" aria-label="Copy live share pack with mcap">
       <span id="dd-social-proof-text">Live on Dex · numbers every 30s · NFA</span>
@@ -61,6 +63,7 @@
       <span class="dd-fomo-hot" id="dd-fomo-hot" hidden>HOT</span>
       <span id="dd-fomo-sub">Live numbers · NFA · can go to zero</span>
       <span class="dd-fomo-age" id="dd-fomo-age">waiting for Dex</span>
+      <span class="dd-copy-count" id="dd-copy-count" hidden></span>
     </div>
     <button type="button" class="dd-btn dd-btn-primary dd-fomo-hold" id="dd-copy-hold">Copy hold pack</button>
   </aside>
@@ -876,8 +879,29 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-ticker.is-hot{border-color:rgba(255,120,80,.5)}
 .dd-ticker.is-hot .dd-ticker-track{color:#ffd0b0;animation-duration:18s}
 .dd-fomo-age{font-size:10px;font-weight:700;color:var(--muted);opacity:.9}
+.dd-copy-count{font-size:10px;font-weight:700;color:#c4a5ff}
+#dd-app.dd-copy-burst::after{
+  content:"";position:fixed;left:50%;top:42%;width:12px;height:12px;margin:-6px 0 0 -6px;
+  border-radius:50%;pointer-events:none;z-index:80;
+  box-shadow:
+    0 0 0 0 rgba(196,165,255,.0),
+    -28px -18px 0 0 #ff8ec8,
+    32px -12px 0 0 #c4a5ff,
+    -18px 26px 0 0 #7dffa3,
+    24px 22px 0 0 #ffd0b0,
+    0 -34px 0 0 #ffb0e0,
+    -36px 8px 0 0 #b8a0ff,
+    38px 6px 0 0 #ffe0c8;
+  animation:dd-burst .7s ease-out forwards;
+}
+@keyframes dd-burst{
+  0%{opacity:1;transform:scale(.4)}
+  70%{opacity:.85;transform:scale(1.15)}
+  100%{opacity:0;transform:scale(1.6)}
+}
 @media(prefers-reduced-motion:reduce){
   .dd-ticker-track{animation:none;white-space:normal;display:block;padding:8px 10px}
+  #dd-app.dd-copy-burst::after{animation:none;display:none}
 }
 </style>
 <script>
@@ -1130,8 +1154,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if (v > 0) el.classList.add('dd-up');
     else if (v < 0) el.classList.add('dd-down');
   }
+  var packsCopied = 0;
   function copy(text, el) {
     function ok() {
+      packsCopied += 1;
       var t = $('dd-toast');
       if (t) {
         t.hidden = false;
@@ -1145,6 +1171,18 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         setTimeout(function () {
           el.textContent = o;
         }, 900);
+      }
+      var cc = $('dd-copy-count');
+      if (cc) {
+        cc.hidden = false;
+        cc.textContent =
+          packsCopied + (packsCopied === 1 ? ' pack copied · share it' : ' packs copied · keep going');
+      }
+      var app = $('dd-app');
+      if (app) {
+        app.classList.remove('dd-copy-burst');
+        void app.offsetWidth;
+        app.classList.add('dd-copy-burst');
       }
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1190,9 +1228,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   var currentPack = 'raid';
   var raidAb = 'a';
   var smartPackPicked = false;
-  var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null };
+  var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null, delta: '—' };
   var lastRefreshAt = 0;
-  function updateTicker(mcap, liq, vol, ch24) {
+  var openMcap = null;
+  function updateTicker(mcap, liq, vol, ch24, delta) {
     var track = $('dd-ticker-track');
     if (!track) return;
     var bits = [
@@ -1200,11 +1239,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       '24h ' + ch24,
       'Vol ' + vol,
       'Liq ' + liq,
-      CASINO,
-      'Buy → Jupiter',
-      'Desk + ref · share the pack',
-      'NFA · can go to zero',
     ];
+    if (delta && delta !== '—') bits.push('Since open ' + delta);
+    bits.push(CASINO, 'Buy → Jupiter', 'Desk + ref · share the pack', 'NFA · can go to zero');
     // duplicate for seamless loop
     var html = bits.concat(bits).map(function (t) {
       return '<span>' + t + '</span>';
@@ -1323,6 +1360,22 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         lastProof.vol = fmtUsd(vol);
         lastProof.ch24n = Number(ch.h24);
         lastProof.m5n = Number(ch.m5);
+        // Session delta vs first Dex read this visit (honest, local only)
+        if (openMcap == null && isFinite(Number(mcap)) && Number(mcap) > 0) {
+          openMcap = Number(mcap);
+        }
+        if (openMcap != null && isFinite(Number(mcap)) && openMcap > 0) {
+          var dPct = ((Number(mcap) - openMcap) / openMcap) * 100;
+          lastProof.delta = (dPct > 0 ? '+' : '') + dPct.toFixed(2) + '%';
+          if ($('p-delta')) {
+            $('p-delta').textContent = lastProof.delta;
+            setTone($('p-delta'), dPct);
+          }
+          if ($('sp-delta')) {
+            $('sp-delta').textContent = lastProof.delta;
+            setTone($('sp-delta'), dPct);
+          }
+        }
         if ($('dd-fomo-main') && $('dd-fomo')) {
           var chN = lastProof.ch24n;
           var m5N = lastProof.m5n;
@@ -1368,7 +1421,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         }
         lastRefreshAt = Date.now();
         tickFomoAge();
-        updateTicker(lastProof.mcap, fmtUsd(liq), fmtUsd(vol), lastProof.ch24);
+        updateTicker(
+          lastProof.mcap,
+          fmtUsd(liq),
+          fmtUsd(vol),
+          lastProof.ch24,
+          lastProof.delta,
+        );
         if ($('dd-ticker')) {
           var hotT =
             (isFinite(lastProof.ch24n) && Math.abs(lastProof.ch24n) >= 5) ||
