@@ -470,11 +470,32 @@
   }
 
   /**
+   * Session mcap delta vs first Dex read this visit — pure, unit-tested.
+   * Honest local anchor only (not a prediction). null if tiny/unknown.
+   */
+  function sessionDelta(openMcap, nowMcap) {
+    var o = Number(openMcap);
+    var n = Number(nowMcap);
+    if (!isFinite(o) || !isFinite(n) || o <= 0 || n <= 0) return null;
+    var pct = ((n - o) / o) * 100;
+    if (!isFinite(pct) || Math.abs(pct) < 0.25) return null;
+    var label = (pct > 0 ? '+' : '') + pct.toFixed(2) + '%';
+    return {
+      pct: pct,
+      label: label,
+      short: 'sess ' + label,
+      line: 'Session ' + label + ' since open · NFA',
+      up: pct > 0,
+    };
+  }
+
+  /**
    * One-tap dual action plan: copy full CA then open wallet/buy.
    * Pure — unit-tested; runtime copies CA and navigates to href.
    * regime: 'dip' | 'hot' | 'neutral' shapes the label.
+   * session: optional sessionDelta() for toast urgency.
    */
-  function dualGoPlan(sol, mobile, regime) {
+  function dualGoPlan(sol, mobile, regime, session) {
     var jup = buyUrl(sol);
     var href = mobile ? phantomBrowseUrl(jup) : jup;
     var r = regime || 'neutral';
@@ -482,13 +503,21 @@
     if (r === 'dip') label = mobile ? 'CA · Dip wallet' : 'CA · Dip buy';
     else if (r === 'hot') label = mobile ? 'CA · Ride wallet' : 'CA · Ride';
     else label = mobile ? 'CA · Wallet' : 'CA · Buy';
+    if (session && session.short && Math.abs(session.pct) >= 0.5) {
+      label = label + ' · ' + session.short;
+    }
+    var toast = 'CA copied · open wallet';
+    if (session && session.short) {
+      toast = 'CA copied · ' + session.short;
+    }
     return {
       ca: CA,
       href: href,
       jup: jup,
       regime: r,
       label: label,
-      toast: 'CA copied · open wallet',
+      toast: toast,
+      session: session || null,
       hasRef: /[?&]ref=/.test(jup),
       hasAmount:
         sol != null &&
@@ -596,6 +625,7 @@
     dualGoPlan: dualGoPlan,
     buyRegime: buyRegime,
     hotBuyHeadline: hotBuyHeadline,
+    sessionDelta: sessionDelta,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -1047,6 +1077,9 @@
         if (openMcap != null && isFinite(Number(mcap)) && openMcap > 0) {
           var dPct = ((Number(mcap) - openMcap) / openMcap) * 100;
           lastProof.delta = (dPct > 0 ? '+' : '') + dPct.toFixed(2) + '%';
+          lastProof.session = sessionDelta(openMcap, mcap);
+          lastProof.openMcap = openMcap;
+          lastProof.nowMcap = Number(mcap);
           if ($('p-delta')) {
             $('p-delta').textContent = lastProof.delta;
             setTone($('p-delta'), dPct);
@@ -1054,6 +1087,20 @@
           if ($('sp-delta')) {
             $('sp-delta').textContent = lastProof.delta;
             setTone($('sp-delta'), dPct);
+          }
+          if ($('dd-session-line')) {
+            if (lastProof.session) {
+              $('dd-session-line').hidden = false;
+              $('dd-session-line').textContent = lastProof.session.line;
+              $('dd-session-line').classList.toggle('is-up', !!lastProof.session.up);
+              $('dd-session-line').classList.toggle('is-down', !lastProof.session.up);
+            } else {
+              $('dd-session-line').hidden = true;
+            }
+          }
+          // FOMO sub: session urgency when |delta| meaningful, else keep net+pace flow
+          if ($('dd-fomo-sub') && lastProof.session && Math.abs(lastProof.session.pct) >= 0.5) {
+            $('dd-fomo-sub').textContent = lastProof.session.line;
           }
         }
         // Poll-to-poll move flash (real Dex only)
@@ -1216,8 +1263,14 @@
           }
         }
         if ($('dd-fomo-sub')) {
-          // Prefer net+pace flow proof near FOMO buy CTA when available
-          if (lastProof.flow) {
+          // Prefer session urgency when meaningful, else net+pace flow near FOMO CTA
+          if (
+            lastProof.session &&
+            Math.abs(lastProof.session.pct) >= 0.5 &&
+            lastProof.session.line
+          ) {
+            $('dd-fomo-sub').textContent = lastProof.session.line;
+          } else if (lastProof.flow) {
             $('dd-fomo-sub').textContent = lastProof.flow;
           } else {
             var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
@@ -1399,11 +1452,17 @@
     });
   // V23: one-tap copy CA + open wallet/buy (sticky, FOMO, mint)
   function runDualGo(el) {
+    var sess =
+      lastProof.session ||
+      (lastProof.openMcap != null && lastProof.nowMcap != null
+        ? sessionDelta(lastProof.openMcap, lastProof.nowMcap)
+        : null);
     var plan = dualGoPlan(
       buySol,
       isMobileBuyPath(),
       lastProof.regime ||
         buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure),
+      sess,
     );
     copy(plan.ca, el || null);
     try {
@@ -1433,13 +1492,26 @@
       lastProof.regime ||
       buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure);
     lastProof.regime = regime;
-    var plan = dualGoPlan(buySol, isMobileBuyPath(), regime);
+    var sess =
+      lastProof.session ||
+      (lastProof.openMcap != null && lastProof.nowMcap != null
+        ? sessionDelta(lastProof.openMcap, lastProof.nowMcap)
+        : null);
+    var plan = dualGoPlan(buySol, isMobileBuyPath(), regime, sess);
     document.querySelectorAll('.dd-dual-go').forEach(function (b) {
       if (b.textContent && /copied/i.test(b.textContent)) return;
       b.textContent = plan.label;
       b.classList.toggle('dd-pulse-buy', regime === 'dip' || regime === 'hot');
       b.classList.toggle('is-dip-dual', regime === 'dip');
       b.classList.toggle('is-hot-dual', regime === 'hot');
+      b.classList.toggle(
+        'is-sess-up',
+        !!(sess && sess.up && Math.abs(sess.pct) >= 0.5),
+      );
+      b.classList.toggle(
+        'is-sess-down',
+        !!(sess && !sess.up && Math.abs(sess.pct) >= 0.5),
+      );
     });
     if ($('dd-sticky')) {
       $('dd-sticky').classList.toggle('is-hot', regime === 'hot');

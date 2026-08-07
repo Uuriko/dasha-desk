@@ -442,4 +442,20 @@ assert.ok(
 );
 assert.ok(kitStyles.includes('is-hot-dual') || kitStyles.includes('is-hot-win'), 'hot dual styles');
 
+// V25: session open-mcap delta urgency on dual toast + sticky
+assert.ok(typeof DD.sessionDelta === 'function', 'sessionDelta exported');
+assert.equal(DD.sessionDelta(null, 100), null, 'no open = null');
+assert.equal(DD.sessionDelta(100, 100.1), null, 'tiny move ignored');
+const sessUp = DD.sessionDelta(80000, 83871);
+assert.ok(sessUp && sessUp.up && sessUp.pct > 0 && /Session/.test(sessUp.line) && /NFA/.test(sessUp.line), 'session up line');
+assert.ok(/sess \+/.test(sessUp.short), 'session short label');
+const sessDn = DD.sessionDelta(90000, 83871);
+assert.ok(sessDn && !sessDn.up && sessDn.pct < 0, 'session down');
+const dualSess = DD.dualGoPlan(1, true, 'dip', sessUp);
+assert.ok(/sess \+/.test(dualSess.label) || /sess \+/.test(dualSess.toast), 'dual carries session short');
+assert.ok(/CA copied/.test(dualSess.toast) && /sess/.test(dualSess.toast), 'dual toast session urgency');
+assert.ok(body.includes('id="dd-session-line"'), 'session line DOM');
+assert.ok(appJs.includes('sessionDelta') && appJs.includes('dd-session-line'), 'session wiring');
+assert.ok(kitStyles.includes('dd-session-line'), 'session styles');
+
 console.log('dasha-share.test.mjs: PASS');

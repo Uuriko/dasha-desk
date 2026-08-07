@@ -722,6 +722,14 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   font-size:11px;font-weight:700;color:#b8f0c8;font-variant-numeric:tabular-nums;
   letter-spacing:.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.dd-session-line{
+  font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;
+  color:#e8d4ff;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.dd-session-line.is-up{color:#9ff0b8}
+.dd-session-line.is-down{color:#ffb4a0}
+.dd-dual-go.is-sess-up{box-shadow:0 0 14px rgba(80,220,140,.25)}
+.dd-dual-go.is-sess-down{box-shadow:0 0 14px rgba(255,140,80,.22)}
 .dd-dual-go{
   border-color:rgba(167,139,250,.55)!important;
   background:linear-gradient(180deg,rgba(120,80,200,.35),rgba(60,30,120,.4))!important;
