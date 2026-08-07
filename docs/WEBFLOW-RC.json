@@ -1,6 +1,6 @@
 {
   "schema": "dasha.webflow-rc/1",
-  "capturedAt": "2026-08-07T07:52:44Z",
+  "capturedAt": "2026-08-07T08:07:56Z",
   "source": {
     "commit": "679a7fa607590ef49236e763260c4b427a609f80",
     "clean": true,
@@ -13,11 +13,19 @@
   },
   "webflow": {
     "siteId": "5f1458122ba25e70a3ff2bd0",
-    "lastPublished": "2026-08-07T07:45:14.195Z",
+    "lastPublished": "2026-08-07T08:07:00.684Z",
     "customDomains": [],
     "homePageId": "5f1458136c15aa41639b8538",
     "legacyDeskPageId": "6a74b59530c70741b1c574c4",
-    "labsDraft": { "pageId": "6a75866d58882fdfb5f7674a", "slug": "labs", "draft": true, "publicStatus": 404 },
+    "labsDraft": {
+      "pageId": "6a75866d58882fdfb5f7674a",
+      "slug": "labs",
+      "draft": true,
+      "publicStatus": 404,
+      "embedBytes": 32819,
+      "embedSha256": "bdef01cd7439451127ff0deb699b0c29d39fec8360815e9752343d0d0a8829c0",
+      "openGraphDescription": "Record a thesis, an invalidation condition, and an exact resolution date. Device-timed and locally checksummed. No wallet, no trading, no safety score."
+    },
     "deskCandidate": { "pageId": "6a758d786dc08f46cfb2539c", "slug": "desk-rc", "draft": true, "publicStatus": 404 }
   },
   "candidatePayload": {
