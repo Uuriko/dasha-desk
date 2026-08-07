@@ -24,6 +24,7 @@
     <div class="dd-proof-item"><span>Vol 24h</span><strong id="p-vol">—</strong></div>
     <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
   </section>
+  <p class="dd-social-proof dd-reveal" id="dd-social-proof" role="status">Live on Dex · numbers every 30s · NFA</p>
 
   <section class="dd-hero-card dd-reveal" id="dd-mint">
     <div class="dd-banner-wrap">
@@ -56,7 +57,9 @@
 
     <div class="dd-actions dd-actions-primary">
       <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy on Jupiter</a>
+      <button type="button" class="dd-btn dd-btn-lg" id="dd-copy-buy">Copy buy link</button>
       <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
+      <button type="button" class="dd-btn" id="dd-copy-live">Copy live pack</button>
       <a class="dd-btn" id="dd-hero-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid on X</a>
       <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">CA post</a>
     </div>
@@ -90,7 +93,7 @@
     </article>
     <article class="dd-card" id="dd-share-room">
       <h2>Share = oxygen</h2>
-      <p class="dd-meta">Copy a pack. Post it. Chart + CA always included.</p>
+      <p class="dd-meta">Copy a pack. Post it. Buy + chart + desk always included.</p>
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
         <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
         <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
@@ -607,6 +610,14 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   .dd-reveal{opacity:1;transform:none}
   .dd-btn,.dd-gal-item,.dd-meme,.dd-stat,.dd-banner,.dd-token-hero img,.dd-share-card{transition:none}
 }
+
+.dd-social-proof{
+  margin:-4px 0 14px;padding:8px 12px;text-align:center;
+  font-size:12px;font-weight:700;letter-spacing:.01em;
+  color:#d4b8ff;border-radius:12px;
+  border:1px solid rgba(167,139,250,.28);
+  background:rgba(167,139,250,.08);
+}
 </style>
 <script>
 (function () {
@@ -679,7 +690,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented
+    // raid default — short, postable, conversion-oriented (buy + desk always)
     return (
       CASINO +
       '\n' +
@@ -692,7 +703,30 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       'Chart → ' +
       PAIR +
       '\n' +
-      '@dash_eats · still holding · NFA'
+      'Desk → ' +
+      DESK +
+      '\n' +
+      'Get in · NFA · can go to zero'
+    );
+  }
+
+  /** Live social-proof pack — unit-tested via DDShare.buildLiveProof */
+  function buildLiveProof(mcapLabel, ch24Label) {
+    var m = mcapLabel && String(mcapLabel) !== '—' ? String(mcapLabel) : 'live';
+    var c = ch24Label && String(ch24Label) !== '—' ? String(ch24Label) : '';
+    return (
+      '$dasha live · mcap ' +
+      m +
+      (c ? ' · 24h ' + c : '') +
+      '\n' +
+      'Buy → ' +
+      BUY +
+      '\n' +
+      'Desk → ' +
+      DESK +
+      '\n' +
+      CA +
+      '\nNFA · can go to zero'
     );
   }
 
@@ -703,7 +737,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
 
   function buildMiniPack() {
-    return CASINO + '\n' + CA + '\n' + BUY;
+    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO;
   }
 
   function intentTweet(text) {
@@ -727,6 +761,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
+    buildLiveProof: buildLiveProof,
     intentTweet: intentTweet,
     safeProviderUrl: safeProviderUrl,
   };
@@ -820,6 +855,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
 
   var currentPack = 'raid';
+  var lastProof = { mcap: '—', ch24: '—' };
   function setShare(kind) {
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
@@ -900,6 +936,16 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         setTone($('s-5m'), ch.m5);
         setTone($('s-1h'), ch.h1);
         setTone($('s-6h'), ch.h6);
+        lastProof.mcap = fmtUsd(mcap);
+        lastProof.ch24 = fmtPct(ch.h24);
+        if ($('dd-social-proof')) {
+          $('dd-social-proof').textContent =
+            '$dasha live · mcap ' +
+            lastProof.mcap +
+            ' · 24h ' +
+            lastProof.ch24 +
+            ' · NFA';
+        }
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -994,6 +1040,15 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     $('dd-sticky-copy').addEventListener('click', function () {
       copy(CA, $('dd-sticky-copy'));
     });
+  if ($('dd-copy-buy'))
+    $('dd-copy-buy').addEventListener('click', function () {
+      copy(BUY, $('dd-copy-buy'));
+    });
+  if ($('dd-copy-live'))
+    $('dd-copy-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+    });
+
   if ($('dd-copy-share'))
     $('dd-copy-share').addEventListener('click', function () {
       copy($('dd-share').value, $('dd-copy-share'));
@@ -1004,7 +1059,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     });
   if ($('dd-native-share'))
     $('dd-native-share').addEventListener('click', function () {
-      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('raid');
+      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('boost');
       if (navigator.share) {
         navigator
           .share({ title: '$dasha', text: text, url: DESK })

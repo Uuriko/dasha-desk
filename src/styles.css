@@ -411,3 +411,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   .dd-reveal{opacity:1;transform:none}
   .dd-btn,.dd-gal-item,.dd-meme,.dd-stat,.dd-banner,.dd-token-hero img,.dd-share-card{transition:none}
 }
+
+.dd-social-proof{
+  margin:-4px 0 14px;padding:8px 12px;text-align:center;
+  font-size:12px;font-weight:700;letter-spacing:.01em;
+  color:#d4b8ff;border-radius:12px;
+  border:1px solid rgba(167,139,250,.28);
+  background:rgba(167,139,250,.08);
+}

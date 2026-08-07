@@ -92,4 +92,22 @@ assert.ok(body.includes('dd-proof') && body.includes('p-mcap'), 'live proof stri
 assert.ok(body.includes('data-pack="boost"'), 'boost share pack tab');
 assert.ok(body.includes('Buy on Jupiter') || body.includes('dd-buy'), 'primary buy label');
 
+
+// conversion / virality gates
+assert.ok(raid.includes(DD.DESK) || raid.includes('webflow.io/dasha'), 'raid pack includes desk');
+assert.ok(raid.includes(DD.BUY) || raid.includes('jup.ag'), 'raid pack includes buy');
+assert.ok(typeof DD.buildLiveProof === 'function', 'buildLiveProof exported');
+const live = DD.buildLiveProof('$12.3K', '+4.2%');
+assert.ok(live.includes('mcap $12.3K'), 'live proof mcap');
+assert.ok(live.includes('+4.2%') || live.includes('24h'), 'live proof 24h');
+assert.ok(live.includes(DD.BUY) || live.includes('jup.ag'), 'live proof buy');
+assert.ok(live.includes(DD.DESK) || live.includes('webflow.io/dasha'), 'live proof desk');
+assert.ok(live.includes(DD.CA), 'live proof mint');
+const mini2 = DD.buildMiniPack();
+assert.ok(mini2.includes(DD.BUY) || mini2.includes('jup.ag'), 'mini buy');
+assert.ok(mini2.toLowerCase().includes('buy') || mini2.includes(DD.BUY), 'mini conversion orient');
+assert.ok(body.includes('dd-copy-buy'), 'copy buy funnel control');
+assert.ok(body.includes('dd-copy-live'), 'copy live pack control');
+assert.ok(body.includes('dd-social-proof'), 'live social proof line');
+
 console.log('dasha-share.test.mjs: PASS');

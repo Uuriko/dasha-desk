@@ -68,7 +68,7 @@
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented
+    // raid default — short, postable, conversion-oriented (buy + desk always)
     return (
       CASINO +
       '\n' +
@@ -81,7 +81,30 @@
       'Chart → ' +
       PAIR +
       '\n' +
-      '@dash_eats · still holding · NFA'
+      'Desk → ' +
+      DESK +
+      '\n' +
+      'Get in · NFA · can go to zero'
+    );
+  }
+
+  /** Live social-proof pack — unit-tested via DDShare.buildLiveProof */
+  function buildLiveProof(mcapLabel, ch24Label) {
+    var m = mcapLabel && String(mcapLabel) !== '—' ? String(mcapLabel) : 'live';
+    var c = ch24Label && String(ch24Label) !== '—' ? String(ch24Label) : '';
+    return (
+      '$dasha live · mcap ' +
+      m +
+      (c ? ' · 24h ' + c : '') +
+      '\n' +
+      'Buy → ' +
+      BUY +
+      '\n' +
+      'Desk → ' +
+      DESK +
+      '\n' +
+      CA +
+      '\nNFA · can go to zero'
     );
   }
 
@@ -92,7 +115,7 @@
   }
 
   function buildMiniPack() {
-    return CASINO + '\n' + CA + '\n' + BUY;
+    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO;
   }
 
   function intentTweet(text) {
@@ -116,6 +139,7 @@
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
+    buildLiveProof: buildLiveProof,
     intentTweet: intentTweet,
     safeProviderUrl: safeProviderUrl,
   };
@@ -209,6 +233,7 @@
   }
 
   var currentPack = 'raid';
+  var lastProof = { mcap: '—', ch24: '—' };
   function setShare(kind) {
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
@@ -289,6 +314,16 @@
         setTone($('s-5m'), ch.m5);
         setTone($('s-1h'), ch.h1);
         setTone($('s-6h'), ch.h6);
+        lastProof.mcap = fmtUsd(mcap);
+        lastProof.ch24 = fmtPct(ch.h24);
+        if ($('dd-social-proof')) {
+          $('dd-social-proof').textContent =
+            '$dasha live · mcap ' +
+            lastProof.mcap +
+            ' · 24h ' +
+            lastProof.ch24 +
+            ' · NFA';
+        }
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -383,6 +418,15 @@
     $('dd-sticky-copy').addEventListener('click', function () {
       copy(CA, $('dd-sticky-copy'));
     });
+  if ($('dd-copy-buy'))
+    $('dd-copy-buy').addEventListener('click', function () {
+      copy(BUY, $('dd-copy-buy'));
+    });
+  if ($('dd-copy-live'))
+    $('dd-copy-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+    });
+
   if ($('dd-copy-share'))
     $('dd-copy-share').addEventListener('click', function () {
       copy($('dd-share').value, $('dd-copy-share'));
@@ -393,7 +437,7 @@
     });
   if ($('dd-native-share'))
     $('dd-native-share').addEventListener('click', function () {
-      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('raid');
+      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('boost');
       if (navigator.share) {
         navigator
           .share({ title: '$dasha', text: text, url: DESK })
