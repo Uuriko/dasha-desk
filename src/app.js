@@ -618,10 +618,11 @@
   }
 
   /**
-   * FOMO dump headline — pure V40/V45.
+   * FOMO dump headline — pure V40/V45/V49.
    * V45: positive net buys prove demand into the dump (honest Dex).
+   * V49: 5m micro-green bounce (≥0.15%) surfaces first recovery tick.
    */
-  function fomoDumpHeadline(dump, bp, netShort) {
+  function fomoDumpHeadline(dump, bp, netShort, m5) {
     if (!dump) return '';
     var depth = dipDepth(dump);
     var lead = depth && depth.word ? depth.word : 'Dump';
@@ -632,6 +633,20 @@
         Number(dump.depthPct != null ? dump.depthPct : dump.shortPct).toFixed(1) +
         '%',
     ];
+    // V49: earliest bounce proof on FOMO main during dump
+    var m5n =
+      m5 != null
+        ? Number(m5)
+        : dump.m5 != null
+          ? Number(dump.m5)
+          : NaN;
+    if (isFinite(m5n) && m5n >= 0.15) {
+      bits.push(
+        '5m +' +
+          (Math.abs(m5n) >= 10 ? m5n.toFixed(0) : m5n.toFixed(1)) +
+          '%',
+      );
+    }
     if (netShort && String(netShort).charAt(0) === '+') {
       bits.push(String(netShort) + ' net');
     } else if (bp && bp.moreBuyers) {
@@ -642,11 +657,12 @@
   }
 
   /**
-   * FOMO-sub / trust dump proof line — pure V41/V43.
+   * FOMO-sub / trust dump proof line — pure V41/V43/V49.
    * e.g. "Deep dump · 6h -29.4% · 24h -23.1% · NFA"
    * V43: optional 1h micro-green (ch1 ≥0.2%) as honest bounce-into-dump.
+   * V49: if no 1h bounce, optional 5m micro-green (≥0.15%).
    */
-  function dumpWatchLine(dump, ch1) {
+  function dumpWatchLine(dump, ch1, m5) {
     if (!dump || dump.kind !== 'dump') return null;
     var depth = dipDepth(dump);
     var bits = [depth && depth.word ? depth.word : 'Dump'];
@@ -662,16 +678,32 @@
       var h24 = Number(dump.ch24);
       bits.push('24h ' + (h24 > 0 ? '+' : '') + h24.toFixed(1) + '%');
     }
+    // Prefer live TF args over dump snapshot (runtime paints with lastProof.ch1n/m5n)
     var c1 =
-      dump.ch1 != null
-        ? Number(dump.ch1)
-        : ch1 != null
-          ? Number(ch1)
+      ch1 != null
+        ? Number(ch1)
+        : dump.ch1 != null
+          ? Number(dump.ch1)
           : NaN;
-    if (isFinite(c1) && c1 >= 0.2) {
+    var has1h = isFinite(c1) && c1 >= 0.2;
+    if (has1h) {
       bits.push(
         '1h +' + (Math.abs(c1) >= 10 ? c1.toFixed(0) : c1.toFixed(1)) + '%',
       );
+    } else {
+      var m5n =
+        m5 != null
+          ? Number(m5)
+          : dump.m5 != null
+            ? Number(dump.m5)
+            : NaN;
+      if (isFinite(m5n) && m5n >= 0.15) {
+        bits.push(
+          '5m +' +
+            (Math.abs(m5n) >= 10 ? m5n.toFixed(0) : m5n.toFixed(1)) +
+            '%',
+        );
+      }
     }
     return bits.join(' · ') + ' · NFA';
   }
@@ -1847,7 +1879,11 @@
           : null;
         var dumpLineNow =
           lastProof.dip && lastProof.dip.kind === 'dump'
-            ? dumpWatchLine(lastProof.dip, lastProof.ch1n)
+            ? dumpWatchLine(
+                lastProof.dip,
+                lastProof.ch1n,
+                lastProof.m5n,
+              )
             : null;
         lastProof.reclaim = reclaimNow;
         lastProof.reclaimLine = reclaimLineNow;
@@ -1974,6 +2010,7 @@
               lastProof.dip,
               bp,
               netDump,
+              lastProof.m5n,
             );
             fomo.classList.add('is-dip', 'is-dump');
             fomo.classList.remove('is-up', 'is-down', 'is-hot-win');
@@ -1985,6 +2022,11 @@
             fomo.classList.toggle(
               'is-hard',
               !!(depthDump && depthDump.tier === 'hard'),
+            );
+            // V49: micro-bounce class when 5m green into dump
+            fomo.classList.toggle(
+              'has-m5-bounce',
+              isFinite(lastProof.m5n) && lastProof.m5n >= 0.15,
             );
             if ($('dd-fomo-ab')) $('dd-fomo-ab').hidden = true;
             // V48: dump size autofocus every paint until user overrides chip
@@ -2002,6 +2044,10 @@
                   localStorage.setItem('dd_buy_sol', String(buySol));
                 } catch (eLs) {}
               }
+              // V49: rewire dual/FOMO/sticky to autofocused size immediately
+              if (typeof wireBuyHrefs === 'function') wireBuyHrefs();
+              if (typeof paintDualLabels === 'function') paintDualLabels();
+              if (typeof paintAmtChips === 'function') paintAmtChips();
             } catch (eDumpN) {}
           } else if (lastProof.dip) {
             // Short-TF dip with 24h still green — A/B FOMO headlines
@@ -2399,13 +2445,21 @@
     }
     if (isDump) {
       lastProof.stillLine = null;
-      lastProof.dumpLine = dumpWatchLine(lastProof.dip, lastProof.ch1n);
+      lastProof.dumpLine = dumpWatchLine(
+        lastProof.dip,
+        lastProof.ch1n,
+        lastProof.m5n,
+      );
     } else if (
       !lastProof.dumpLine &&
       lastProof.dip &&
       lastProof.dip.kind === 'dump'
     ) {
-      lastProof.dumpLine = dumpWatchLine(lastProof.dip, lastProof.ch1n);
+      lastProof.dumpLine = dumpWatchLine(
+        lastProof.dip,
+        lastProof.ch1n,
+        lastProof.m5n,
+      );
     }
     var line = trustBarLine(
       lastProof.flow,

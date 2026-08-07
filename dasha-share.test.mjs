@@ -843,4 +843,18 @@ assert.ok(autoDeep && autoDeep.changed && autoDeep.sol === 2, 'deep dip autofocu
 assert.ok(appJs.includes('dumpSizeAutofocus') && appJs.includes('dd_dump_manual') && appJs.includes('is-dump-focus'), 'v48 wiring');
 assert.ok(kitStyles.includes('is-dump-focus'), 'v48 dump-focus chip styles');
 
+// V49: 5m bounce on dump FOMO main + dumpWatchLine; dual rewire after autofocus
+const headM5 = DD.fomoDumpHeadline(dump, bpHot, '+13', 0.24);
+assert.ok(/Deep dump/i.test(headM5) && /5m \+0\.2%/.test(headM5), 'dump head 5m bounce');
+assert.ok(/\+13 net/.test(headM5), 'dump head keeps net with 5m');
+const headNoM5 = DD.fomoDumpHeadline(dump, bpHot, '+13', -0.5);
+assert.ok(!/5m/.test(headNoM5), 'no 5m when red');
+const dumpM5 = Object.assign({}, dump, { m5: 0.3, ch1: -1 });
+const lnM5 = DD.dumpWatchLine(dumpM5, -1, 0.3);
+assert.ok(lnM5 && /5m \+0\.3%/.test(lnM5) && /Deep dump/i.test(lnM5), 'dump line 5m when no 1h');
+const ln1hWins = DD.dumpWatchLine(dumpM5, 0.5, 0.3);
+assert.ok(/1h \+0\.5%/.test(ln1hWins) && !/5m/.test(ln1hWins), '1h bounce wins over 5m');
+assert.ok(appJs.includes('has-m5-bounce') && appJs.includes('lastProof.m5n'), 'v49 wiring');
+assert.ok(kitStyles.includes('has-m5-bounce'), 'v49 m5 bounce styles');
+
 console.log('dasha-share.test.mjs: PASS');

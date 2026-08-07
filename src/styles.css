@@ -787,6 +787,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 #dd-fomo.is-still-deep .dd-fomo-sub{color:#b8f0c8;font-weight:700}
 #dd-fomo-raid-dip.is-deep-raid{border-color:rgba(255,140,80,.55)!important;font-weight:800}
 #dd-fomo-raid-dip.is-dump-raid{border-color:rgba(255,90,70,.7)!important;font-weight:800;background:linear-gradient(180deg,rgba(255,80,60,.18),rgba(255,80,60,.05))}
+/* V49: 5m micro-bounce into dump — FOMO rim green tick */
+.dd-fomo.has-m5-bounce.is-dump{
+  border-color:rgba(120,255,160,.45)!important;
+  box-shadow:0 0 16px rgba(80,220,140,.18);
+}
 #dd-fomo.is-dip.is-deep .dd-fomo-main{color:#ffc4a0}
 .dd-dual-go.is-sess-up{box-shadow:0 0 14px rgba(80,220,140,.25)}
 .dd-dual-go.is-sess-down{box-shadow:0 0 14px rgba(255,140,80,.22)}
