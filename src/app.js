@@ -99,6 +99,15 @@
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
 
+  function safeProviderUrl(raw, host) {
+    try {
+      var url = new URL(String(raw || ''));
+      return url.protocol === 'https:' && url.hostname === host ? url.href : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   var DDShare = {
     CA: CA,
     PAIR: PAIR,
@@ -108,6 +117,7 @@
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
     intentTweet: intentTweet,
+    safeProviderUrl: safeProviderUrl,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
   if (typeof window !== 'undefined') window.DDShare = DDShare;
@@ -277,10 +287,11 @@
           } else el.textContent = next;
         }
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
-        if (p.url) $('dd-chart').href = p.url;
+        var chartUrl = safeProviderUrl(p.url, 'dexscreener.com');
+        if (chartUrl && $('dd-chart')) $('dd-chart').href = chartUrl;
         var info = p.info || {};
-        if (info.imageUrl && $('dd-token-img'))
-          $('dd-token-img').src = String(info.imageUrl).split('?')[0];
+        var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
+        if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
         asof.textContent = new Date().toLocaleString() + ' · Dex';
         if ($('dd-live')) $('dd-live').textContent = 'live';
       })
