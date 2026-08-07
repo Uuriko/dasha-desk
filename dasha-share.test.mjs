@@ -535,6 +535,7 @@ const tbl = DD.trustBarLine(
   DD.sessionDelta(80000, 84771),
 );
 assert.ok(tbl && /127/.test(tbl) && /Liq/.test(tbl) && /NFA/.test(tbl), 'trust bar combines flow+liq');
+assert.ok(!/NFA\s+NFA/i.test(tbl), 'trust bar single NFA');
 assert.ok(body.includes('id="dd-trust-bar"') && body.includes('id="dd-trust-bar-text"'), 'trust bar DOM');
 assert.ok(
   body.indexOf('dd-trust-bar') > body.indexOf('dd-sticky-meta') ||

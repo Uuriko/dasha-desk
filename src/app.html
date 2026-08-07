@@ -1709,9 +1709,22 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
    * Combines flow + liq + session shorts (each already NFA-tagged).
    */
   function trustBarLine(flow, liqLine, session) {
+    function stripNfa(s) {
+      return String(s || '')
+        .replace(/\s*·?\s*NFA\s*/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/^[·\s]+|[·\s]+$/g, '');
+    }
     var parts = [];
-    if (flow) parts.push(String(flow).replace(/\s*·\s*NFA\s*$/i, ''));
-    if (liqLine) parts.push(String(liqLine).replace(/\s*·\s*NFA\s*$/i, ''));
+    if (flow) {
+      var f = stripNfa(flow);
+      if (f) parts.push(f);
+    }
+    if (liqLine) {
+      var l = stripNfa(liqLine);
+      if (l) parts.push(l);
+    }
     if (session && session.short && Math.abs(Number(session.pct)) >= 0.5) {
       parts.push(session.short);
     }
