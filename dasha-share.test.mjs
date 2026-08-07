@@ -580,4 +580,20 @@ assert.ok(dualStill.header && /24h \+/.test(dualStill.header), 'dual header has 
 assert.ok(dualStill.toast && /24h \+/.test(dualStill.toast), 'dual toast has 24h still');
 assert.ok(appJs.includes('stillGreen24') && appJs.includes('has-still24'), 'v31 wiring');
 
+// V32: 1h reclaim during multi-hour (6h) dip
+assert.ok(typeof DD.dipReclaim === 'function', 'dipReclaim exported');
+const deepReclaim = { shortLabel: '6h', shortPct: -29.17, ch24: 18.21, ch1: 1.25 };
+const reclaim = DD.dipReclaim(deepReclaim);
+assert.ok(reclaim && reclaim.pct === 1.25 && /1h \+1\.3%|1h \+1\.2%/.test(reclaim.short), 'reclaim short');
+assert.equal(DD.dipReclaim({ shortLabel: '1h', shortPct: -5, ch24: 10, ch1: 2 }), null, '1h-dip no reclaim');
+assert.equal(DD.dipReclaim({ shortLabel: '6h', shortPct: -12, ch24: 10, ch1: 0.2 }), null, 'flat 1h null');
+assert.equal(DD.dipReclaim({ shortLabel: '6h', shortPct: -12, ch24: 10, ch1: -1 }), null, 'red 1h null');
+const dualRec = DD.dualGoPlan(2, true, 'dip', null, 74, '+51', 298, deepReclaim);
+assert.ok(dualRec.hasReclaim && /1h \+/.test(dualRec.label), 'dual label has 1h reclaim');
+assert.ok(dualRec.header && /1h \+/.test(dualRec.header), 'dual header has 1h reclaim');
+assert.ok(dualRec.toast && /1h \+/.test(dualRec.toast), 'dual toast has 1h reclaim');
+assert.ok(dualRec.hasStill24 && /24h \+/.test(dualRec.label), 'still+reclaim together');
+assert.ok(appJs.includes('dipReclaim') && appJs.includes('has-reclaim'), 'v32 wiring');
+assert.ok(kitStyles.includes('has-reclaim'), 'reclaim styles');
+
 console.log('dasha-share.test.mjs: PASS');

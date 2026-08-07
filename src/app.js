@@ -344,6 +344,7 @@
       shortLabel: shortLabel,
       shortPct: short,
       ch24: h24,
+      ch1: isFinite(h1) ? h1 : null,
       line:
         shortLabel +
         ' ' +
@@ -413,6 +414,23 @@
           : NaN;
     if (!isFinite(n) || n <= 0) return null;
     var label = '24h +' + (Math.abs(n) >= 10 ? n.toFixed(0) : n.toFixed(1)) + '%';
+    return { pct: n, label: label, short: label };
+  }
+
+  /**
+   * 1h reclaim during a multi-hour dip — pure, honest Dex.
+   * When short TF is 6h (not 1h) and 1h is green ≥0.5%, surface bounce.
+   */
+  function dipReclaim(dip, ch1) {
+    if (!dip || dip.shortLabel === '1h') return null;
+    var n =
+      dip.ch1 != null
+        ? Number(dip.ch1)
+        : ch1 != null
+          ? Number(ch1)
+          : NaN;
+    if (!isFinite(n) || n < 0.5) return null;
+    var label = '1h +' + (Math.abs(n) >= 10 ? n.toFixed(0) : n.toFixed(1)) + '%';
     return { pct: n, label: label, short: label };
   }
 
@@ -648,6 +666,7 @@
     var pace = buyPaceShort(buys);
     var depth = r === 'dip' ? dipDepth(dip) : null;
     var still = r === 'dip' ? stillGreen24(dip) : null;
+    var reclaim = r === 'dip' ? dipReclaim(dip) : null;
     var label;
     if (r === 'dip') {
       label =
@@ -661,6 +680,8 @@
     else label = label + (mobile ? ' · Wallet' : ' · Buy');
     // V31: 24h still green during dip (honest recovery anchor near buy)
     if (still && still.short) label = label + ' · ' + still.short;
+    // V32: 1h reclaim during multi-hour dip (bounce near buy)
+    if (reclaim && reclaim.short) label = label + ' · ' + reclaim.short;
     // Positive net buys social proof (honest Dex)
     if (netShort && String(netShort).charAt(0) === '+') {
       label = label + ' · ' + netShort + ' net';
@@ -669,7 +690,7 @@
     if (session && session.short && Math.abs(session.pct) >= 0.5) {
       label = label + ' · ' + session.short;
     }
-    // Share header: regime + depth + 24h still + net + pace for viral paste/share
+    // Share header: regime + depth + still + reclaim + net + pace for viral paste
     var headerBits = ['$dasha'];
     if (r === 'dip') {
       headerBits.push(
@@ -687,6 +708,7 @@
         );
       }
       if (still && still.short) headerBits.push(still.short);
+      if (reclaim && reclaim.short) headerBits.push(reclaim.short);
     } else if (r === 'hot') headerBits.push('hot');
     if (netShort && String(netShort).charAt(0) === '+') {
       headerBits.push(netShort + ' net');
@@ -705,6 +727,7 @@
     var toast = 'CA+buy copied · open';
     if (size && size.label) toast = 'CA+buy · ' + size.label;
     if (still && still.short) toast = toast + ' · ' + still.short;
+    if (reclaim && reclaim.short) toast = toast + ' · ' + reclaim.short;
     if (netShort && String(netShort).charAt(0) === '+') {
       toast = toast + ' · ' + netShort + ' net';
     }
@@ -724,6 +747,7 @@
       size: size,
       pace: pace,
       still: still,
+      reclaim: reclaim,
       session: session || null,
       netShort: netShort || null,
       hasRef: /[?&]ref=/.test(jup),
@@ -737,6 +761,7 @@
       hasNet: !!(netShort && String(netShort).charAt(0) === '+'),
       hasPace: !!pace,
       hasStill24: !!still,
+      hasReclaim: !!reclaim,
       depth: depth,
       isDeepDip: !!(depth && depth.tier === 'deep'),
       isHardDip: !!(depth && (depth.tier === 'deep' || depth.tier === 'hard')),
@@ -846,6 +871,7 @@
     dipDepth: dipDepth,
     dipSizeNudgeSol: dipSizeNudgeSol,
     stillGreen24: stillGreen24,
+    dipReclaim: dipReclaim,
     netBuysLine: netBuysLine,
     netBuysShort: netBuysShort,
     buysPaceLine: buysPaceLine,
@@ -1815,6 +1841,7 @@
       b.classList.toggle('has-net', !!plan.hasNet);
       b.classList.toggle('has-pace', !!plan.hasPace);
       b.classList.toggle('has-still24', !!plan.hasStill24);
+      b.classList.toggle('has-reclaim', !!plan.hasReclaim);
       b.classList.toggle(
         'is-sess-up',
         !!(sess && sess.up && Math.abs(sess.pct) >= 0.5),
@@ -2128,12 +2155,16 @@
       if (stickyRegime === 'dip') {
         var sd = dipDepth(lastProof.dip);
         var stillSticky = stillGreen24(lastProof.dip, lastProof.ch24n);
+        var reclaimSticky = dipReclaim(lastProof.dip, lastProof.ch1n);
         $('dd-buy-sticky').textContent =
           (sd && sd.tier !== 'soft' ? sd.tag + ' dip' : 'Dip') +
           ' · ' +
           buySol +
           ' SOL' +
           (stillSticky && stillSticky.short ? ' · ' + stillSticky.short : '') +
+          (reclaimSticky && reclaimSticky.short
+            ? ' · ' + reclaimSticky.short
+            : '') +
           (netBit && netBit !== '—' && netBit !== '0' ? ' · ' + netBit + ' net' : '') +
           (lastProof.mcap && lastProof.mcap !== '—' ? ' · ' + lastProof.mcap : '');
       } else if (stickyRegime === 'hot') {
@@ -2181,6 +2212,10 @@
         var stillBit =
           regime === 'dip' ? stillGreen24(lastProof.dip, lastProof.ch24n) : null;
         if (stillBit && stillBit.short) fomoBits.push(stillBit.short);
+        // V32: 1h reclaim during multi-hour dip
+        var reclaimBit =
+          regime === 'dip' ? dipReclaim(lastProof.dip, lastProof.ch1n) : null;
+        if (reclaimBit && reclaimBit.short) fomoBits.push(reclaimBit.short);
         if (netBit && netBit !== '—' && String(netBit).charAt(0) === '+') {
           fomoBits.push(netBit + ' net');
         }
