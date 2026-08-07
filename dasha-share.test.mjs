@@ -13,7 +13,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(__dirname, 'src/app.js'), 'utf8');
 
 function load(overrides = {}) {
-  const sandbox = { globalThis: {}, window: undefined, document: undefined, navigator: undefined, console, URL, ...overrides };
+  const sandbox = { globalThis: {}, window: undefined, document: undefined, navigator: undefined, console, URL, Blob, ...overrides };
   sandbox.globalThis = sandbox;
   vm.runInNewContext(src, sandbox, { filename: 'src/app.js' });
   return sandbox.globalThis.DDShare;
@@ -221,6 +221,19 @@ assert.equal(DD.buildObservationReceipt(evidence, null, '').marketObservation, n
 assert.deepEqual(DD.buildObservationReceipt(evidence, configuredPair, '2026-08-07T06:00:00Z'), DD.buildObservationReceipt(evidence, configuredPair, '2026-08-07T06:00:00Z'));
 assert.throws(() => DD.buildObservationReceipt(null, configuredPair, '2026-08-07T06:00:00Z'), /evidence/i);
 assert.ok(!JSON.stringify(receipt).includes(DD.BUY) && !JSON.stringify(receipt).includes(DD.DESK));
+const receiptText = DD.observationReceiptText(evidence, configuredPair, '2026-08-07T06:00:00Z');
+assert.equal(receiptText, JSON.stringify(DD.buildObservationReceipt(evidence, configuredPair, '2026-08-07T06:00:00Z'), null, 2));
+assert.equal(DD.observationReceiptFilename(JSON.parse(receiptText)), 'dasha-observation-53uxQtB9-20260807T060000Z.json');
+let clicked = false, revoked = '';
+const DownloadURL = class extends URL {};
+DownloadURL.createObjectURL = (blob) => (assert.equal(blob.type, 'application/json'), 'blob:receipt');
+DownloadURL.revokeObjectURL = (url) => { revoked = url; };
+const downloadDD = load({
+  URL: DownloadURL,
+  document: { querySelectorAll: () => [], getElementById: () => null, createElement: () => ({ click() { clicked = true; } }) },
+});
+downloadDD.downloadObservationReceipt(receiptText, downloadDD.observationReceiptFilename(JSON.parse(receiptText)));
+assert.equal(clicked && revoked, 'blob:receipt');
 const accountData = Buffer.from(evidence.account.accountDataBase64, 'base64');
 assert.equal(accountData.length, 82);
 assert.equal(createHash('sha256').update(accountData).digest('hex'), evidence.account.accountDataSha256);

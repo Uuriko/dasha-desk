@@ -36,7 +36,7 @@ Cutover order:
 6. Use `www.getdasha.com` as the sole canonical host and permanently redirect the apex and staging hostname.
 7. Set page-specific absolute canonical/OG URLs, block staging indexing, enable the generated sitemap, and list only `/` and `/labs`.
 
-Acceptance evidence: apex and `www` resolve; one redirects permanently to the other; `/` serves the mint desk; `/labs` preserves the thesis tool; `/dasha` redirects permanently to `/`; both pages link to each other; certificate coverage is valid; `/robots.txt`, `/sitemap.xml`, canonical tags, OG images, and every internal link use the production host.
+Acceptance evidence: apex and `www` resolve; one redirects permanently to the other; `/` serves the mint desk; `/labs` preserves the thesis tool; `/dasha` redirects permanently to `/`; both pages link to each other; certificate coverage is valid; `/robots.txt`, `/sitemap.xml`, canonical tags, OG title/description/URL, and every internal link use the production host; no social image metadata ships until a licensed asset is selected.
 
 Run the live audit at any point:
 

@@ -23,6 +23,7 @@ export function inspectPage(html) {
     ogTitle: meta('og:title'),
     ogDescription: meta('og:description'),
     ogImage: meta('og:image'),
+    twitterImage: meta('twitter:image'),
     ogUrl: meta('og:url'),
     links: [...html.matchAll(/<a\b[^>]*href=["']([^"']+)/gi)].map((match) => match[1]),
     ids: new Set([...html.matchAll(/\bid=["']([^"']+)/gi)].map((match) => match[1])),
@@ -157,7 +158,7 @@ export async function checkLaunch({ mode = 'prelaunch', canonical = 'https://www
     const meta = inspectPage(page.body);
     if (!meta.title || !meta.h1) add('fail', `${name}.identity`, `${name} needs a static title and H1`);
     if (meta.canonical !== expected) add('fail', `${name}.canonical`, `${name} canonical must equal its production URL`, meta.canonical);
-    if (meta.ogUrl !== expected || !meta.ogTitle || !meta.ogDescription || !/^https:\/\//.test(meta.ogImage)) add('fail', `${name}.og`, `${name} needs complete absolute Open Graph identity`);
+    if (meta.ogUrl !== expected || !meta.ogTitle || !meta.ogDescription || meta.ogImage || meta.twitterImage) add('fail', `${name}.og`, `${name} needs title, description, exact URL, and no unlicensed social image`);
     if (page.body.includes('johns-awesome-project-39b1b5.webflow.io')) add('fail', `${name}.staging-leak`, `${name} contains the staging hostname`);
     for (const href of meta.links) {
       if (/^javascript:/i.test(href)) add('fail', `${name}.javascript-link`, `${name} contains a javascript: link`, href);

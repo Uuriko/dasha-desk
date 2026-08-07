@@ -239,6 +239,25 @@
     };
   }
 
+  function observationReceiptText(evidence, pair, fetchedAt) {
+    return JSON.stringify(buildObservationReceipt(evidence, pair, fetchedAt), null, 2);
+  }
+
+  function observationReceiptFilename(receipt) {
+    var date = new Date((receipt.marketObservation && receipt.marketObservation.fetchedAt) || receipt.mintEvidence.capturedAt || NaN);
+    var stamp = isNaN(date.getTime()) ? 'undated' : date.toISOString().replace(/[-:]/g, '').replace('.000', '');
+    return 'dasha-observation-' + CA.slice(0, 8) + '-' + stamp + '.json';
+  }
+
+  function downloadObservationReceipt(text, filename) {
+    var url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   var DDShare = {
     CA: CA,
     PAIR: PAIR,
@@ -256,6 +275,9 @@
     safeProviderUrl: safeProviderUrl,
     selectMarketPair: selectMarketPair,
     buildObservationReceipt: buildObservationReceipt,
+    observationReceiptText: observationReceiptText,
+    observationReceiptFilename: observationReceiptFilename,
+    downloadObservationReceipt: downloadObservationReceipt,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
   if (typeof window !== 'undefined') window.DDShare = DDShare;
@@ -500,13 +522,25 @@
       $('dd-labs-link').hidden = false;
     }).catch(function () {});
   }
+  function currentReceiptText() {
+    var evidence = JSON.parse($('dd-evidence-json').textContent);
+    return observationReceiptText(evidence, lastPair, lastProof.at);
+  }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {
       try {
-        var evidence = JSON.parse($('dd-evidence-json').textContent);
-        copy(JSON.stringify(buildObservationReceipt(evidence, lastPair, lastProof.at), null, 2), $('dd-copy-evidence'));
+        copy(currentReceiptText(), $('dd-copy-evidence'));
       } catch (_) {
         $('dd-copy-evidence').textContent = 'Evidence unavailable';
+      }
+    });
+  if ($('dd-download-evidence') && $('dd-evidence-json'))
+    $('dd-download-evidence').addEventListener('click', function () {
+      try {
+        var text = currentReceiptText();
+        downloadObservationReceipt(text, observationReceiptFilename(JSON.parse(text)));
+      } catch (_) {
+        $('dd-download-evidence').textContent = 'Evidence unavailable';
       }
     });
   if ($('dd-native-share'))

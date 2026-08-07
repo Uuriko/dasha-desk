@@ -6,11 +6,12 @@ import { inspectEvidence, inspectPage, redirectsArePermanent, robotsBlocksRoot }
 const page = inspectPage(`<!doctype html><html><head>
   <title>Dasha Labs</title><link href="https://www.getdasha.com/" rel="canonical">
   <meta property="og:title" content="Dasha Labs"><meta content="Evidence desk" property="og:description">
-  <meta property="og:image" content="https://www.getdasha.com/og.png"><meta property="og:url" content="https://www.getdasha.com/">
+  <meta property="og:url" content="https://www.getdasha.com/">
 </head><body><h1>Write the <em>call</em></h1><a href="/labs">Labs</a><div id="tool"></div><a href="#tool">Tool</a></body></html>`);
 assert.equal(page.h1, 'Write the call');
 assert.equal(page.canonical, 'https://www.getdasha.com/');
 assert.equal(page.ogDescription, 'Evidence desk');
+assert.equal(page.ogImage || page.twitterImage, '');
 assert.deepEqual(page.links, ['/labs', '#tool']);
 assert.ok(page.ids.has('tool'));
 
