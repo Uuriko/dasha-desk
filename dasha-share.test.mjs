@@ -19,6 +19,7 @@ const sandbox = {
   document: undefined,
   navigator: undefined,
   console,
+  URL,
 };
 sandbox.globalThis = sandbox;
 vm.runInNewContext(src, sandbox, { filename: 'src/app.js' });
@@ -64,6 +65,13 @@ const intent = DD.intentTweet(raid);
 assert.ok(intent.startsWith('https://x.com/intent/tweet?text='));
 assert.ok(intent.length > 40);
 assert.ok(decodeURIComponent(intent).includes(DD.CA));
+assert.equal(
+  DD.safeProviderUrl('https://dexscreener.com/solana/pair', 'dexscreener.com'),
+  'https://dexscreener.com/solana/pair',
+);
+assert.equal(DD.safeProviderUrl('http://dexscreener.com/solana/pair', 'dexscreener.com'), '');
+assert.equal(DD.safeProviderUrl('https://dexscreener.com.evil.test/pair', 'dexscreener.com'), '');
+assert.equal(DD.safeProviderUrl('javascript:alert(1)', 'dexscreener.com'), '');
 
 // body structural gates (built visitor surface later also checked)
 const body = readFileSync(join(__dirname, 'src/body.html'), 'utf8');
