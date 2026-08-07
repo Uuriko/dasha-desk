@@ -569,4 +569,15 @@ assert.ok(dualDeep.header && /deep dip/i.test(dualDeep.header) && /-29/.test(dua
 assert.ok(appJs.includes('dipDepth') && appJs.includes('is-deep-dip') && appJs.includes('dd_dip_size_nudge'), 'v30 wiring');
 assert.ok(kitStyles.includes('is-deep-dip') || kitStyles.includes('is-hard-dip'), 'deep dip styles');
 
+// V31: 24h still green anchor on deep-dip dual/FOMO
+assert.ok(typeof DD.stillGreen24 === 'function', 'stillGreen24 exported');
+const still = DD.stillGreen24(deepDip);
+assert.ok(still && still.pct > 0 && /24h \+/.test(still.short), 'still green short');
+assert.equal(DD.stillGreen24({ shortLabel: '1h', shortPct: -5, ch24: -3 }), null, 'red 24h null');
+const dualStill = DD.dualGoPlan(2, true, 'dip', null, 74, '+59', 313, deepDip);
+assert.ok(dualStill.hasStill24 && /24h \+/.test(dualStill.label), 'dual label has 24h still');
+assert.ok(dualStill.header && /24h \+/.test(dualStill.header), 'dual header has 24h still');
+assert.ok(dualStill.toast && /24h \+/.test(dualStill.toast), 'dual toast has 24h still');
+assert.ok(appJs.includes('stillGreen24') && appJs.includes('has-still24'), 'v31 wiring');
+
 console.log('dasha-share.test.mjs: PASS');
