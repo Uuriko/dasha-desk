@@ -1120,13 +1120,25 @@
     headerBits.push('NFA');
     var header = headerBits.join(' · ');
     // One-paste payload: header + CA + amounted jup (w/ invite ref) + desk loop
-    var copyText = dualCopyPayload(
-      CA,
-      jup,
-      deskUrl(),
-      size && size.label,
-      header,
-    );
+    // V46: dump/deep dual copy uses viral into-the-dump / dip pack
+    var copyText;
+    if (dip && (isDump || (depth && depth.tier === 'deep'))) {
+      copyText = buildDipPack(
+        dip,
+        null,
+        sol,
+        netShort && String(netShort).charAt(0) === '+' ? netShort : null,
+        buys,
+      );
+    } else {
+      copyText = dualCopyPayload(
+        CA,
+        jup,
+        deskUrl(),
+        size && size.label,
+        header,
+      );
+    }
     var toast = 'CA+buy copied · open';
     if (size && size.label) toast = 'CA+buy · ' + size.label;
     if (still && still.short) toast = toast + ' · ' + still.short;

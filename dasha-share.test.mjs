@@ -806,4 +806,10 @@ const headBp = DD.fomoDumpHeadline(dump, bpHot, null);
 assert.ok(/% buys/.test(headBp), 'buy% fallback when no net');
 assert.ok(appJs.includes('netDump') && appJs.includes('fomoDumpHeadline'), 'v45 wiring');
 
+// V46: dual dump/deep copyText uses buildDipPack (into the dump / buy on dip)
+const dualPackDump = DD.dualGoPlan(1, true, 'dump', null, 74, '+17', 230, dump, 24000);
+assert.ok(dualPackDump.copyText && /into the dump/i.test(dualPackDump.copyText), 'dual dump pack viral');
+assert.ok(dualPackDump.copyText.includes(DD.CA) && /jup\.ag|amount=1/.test(dualPackDump.copyText), 'dual dump pack mint+jup');
+assert.ok(appJs.includes('buildDipPack') && appJs.includes('copyText'), 'v46 wiring');
+
 console.log('dasha-share.test.mjs: PASS');
