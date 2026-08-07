@@ -146,9 +146,11 @@ assert.equal(accountData.readUInt32LE(46), 0, 'freeze authority COption is None'
 assert.ok(raid.includes(DD.DESK) || raid.includes('webflow.io/dasha'), 'raid pack includes desk');
 assert.ok(raid.includes(DD.BUY) || raid.includes('jup.ag'), 'raid pack includes buy');
 assert.ok(typeof DD.buildLiveProof === 'function', 'buildLiveProof exported');
-const live = DD.buildLiveProof('$12.3K', '+4.2%');
-assert.ok(live.includes('mcap $12.3K'), 'live proof mcap');
+const live = DD.buildLiveProof('$12.3K', '+4.2%', '2026-08-07T06:00:00.000Z');
+assert.ok(/mcap \$12\.3K/i.test(live), 'live proof mcap');
 assert.ok(live.includes('+4.2%') || live.includes('24h'), 'live proof 24h');
+assert.ok(live.includes('Dexscreener-reported') && live.includes(DD.PAIR), 'market snapshot names provider and exact chart');
+assert.ok(live.includes('2026-08-07T06:00:00.000Z'), 'market snapshot includes retrieval time');
 assert.ok(live.includes(DD.BUY) || live.includes('jup.ag'), 'live proof buy');
 assert.ok(live.includes(DD.DESK) || live.includes('webflow.io/dasha'), 'live proof desk');
 assert.ok(live.includes(DD.CA), 'live proof mint');
@@ -167,13 +169,13 @@ assert.ok(body.includes('dd-social-proof-text') || body.includes('role="status"'
 assert.ok(body.includes('One-tap buy') || body.includes('dd-buy-sticky'), 'sticky funnel region');
 
 
-const hold = DD.buildSharePack('hold');
-assert.ok(hold.includes(DD.CA), 'hold pack mint');
-assert.ok(/still holding/i.test(hold), 'hold pack holding language');
-assert.ok(hold.includes(DD.BUY) || hold.includes('jup.ag'), 'hold pack buy');
-assert.ok(hold.includes(DD.DESK) || hold.includes('webflow.io/dasha'), 'hold pack desk');
-assert.ok(body.includes('data-pack="hold"'), 'hold pack tab');
-assert.ok(!unsafe.buildSharePack('hold').includes('Desk →'), 'unsafe mirrors omit desk from hold pack');
 assert.ok(!/dd-fomo|smartPackPicked|dd_raid_ab|data-raid-ab/.test(body + src), 'no urgency signal or hidden pack selection');
+
+
+assert.ok(body.includes('dd-buy-sticky'), 'sticky buy control');
+assert.ok(body.includes('Tap · copy share-ready live pack'), 'live-pack action is explicit');
+assert.ok(!/dd-exit|dd-pulse-buy|dd-sticky-live|dd-sp-strip/.test(body + src), 'no exit interception, urgency pulse, or duplicate live strip');
+assert.ok(!src.includes('p.marketCap || p.fdv'), 'FDV is never mislabeled as market cap');
+assert.ok(src.includes("lastProof = { mcap: '—', ch24: '—', at: '' }"), 'offline path clears shareable market state');
 
 console.log('dasha-share.test.mjs: PASS');

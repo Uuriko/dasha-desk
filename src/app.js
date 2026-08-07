@@ -79,18 +79,6 @@
         'If a DM shows a different string, ignore it.'
       );
     }
-    if (kind === 'hold') {
-      return (
-        "I'm still holding $dasha\n" +
-        CA +
-        '\n' +
-        'Buy → ' +
-        BUY +
-        '\n' +
-        (DESK ? 'Desk → ' + DESK + '\n' : '') +
-        'NFA · can go to zero · association ≠ endorsement'
-      );
-    }
     if (kind === 'meme') {
       return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
     }
@@ -130,14 +118,18 @@
     );
   }
 
-  /** Live social-proof pack — unit-tested via DDShare.buildLiveProof */
-  function buildLiveProof(mcapLabel, ch24Label) {
-    var m = mcapLabel && String(mcapLabel) !== '—' ? String(mcapLabel) : 'live';
+  /** Market snapshot pack — unit-tested via DDShare.buildLiveProof */
+  function buildLiveProof(mcapLabel, ch24Label, observedAt) {
+    var m = mcapLabel && String(mcapLabel) !== '—' ? String(mcapLabel) : 'unavailable';
     var c = ch24Label && String(ch24Label) !== '—' ? String(ch24Label) : '';
     return (
-      '$dasha live · mcap ' +
+      '$dasha · Dexscreener-reported snapshot\nMcap ' +
       m +
       (c ? ' · 24h ' + c : '') +
+      '\n' +
+      (observedAt ? 'Fetched ' + observedAt + '\n' : '') +
+      'Chart → ' +
+      PAIR +
       '\n' +
       'Buy → ' +
       BUY +
@@ -195,6 +187,7 @@
     return document.getElementById(id);
   }
   function fmtUsd(n) {
+    if (n == null || n === '') return '—';
     n = Number(n);
     if (!isFinite(n)) return '—';
     if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
@@ -274,7 +267,7 @@
   }
 
   var currentPack = 'raid';
-  var lastProof = { mcap: '—', ch24: '—' };
+  var lastProof = { mcap: '—', ch24: '—', at: '' };
   function setShare(kind) {
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
@@ -284,7 +277,7 @@
     if ($('dd-sticky-tweet')) {
       var raidLine =
         lastProof.mcap && lastProof.mcap !== '—'
-          ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+          ? buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at)
           : buildSharePack('raid');
       $('dd-sticky-tweet').href = intentTweet(raidLine);
     }
@@ -341,7 +334,7 @@
         });
         var p = pairs[0];
         var ch = p.priceChange || {};
-        var mcap = p.marketCap || p.fdv;
+        var mcap = p.marketCap;
         var liq = p.liquidity && p.liquidity.usd;
         var vol = p.volume && p.volume.h24;
         $('s-price').textContent = fmtUsd(p.priceUsd);
@@ -363,16 +356,18 @@
         setTone($('s-6h'), ch.h6);
         lastProof.mcap = fmtUsd(mcap);
         lastProof.ch24 = fmtPct(ch.h24);
+        var fetchedAt = new Date();
+        lastProof.at = fetchedAt.toISOString();
         if ($('dd-social-proof-text')) {
           $('dd-social-proof-text').textContent =
-            '$dasha live · mcap ' +
+            'Dexscreener · mcap ' +
             lastProof.mcap +
             ' · 24h ' +
             lastProof.ch24 +
             ' · NFA';
         } else if ($('dd-social-proof')) {
           $('dd-social-proof').textContent =
-            '$dasha live · mcap ' +
+            'Dexscreener · mcap ' +
             lastProof.mcap +
             ' · 24h ' +
             lastProof.ch24 +
@@ -387,7 +382,7 @@
         if ($('dd-sticky-tweet')) {
           $('dd-sticky-tweet').href = intentTweet(
             lastProof.mcap && lastProof.mcap !== '—'
-              ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+              ? buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at)
               : buildSharePack('raid'),
           );
         }
@@ -407,13 +402,22 @@
         var info = p.info || {};
         var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
         if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
-        asof.textContent = new Date().toLocaleString() + ' · Dex';
+        asof.textContent = fetchedAt.toLocaleString() + ' · Dexscreener';
         if ($('dd-live')) $('dd-live').textContent = 'live';
       })
       .catch(function () {
         if (asof) asof.textContent = 'Dex offline — use Chart.';
+        ['s-price', 's-mcap', 's-liq', 's-vol', 's-5m', 's-1h', 's-6h', 's-24h', 'p-mcap', 'p-liq', 'p-vol', 'p-24h'].forEach(function (id) {
+          if ($(id)) {
+            $(id).textContent = '—';
+            $(id).classList.remove('dd-up', 'dd-down');
+          }
+        });
+        lastProof = { mcap: '—', ch24: '—', at: '' };
+        if ($('dd-social-proof-text')) $('dd-social-proof-text').textContent = 'Dexscreener offline · market numbers unavailable · NFA';
         if ($('dd-live')) $('dd-live').textContent = 'offline';
         if ($('dd-px')) $('dd-px').textContent = 'offline';
+        if ($('dd-sticky-px')) $('dd-sticky-px').textContent = '—';
       });
   }
   function hardenImages() {
@@ -485,11 +489,11 @@
     });
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at), $('dd-copy-live'));
     });
   if ($('dd-social-proof'))
     $('dd-social-proof').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-social-proof-hint') || $('dd-social-proof'));
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at), $('dd-social-proof-hint') || $('dd-social-proof'));
     });
 
   if ($('dd-copy-share'))
