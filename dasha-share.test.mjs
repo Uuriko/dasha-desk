@@ -165,6 +165,10 @@ assert.ok(src.includes('/latest/dex/pairs/solana/'), 'uses documented exact-pair
 
 // body structural gates (built visitor surface later also checked)
 const body = readFileSync(join(__dirname, 'src/body.html'), 'utf8');
+const index = readFileSync(join(__dirname, 'index.html'), 'utf8');
+assert.match(index, /<title>\$dasha desk — inspect mint evidence/);
+assert.match(index, /Operator position and compensation not disclosed/);
+assert.ok(!/property="og:image"|name="twitter:image"/.test(index), 'unlicensed remote art is not shipped as social metadata');
 assert.ok(body.includes('files.catbox.moe/gpjyb0.jpg'), 'casino-open durable media');
 assert.ok(body.includes('files.catbox.moe/nid4qy.jpg'), 'verify-mint durable media');
 assert.ok(body.includes('files.catbox.moe/qnvc7b.jpg'), 'aurora durable media');

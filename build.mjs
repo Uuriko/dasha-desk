@@ -5,25 +5,21 @@ const body = await read('./src/body.html');
 const css = await read('./src/styles.css');
 const js = await read('./src/app.js');
 
-const TOKEN_IMG = 'https://files.catbox.moe/gpjyb0.jpg';
-
 const meta = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>$dasha desk — buy, chart, share · Solana</title>
-<meta name="description" content="$dasha mint desk: copy CA, buy on Jupiter, chart on Dexscreener, share raid packs. Culture coin on Solana. Can go to zero. NFA. Association ≠ endorsement."/>
+<title>$dasha desk — inspect mint evidence · Solana</title>
+<meta name="description" content="Unofficial promotional desk for an associated $dasha mint. Inspect cited sources and exact-pair data. Operator position and compensation not disclosed. Can go to zero."/>
 <meta name="robots" content="noindex,follow"/>
 <meta name="theme-color" content="#07060a"/>
-<meta property="og:title" content="$dasha — casino open"/>
-<meta property="og:description" content="How u crying at the casino and u can’t even get in. Copy the mint. Buy · chart · share. NFA."/>
-<meta property="og:image" content="${TOKEN_IMG}"/>
+<meta property="og:title" content="$dasha desk — evidence before action"/>
+<meta property="og:description" content="Unofficial promotional desk for an associated mint. Operator position and compensation not disclosed. Inspect cited evidence; association is not endorsement."/>
 <meta property="og:type" content="website"/>
-<meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="$dasha — casino open"/>
-<meta name="twitter:description" content="Copy CA · Buy Jupiter · Chart Dex · Share pack. NFA."/>
-<meta name="twitter:image" content="${TOKEN_IMG}"/>`;
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="$dasha desk — evidence before action"/>
+<meta name="twitter:description" content="Unofficial promotional desk. Operator position and compensation not disclosed. Association ≠ endorsement; can go to zero."/>`;
 
 const pageEnd = '</body>\n</html>\n';
 
