@@ -82,7 +82,22 @@
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented (buy + desk always)
+    if (kind === 'raid_b') {
+      return (
+        'Casino open. $dasha is live.\n' +
+        'CA ' +
+        CA +
+        '\n' +
+        'Buy → ' +
+        BUY +
+        '\n' +
+        'Desk → ' +
+        DESK +
+        '\n' +
+        'NFA · can go to zero'
+      );
+    }
+    // raid / raid_a default — casino hook + full funnel
     return (
       CASINO +
       '\n' +
@@ -247,10 +262,19 @@
   }
 
   var currentPack = 'raid';
-  var lastProof = { mcap: '—', ch24: '—', vol: '—' };
+  var raidAb = 'a';
+  var smartPackPicked = false;
+  var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null };
+  function resolvePack(kind) {
+    kind = kind || currentPack || 'raid';
+    if (kind === 'raid' || kind === 'raid_a' || kind === 'raid_b') {
+      return raidAb === 'b' ? 'raid_b' : 'raid';
+    }
+    return kind;
+  }
   function setShare(kind) {
     if (kind) currentPack = kind;
-    var line = buildSharePack(currentPack);
+    var line = buildSharePack(resolvePack(currentPack));
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
@@ -337,9 +361,13 @@
         lastProof.mcap = fmtUsd(mcap);
         lastProof.ch24 = fmtPct(ch.h24);
         lastProof.vol = fmtUsd(vol);
+        lastProof.ch24n = Number(ch.h24);
+        lastProof.m5n = Number(ch.m5);
         if ($('dd-fomo-main') && $('dd-fomo')) {
-          var chN = Number(ch.h24);
+          var chN = lastProof.ch24n;
+          var m5N = lastProof.m5n;
           var fomo = $('dd-fomo');
+          var hot = (isFinite(chN) && Math.abs(chN) >= 5) || (isFinite(m5N) && Math.abs(m5N) >= 2);
           if (isFinite(chN) && chN > 0) {
             $('dd-fomo-main').textContent = 'Moving · 24h ' + lastProof.ch24;
             fomo.classList.add('is-up');
@@ -352,10 +380,26 @@
             $('dd-fomo-main').textContent = 'Live · mcap ' + lastProof.mcap;
             fomo.classList.remove('is-up', 'is-down');
           }
+          if (hot) fomo.classList.add('is-hot');
+          else fomo.classList.remove('is-hot');
+          if ($('dd-fomo-hot')) $('dd-fomo-hot').hidden = !hot;
         }
         if ($('dd-fomo-sub')) {
+          var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
           $('dd-fomo-sub').textContent =
-            'Vol ' + fmtUsd(vol) + ' · liq ' + fmtUsd(liq) + ' · just now · NFA';
+            'Vol ' + fmtUsd(vol) + ' · liq ' + fmtUsd(liq) + m5s + ' · just now · NFA';
+        }
+        if (!smartPackPicked && isFinite(lastProof.ch24n)) {
+          smartPackPicked = true;
+          var smart =
+            lastProof.ch24n > 2 ? 'boost' : lastProof.ch24n < -2 ? 'hold' : 'raid';
+          currentPack = smart;
+          document.querySelectorAll('.dd-pack-tab').forEach(function (b) {
+            var on = (b.getAttribute('data-pack') || '') === smart;
+            b.classList.toggle('is-on', on);
+            b.setAttribute('aria-selected', on ? 'true' : 'false');
+          });
+          setShare(smart);
         }
         if ($('dd-social-proof-text')) {
           $('dd-social-proof-text').textContent =
@@ -525,6 +569,40 @@
     });
   }
   if ($('dd-refresh')) $('dd-refresh').addEventListener('click', loadMarket);
+
+
+  try {
+    var savedAb = localStorage.getItem('dd_raid_ab');
+    if (savedAb === 'a' || savedAb === 'b') raidAb = savedAb;
+  } catch (e) {}
+  document.querySelectorAll('[data-raid-ab]').forEach(function (btn) {
+    if ((btn.getAttribute('data-raid-ab') || '') === raidAb) {
+      btn.classList.add('is-on');
+    } else {
+      btn.classList.remove('is-on');
+    }
+    btn.addEventListener('click', function () {
+      raidAb = btn.getAttribute('data-raid-ab') === 'b' ? 'b' : 'a';
+      document.querySelectorAll('[data-raid-ab]').forEach(function (b) {
+        b.classList.toggle('is-on', (b.getAttribute('data-raid-ab') || '') === raidAb);
+      });
+      try {
+        localStorage.setItem('dd_raid_ab', raidAb);
+      } catch (e2) {}
+      if ($('dd-ab-note')) {
+        $('dd-ab-note').textContent =
+          raidAb === 'b' ? 'B = short get-in · active' : 'A = casino hook · active';
+      }
+      // switch to raid pack surface when A/B changes
+      currentPack = 'raid';
+      document.querySelectorAll('.dd-pack-tab').forEach(function (b) {
+        var on = (b.getAttribute('data-pack') || '') === 'raid';
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      setShare('raid');
+    });
+  });
 
   setShare('raid');
   bindQuoteTaps();

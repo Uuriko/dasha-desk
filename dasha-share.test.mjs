@@ -127,4 +127,15 @@ assert.ok(body.includes('dd-fomo') && body.includes('dd-fomo-main'), 'fomo urgen
 assert.ok(body.includes('data-pack="hold"'), 'hold pack tab');
 assert.ok(body.includes('dd-copy-hold'), 'copy hold pack control');
 
+
+const raidB = DD.buildSharePack('raid_b');
+assert.ok(raidB.includes(DD.CA), 'raid_b mint');
+assert.ok(raidB.includes(DD.BUY) || raidB.includes('jup.ag'), 'raid_b buy');
+assert.ok(raidB.includes(DD.DESK) || raidB.includes('webflow.io/dasha'), 'raid_b desk');
+assert.ok(/casino open|is live/i.test(raidB), 'raid_b short get-in copy');
+assert.notEqual(raidB, DD.buildSharePack('raid'), 'raid A/B differ');
+assert.ok(body.includes('data-raid-ab'), 'raid A/B UI');
+assert.ok(body.includes('dd-raid-a') && body.includes('dd-raid-b'), 'raid A/B buttons');
+assert.ok(body.includes('dd-fomo-hot'), 'FOMO hot badge');
+
 console.log('dasha-share.test.mjs: PASS');

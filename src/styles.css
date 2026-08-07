@@ -481,3 +481,24 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   .dd-fomo{padding:10px 12px}
   .dd-fomo-hold{width:100%}
 }
+
+.dd-ab{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.dd-ab-btn{
+  appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--text);min-height:36px;padding:6px 12px;border-radius:999px;
+  font-size:12px;font-weight:800;cursor:pointer;
+}
+.dd-ab-btn.is-on{
+  background:linear-gradient(135deg,#d4b8ff,#8b5cf6);color:#12091c;border-color:transparent;
+}
+.dd-ab-note{font-size:11px;color:var(--muted);font-weight:600}
+.dd-fomo.is-hot{
+  border-color:rgba(255,120,80,.55);
+  box-shadow:0 0 0 1px rgba(255,120,80,.2),0 12px 32px rgba(255,100,50,.12);
+}
+.dd-fomo.is-hot .dd-fomo-dot{animation-duration:.7s}
+.dd-fomo-hot{
+  font-size:10px;font-weight:900;letter-spacing:.08em;
+  padding:3px 7px;border-radius:999px;background:rgba(255,120,80,.2);
+  color:#ffc8a8;border:1px solid rgba(255,140,80,.45);
+}

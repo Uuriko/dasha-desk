@@ -53,6 +53,7 @@
     <span class="dd-fomo-dot" aria-hidden="true"></span>
     <div class="dd-fomo-copy">
       <strong id="dd-fomo-main">Watching Dex…</strong>
+      <span class="dd-fomo-hot" id="dd-fomo-hot" hidden>HOT</span>
       <span id="dd-fomo-sub">Live numbers · NFA · can go to zero</span>
     </div>
     <button type="button" class="dd-btn dd-btn-primary dd-fomo-hold" id="dd-copy-hold">Copy hold pack</button>
@@ -126,7 +127,12 @@
     </article>
     <article class="dd-card" id="dd-share-room">
       <h2>Share = oxygen</h2>
-      <p class="dd-meta">Copy a pack. Post it. Buy + chart + desk always included.</p>
+      <p class="dd-meta">Copy a pack. Post it. Buy + chart + desk always included. Raid has A/B lines — pick what hits.</p>
+      <div class="dd-ab" role="group" aria-label="Raid pack A or B">
+        <button type="button" class="dd-ab-btn is-on" data-raid-ab="a" id="dd-raid-a">Raid A</button>
+        <button type="button" class="dd-ab-btn" data-raid-ab="b" id="dd-raid-b">Raid B</button>
+        <span class="dd-ab-note" id="dd-ab-note">A = casino hook · B = short get-in</span>
+      </div>
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
         <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
         <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
