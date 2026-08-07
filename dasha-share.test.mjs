@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -96,9 +97,17 @@ assert.ok(evidenceText, 'machine-readable mint evidence');
 const evidence = JSON.parse(evidenceText);
 assert.equal(evidence.mint, DD.CA);
 assert.equal(evidence.commitment, 'finalized');
+assert.equal(evidence.cluster, 'mainnet-beta');
 assert.equal(evidence.account.type, 'mint');
 assert.equal(evidence.account.mintAuthority, null);
 assert.equal(evidence.account.freezeAuthority, null);
-assert.match(evidence.account.rawAccountSha256, /^[a-f0-9]{64}$/);
+const accountData = Buffer.from(evidence.account.accountDataBase64, 'base64');
+assert.equal(accountData.length, 82);
+assert.equal(createHash('sha256').update(accountData).digest('hex'), evidence.account.accountDataSha256);
+assert.equal(accountData.readUInt32LE(0), 0, 'mint authority COption is None');
+assert.equal(accountData.readBigUInt64LE(36).toString(), evidence.account.supply);
+assert.equal(accountData[44], evidence.account.decimals);
+assert.equal(Boolean(accountData[45]), evidence.account.initialized);
+assert.equal(accountData.readUInt32LE(46), 0, 'freeze authority COption is None');
 
 console.log('dasha-share.test.mjs: PASS');

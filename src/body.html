@@ -72,14 +72,14 @@
     <div class="dd-card-head">
       <div>
         <h2>Mint evidence</h2>
-        <p class="dd-meta">Finalized Solana snapshot · facts, not a safety score.</p>
+        <p class="dd-meta">RPC-reported mint snapshot at finalized commitment · not a cryptographic inclusion proof or safety score.</p>
       </div>
       <button type="button" class="dd-linkish" id="dd-copy-evidence">Copy JSON</button>
     </div>
     <dl class="dd-evidence-grid">
       <div><dt>Account</dt><dd>SPL Mint · initialized</dd></div>
-      <div><dt>Mint authority</dt><dd class="dd-good">Revoked</dd></div>
-      <div><dt>Freeze authority</dt><dd class="dd-good">Revoked</dd></div>
+      <div><dt>Mint authority</dt><dd class="dd-good">None · minting disabled</dd></div>
+      <div><dt>Freeze authority</dt><dd class="dd-good">None · freezing disabled</dd></div>
       <div><dt>Supply</dt><dd>999,831,950.053985</dd></div>
       <div><dt>Decimals</dt><dd>6</dd></div>
       <div><dt>Association</dt><dd>Public CA post · not official</dd></div>
@@ -88,8 +88,8 @@
       <a target="_blank" rel="nofollow ugc noopener noreferrer" href="https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Inspect on Solscan</a>
       <a target="_blank" rel="nofollow ugc noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">Association source</a>
     </div>
-    <p class="dd-evidence-note">Observed 2026-08-07 05:44 UTC at finalized slot 437,730,576. Market numbers above are live and separate.</p>
-    <script type="application/json" id="dd-evidence-json">{"schema":"dasha.mint-evidence/1","observedAt":"2026-08-07T05:44:33Z","commitment":"finalized","slot":437730576,"cluster":"solana-mainnet","mint":"53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump","account":{"type":"mint","ownerProgram":"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA","initialized":true,"decimals":6,"supply":"999831950053985","mintAuthority":null,"freezeAuthority":null,"rawAccountSha256":"971d6214271d7c502ccea75ded909f2830b426240aa008d2a9a01e9452152cd0"},"claims":[{"kind":"onchain","label":"SPL Mint account","source":"solana:getAccountInfo"},{"kind":"association","label":"Public CA post; not official endorsement","source":"https://x.com/dash_eats/status/2085405228078432279"}]}</script>
+    <p class="dd-evidence-note">Captured 2026-08-07 05:44 UTC · finalized slot 437,730,576 · slot block time 2026-08-07 05:44:33 UTC. The digest covers only the embedded account bytes. Market numbers above are live and separate.</p>
+    <script type="application/json" id="dd-evidence-json">{"schema":"dasha.mint-evidence/1","capturedAt":"2026-08-07T05:44:33Z","slotBlockTime":"2026-08-07T05:44:33Z","commitment":"finalized","slot":437730576,"cluster":"mainnet-beta","mint":"53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump","account":{"type":"mint","ownerProgram":"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA","initialized":true,"decimals":6,"supply":"999831950053985","mintAuthority":null,"freezeAuthority":null,"accountDataEncoding":"base64","accountDataBase64":"AAAAAAbFwc5jjSVn0mRosF65UdGijcxuEjSCtcZ1FJdw5ivyYdI3hFeNAwAGAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==","accountDataSha256":"971d6214271d7c502ccea75ded909f2830b426240aa008d2a9a01e9452152cd0"},"claims":[{"kind":"onchain","label":"RPC-reported SPL Mint account","source":"solana:getAccountInfo"},{"kind":"association","label":"Public CA post; not official endorsement","source":"https://x.com/dash_eats/status/2085405228078432279"}]}</script>
   </section>
 
   <section class="dd-grid dd-reveal" id="dd-numbers">
