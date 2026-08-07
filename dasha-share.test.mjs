@@ -273,8 +273,10 @@ const withAmt = DD.buyUrl(0.5);
 assert.ok(withAmt.includes('jup.ag'), 'amounted buy is jupiter');
 assert.ok(withAmt.includes('amount=0.5'), 'buyUrl appends SOL amount');
 assert.ok(withAmt.includes(DD.CA) || withAmt.includes('53uxQt'), 'amounted buy has mint');
-assert.equal(DD.buyUrl(), DD.BUY || DD.buyUrl(), 'buyUrl() without size stays base-compatible');
-assert.ok(!DD.buyUrl().includes('amount=') || DD.buyUrl(0).includes('jup'), 'default buyUrl has no forced amount');
+assert.ok(withAmt.includes('ref='), 'amounted buyUrl carries invite ref (V22)');
+assert.ok(DD.buyUrl().includes('jup.ag') && DD.buyUrl().includes('ref='), 'default buyUrl has invite ref');
+assert.ok(!DD.buyUrl().includes('amount='), 'default buyUrl has no forced amount');
+assert.ok(typeof DD.inviteRef === 'function' && /^[a-z0-9]{4,8}$/i.test(DD.inviteRef()), 'inviteRef shape');
 const buySized = DD.buildBuyPack('$80K', 1);
 assert.ok(buySized.includes('amount=1') || buySized.includes('1 SOL'), 'buy pack carries size');
 assert.ok(buySized.includes('mcap $80K'), 'sized buy pack mcap');
@@ -386,5 +388,24 @@ assert.ok(kitStyles.includes('dd-sticky-flow'), 'v21 sticky flow style');
 // A headline should not double "24h" when label already has 24h prefix
 const headClean = DD.fomoDipHeadline(dip, '24h +511%', 'a', bp);
 assert.ok(!/24h still 24h/i.test(headClean), 'no double 24h in FOMO A');
+
+// V22: FOMO/sticky buy path always invite-ref Jupiter links via buyUrl
+assert.ok(appJs.includes('inviteRef') && appJs.includes('ref='), 'inviteRef wired into buyUrl');
+const buySticky = DD.buyUrl(1);
+assert.ok(
+  buySticky.includes('jup.ag') &&
+    buySticky.includes('amount=1') &&
+    buySticky.includes('ref=') &&
+    buySticky.includes('53uxQt'),
+  'sticky/FOMO buyUrl is jup+amount+ref+mint',
+);
+// Phantom wrap must preserve ref inside encoded jup
+const phRef = DD.phantomBrowseUrl(buySticky);
+assert.ok(
+  phRef.includes('phantom.app/ul/browse/') &&
+    decodeURIComponent(phRef).includes('ref=') &&
+    decodeURIComponent(phRef).includes('amount=1'),
+  'Phantom UL preserves invite ref + amount',
+);
 
 console.log('dasha-share.test.mjs: PASS');

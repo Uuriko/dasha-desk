@@ -21,20 +21,45 @@
     }
   }
 
+  /**
+   * Invite ref for share/buy URLs: prefer inbound dd_from (who sent you)
+   * so FOMO/sticky Jupiter links attribute the inviter; else own getRef().
+   */
+  function inviteRef() {
+    try {
+      var from = localStorage.getItem('dd_from');
+      if (from && /^[a-z0-9]{4,8}$/i.test(from)) return from;
+    } catch (eFrom) {}
+    return getRef();
+  }
+
   function deskUrl() {
     var base = DESK_BASE;
     var ref = getRef();
     return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'ref=' + encodeURIComponent(ref);
   }
 
-  /** Jupiter deep-link; optional SOL input amount (human units) for one-tap size */
+  /** Jupiter deep-link; optional SOL amount; always carries invite ?ref= */
   function buyUrl(sol) {
     var base = BUY_BASE;
-    if (sol == null || sol === '') return base;
-    var n = Number(sol);
-    if (!isFinite(n) || n <= 0) return base;
-    // jup.ag accepts amount as the sell-side (SOL) quantity
-    return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'amount=' + encodeURIComponent(String(n));
+    if (sol != null && sol !== '') {
+      var n = Number(sol);
+      if (isFinite(n) && n > 0) {
+        // jup.ag accepts amount as the sell-side (SOL) quantity
+        base =
+          base +
+          (base.indexOf('?') >= 0 ? '&' : '?') +
+          'amount=' +
+          encodeURIComponent(String(n));
+      }
+    }
+    var ref = inviteRef();
+    return (
+      base +
+      (base.indexOf('?') >= 0 ? '&' : '?') +
+      'ref=' +
+      encodeURIComponent(ref)
+    );
   }
 
   // Compat aliases used throughout
@@ -491,6 +516,7 @@
     deskUrl: deskUrl,
     buyUrl: buyUrl,
     getRef: getRef,
+    inviteRef: inviteRef,
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
