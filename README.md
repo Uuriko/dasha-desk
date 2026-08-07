@@ -35,6 +35,7 @@ python3 -m http.server 8766
 | **Quotes** | Short @dash_eats lines (public posts) |
 | **Numbers** | Price / mcap / liq / vol from Dexscreener public API |
 | **Checker** | Paste any mint → match / no match |
+| **Evidence** | Finalized SPL Mint facts, revoked authorities, account hash, and labeled association source |
 | **Share** | Copy pack + draft on X |
 | **Rails** | Jupiter, Dex, Solscan, Birdeye, Rugcheck, Phantom |
 
@@ -60,7 +61,7 @@ The CI workflow runs the same build-drift and behavior checks on every pull requ
 | qrserver.com | mint QR image | canvas falls back to readable mint text |
 | X, Dexscreener CDN and Catbox | attributed media | broken images collapse to an unavailable placeholder |
 
-Third-party data and media are not endorsements. **Known alpha gap:** provider-supplied URLs still need HTTPS and host allowlisting before the first release.
+Third-party data and media are not endorsements. Provider-supplied chart and image URLs are accepted only from their exact HTTPS Dexscreener hosts; otherwise the canonical links remain unchanged.
 
 ## Research
 

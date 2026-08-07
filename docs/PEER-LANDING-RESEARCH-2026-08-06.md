@@ -37,3 +37,24 @@ Peer URLs / references (audit trail):
 ## Non-claims
 
 This desk is a community culture surface for an associated mint. Not official Dasha / Red Scare / @dash_eats product.
+
+## Fresh product direction — primary-source pass
+
+The defensible wedge is an inspectable chain from mint → sources → claims → changes, not another chart terminal or launcher.
+
+| Rank | Opportunity | Decision |
+|------|-------------|----------|
+| 1 | Mint evidence bundle | **Built:** finalized Mint account type, program, supply, decimals, revoked authorities, raw-account hash, association label, and copyable JSON |
+| 2 | Source-locked thesis receipt | Next experiment only after people use/share the evidence bundle |
+| 3 | Deterministic manifest linter | Extract from current build and URL guards; output pass/warn facts, never a safety score |
+| 4 | Reusable desk generator | Wait for a second real mint desk before generalizing `$dasha` |
+| 5 | Change/takeover ledger | Wait for the first meaningful authority, metadata, or association change |
+
+Primary evidence:
+
+- Solana defines the Mint Account fields that matter here—including supply, decimals, mint authority, and freeze authority—and explains that setting authorities to `None` permanently removes those capabilities: https://solana.com/docs/tokens/basics
+- Metaplex token metadata includes mutable presentation data and an off-chain URI, so a symbol or logo is not identity proof: https://solana.com/docs/tokens/metaplex
+- Dexscreener exposes profiles, boosts, ads, community takeovers, and paid orders separately from pair data; promotional state must therefore remain labeled separately from on-chain facts: https://docs.dexscreener.com/api/reference
+- Jupiter's swap product requires transaction assembly and signing for embedded execution. Dasha keeps an external Jupiter link and remains wallet-free instead of inheriting that transaction trust surface: https://dev.jup.ag/docs/swap/order-and-execute
+
+Explicitly rejected for now: generic screener, embedded wallet/swap, token launcher, “AI alpha,” opaque risk score, copy trading, staking, governance mechanics, on-chain reputation graph, and auto-generated social/news aggregation. Each either duplicates a mature provider, weakens the static no-wallet boundary, creates unprovable claims, or adds infrastructure before demand.
