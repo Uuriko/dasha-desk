@@ -577,8 +577,11 @@
     };
   }
 
-  /** FOMO dump headline — pure V40 */
-  function fomoDumpHeadline(dump, bp) {
+  /**
+   * FOMO dump headline — pure V40/V45.
+   * V45: positive net buys prove demand into the dump (honest Dex).
+   */
+  function fomoDumpHeadline(dump, bp, netShort) {
     if (!dump) return '';
     var depth = dipDepth(dump);
     var lead = depth && depth.word ? depth.word : 'Dump';
@@ -589,7 +592,11 @@
         Number(dump.depthPct != null ? dump.depthPct : dump.shortPct).toFixed(1) +
         '%',
     ];
-    if (bp && bp.moreBuyers) bits.push(bp.pct + '% buys');
+    if (netShort && String(netShort).charAt(0) === '+') {
+      bits.push(String(netShort) + ' net');
+    } else if (bp && bp.moreBuyers) {
+      bits.push(bp.pct + '% buys');
+    }
     bits.push('NFA');
     return bits.join(' · ');
   }
@@ -1880,7 +1887,15 @@
           } else if (lastProof.dip && lastProof.dip.kind === 'dump') {
             // V40: hard/deep dump when 24h not green — honest dump watch CTAs
             lastProof.regime = 'dump';
-            $('dd-fomo-main').textContent = fomoDumpHeadline(lastProof.dip, bp);
+            var netDump =
+              lastProof.buys != null && lastProof.sells != null
+                ? netBuysShort(lastProof.buys, lastProof.sells)
+                : null;
+            $('dd-fomo-main').textContent = fomoDumpHeadline(
+              lastProof.dip,
+              bp,
+              netDump,
+            );
             fomo.classList.add('is-dip', 'is-dump');
             fomo.classList.remove('is-up', 'is-down', 'is-hot-win');
             var depthDump = dipDepth(lastProof.dip);

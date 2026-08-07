@@ -798,4 +798,12 @@ assert.ok(
 const stickyImpact = DD.solLiqImpact(1, 74, 24000);
 assert.ok(stickyImpact && /% liq/.test(stickyImpact.short), '1 SOL impact short for sticky');
 
+// V45: dump FOMO main prefers +net over % buys when net green
+const headNet = DD.fomoDumpHeadline(dump, bpHot, '+17');
+assert.ok(/Deep dump/i.test(headNet) && /\+17 net/.test(headNet), 'dump head net');
+assert.ok(!/% buys/.test(headNet), 'net wins over buy% when both available');
+const headBp = DD.fomoDumpHeadline(dump, bpHot, null);
+assert.ok(/% buys/.test(headBp), 'buy% fallback when no net');
+assert.ok(appJs.includes('netDump') && appJs.includes('fomoDumpHeadline'), 'v45 wiring');
+
 console.log('dasha-share.test.mjs: PASS');
