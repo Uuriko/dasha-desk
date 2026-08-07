@@ -655,6 +655,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-move-chip.dd-down{color:#ffc8c8;border-color:rgba(255,155,155,.4)}
 .dd-fomo-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .dd-fomo-actions .dd-btn{min-height:40px;padding:8px 12px;font-size:12px}
+.dd-fomo-actions #dd-fomo-buy{min-height:44px;padding:10px 14px;font-weight:800}
+.dd-fomo.is-dip #dd-fomo-buy{display:inline-flex}
+.dd-fomo.is-dip #dd-copy-buy-pack{order:3}
 .dd-fomo.is-move{box-shadow:0 0 0 1px rgba(255,180,120,.45),0 0 24px rgba(255,140,80,.18)}
 .dd-post-share{
   display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%;margin-top:8px;

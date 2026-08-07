@@ -216,6 +216,32 @@
     );
   }
 
+  /**
+   * Dip-raid share pack — virality on short-TF red + 24h green.
+   * dip = dipBuySignal(...) result; pure, unit-tested via DDShare.buildDipPack
+   */
+  function buildDipPack(dip, mcapLabel, sol) {
+    if (!dip || !dip.line) return buildBuyPack(mcapLabel, sol);
+    var m =
+      mcapLabel && String(mcapLabel) !== '—' ? ' · mcap ' + String(mcapLabel) : '';
+    var size =
+      sol != null && isFinite(Number(sol)) && Number(sol) > 0
+        ? ' · ' + String(Number(sol)) + ' SOL'
+        : '';
+    return (
+      dip.line +
+      '\nBuy $dasha on the dip → ' +
+      buyUrl(sol) +
+      '\n' +
+      CA +
+      m +
+      size +
+      '\nDesk → ' +
+      deskUrl() +
+      '\nNFA · can go to zero · association ≠ endorsement'
+    );
+  }
+
   /** Pure Dex buy-pressure stats — unit-tested via DDShare.buyPressure */
   function buyPressure(buys, sells) {
     if (buys == null || sells == null || buys === '' || sells === '') return null;
@@ -386,6 +412,7 @@
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
     buildBuyPack: buildBuyPack,
+    buildDipPack: buildDipPack,
     buyPressure: buyPressure,
     buyPressureLine: buyPressureLine,
     solUsdEstimate: solUsdEstimate,
@@ -619,9 +646,17 @@
     if (buys != null && sells != null) {
       bits.push(buys + ' buys · ' + sells + ' sells 24h');
     }
+    if (lastProof.dip && lastProof.dip.shortLabel) {
+      bits.push(
+        lastProof.dip.shortLabel +
+          ' dip · 24h still ' +
+          (lastProof.ch24 || '') +
+          ' · buy the dip',
+      );
+    }
     bits.push(
       CASINO,
-      'Buy ' + buySol + ' SOL → Jupiter',
+      (lastProof.dip ? 'Dip buy ' : 'Buy ') + buySol + ' SOL → Jupiter',
       'Desk + ref · share the pack',
       'NFA · can go to zero',
     );
@@ -1104,18 +1139,39 @@
     var bp = lastProof.pressure || buyPressure(lastProof.buys, lastProof.sells);
     return bp && bp.moreBuyers ? buyPressureLine(bp) : '';
   }
+  function dipPackNow() {
+    return lastProof.dip
+      ? buildDipPack(lastProof.dip, lastProof.mcap, buySol)
+      : buildBuyPack(lastProof.mcap, buySol, pressureNoteNow());
+  }
   function copyBuyPack(el) {
-    copy(buildBuyPack(lastProof.mcap, buySol, pressureNoteNow()), el);
+    copy(
+      lastProof.dip
+        ? dipPackNow()
+        : buildBuyPack(lastProof.mcap, buySol, pressureNoteNow()),
+      el,
+    );
   }
   // Buy-click share loop: surface pack share without blocking navigation
-  ['dd-buy', 'dd-buy-amt', 'dd-buy-sticky', 'dd-buy-wallet', 'dd-kit-wallet', 'dd-exit-buy'].forEach(
+  ['dd-buy', 'dd-buy-amt', 'dd-buy-sticky', 'dd-buy-wallet', 'dd-kit-wallet', 'dd-exit-buy', 'dd-fomo-buy'].forEach(
     function (id) {
       if (!$(id)) return;
       $(id).addEventListener('click', function () {
-        showPostShare(buildBuyPack(lastProof.mcap, buySol, pressureNoteNow()));
+        showPostShare(dipPackNow());
       });
     },
   );
+  if ($('dd-fomo-raid-dip'))
+    $('dd-fomo-raid-dip').addEventListener('click', function () {
+      var pack = dipPackNow();
+      copy(pack, $('dd-fomo-raid-dip'));
+      showPostShare(pack);
+      // also wire sticky tweet / post links to dip pack
+      if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(pack);
+      if ($('dd-post-x')) $('dd-post-x').href = intentTweet(pack);
+      if ($('dd-post-tg')) $('dd-post-tg').href = intentTelegram(pack);
+      if ($('dd-post-wa')) $('dd-post-wa').href = intentWhatsApp(pack);
+    });
   if ($('dd-copy-buy-pack'))
     $('dd-copy-buy-pack').addEventListener('click', function () {
       copyBuyPack($('dd-copy-buy-pack'));
@@ -1340,7 +1396,7 @@
   function wireBuyHrefs() {
     var href = buyUrl(buySol);
     var mobile = isMobileBuyPath();
-    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet', 'dd-kit-wallet', 'dd-buy-amt'].forEach(
+    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet', 'dd-kit-wallet', 'dd-buy-amt', 'dd-fomo-buy'].forEach(
       function (id) {
         if ($(id)) $(id).href = href;
       },
@@ -1358,10 +1414,32 @@
         'Buy ' + buySol + ' SOL on Jupiter' + (usd1 ? ' · ' + usd1 : '');
     }
     if ($('dd-buy-sticky')) {
-      $('dd-buy-sticky').textContent =
-        lastProof.mcap && lastProof.mcap !== '—'
-          ? 'Buy ' + buySol + ' · ' + lastProof.mcap
-          : 'Buy ' + buySol + ' SOL';
+      if (lastProof.dip) {
+        $('dd-buy-sticky').textContent =
+          'Dip buy · ' +
+          buySol +
+          ' SOL' +
+          (lastProof.mcap && lastProof.mcap !== '—' ? ' · ' + lastProof.mcap : '');
+      } else {
+        $('dd-buy-sticky').textContent =
+          lastProof.mcap && lastProof.mcap !== '—'
+            ? 'Buy ' + buySol + ' · ' + lastProof.mcap
+            : 'Buy ' + buySol + ' SOL';
+      }
+    }
+    // FOMO dip CTAs — buy link + raid share when short-TF dip
+    if ($('dd-fomo-buy')) {
+      $('dd-fomo-buy').href = href;
+      if (lastProof.dip) {
+        $('dd-fomo-buy').hidden = false;
+        $('dd-fomo-buy').textContent =
+          'Buy the dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+      } else {
+        $('dd-fomo-buy').hidden = true;
+      }
+    }
+    if ($('dd-fomo-raid-dip')) {
+      $('dd-fomo-raid-dip').hidden = !lastProof.dip;
     }
     if ($('dd-exit-buy')) {
       $('dd-exit-buy').textContent =

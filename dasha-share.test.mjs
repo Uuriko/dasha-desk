@@ -327,4 +327,21 @@ assert.ok(appJs.includes('lastProof.dip') && appJs.includes('is-dip'), 'dip stat
 assert.ok(appJs.includes('paintAmtChips') || appJs.includes('solUsd'), 'usd chip paint');
 assert.ok(kitStyles.includes('dd-sticky-amts') && kitStyles.includes('dd-sticky-dip'), 'dip/sticky styles');
 
+// V19: dip FOMO buy CTA + dip-raid share pack
+assert.ok(typeof DD.buildDipPack === 'function', 'buildDipPack exported');
+const dipPack = DD.buildDipPack(dip, '$82K', 1);
+assert.ok(/dip buy zone|1h/i.test(dipPack), 'dip pack leads with dip signal');
+assert.ok(dipPack.includes('Buy $dasha on the dip') || /on the dip/i.test(dipPack), 'dip pack buy-on-dip');
+assert.ok(dipPack.includes('amount=1') || dipPack.includes('1 SOL'), 'dip pack size');
+assert.ok(dipPack.includes(DD.CA) && dipPack.includes('jup.ag'), 'dip pack mint+jup');
+assert.ok(dipPack.includes('webflow.io/dasha') || dipPack.includes('Desk'), 'dip pack desk loop');
+assert.ok(/NFA|zero/i.test(dipPack), 'dip pack NFA');
+const noDipPack = DD.buildDipPack(null, '$82K', 0.5);
+assert.ok(noDipPack.includes('Buy $dasha now'), 'null dip falls back to buy pack');
+assert.ok(body.includes('id="dd-fomo-buy"') && body.includes('id="dd-fomo-raid-dip"'), 'FOMO dip CTAs');
+assert.ok(body.includes('Buy the dip') || body.includes('dd-fomo-buy'), 'buy the dip label');
+assert.ok(appJs.includes('dd-fomo-raid-dip') && appJs.includes('dipPackNow'), 'raid dip wiring');
+assert.ok(appJs.includes('Dip buy') || appJs.includes('dip buy'), 'sticky dip buy label');
+assert.ok(kitStyles.includes('dd-fomo-buy') || kitStyles.includes('#dd-fomo-buy'), 'fomo buy styles');
+
 console.log('dasha-share.test.mjs: PASS');
