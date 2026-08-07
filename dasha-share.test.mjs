@@ -146,4 +146,12 @@ const styles = readFileSync(join(__dirname, 'src/styles.css'), 'utf8');
 assert.ok(styles.includes('dd-buy-pulse') || styles.includes('dd-pulse-buy'), 'buy pulse styles');
 assert.ok(/dd-buy-pulse|@keyframes dd-buy-pulse/.test(styles), 'buy pulse keyframes');
 
+
+assert.ok(body.includes('dd-sp-strip') && body.includes('sp-mcap'), 'social proof strip chips');
+assert.ok(body.includes('dd-sp-copy-live') && body.includes('dd-sp-copy-hold'), 'sp strip share drivers');
+assert.ok(body.includes('dd-sp-tweet'), 'sp strip post live');
+assert.ok(body.includes('id="dd-exit"') && body.includes('dd-exit-hold'), 'exit-intent hold sheet');
+assert.ok(body.includes('dd-exit-buy'), 'exit-intent buy CTA');
+assert.ok(/Still holding|Before you go/i.test(body), 'exit-intent hold language');
+
 console.log('dasha-share.test.mjs: PASS');

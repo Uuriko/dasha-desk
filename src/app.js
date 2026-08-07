@@ -353,6 +353,13 @@
         if ($('p-liq')) $('p-liq').textContent = fmtUsd(liq);
         if ($('p-vol')) $('p-vol').textContent = fmtUsd(vol);
         if ($('p-24h')) $('p-24h').textContent = fmtPct(ch.h24);
+        if ($('sp-mcap')) $('sp-mcap').textContent = fmtUsd(mcap);
+        if ($('sp-liq')) $('sp-liq').textContent = fmtUsd(liq);
+        if ($('sp-vol')) $('sp-vol').textContent = fmtUsd(vol);
+        if ($('sp-24h')) {
+          $('sp-24h').textContent = fmtPct(ch.h24);
+          setTone($('sp-24h'), ch.h24);
+        }
         setTone($('p-24h'), ch.h24);
         setTone($('s-24h'), ch.h24);
         setTone($('s-5m'), ch.m5);
@@ -464,6 +471,7 @@
         if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
         asof.textContent = new Date().toLocaleString() + ' · Dex';
         if ($('dd-live')) $('dd-live').textContent = 'live';
+        if (window.__ddRefreshSpTweet) window.__ddRefreshSpTweet();
       })
       .catch(function () {
         if (asof) asof.textContent = 'Dex offline — use Chart.';
@@ -623,6 +631,79 @@
       });
       setShare('raid');
     });
+  });
+
+
+  function openExit() {
+    if (!$('dd-exit') || $('dd-exit').hidden === false) return;
+    try {
+      if (sessionStorage.getItem('dd_exit_shown') === '1') return;
+      sessionStorage.setItem('dd_exit_shown', '1');
+    } catch (e) {}
+    $('dd-exit').hidden = false;
+    if ($('dd-exit-copy') && lastProof.mcap && lastProof.mcap !== '—') {
+      $('dd-exit-copy').textContent =
+        'Live mcap ' +
+        lastProof.mcap +
+        ' · 24h ' +
+        lastProof.ch24 +
+        '. Copy hold pack or buy. NFA · can go to zero.';
+    }
+  }
+  function closeExit() {
+    if ($('dd-exit')) $('dd-exit').hidden = true;
+  }
+  if ($('dd-sp-copy-live'))
+    $('dd-sp-copy-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-sp-copy-live'));
+    });
+  if ($('dd-sp-copy-hold'))
+    $('dd-sp-copy-hold').addEventListener('click', function () {
+      copy(buildSharePack('hold'), $('dd-sp-copy-hold'));
+    });
+  if ($('dd-sp-tweet')) {
+    function refreshSpTweet() {
+      var line =
+        lastProof.mcap && lastProof.mcap !== '—'
+          ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+          : buildSharePack('boost');
+      $('dd-sp-tweet').href = intentTweet(line);
+    }
+    refreshSpTweet();
+    // refresh after markets too via setShare path - also call in loadMarket via sticky update
+    window.__ddRefreshSpTweet = refreshSpTweet;
+  }
+  if ($('dd-exit-close')) $('dd-exit-close').addEventListener('click', closeExit);
+  if ($('dd-exit-hold'))
+    $('dd-exit-hold').addEventListener('click', function () {
+      copy(buildSharePack('hold'), $('dd-exit-hold'));
+    });
+  if ($('dd-exit'))
+    $('dd-exit').addEventListener('click', function (e) {
+      if (e.target === $('dd-exit')) closeExit();
+    });
+  // desktop exit-intent: mouse leaves top of viewport once per session
+  document.addEventListener('mouseout', function (e) {
+    if (!e) return;
+    if (e.clientY > 0) return;
+    if (e.relatedTarget || e.toElement) return;
+    openExit();
+  });
+  // mobile soft exit: tab hidden after engagement
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') {
+      // do not open while hidden; mark for next show
+      try {
+        sessionStorage.setItem('dd_exit_pending', '1');
+      } catch (e2) {}
+    } else {
+      try {
+        if (sessionStorage.getItem('dd_exit_pending') === '1') {
+          sessionStorage.removeItem('dd_exit_pending');
+          // only if user returned quickly? skip auto-open on return — too spammy
+        }
+      } catch (e3) {}
+    }
   });
 
   setShare('raid');
