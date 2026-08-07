@@ -45,6 +45,20 @@
         'If a DM shows a different string, ignore it.'
       );
     }
+    if (kind === 'hold') {
+      return (
+        "I'm still holding $dasha\n" +
+        CA +
+        '\n' +
+        'Buy → ' +
+        BUY +
+        '\n' +
+        'Desk → ' +
+        DESK +
+        '\n' +
+        'NFA · can go to zero · association ≠ endorsement'
+      );
+    }
     if (kind === 'meme') {
       return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
     }
@@ -233,7 +247,7 @@
   }
 
   var currentPack = 'raid';
-  var lastProof = { mcap: '—', ch24: '—' };
+  var lastProof = { mcap: '—', ch24: '—', vol: '—' };
   function setShare(kind) {
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
@@ -322,6 +336,27 @@
         setTone($('s-6h'), ch.h6);
         lastProof.mcap = fmtUsd(mcap);
         lastProof.ch24 = fmtPct(ch.h24);
+        lastProof.vol = fmtUsd(vol);
+        if ($('dd-fomo-main') && $('dd-fomo')) {
+          var chN = Number(ch.h24);
+          var fomo = $('dd-fomo');
+          if (isFinite(chN) && chN > 0) {
+            $('dd-fomo-main').textContent = 'Moving · 24h ' + lastProof.ch24;
+            fomo.classList.add('is-up');
+            fomo.classList.remove('is-down');
+          } else if (isFinite(chN) && chN < 0) {
+            $('dd-fomo-main').textContent = 'Dip · 24h ' + lastProof.ch24;
+            fomo.classList.add('is-down');
+            fomo.classList.remove('is-up');
+          } else {
+            $('dd-fomo-main').textContent = 'Live · mcap ' + lastProof.mcap;
+            fomo.classList.remove('is-up', 'is-down');
+          }
+        }
+        if ($('dd-fomo-sub')) {
+          $('dd-fomo-sub').textContent =
+            'Vol ' + fmtUsd(vol) + ' · liq ' + fmtUsd(liq) + ' · just now · NFA';
+        }
         if ($('dd-social-proof-text')) {
           $('dd-social-proof-text').textContent =
             '$dasha live · mcap ' +
@@ -451,6 +486,10 @@
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+    });
+  if ($('dd-copy-hold'))
+    $('dd-copy-hold').addEventListener('click', function () {
+      copy(buildSharePack('hold'), $('dd-copy-hold'));
     });
 
   if ($('dd-social-proof'))

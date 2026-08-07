@@ -456,3 +456,28 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
   #dd-app.dd{padding-bottom:96px}
 }
+
+.dd-fomo{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:0 0 14px;padding:12px 14px;border-radius:14px;
+  border:1px solid rgba(255,180,120,.35);
+  background:linear-gradient(120deg,rgba(255,140,80,.12),rgba(167,139,250,.1));
+}
+.dd-fomo-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  background:#ffb070;box-shadow:0 0 12px rgba(255,160,80,.7);
+  animation:dd-pulse 1.4s ease-in-out infinite;
+}
+.dd-fomo.is-up .dd-fomo-dot{background:#7dffa3;box-shadow:0 0 12px rgba(125,255,163,.7)}
+.dd-fomo.is-down .dd-fomo-dot{background:#ff9b9b;box-shadow:0 0 12px rgba(255,155,155,.55)}
+.dd-fomo-copy{flex:1;min-width:140px;display:flex;flex-direction:column;gap:2px}
+.dd-fomo-copy strong{font-size:14px;letter-spacing:-.01em;color:#ffe0c8}
+.dd-fomo.is-up .dd-fomo-copy strong{color:#b8ffd0}
+.dd-fomo.is-down .dd-fomo-copy strong{color:#ffc8c8}
+.dd-fomo-copy span{font-size:11px;color:var(--muted);font-weight:600}
+.dd-fomo-hold{min-height:40px;padding:8px 14px;font-size:12px;white-space:nowrap}
+@keyframes dd-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.85)}}
+@media(max-width:560px){
+  .dd-fomo{padding:10px 12px}
+  .dd-fomo-hold{width:100%}
+}

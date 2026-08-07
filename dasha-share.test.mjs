@@ -117,4 +117,14 @@ assert.ok(body.includes('dd-social-proof-hint') || body.includes('Tap to copy'),
 assert.ok(body.includes('dd-social-proof-text') || body.includes('role="status"'), 'social proof live text');
 assert.ok(body.includes('One-tap buy') || body.includes('dd-buy-sticky'), 'sticky funnel region');
 
+
+const hold = DD.buildSharePack('hold');
+assert.ok(hold.includes(DD.CA), 'hold pack mint');
+assert.ok(/still holding/i.test(hold), 'hold pack holding language');
+assert.ok(hold.includes(DD.BUY) || hold.includes('jup.ag'), 'hold pack buy');
+assert.ok(hold.includes(DD.DESK) || hold.includes('webflow.io/dasha'), 'hold pack desk');
+assert.ok(body.includes('dd-fomo') && body.includes('dd-fomo-main'), 'fomo urgency strip');
+assert.ok(body.includes('data-pack="hold"'), 'hold pack tab');
+assert.ok(body.includes('dd-copy-hold'), 'copy hold pack control');
+
 console.log('dasha-share.test.mjs: PASS');

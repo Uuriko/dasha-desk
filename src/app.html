@@ -29,6 +29,15 @@
     <small class="dd-social-proof-hint">Tap to copy live pack</small>
   </button>
 
+  <aside class="dd-fomo dd-reveal" id="dd-fomo" aria-live="polite">
+    <span class="dd-fomo-dot" aria-hidden="true"></span>
+    <div class="dd-fomo-copy">
+      <strong id="dd-fomo-main">Watching Dex…</strong>
+      <span id="dd-fomo-sub">Live numbers · NFA · can go to zero</span>
+    </div>
+    <button type="button" class="dd-btn dd-btn-primary dd-fomo-hold" id="dd-copy-hold">Copy hold pack</button>
+  </aside>
+
   <section class="dd-hero-card dd-reveal" id="dd-mint">
     <div class="dd-banner-wrap">
       <img class="dd-banner" id="dd-banner" src="https://files.catbox.moe/qnvc7b.jpg" alt="" width="900" height="220" referrerpolicy="no-referrer" loading="lazy"/>
@@ -71,6 +80,7 @@
       <li><strong>Source:</strong> public @dash_eats CA post — not a brand deal.</li>
       <li><strong>Verify:</strong> paste any DM mint below; fakes get rejected.</li>
       <li><strong>Share:</strong> one-tap raid packs for X / group chats.</li>
+      <li><strong>Hold:</strong> copy a still-holding pack — culture coin, not a promise.</li>
     </ul>
   </section>
 
@@ -100,6 +110,7 @@
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
         <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
         <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
+        <button type="button" class="dd-pack-tab" data-pack="hold" role="tab" aria-selected="false">Hold</button>
         <button type="button" class="dd-pack-tab" data-pack="verify" role="tab" aria-selected="false">Verify</button>
         <button type="button" class="dd-pack-tab" data-pack="meme" role="tab" aria-selected="false">Line</button>
       </div>
@@ -658,6 +669,31 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
   #dd-app.dd{padding-bottom:96px}
 }
+
+.dd-fomo{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:0 0 14px;padding:12px 14px;border-radius:14px;
+  border:1px solid rgba(255,180,120,.35);
+  background:linear-gradient(120deg,rgba(255,140,80,.12),rgba(167,139,250,.1));
+}
+.dd-fomo-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  background:#ffb070;box-shadow:0 0 12px rgba(255,160,80,.7);
+  animation:dd-pulse 1.4s ease-in-out infinite;
+}
+.dd-fomo.is-up .dd-fomo-dot{background:#7dffa3;box-shadow:0 0 12px rgba(125,255,163,.7)}
+.dd-fomo.is-down .dd-fomo-dot{background:#ff9b9b;box-shadow:0 0 12px rgba(255,155,155,.55)}
+.dd-fomo-copy{flex:1;min-width:140px;display:flex;flex-direction:column;gap:2px}
+.dd-fomo-copy strong{font-size:14px;letter-spacing:-.01em;color:#ffe0c8}
+.dd-fomo.is-up .dd-fomo-copy strong{color:#b8ffd0}
+.dd-fomo.is-down .dd-fomo-copy strong{color:#ffc8c8}
+.dd-fomo-copy span{font-size:11px;color:var(--muted);font-weight:600}
+.dd-fomo-hold{min-height:40px;padding:8px 14px;font-size:12px;white-space:nowrap}
+@keyframes dd-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.85)}}
+@media(max-width:560px){
+  .dd-fomo{padding:10px 12px}
+  .dd-fomo-hold{width:100%}
+}
 </style>
 <script>
 (function () {
@@ -705,6 +741,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         CA +
         '\n' +
         'If a DM shows a different string, ignore it.'
+      );
+    }
+    if (kind === 'hold') {
+      return (
+        "I'm still holding $dasha\n" +
+        CA +
+        '\n' +
+        'Buy → ' +
+        BUY +
+        '\n' +
+        'Desk → ' +
+        DESK +
+        '\n' +
+        'NFA · can go to zero · association ≠ endorsement'
       );
     }
     if (kind === 'meme') {
@@ -895,7 +945,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
 
   var currentPack = 'raid';
-  var lastProof = { mcap: '—', ch24: '—' };
+  var lastProof = { mcap: '—', ch24: '—', vol: '—' };
   function setShare(kind) {
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
@@ -984,6 +1034,27 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         setTone($('s-6h'), ch.h6);
         lastProof.mcap = fmtUsd(mcap);
         lastProof.ch24 = fmtPct(ch.h24);
+        lastProof.vol = fmtUsd(vol);
+        if ($('dd-fomo-main') && $('dd-fomo')) {
+          var chN = Number(ch.h24);
+          var fomo = $('dd-fomo');
+          if (isFinite(chN) && chN > 0) {
+            $('dd-fomo-main').textContent = 'Moving · 24h ' + lastProof.ch24;
+            fomo.classList.add('is-up');
+            fomo.classList.remove('is-down');
+          } else if (isFinite(chN) && chN < 0) {
+            $('dd-fomo-main').textContent = 'Dip · 24h ' + lastProof.ch24;
+            fomo.classList.add('is-down');
+            fomo.classList.remove('is-up');
+          } else {
+            $('dd-fomo-main').textContent = 'Live · mcap ' + lastProof.mcap;
+            fomo.classList.remove('is-up', 'is-down');
+          }
+        }
+        if ($('dd-fomo-sub')) {
+          $('dd-fomo-sub').textContent =
+            'Vol ' + fmtUsd(vol) + ' · liq ' + fmtUsd(liq) + ' · just now · NFA';
+        }
         if ($('dd-social-proof-text')) {
           $('dd-social-proof-text').textContent =
             '$dasha live · mcap ' +
@@ -1113,6 +1184,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+    });
+  if ($('dd-copy-hold'))
+    $('dd-copy-hold').addEventListener('click', function () {
+      copy(buildSharePack('hold'), $('dd-copy-hold'));
     });
 
   if ($('dd-social-proof'))
