@@ -640,7 +640,8 @@ assert.ok(impact && impact.pct > 0 && /% liq/.test(impact.short), 'impact short'
 assert.equal(DD.solLiqImpact(2, 74, 100), null, 'tiny liq null');
 const dualImp = DD.dualGoPlan(2, true, 'dip', null, 74, '+42', 280, deepReclaim, 24230);
 assert.ok(dualImp.hasImpact && /% liq/.test(dualImp.toast), 'dual toast has liq impact');
-assert.ok(!/% liq/.test(dualImp.label || ''), 'label stays short without impact');
+// V42: deep/dump dual label also carries liq impact (de-risk bag size)
+assert.ok(/% liq/.test(dualImp.label || ''), 'deep dual label has liq impact');
 assert.ok(appJs.includes('solLiqImpact') && appJs.includes('hasImpact'), 'v35 wiring');
 
 // V36: viral dip-raid pack + still-after-deep on trust bar
@@ -749,5 +750,18 @@ const raidDump = DD.dipRaidLabel(dump, null);
 assert.ok(/dump raid/i.test(raidDump) && /6h/.test(raidDump), 'dump raid CTA');
 assert.equal(DD.sizeChipHint(1, dump).tag, 'Dump', 'dump chip tag Dump not Deep');
 assert.ok(appJs.includes('dumpWatchLine') && appJs.includes('dumpLine'), 'v41 wiring');
+
+// V42: dump live pack + dump dip pack + liq impact on dump dual label
+const liveDump = DD.buildLiveProof('$60.0K', '-1.5%', dump, '+22');
+assert.ok(/deep dump/i.test(liveDump) && /6h/.test(liveDump) && /24h/.test(liveDump), 'live dump pack');
+assert.ok(liveDump.includes('$60.0K') && /\+22 net/.test(liveDump), 'live dump mcap+net');
+const dumpPack = DD.buildDipPack(dump, '$60.0K', 1, '+22', 237);
+assert.ok(/Deep dump/i.test(dumpPack) && /into the dump/i.test(dumpPack), 'dump pack buy-into-dump');
+assert.ok(/6h/.test(dumpPack) && /-29/.test(dumpPack), 'dump pack deepest TF');
+assert.ok(dumpPack.includes('amount=1') || dumpPack.includes('1 SOL'), 'dump pack size 1');
+const dualImpDump = DD.dualGoPlan(1, true, 'dump', null, 74, '+22', 237, dump, 24000);
+assert.ok(dualImpDump.hasImpact && /% liq/.test(dualImpDump.label), 'dump dual label has liq impact');
+assert.ok(/% liq/.test(dualImpDump.toast || ''), 'dump dual toast has liq impact');
+assert.ok(appJs.includes('into the dump') && appJs.includes('solLiqImpact'), 'v42 wiring');
 
 console.log('dasha-share.test.mjs: PASS');

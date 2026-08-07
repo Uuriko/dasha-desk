@@ -198,7 +198,30 @@
     var depth = dip ? dipDepth(dip) : null;
     var still = dip ? stillGreen24(dip) : null;
     var head;
-    if (depth && depth.tier !== 'soft' && still && still.short) {
+    // V42: dump-aware viral live pack (honest 24h red context)
+    if (dip && dip.kind === 'dump' && depth && depth.tier !== 'soft') {
+      head =
+        '$dasha · ' +
+        depth.word.toLowerCase() +
+        ' · ' +
+        depth.shortLabel +
+        ' ' +
+        (depth.shortPct > 0 ? '+' : '') +
+        depth.shortPct.toFixed(1) +
+        '%';
+      if (dip.ch24 != null && isFinite(Number(dip.ch24))) {
+        head =
+          head +
+          ' · 24h ' +
+          (Number(dip.ch24) > 0 ? '+' : '') +
+          Number(dip.ch24).toFixed(1) +
+          '%';
+      }
+      if (netShort && String(netShort).charAt(0) === '+') {
+        head = head + ' · ' + String(netShort) + ' net';
+      }
+      head = head + ' · mcap ' + m;
+    } else if (depth && depth.tier !== 'soft' && still && still.short) {
       head =
         '$dasha · ' +
         depth.tag.toLowerCase() +
@@ -291,21 +314,26 @@
    * V36: depth + 24h still + net/pace for stronger X/raid paste.
    */
   function buildDipPack(dip, mcapLabel, sol, netShort, buys) {
-    // Accept dipBuySignal shape (line optional — V36 builds header from fields)
+    // Accept dipBuySignal / dumpWatch shape (line optional — V36 builds header)
     if (!dip || dip.shortPct == null || !dip.shortLabel) {
       return buildBuyPack(mcapLabel, sol);
     }
     var depth = dipDepth(dip);
     var still = stillGreen24(dip);
     var pace = buyPaceShort(buys);
+    var isDump = dip.kind === 'dump';
     var headBits = [];
     if (depth && depth.tier !== 'soft') {
       headBits.push(depth.word);
+      // V42 dump/deep: lead with deepest TF pct for honest dump/depth proof
+      var pctLab = dip.depthLabel || dip.shortLabel;
+      var pctVal =
+        dip.depthPct != null ? Number(dip.depthPct) : Number(dip.shortPct);
       headBits.push(
-        dip.shortLabel +
+        pctLab +
           ' ' +
-          (Number(dip.shortPct) > 0 ? '+' : '') +
-          Number(dip.shortPct).toFixed(1) +
+          (pctVal > 0 ? '+' : '') +
+          pctVal.toFixed(1) +
           '%',
       );
     } else {
@@ -318,7 +346,14 @@
       );
     }
     if (still && still.short) headBits.push(still.short + ' still');
-    else if (dip.ch24 != null && Number(dip.ch24) > 0) {
+    else if (isDump && dip.ch24 != null && isFinite(Number(dip.ch24))) {
+      headBits.push(
+        '24h ' +
+          (Number(dip.ch24) > 0 ? '+' : '') +
+          Number(dip.ch24).toFixed(1) +
+          '%',
+      );
+    } else if (dip.ch24 != null && Number(dip.ch24) > 0) {
       headBits.push(
         '24h still +' +
           (Math.abs(Number(dip.ch24)) >= 10
@@ -340,9 +375,13 @@
       sol != null && isFinite(Number(sol)) && Number(sol) > 0
         ? ' · ' + String(Number(sol)) + ' SOL'
         : '';
+    var buyLine = isDump
+      ? 'Buy $dasha into the dump → '
+      : 'Buy $dasha on the dip → ';
     return (
       header +
-      '\nBuy $dasha on the dip → ' +
+      '\n' +
+      buyLine +
       buyUrl(sol) +
       '\n' +
       CA +
@@ -1002,6 +1041,10 @@
     // Size proof (SOL + rough USD) when known; else wallet/buy verb
     if (size && size.label) label = label + ' · ' + size.label;
     else label = label + (mobile ? ' · Wallet' : ' · Buy');
+    // V42: liq impact near size on dump/deep dual (de-risks bag size)
+    if (impact && impact.short && (isDump || (depth && depth.tier === 'deep'))) {
+      label = label + ' · ' + impact.short;
+    }
     // V31: 24h still green during dip (honest recovery anchor near buy)
     if (still && still.short) label = label + ' · ' + still.short;
     // V32/V37: 1h reclaim or 5m micro-bounce near buy
@@ -2742,6 +2785,21 @@
           );
         } else fomoBits.push('Ride');
         fomoBits.push(buySol + ' SOL' + (usd1 ? ' · ' + usd1 : ''));
+        // V42: liq impact on FOMO buy during dump/deep dip (de-risks size)
+        var impactBuy =
+          regime === 'dump' || regime === 'dip'
+            ? solLiqImpact(buySol, lastProof.solUsd, lastProof.liq)
+            : null;
+        if (
+          impactBuy &&
+          impactBuy.short &&
+          (regime === 'dump' ||
+            (lastProof.dip &&
+              dipDepth(lastProof.dip) &&
+              dipDepth(lastProof.dip).tier === 'deep'))
+        ) {
+          fomoBits.push(impactBuy.short);
+        }
         // V31: 24h still green during dip on FOMO buy CTA
         var stillBit =
           regime === 'dip' ? stillGreen24(lastProof.dip, lastProof.ch24n) : null;
