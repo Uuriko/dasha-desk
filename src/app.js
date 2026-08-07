@@ -441,17 +441,53 @@
   }
 
   /**
+   * Buy regime from honest Dex signals — pure, unit-tested.
+   * dip: short-TF red with 24h green (dipBuySignal)
+   * hot: short green + buy pressure (pump window)
+   * neutral: otherwise
+   */
+  function buyRegime(dip, ch, bp) {
+    if (dip) return 'dip';
+    var m5 = ch && ch.m5 != null ? Number(ch.m5) : NaN;
+    var h1 = ch && ch.h1 != null ? Number(ch.h1) : NaN;
+    var shortGreen =
+      (isFinite(m5) && m5 > 0) || (isFinite(h1) && h1 > 0.5);
+    if (shortGreen && bp && bp.moreBuyers && bp.pct >= 55) return 'hot';
+    return 'neutral';
+  }
+
+  /** Regime FOMO headline (hot window) — pure */
+  function hotBuyHeadline(ch, bp, mcapLabel) {
+    var bits = ['Hot window'];
+    var m5 = ch && ch.m5 != null ? Number(ch.m5) : NaN;
+    var h1 = ch && ch.h1 != null ? Number(ch.h1) : NaN;
+    if (isFinite(m5) && m5 > 0) bits.push('5m +' + m5.toFixed(2) + '%');
+    else if (isFinite(h1) && h1 > 0) bits.push('1h +' + h1.toFixed(2) + '%');
+    if (bp && bp.moreBuyers) bits.push(bp.pct + '% buys');
+    if (mcapLabel && mcapLabel !== '—') bits.push('mcap ' + mcapLabel);
+    bits.push('NFA');
+    return bits.join(' · ');
+  }
+
+  /**
    * One-tap dual action plan: copy full CA then open wallet/buy.
    * Pure — unit-tested; runtime copies CA and navigates to href.
+   * regime: 'dip' | 'hot' | 'neutral' shapes the label.
    */
-  function dualGoPlan(sol, mobile) {
+  function dualGoPlan(sol, mobile, regime) {
     var jup = buyUrl(sol);
     var href = mobile ? phantomBrowseUrl(jup) : jup;
+    var r = regime || 'neutral';
+    var label;
+    if (r === 'dip') label = mobile ? 'CA · Dip wallet' : 'CA · Dip buy';
+    else if (r === 'hot') label = mobile ? 'CA · Ride wallet' : 'CA · Ride';
+    else label = mobile ? 'CA · Wallet' : 'CA · Buy';
     return {
       ca: CA,
       href: href,
       jup: jup,
-      label: mobile ? 'Copy CA · Wallet' : 'Copy CA · Buy',
+      regime: r,
+      label: label,
       toast: 'CA copied · open wallet',
       hasRef: /[?&]ref=/.test(jup),
       hasAmount:
@@ -558,6 +594,8 @@
     stickyFlowProof: stickyFlowProof,
     phantomBrowseUrl: phantomBrowseUrl,
     dualGoPlan: dualGoPlan,
+    buyRegime: buyRegime,
+    hotBuyHeadline: hotBuyHeadline,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -1058,6 +1096,7 @@
             fomo.classList.add('is-move');
           } else if (lastProof.dip) {
             // Short-TF dip with 24h still green — A/B FOMO headlines
+            lastProof.regime = 'dip';
             $('dd-fomo-main').textContent = fomoDipHeadline(
               lastProof.dip,
               lastProof.ch24,
@@ -1065,7 +1104,7 @@
               bp,
             );
             fomo.classList.add('is-dip');
-            fomo.classList.remove('is-up', 'is-down');
+            fomo.classList.remove('is-up', 'is-down', 'is-hot-win');
             if ($('dd-fomo-ab')) {
               $('dd-fomo-ab').hidden = false;
               $('dd-fomo-ab').textContent = String(fomoAb).toUpperCase();
@@ -1081,6 +1120,29 @@
                 sessionStorage.setItem('dd_dip_size_nudge', '1');
               }
             } catch (eNudge) {}
+          } else if (
+            buyRegime(null, { m5: lastProof.m5n, h1: lastProof.ch1n }, bp) === 'hot'
+          ) {
+            // V24: hot window — short green + buy pressure (not only dips convert)
+            lastProof.regime = 'hot';
+            $('dd-fomo-main').textContent = hotBuyHeadline(
+              { m5: lastProof.m5n, h1: lastProof.ch1n },
+              bp,
+              lastProof.mcap,
+            );
+            fomo.classList.add('is-up', 'is-hot-win');
+            fomo.classList.remove('is-down', 'is-dip');
+            if ($('dd-fomo-ab')) $('dd-fomo-ab').hidden = true;
+            try {
+              if (
+                buySol === 0.5 &&
+                sessionStorage.getItem('dd_hot_size_nudge') !== '1' &&
+                localStorage.getItem('dd_buy_sol') == null
+              ) {
+                buySol = 1;
+                sessionStorage.setItem('dd_hot_size_nudge', '1');
+              }
+            } catch (eHot) {}
           } else if (bp && bp.moreBuyers && bp.pct >= 55) {
             $('dd-fomo-main').textContent =
               'Buy pressure · ' + bp.pct + '% buys 24h · mcap ' + lastProof.mcap;
@@ -1337,7 +1399,12 @@
     });
   // V23: one-tap copy CA + open wallet/buy (sticky, FOMO, mint)
   function runDualGo(el) {
-    var plan = dualGoPlan(buySol, isMobileBuyPath());
+    var plan = dualGoPlan(
+      buySol,
+      isMobileBuyPath(),
+      lastProof.regime ||
+        buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure),
+    );
     copy(plan.ca, el || null);
     try {
       if (el) el.textContent = plan.toast;
@@ -1362,11 +1429,22 @@
     },
   );
   function paintDualLabels() {
-    var plan = dualGoPlan(buySol, isMobileBuyPath());
+    var regime =
+      lastProof.regime ||
+      buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure);
+    lastProof.regime = regime;
+    var plan = dualGoPlan(buySol, isMobileBuyPath(), regime);
     document.querySelectorAll('.dd-dual-go').forEach(function (b) {
       if (b.textContent && /copied/i.test(b.textContent)) return;
       b.textContent = plan.label;
+      b.classList.toggle('dd-pulse-buy', regime === 'dip' || regime === 'hot');
+      b.classList.toggle('is-dip-dual', regime === 'dip');
+      b.classList.toggle('is-hot-dual', regime === 'hot');
     });
+    if ($('dd-sticky')) {
+      $('dd-sticky').classList.toggle('is-hot', regime === 'hot');
+      $('dd-sticky').classList.toggle('is-dip', regime === 'dip');
+    }
   }
   if ($('dd-sticky-live'))
     $('dd-sticky-live').addEventListener('click', function () {
@@ -1661,9 +1739,19 @@
         'Buy ' + buySol + ' SOL on Jupiter' + (usd1 ? ' · ' + usd1 : '');
     }
     if ($('dd-buy-sticky')) {
-      if (lastProof.dip) {
+      var stickyRegime =
+        lastProof.regime ||
+        buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure);
+      if (stickyRegime === 'dip') {
         $('dd-buy-sticky').textContent =
           'Dip buy · ' +
+          buySol +
+          ' SOL' +
+          (netBit && netBit !== '—' && netBit !== '0' ? ' · ' + netBit + ' net' : '') +
+          (lastProof.mcap && lastProof.mcap !== '—' ? ' · ' + lastProof.mcap : '');
+      } else if (stickyRegime === 'hot') {
+        $('dd-buy-sticky').textContent =
+          'Ride · ' +
           buySol +
           ' SOL' +
           (netBit && netBit !== '—' && netBit !== '0' ? ' · ' + netBit + ' net' : '') +
@@ -1679,15 +1767,25 @@
             : 'Buy ' + buySol + ' SOL';
       }
     }
-    // FOMO dip CTAs — buy link + raid share when short-TF dip
-    // Mobile: Phantom UL browse with amounted Jupiter URL (one-tap wallet path)
+    // FOMO CTAs — dip or hot-window buy (Phantom UL on mobile)
+    var regime =
+      lastProof.regime ||
+      buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure);
+    lastProof.regime = regime;
     if ($('dd-fomo-buy')) {
-      $('dd-fomo-buy').href = lastProof.dip && mobile ? phantomHref : href;
-      if (lastProof.dip) {
+      var showFomoBuy = regime === 'dip' || regime === 'hot';
+      $('dd-fomo-buy').href = showFomoBuy && mobile ? phantomHref : href;
+      if (showFomoBuy) {
         $('dd-fomo-buy').hidden = false;
-        $('dd-fomo-buy').textContent = mobile
-          ? 'Wallet dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '')
-          : 'Buy the dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+        if (regime === 'dip') {
+          $('dd-fomo-buy').textContent = mobile
+            ? 'Wallet dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '')
+            : 'Buy the dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+        } else {
+          $('dd-fomo-buy').textContent = mobile
+            ? 'Wallet ride · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '')
+            : 'Ride · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+        }
       } else {
         $('dd-fomo-buy').hidden = true;
       }

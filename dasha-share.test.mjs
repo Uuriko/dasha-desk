@@ -417,11 +417,29 @@ assert.ok(dualM.href.includes('phantom.app/ul/browse/'), 'mobile dual opens Phan
 assert.ok(decodeURIComponent(dualM.href).includes('amount=1'), 'mobile dual keeps amount');
 assert.ok(decodeURIComponent(dualM.href).includes('ref='), 'mobile dual keeps invite ref');
 assert.ok(dualD.href.includes('jup.ag') && dualD.href.includes('amount=1') && dualD.href.includes('ref='), 'desktop dual is amounted jup+ref');
-assert.ok(/Copy CA/i.test(dualM.label) && /Wallet/i.test(dualM.label), 'mobile dual label');
-assert.ok(/Copy CA/i.test(dualD.label) && /Buy/i.test(dualD.label), 'desktop dual label');
+assert.ok(/CA/i.test(dualM.label) && /Wallet/i.test(dualM.label), 'mobile dual label');
+assert.ok(/CA/i.test(dualD.label) && /Buy/i.test(dualD.label), 'desktop dual label');
 assert.ok(body.includes('id="dd-dual-go"') && body.includes('id="dd-fomo-dual"') && body.includes('id="dd-mint-dual"'), 'dual DOM sticky+fomo+mint');
 assert.ok(body.includes('dd-dual-go'), 'dual class');
 assert.ok(appJs.includes('runDualGo') && appJs.includes('dualGoPlan'), 'dual runtime wiring');
 assert.ok(kitStyles.includes('dd-dual-go'), 'dual styles');
+
+// V24: regime-aware dual + hot window FOMO
+assert.ok(typeof DD.buyRegime === 'function' && typeof DD.hotBuyHeadline === 'function', 'regime helpers');
+const bpHot = DD.buyPressure(364, 238);
+assert.equal(DD.buyRegime(null, { m5: 0.9, h1: 1.4 }, bpHot), 'hot', 'green short + pressure = hot');
+assert.equal(DD.buyRegime(dip, { m5: 1, h1: 2 }, bpHot), 'dip', 'dip wins over hot');
+assert.equal(DD.buyRegime(null, { m5: -1, h1: -1 }, bpHot), 'neutral', 'red short = not hot');
+const hotLine = DD.hotBuyHeadline({ m5: 0.9, h1: 1.4 }, bpHot, '$83.9K');
+assert.ok(/Hot window/i.test(hotLine) && /5m/i.test(hotLine) && /NFA/i.test(hotLine), 'hot headline');
+const dualDip = DD.dualGoPlan(1, true, 'dip');
+const dualHot = DD.dualGoPlan(1, false, 'hot');
+assert.ok(/Dip/i.test(dualDip.label), 'dip dual label');
+assert.ok(/Ride/i.test(dualHot.label), 'hot dual label');
+assert.ok(
+  appJs.includes('is-hot-win') && (appJs.includes('Wallet ride') || appJs.includes('Ride ·')),
+  'hot FOMO buy path',
+);
+assert.ok(kitStyles.includes('is-hot-dual') || kitStyles.includes('is-hot-win'), 'hot dual styles');
 
 console.log('dasha-share.test.mjs: PASS');
