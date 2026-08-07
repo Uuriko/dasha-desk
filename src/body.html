@@ -88,6 +88,16 @@
       <a target="_blank" rel="nofollow ugc noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">Association source</a>
     </div>
     <p class="dd-evidence-note">Captured 2026-08-07 05:44 UTC · finalized slot 437,730,576 · slot block time 2026-08-07 05:44:33 UTC. The digest covers only the embedded account bytes. Market numbers above are live and separate.</p>
+    <details class="dd-method">
+      <summary>Show how this was checked</summary>
+      <ol class="dd-steps">
+        <li>Finalized <code>getAccountInfo</code> fetched the exact mint account at the displayed slot.</li>
+        <li>The embedded account data decoded to exactly 82 bytes and SHA-256 <code id="dd-evidence-digest">971d6214271d7c502ccea75ded909f2830b426240aa008d2a9a01e9452152cd0</code>.</li>
+        <li>Supply, decimals, initialized state, and both authority fields were decoded from those bytes and compared with the visible values.</li>
+      </ol>
+      <p class="dd-evidence-note">Reproduce: <code>node mint-evidence-refresh.mjs --check</code> · <a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">source</a></p>
+      <p class="dd-evidence-note">This checks account-byte consistency, not token safety, ownership, endorsement, or timestamp inclusion.</p>
+    </details>
     <script type="application/json" id="dd-evidence-json">{"schema":"dasha.mint-evidence/1","capturedAt":"2026-08-07T05:44:33Z","slotBlockTime":"2026-08-07T05:44:33Z","commitment":"finalized","slot":437730576,"cluster":"mainnet-beta","mint":"53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump","account":{"type":"mint","ownerProgram":"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA","initialized":true,"decimals":6,"supply":"999831950053985","mintAuthority":null,"freezeAuthority":null,"accountDataEncoding":"base64","accountDataBase64":"AAAAAAbFwc5jjSVn0mRosF65UdGijcxuEjSCtcZ1FJdw5ivyYdI3hFeNAwAGAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==","accountDataSha256":"971d6214271d7c502ccea75ded909f2830b426240aa008d2a9a01e9452152cd0"},"claims":[{"kind":"onchain","label":"RPC-reported SPL Mint account","source":"solana:getAccountInfo"},{"kind":"association","label":"Public CA post; not official endorsement","source":"https://x.com/dash_eats/status/2085405228078432279"}]}</script>
   </section>
 

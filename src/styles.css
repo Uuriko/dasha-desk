@@ -316,6 +316,10 @@
 .dd-evidence-grid dt{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
 .dd-evidence-grid dd{margin:5px 0 0;font-size:13px;font-weight:750;overflow-wrap:anywhere}
 .dd-evidence-note{margin:12px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+.dd-method{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.18)}
+.dd-method summary{cursor:pointer;font-size:12px;font-weight:800}
+.dd-method .dd-steps{margin:12px 0 0;font-size:12px}
+.dd-method code{overflow-wrap:anywhere}
 @media(max-width:620px){.dd-evidence-grid{grid-template-columns:1fr 1fr}}
 #dd-app.dd{max-width:720px;padding:16px 14px 40px}
 .dd-hero-card{padding:16px}
