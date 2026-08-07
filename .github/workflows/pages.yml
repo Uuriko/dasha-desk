@@ -21,6 +21,7 @@ jobs:
       - run: node dasha-share.test.mjs
       - run: node mint-manifest-lint.mjs
       - run: node mint-manifest-lint.test.mjs
+      - run: node mint-evidence-refresh.test.mjs
       - run: node launch-check.test.mjs
 
   deploy:

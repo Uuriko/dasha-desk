@@ -49,6 +49,8 @@ node build.mjs --check  # fail if generated files drift
 node dasha-share.test.mjs
 node mint-manifest-lint.mjs       # deterministic identity/provenance checks
 node mint-manifest-lint.test.mjs  # hostile-input mutation checks
+node mint-evidence-refresh.mjs --check # compare the snapshot with finalized Solana account bytes
+node mint-evidence-refresh.test.mjs    # offline RPC/decode/drift checks
 node launch-check.mjs --prelaunch # warning-only report before domain cutover
 node launch-check.mjs --launch    # strict production readiness
 node launch-check.test.mjs        # offline parser regression check
@@ -57,6 +59,8 @@ node launch-check.test.mjs        # offline parser regression check
 Generated surfaces: [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for normal hosting, and [`dist/index.html`](dist/index.html) for single-file hosting.
 
 The CI workflow runs the same build-drift and behavior checks on every pull request before deployment can run.
+
+The live evidence check is intentionally local rather than a CI dependency. It makes one finalized `getAccountInfo` request (override with `DASHA_SOLANA_RPC_URL`), performs no writes, and reports only unchanged bytes, field-level drift, or an operational error. One RPC response is not an inclusion proof, safety verdict, identity claim, or independent corroboration.
 
 ## Runtime boundaries
 

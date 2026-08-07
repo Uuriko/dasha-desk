@@ -9,6 +9,36 @@ const TOKEN_PROGRAMS = new Set([
   'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
 ]);
 
+export function decodeMintAccount(bytes) {
+  if (!Buffer.isBuffer(bytes) || bytes.length !== 82) throw new Error('mint account must be exactly 82 bytes');
+  const authority = (offset) => {
+    const option = bytes.readUInt32LE(offset);
+    if (option === 0) return null;
+    if (option !== 1) throw new Error('invalid authority option');
+    const key = bytes.subarray(offset + 4, offset + 36);
+    const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    let value = BigInt(`0x${key.toString('hex')}`);
+    let encoded = '';
+    while (value) {
+      encoded = alphabet[Number(value % 58n)] + encoded;
+      value /= 58n;
+    }
+    for (const byte of key) {
+      if (byte) break;
+      encoded = '1' + encoded;
+    }
+    return encoded;
+  };
+  if (bytes[45] > 1) throw new Error('invalid initialized byte');
+  return {
+    mintAuthority: authority(0),
+    supply: bytes.readBigUInt64LE(36).toString(),
+    decimals: bytes[44],
+    initialized: Boolean(bytes[45]),
+    freezeAuthority: authority(46),
+  };
+}
+
 export function lintMintManifest({ config, evidence, body, app }) {
   const findings = [];
   const add = (level, code, path, message) => findings.push({ level, code, path, message });
@@ -63,11 +93,13 @@ export function lintMintManifest({ config, evidence, body, app }) {
   const digest = createHash('sha256').update(bytes).digest('hex');
   error(digest === account.accountDataSha256, 'evidence.hash', 'evidence.account.accountDataSha256', 'must hash the embedded account bytes');
   if (bytes.length === 82) {
-    error(bytes.readBigUInt64LE(36).toString() === account.supply, 'evidence.layout-supply', 'evidence.account.supply', 'must match raw Mint bytes');
-    error(bytes[44] === account.decimals, 'evidence.layout-decimals', 'evidence.account.decimals', 'must match raw Mint bytes');
-    error(Boolean(bytes[45]) === account.initialized, 'evidence.layout-initialized', 'evidence.account.initialized', 'must match raw Mint bytes');
-    error((bytes.readUInt32LE(0) === 0) === (account.mintAuthority === null), 'evidence.layout-mint-authority', 'evidence.account.mintAuthority', 'must match raw Mint bytes');
-    error((bytes.readUInt32LE(46) === 0) === (account.freezeAuthority === null), 'evidence.layout-freeze-authority', 'evidence.account.freezeAuthority', 'must match raw Mint bytes');
+    try {
+      const decoded = decodeMintAccount(bytes);
+      for (const key of ['supply', 'decimals', 'initialized', 'mintAuthority', 'freezeAuthority'])
+        error(decoded[key] === account[key], `evidence.layout-${key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`, `evidence.account.${key}`, 'must match raw Mint bytes');
+    } catch {
+      error(false, 'evidence.layout', 'evidence.account.accountDataBase64', 'must be a valid SPL Mint layout');
+    }
   }
 
   const association = evidence?.claims?.find((claim) => claim.kind === 'association');
