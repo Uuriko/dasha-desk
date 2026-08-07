@@ -175,4 +175,13 @@ assert.ok(body.includes('dd-meme-compact') || body.includes('dd-meme-grid'), 'me
 assert.ok(DD.buildSharePack('raid').includes('ref=') || DD.buildSharePack('raid').includes('webflow.io/dasha'), 'raid desk');
 assert.ok(DD.buildMiniPack().includes('ref=') || DD.buildMiniPack().includes('webflow.io'), 'mini has desk loop');
 
+
+assert.ok(body.includes('dd-kit-raid') && body.includes('dd-kit-wallet'), 'sticky multi-CTA kit');
+assert.ok(body.includes('id="dd-raid-kit"'), 'one-tap raid kit card');
+assert.ok(body.includes('dd-kit-copy-raid') && body.includes('dd-kit-post-raid'), 'raid kit copy/post');
+assert.ok(body.includes('dd-kit-copy-invite') && body.includes('dd-kit-copy-live'), 'raid kit invite+live');
+assert.ok(body.includes('dd-sticky-ch'), 'sticky 24h chip');
+const kitStyles = readFileSync(join(__dirname, 'src/styles.css'), 'utf8');
+assert.ok(kitStyles.includes('dd-raid-kit') && kitStyles.includes('dd-kit-actions'), 'kit styles');
+
 console.log('dasha-share.test.mjs: PASS');

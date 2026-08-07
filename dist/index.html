@@ -579,6 +579,25 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   .dd-meme-compact{grid-template-columns:1fr}
   .dd-meme-compact .dd-meme:nth-child(n+4){display:none}
 }
+
+.dd-kit-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dd-sticky-ch{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#d4b8ff}
+.dd-raid-kit{
+  margin:0 0 12px;padding:12px;border-radius:14px;
+  border:1px solid rgba(196,165,255,.35);
+  background:rgba(167,139,250,.08);
+}
+.dd-raid-kit-copy{display:flex;flex-direction:column;gap:2px;margin:0 0 10px}
+.dd-raid-kit-copy strong{font-size:14px}
+.dd-raid-kit-copy span{font-size:11px;color:var(--muted);font-weight:600}
+.dd-raid-kit-actions{display:flex;flex-wrap:wrap;gap:8px}
+.dd-raid-kit-actions .dd-btn{min-height:40px}
+@media(max-width:560px){
+  .dd-kit-actions{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;width:100%}
+  .dd-kit-actions #dd-buy-sticky{grid-column:1/-1}
+  .dd-kit-actions #dd-sticky-tweet,.dd-kit-actions #dd-sticky-live{display:none}
+  .dd-raid-kit-actions .dd-btn{flex:1 1 42%}
+}
 </style>
 </head>
 <body>
@@ -706,7 +725,19 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </article>
     <article class="dd-card" id="dd-share-room">
       <h2>Share = oxygen</h2>
-      <p class="dd-meta">Copy a pack. Desk links include your ref so friends open your trail. Raid A/B · Invite loops.</p>
+      <p class="dd-meta">Copy a pack. Desk links include your ref. Raid A/B · Invite loops.</p>
+      <div class="dd-raid-kit" id="dd-raid-kit">
+        <div class="dd-raid-kit-copy">
+          <strong>One-tap raid kit</strong>
+          <span id="dd-raid-kit-note">Copy pack · post on X · invite friends</span>
+        </div>
+        <div class="dd-raid-kit-actions">
+          <button type="button" class="dd-btn dd-btn-primary" id="dd-kit-copy-raid">Copy raid</button>
+          <a class="dd-btn dd-btn-raid" id="dd-kit-post-raid" target="_blank" rel="noopener noreferrer" href="#">Post raid</a>
+          <button type="button" class="dd-btn" id="dd-kit-copy-invite">Copy invite</button>
+          <button type="button" class="dd-btn" id="dd-kit-copy-live">Copy live</button>
+        </div>
+      </div>
       <div class="dd-ab" role="group" aria-label="Raid pack A or B">
         <button type="button" class="dd-ab-btn is-on" data-raid-ab="a" id="dd-raid-a">Raid A</button>
         <button type="button" class="dd-ab-btn" data-raid-ab="b" id="dd-raid-b">Raid B</button>
@@ -813,16 +844,19 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </div>
   </div>
 
-  <div class="dd-sticky dd-reveal" role="region" aria-label="One-tap buy and raid">
+  <div class="dd-sticky dd-kit dd-reveal" id="dd-sticky" role="region" aria-label="Buy and raid kit">
     <div class="dd-sticky-meta">
       <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
+      <span id="dd-sticky-ch" class="dd-sticky-ch">24h —</span>
       <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
     </div>
-    <div class="dd-sticky-actions">
-      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+    <div class="dd-sticky-actions dd-kit-actions">
+      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
+      <a class="dd-btn dd-btn-lg" id="dd-kit-wallet" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Wallet</a>
+      <button type="button" class="dd-btn dd-btn-raid dd-btn-lg" id="dd-kit-raid" title="Copy raid pack">Raid</button>
       <button type="button" class="dd-btn" id="dd-sticky-live" title="Copy live mcap pack">Live</button>
       <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
-      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
+      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">X</a>
     </div>
   </div>
 
@@ -1341,6 +1375,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           } else el.textContent = next;
         }
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
+        if ($('dd-sticky-ch')) {
+          $('dd-sticky-ch').textContent = '24h ' + fmtPct(ch.h24);
+          setTone($('dd-sticky-ch'), ch.h24);
+        }
         var chartUrl = safeProviderUrl(p.url, 'dexscreener.com');
         if (chartUrl && $('dd-chart')) $('dd-chart').href = chartUrl;
         var info = p.info || {};
@@ -1349,6 +1387,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         asof.textContent = new Date().toLocaleString() + ' · Dex';
         if ($('dd-live')) $('dd-live').textContent = 'live';
         if (window.__ddRefreshSpTweet) window.__ddRefreshSpTweet();
+        if (window.__ddRefreshRaidKit) window.__ddRefreshRaidKit();
       })
       .catch(function () {
         if (asof) asof.textContent = 'Dex offline — use Chart.';
@@ -1507,6 +1546,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         b.setAttribute('aria-selected', on ? 'true' : 'false');
       });
       setShare('raid');
+      if (window.__ddRefreshRaidKit) window.__ddRefreshRaidKit();
     });
   });
 
@@ -1598,20 +1638,59 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   } catch (eRef) {}
   function wireBuyHrefs() {
     var href = buyUrl();
-    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet'].forEach(function (id) {
+    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet', 'dd-kit-wallet'].forEach(function (id) {
       if ($(id)) $(id).href = href;
     });
     // Phantom universal-link browse for mobile wallet one-tap
-    if ($('dd-buy-wallet')) {
+    ['dd-buy-wallet', 'dd-kit-wallet'].forEach(function (wid) {
+      if (!$(wid)) return;
       try {
-        $('dd-buy-wallet').href =
+        $(wid).href =
           'https://phantom.app/ul/browse/' + encodeURIComponent(href) + '?ref=https://phantom.app';
       } catch (eW) {
-        $('dd-buy-wallet').href = href;
+        $(wid).href = href;
       }
-    }
+    });
   }
   wireBuyHrefs();
+
+
+  function raidLineNow() {
+    return lastProof.mcap && lastProof.mcap !== '—'
+      ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+      : buildSharePack(resolvePack('raid'));
+  }
+  function refreshRaidKit() {
+    var line = raidLineNow();
+    if ($('dd-kit-post-raid')) $('dd-kit-post-raid').href = intentTweet(line);
+    if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(line);
+    if ($('dd-raid-kit-note')) {
+      $('dd-raid-kit-note').textContent =
+        (raidAb === 'b' ? 'Raid B' : 'Raid A') +
+        (lastProof.mcap && lastProof.mcap !== '—' ? ' · live mcap ' + lastProof.mcap : '') +
+        ' · ref on desk links';
+    }
+  }
+  if ($('dd-kit-raid'))
+    $('dd-kit-raid').addEventListener('click', function () {
+      copy(raidLineNow(), $('dd-kit-raid'));
+      refreshRaidKit();
+    });
+  if ($('dd-kit-copy-raid'))
+    $('dd-kit-copy-raid').addEventListener('click', function () {
+      copy(buildSharePack(resolvePack('raid')), $('dd-kit-copy-raid'));
+      refreshRaidKit();
+    });
+  if ($('dd-kit-copy-invite'))
+    $('dd-kit-copy-invite').addEventListener('click', function () {
+      copy(buildSharePack('invite'), $('dd-kit-copy-invite'));
+    });
+  if ($('dd-kit-copy-live'))
+    $('dd-kit-copy-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-kit-copy-live'));
+    });
+  window.__ddRefreshRaidKit = refreshRaidKit;
+  refreshRaidKit();
 
   setShare('raid');
   bindQuoteTaps();

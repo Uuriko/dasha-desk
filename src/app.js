@@ -507,6 +507,10 @@
           } else el.textContent = next;
         }
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
+        if ($('dd-sticky-ch')) {
+          $('dd-sticky-ch').textContent = '24h ' + fmtPct(ch.h24);
+          setTone($('dd-sticky-ch'), ch.h24);
+        }
         var chartUrl = safeProviderUrl(p.url, 'dexscreener.com');
         if (chartUrl && $('dd-chart')) $('dd-chart').href = chartUrl;
         var info = p.info || {};
@@ -515,6 +519,7 @@
         asof.textContent = new Date().toLocaleString() + ' · Dex';
         if ($('dd-live')) $('dd-live').textContent = 'live';
         if (window.__ddRefreshSpTweet) window.__ddRefreshSpTweet();
+        if (window.__ddRefreshRaidKit) window.__ddRefreshRaidKit();
       })
       .catch(function () {
         if (asof) asof.textContent = 'Dex offline — use Chart.';
@@ -673,6 +678,7 @@
         b.setAttribute('aria-selected', on ? 'true' : 'false');
       });
       setShare('raid');
+      if (window.__ddRefreshRaidKit) window.__ddRefreshRaidKit();
     });
   });
 
@@ -764,20 +770,59 @@
   } catch (eRef) {}
   function wireBuyHrefs() {
     var href = buyUrl();
-    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet'].forEach(function (id) {
+    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet', 'dd-kit-wallet'].forEach(function (id) {
       if ($(id)) $(id).href = href;
     });
     // Phantom universal-link browse for mobile wallet one-tap
-    if ($('dd-buy-wallet')) {
+    ['dd-buy-wallet', 'dd-kit-wallet'].forEach(function (wid) {
+      if (!$(wid)) return;
       try {
-        $('dd-buy-wallet').href =
+        $(wid).href =
           'https://phantom.app/ul/browse/' + encodeURIComponent(href) + '?ref=https://phantom.app';
       } catch (eW) {
-        $('dd-buy-wallet').href = href;
+        $(wid).href = href;
       }
-    }
+    });
   }
   wireBuyHrefs();
+
+
+  function raidLineNow() {
+    return lastProof.mcap && lastProof.mcap !== '—'
+      ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+      : buildSharePack(resolvePack('raid'));
+  }
+  function refreshRaidKit() {
+    var line = raidLineNow();
+    if ($('dd-kit-post-raid')) $('dd-kit-post-raid').href = intentTweet(line);
+    if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(line);
+    if ($('dd-raid-kit-note')) {
+      $('dd-raid-kit-note').textContent =
+        (raidAb === 'b' ? 'Raid B' : 'Raid A') +
+        (lastProof.mcap && lastProof.mcap !== '—' ? ' · live mcap ' + lastProof.mcap : '') +
+        ' · ref on desk links';
+    }
+  }
+  if ($('dd-kit-raid'))
+    $('dd-kit-raid').addEventListener('click', function () {
+      copy(raidLineNow(), $('dd-kit-raid'));
+      refreshRaidKit();
+    });
+  if ($('dd-kit-copy-raid'))
+    $('dd-kit-copy-raid').addEventListener('click', function () {
+      copy(buildSharePack(resolvePack('raid')), $('dd-kit-copy-raid'));
+      refreshRaidKit();
+    });
+  if ($('dd-kit-copy-invite'))
+    $('dd-kit-copy-invite').addEventListener('click', function () {
+      copy(buildSharePack('invite'), $('dd-kit-copy-invite'));
+    });
+  if ($('dd-kit-copy-live'))
+    $('dd-kit-copy-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-kit-copy-live'));
+    });
+  window.__ddRefreshRaidKit = refreshRaidKit;
+  refreshRaidKit();
 
   setShare('raid');
   bindQuoteTaps();

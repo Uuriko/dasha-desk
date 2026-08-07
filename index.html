@@ -142,7 +142,19 @@
     </article>
     <article class="dd-card" id="dd-share-room">
       <h2>Share = oxygen</h2>
-      <p class="dd-meta">Copy a pack. Desk links include your ref so friends open your trail. Raid A/B · Invite loops.</p>
+      <p class="dd-meta">Copy a pack. Desk links include your ref. Raid A/B · Invite loops.</p>
+      <div class="dd-raid-kit" id="dd-raid-kit">
+        <div class="dd-raid-kit-copy">
+          <strong>One-tap raid kit</strong>
+          <span id="dd-raid-kit-note">Copy pack · post on X · invite friends</span>
+        </div>
+        <div class="dd-raid-kit-actions">
+          <button type="button" class="dd-btn dd-btn-primary" id="dd-kit-copy-raid">Copy raid</button>
+          <a class="dd-btn dd-btn-raid" id="dd-kit-post-raid" target="_blank" rel="noopener noreferrer" href="#">Post raid</a>
+          <button type="button" class="dd-btn" id="dd-kit-copy-invite">Copy invite</button>
+          <button type="button" class="dd-btn" id="dd-kit-copy-live">Copy live</button>
+        </div>
+      </div>
       <div class="dd-ab" role="group" aria-label="Raid pack A or B">
         <button type="button" class="dd-ab-btn is-on" data-raid-ab="a" id="dd-raid-a">Raid A</button>
         <button type="button" class="dd-ab-btn" data-raid-ab="b" id="dd-raid-b">Raid B</button>
@@ -249,16 +261,19 @@
     </div>
   </div>
 
-  <div class="dd-sticky dd-reveal" role="region" aria-label="One-tap buy and raid">
+  <div class="dd-sticky dd-kit dd-reveal" id="dd-sticky" role="region" aria-label="Buy and raid kit">
     <div class="dd-sticky-meta">
       <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
+      <span id="dd-sticky-ch" class="dd-sticky-ch">24h —</span>
       <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
     </div>
-    <div class="dd-sticky-actions">
-      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+    <div class="dd-sticky-actions dd-kit-actions">
+      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
+      <a class="dd-btn dd-btn-lg" id="dd-kit-wallet" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Wallet</a>
+      <button type="button" class="dd-btn dd-btn-raid dd-btn-lg" id="dd-kit-raid" title="Copy raid pack">Raid</button>
       <button type="button" class="dd-btn" id="dd-sticky-live" title="Copy live mcap pack">Live</button>
       <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
-      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
+      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">X</a>
     </div>
   </div>
 
