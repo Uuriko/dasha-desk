@@ -16,6 +16,8 @@ const canonical = 'https://www.getdasha.com/';
 assert.equal(redirectsArePermanent([{ url: 'http://getdasha.com/', status: 301, location: canonical }, { url: canonical, status: 200, location: null }], canonical), true);
 assert.equal(redirectsArePermanent([{ url: 'http://getdasha.com/', status: 302, location: canonical }, { url: canonical, status: 200, location: null }], canonical), false);
 assert.equal(redirectsArePermanent([{ url: 'https://getdasha.com/', status: 301, location: 'http://www.getdasha.com/' }, { url: 'http://www.getdasha.com/', status: 200, location: null }], canonical), false);
+assert.equal(redirectsArePermanent([{ url: 'https://stage.test/dasha?dg_probe=1', status: 301, location: 'https://stage.test/?dg_probe=1' }, { url: 'https://stage.test/?dg_probe=1', status: 200, location: null }], 'https://stage.test/?dg_probe=1'), true);
+assert.equal(redirectsArePermanent([{ url: 'https://stage.test/dasha?dg_probe=1', status: 301, location: 'https://stage.test/' }, { url: 'https://stage.test/', status: 200, location: null }], 'https://stage.test/?dg_probe=1'), false);
 assert.equal(robotsBlocksRoot('User-agent: Other\nDisallow: /'), false);
 assert.equal(robotsBlocksRoot('User-agent: *\nDisallow: /'), true);
 

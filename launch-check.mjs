@@ -130,9 +130,10 @@ export async function checkLaunch({ mode = 'prelaunch', canonical = 'https://www
   const findings = [];
   const infrastructureLevel = mode === 'launch' ? 'fail' : 'warn';
   const add = (level, code, message, evidence = null) => findings.push({ level, code, message, evidence });
-  const [apexDns, wwwDns, apexTls, wwwTls, root, labs, robots, sitemap, stageHome, stageDesk] = await Promise.all([
+  const [apexDns, wwwDns, apexTls, wwwTls, root, labs, robots, sitemap, stageHome, stageLabs, stageLegacy, stageRobots] = await Promise.all([
     dns(apex), dns(www), tls(apex), tls(www), probe(canonical), probe(new URL('/labs', canonical).href),
-    probe(new URL('/robots.txt', canonical).href), probe(new URL('/sitemap.xml', canonical).href), probe(`${staging}/`), probe(`${staging}/dasha`),
+    probe(new URL('/robots.txt', canonical).href), probe(new URL('/sitemap.xml', canonical).href), probe(`${staging}/`),
+    probe(`${staging}/labs`), probe(`${staging}/dasha?dg_probe=1`), probe(`${staging}/robots.txt`),
   ]);
 
   if (!apexDns.length) add(infrastructureLevel, 'dns.apex', `${apex} did not resolve from this resolver`);
@@ -177,12 +178,17 @@ export async function checkLaunch({ mode = 'prelaunch', canonical = 'https://www
     for (const location of locations) if (new URL(location).origin !== production.origin || location.includes('webflow.io')) add('fail', 'sitemap.host', 'sitemap contains a noncanonical host', location);
   }
 
-  for (const [name, page] of [['home', stageHome], ['desk', stageDesk]]) {
-    if (!page.ok) continue;
+  for (const [name, page] of [['desk', stageHome], ['labs', stageLabs]]) {
+    if (!page.ok) {
+      add('warn', `staging.${name}.http`, `staging ${name} is not available`, page.status || page.error);
+      continue;
+    }
     const meta = inspectPage(page.body);
     if (!meta.canonical || !meta.ogUrl) add('warn', `staging.${name}.identity`, `staging ${name} lacks canonical/og:url`);
   }
-  if (stageDesk.ok && inspectEvidence(stageDesk.body).length) add('warn', 'staging.desk-evidence', 'staging desk does not contain the current valid evidence bundle');
+  if (stageHome.ok && inspectEvidence(stageHome.body).length) add('warn', 'staging.desk-evidence', 'staging root does not contain the current valid evidence bundle');
+  if (!redirectsArePermanent(stageLegacy.chain, `${staging}/?dg_probe=1`)) add('warn', 'staging.dasha-redirect', 'staging /dasha must permanently redirect to / and preserve its query string', stageLegacy.chain);
+  if (!stageRobots.ok || !robotsBlocksRoot(stageRobots.body)) add('warn', 'staging.robots', 'staging must remain blocked from indexing');
 
   const hasFailures = findings.some((item) => item.level === 'fail');
   const hasWarnings = findings.some((item) => item.level === 'warn');
