@@ -632,4 +632,27 @@ assert.ok(dualImp.hasImpact && /% liq/.test(dualImp.toast), 'dual toast has liq 
 assert.ok(!/% liq/.test(dualImp.label || ''), 'label stays short without impact');
 assert.ok(appJs.includes('solLiqImpact') && appJs.includes('hasImpact'), 'v35 wiring');
 
+// V36: viral dip-raid pack + still-after-deep on trust bar
+const deepPack = DD.buildDipPack(deepReclaim, '$59.9K', 2, '+43', 277);
+assert.ok(/Deep dip/i.test(deepPack), 'dip pack deep lead');
+assert.ok(/24h \+.*still/i.test(deepPack), 'dip pack still-after-deep');
+assert.ok(/\+43 net/.test(deepPack), 'dip pack net proof');
+assert.ok(/~11\/hr|~12\/hr/.test(deepPack), 'dip pack pace');
+assert.ok(deepPack.includes('amount=2') || deepPack.includes('2 SOL'), 'dip pack size');
+assert.ok(deepPack.includes(DD.CA) && /jup\.ag/.test(deepPack), 'dip pack mint+jup');
+const softPack = DD.buildDipPack(softDip, '$60K', 1);
+assert.ok(/dip/i.test(softPack) && softPack.includes(DD.CA), 'soft dip pack still works');
+const stillLn = DD.dipStillLine(DD.stillGreen24(deepReclaim), deepReclaim);
+const tblStill = DD.trustBarLine(
+  '+43 net · ~12 buys/hr',
+  'Liq $24.0K · NFA',
+  null,
+  null,
+  stillLn,
+);
+assert.ok(tblStill && /still/i.test(tblStill) && /after 6h deep/i.test(tblStill), 'trust bar still lead');
+assert.ok(/Liq/.test(tblStill), 'trust bar keeps liq');
+assert.equal((tblStill.match(/NFA/gi) || []).length, 1, 'trust bar single NFA with still');
+assert.ok(appJs.includes('buildDipPack') && appJs.includes('stillLine'), 'v36 wiring');
+
 console.log('dasha-share.test.mjs: PASS');

@@ -244,26 +244,68 @@
   /**
    * Dip-raid share pack — virality on short-TF red + 24h green.
    * dip = dipBuySignal(...) result; pure, unit-tested via DDShare.buildDipPack
+   * V36: depth + 24h still + net/pace for stronger X/raid paste.
    */
-  function buildDipPack(dip, mcapLabel, sol) {
-    if (!dip || !dip.line) return buildBuyPack(mcapLabel, sol);
-    var m =
-      mcapLabel && String(mcapLabel) !== '—' ? ' · mcap ' + String(mcapLabel) : '';
+  function buildDipPack(dip, mcapLabel, sol, netShort, buys) {
+    // Accept dipBuySignal shape (line optional — V36 builds header from fields)
+    if (!dip || dip.shortPct == null || !dip.shortLabel) {
+      return buildBuyPack(mcapLabel, sol);
+    }
+    var depth = dipDepth(dip);
+    var still = stillGreen24(dip);
+    var pace = buyPaceShort(buys);
+    var headBits = [];
+    if (depth && depth.tier !== 'soft') {
+      headBits.push(depth.word);
+      headBits.push(
+        dip.shortLabel +
+          ' ' +
+          (Number(dip.shortPct) > 0 ? '+' : '') +
+          Number(dip.shortPct).toFixed(1) +
+          '%',
+      );
+    } else {
+      headBits.push(
+        dip.shortLabel +
+          ' dip ' +
+          (Number(dip.shortPct) > 0 ? '+' : '') +
+          Number(dip.shortPct).toFixed(2) +
+          '%',
+      );
+    }
+    if (still && still.short) headBits.push(still.short + ' still');
+    else if (dip.ch24 != null && Number(dip.ch24) > 0) {
+      headBits.push(
+        '24h still +' +
+          (Math.abs(Number(dip.ch24)) >= 10
+            ? Number(dip.ch24).toFixed(0)
+            : Number(dip.ch24).toFixed(1)) +
+          '%',
+      );
+    }
+    if (netShort && String(netShort).charAt(0) === '+') {
+      headBits.push(String(netShort) + ' net');
+    }
+    if (pace) headBits.push(pace);
+    if (mcapLabel && String(mcapLabel) !== '—') {
+      headBits.push('mcap ' + String(mcapLabel));
+    }
+    headBits.push('NFA');
+    var header = headBits.join(' · ');
     var size =
       sol != null && isFinite(Number(sol)) && Number(sol) > 0
         ? ' · ' + String(Number(sol)) + ' SOL'
         : '';
     return (
-      dip.line +
+      header +
       '\nBuy $dasha on the dip → ' +
       buyUrl(sol) +
       '\n' +
       CA +
-      m +
       size +
       '\nDesk → ' +
       deskUrl() +
-      '\nNFA · can go to zero · association ≠ endorsement'
+      '\nNFA · can go to zero'
     );
   }
 
@@ -679,7 +721,7 @@
    * Mobile-visible trust strip near sticky dual — pure.
    * Combines flow + liq + session shorts (each already NFA-tagged).
    */
-  function trustBarLine(flow, liqLine, session, reclaimLine) {
+  function trustBarLine(flow, liqLine, session, reclaimLine, stillLine) {
     function stripNfa(s) {
       return String(s || '')
         .replace(/\s*·?\s*NFA\s*/gi, ' ')
@@ -692,6 +734,10 @@
     if (reclaimLine) {
       var r = stripNfa(reclaimLine);
       if (r) parts.push(r);
+    } else if (stillLine) {
+      // V36: still-after-deep when no reclaim (current deep+green regime)
+      var st = stripNfa(stillLine);
+      if (st) parts.push(st);
     }
     if (flow) {
       var f = stripNfa(flow);
@@ -1903,11 +1949,19 @@
     var reclaimLine = reclaim ? dipReclaimLine(reclaim, lastProof.dip) : null;
     lastProof.reclaim = reclaim;
     lastProof.reclaimLine = reclaimLine;
+    // Ensure stillLine available for trust bar (same pure path as FOMO sub)
+    if (!lastProof.stillLine && lastProof.dip) {
+      var stillForBar = stillGreen24(lastProof.dip, lastProof.ch24n);
+      lastProof.stillLine = stillForBar
+        ? dipStillLine(stillForBar, lastProof.dip)
+        : null;
+    }
     var line = trustBarLine(
       lastProof.flow,
       lastProof.liqLine,
       lastProof.session,
       reclaimLine,
+      lastProof.stillLine,
     );
     lastProof.trustBar = line;
     if (bar) {
@@ -1988,8 +2042,18 @@
     return bp && bp.moreBuyers ? buyPressureLine(bp) : '';
   }
   function dipPackNow() {
+    var netBit =
+      lastProof.buys != null && lastProof.sells != null
+        ? netBuysShort(lastProof.buys, lastProof.sells)
+        : null;
     return lastProof.dip
-      ? buildDipPack(lastProof.dip, lastProof.mcap, buySol)
+      ? buildDipPack(
+          lastProof.dip,
+          lastProof.mcap,
+          buySol,
+          netBit,
+          lastProof.buys,
+        )
       : buildBuyPack(lastProof.mcap, buySol, pressureNoteNow());
   }
   function copyBuyPack(el) {
