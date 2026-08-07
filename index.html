@@ -56,7 +56,9 @@
     <div class="dd-proof-item"><span>Vol 24h</span><strong id="p-vol">—</strong></div>
     <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
     <div class="dd-proof-item"><span>Since open</span><strong id="p-delta">—</strong></div>
+    <div class="dd-proof-item"><span>Net buys</span><strong id="p-net">—</strong></div>
   </section>
+  <p class="dd-net-line dd-reveal" id="dd-net-line" hidden aria-live="polite"></p>
   <div class="dd-spark-wrap dd-reveal" id="dd-spark-wrap">
     <div class="dd-spark-meta">
       <strong>Session mcap path</strong>
@@ -106,6 +108,12 @@
       <span class="dd-fomo-age" id="dd-fomo-age">waiting for Dex</span>
       <span class="dd-move-chip" id="dd-move-chip" hidden>Poll —</span>
       <span class="dd-copy-count" id="dd-copy-count" hidden></span>
+    </div>
+    <div class="dd-fomo-amts" id="dd-fomo-amts" hidden role="group" aria-label="Dip buy size">
+      <button type="button" class="dd-amt-sm" data-sol="0.5">0.5</button>
+      <button type="button" class="dd-amt-sm" data-sol="1">1</button>
+      <button type="button" class="dd-amt-sm" data-sol="2">2</button>
+      <span class="dd-fomo-ab" id="dd-fomo-ab" hidden title="FOMO copy variant">A</span>
     </div>
     <div class="dd-fomo-actions">
       <a class="dd-btn dd-btn-primary dd-pulse-buy" id="dd-fomo-buy" hidden target="_blank" rel="noopener noreferrer" href="#">Buy the dip</a>

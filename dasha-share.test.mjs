@@ -344,4 +344,24 @@ assert.ok(appJs.includes('dd-fomo-raid-dip') && appJs.includes('dipPackNow'), 'r
 assert.ok(appJs.includes('Dip buy') || appJs.includes('dip buy'), 'sticky dip buy label');
 assert.ok(kitStyles.includes('dd-fomo-buy') || kitStyles.includes('#dd-fomo-buy'), 'fomo buy styles');
 
+// V20: FOMO A/B + FOMO size chips + net-buys social proof
+assert.ok(typeof DD.fomoDipHeadline === 'function', 'fomoDipHeadline exported');
+assert.ok(typeof DD.netBuysLine === 'function' && typeof DD.netBuysShort === 'function', 'net buys helpers');
+const headA = DD.fomoDipHeadline(dip, '+511.00%', 'a', bp);
+const headB = DD.fomoDipHeadline(dip, '+511.00%', 'b', bp);
+assert.ok(headA.includes('dip') && headA.includes('24h still'), 'FOMO A is status style');
+assert.ok(/^Buy the dip/i.test(headB), 'FOMO B leads with Buy the dip');
+assert.ok(headB.includes('% buys') || headB.includes('NFA'), 'FOMO B includes pressure or NFA');
+assert.notEqual(headA, headB, 'FOMO A/B headlines differ');
+const net = DD.netBuysLine(362, 237);
+assert.ok(net && net.startsWith('+') && /more buys/i.test(net) && /NFA/i.test(net), 'net buys line');
+assert.equal(DD.netBuysShort(362, 237), '+125', 'net buys short +125');
+assert.ok(DD.netBuysLine(100, 200).includes('more sells'), 'net sells line');
+assert.equal(DD.netBuysShort(100, 100), '0', 'even net');
+assert.ok(body.includes('id="dd-fomo-amts"') && body.includes('id="dd-fomo-ab"'), 'FOMO amts + AB badge');
+assert.ok(body.includes('id="p-net"') && body.includes('id="dd-net-line"'), 'net buys proof DOM');
+assert.ok(appJs.includes('dd_fomo_ab') && appJs.includes('fomoAb'), 'FOMO A/B persistence');
+assert.ok(appJs.includes('dd_dip_size_nudge') || appJs.includes('dip_size'), 'dip size nudge');
+assert.ok(kitStyles.includes('dd-fomo-amts') && kitStyles.includes('dd-net-line'), 'v20 styles');
+
 console.log('dasha-share.test.mjs: PASS');

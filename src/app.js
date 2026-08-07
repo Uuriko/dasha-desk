@@ -331,6 +331,57 @@
     };
   }
 
+  /** FOMO A/B dip headlines — pure, unit-tested via DDShare.fomoDipHeadline */
+  function fomoDipHeadline(dip, ch24Label, ab, bp) {
+    if (!dip) return '';
+    var short =
+      (dip.shortPct > 0 ? '+' : '') + Number(dip.shortPct).toFixed(2) + '%';
+    if (ab === 'b') {
+      var press =
+        bp && bp.moreBuyers ? ' · ' + bp.pct + '% buys' : '';
+      return (
+        'Buy the dip · ' +
+        dip.shortLabel +
+        ' ' +
+        short +
+        press +
+        ' · NFA'
+      );
+    }
+    // A = status style (default)
+    return (
+      dip.shortLabel +
+      ' dip ' +
+      short +
+      ' · 24h still ' +
+      (ch24Label && String(ch24Label) !== '—'
+        ? String(ch24Label)
+        : (dip.ch24 > 0 ? '+' : '') + Number(dip.ch24).toFixed(2) + '%')
+    );
+  }
+
+  /** Net buys social proof from real Dex txn counts */
+  function netBuysLine(buys, sells) {
+    if (buys == null || sells == null) return null;
+    var b = Number(buys);
+    var s = Number(sells);
+    if (!isFinite(b) || !isFinite(s)) return null;
+    var net = Math.round(b - s);
+    if (net > 0) return '+' + net + ' more buys than sells 24h · NFA';
+    if (net < 0) return Math.abs(net) + ' more sells than buys 24h · NFA';
+    return 'Even buys/sells 24h · NFA';
+  }
+  function netBuysShort(buys, sells) {
+    if (buys == null || sells == null) return '—';
+    var b = Number(buys);
+    var s = Number(sells);
+    if (!isFinite(b) || !isFinite(s)) return '—';
+    var net = Math.round(b - s);
+    if (net > 0) return '+' + net;
+    if (net < 0) return String(net);
+    return '0';
+  }
+
   function intentTweet(text) {
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
@@ -418,6 +469,9 @@
     solUsdEstimate: solUsdEstimate,
     fmtUsdRough: fmtUsdRough,
     dipBuySignal: dipBuySignal,
+    fomoDipHeadline: fomoDipHeadline,
+    netBuysLine: netBuysLine,
+    netBuysShort: netBuysShort,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -570,10 +624,21 @@
   var sparkSamples = [];
   var SPARK_MAX = 48;
   var buySol = 0.5;
+  var fomoAb = 'a';
   try {
     var savedSol = localStorage.getItem('dd_buy_sol');
     if (savedSol && isFinite(Number(savedSol)) && Number(savedSol) > 0) buySol = Number(savedSol);
   } catch (eSol) {}
+  try {
+    var savedAb = localStorage.getItem('dd_fomo_ab');
+    if (savedAb === 'a' || savedAb === 'b') fomoAb = savedAb;
+    else {
+      fomoAb = Math.random() < 0.5 ? 'a' : 'b';
+      localStorage.setItem('dd_fomo_ab', fomoAb);
+    }
+  } catch (eAb) {
+    fomoAb = 'a';
+  }
 
   function pushSparkSample(mcapNum) {
     mcapNum = Number(mcapNum);
@@ -801,6 +866,30 @@
             $('dd-txns').textContent = 'Live Dex · txn counts when available · NFA';
           }
         }
+        var netLine = netBuysLine(lastProof.buys, lastProof.sells);
+        if ($('p-net')) {
+          $('p-net').textContent = netBuysShort(lastProof.buys, lastProof.sells);
+          setTone(
+            $('p-net'),
+            lastProof.buys != null && lastProof.sells != null
+              ? lastProof.buys - lastProof.sells
+              : null,
+          );
+        }
+        if ($('dd-net-line')) {
+          if (netLine) {
+            $('dd-net-line').hidden = false;
+            $('dd-net-line').textContent = netLine;
+            $('dd-net-line').classList.toggle(
+              'is-sell',
+              lastProof.buys != null &&
+                lastProof.sells != null &&
+                lastProof.sells > lastProof.buys,
+            );
+          } else {
+            $('dd-net-line').hidden = true;
+          }
+        }
         var bp = buyPressure(lastProof.buys, lastProof.sells);
         lastProof.pressure = bp;
         if ($('dd-pressure')) {
@@ -868,15 +957,30 @@
             void fomo.offsetWidth;
             fomo.classList.add('is-move');
           } else if (lastProof.dip) {
-            // Short-TF dip with 24h still green — honest dip-buy urgency
-            $('dd-fomo-main').textContent =
-              lastProof.dip.shortLabel +
-              ' dip ' +
-              fmtPct(lastProof.dip.shortPct) +
-              ' · 24h still ' +
-              lastProof.ch24;
+            // Short-TF dip with 24h still green — A/B FOMO headlines
+            $('dd-fomo-main').textContent = fomoDipHeadline(
+              lastProof.dip,
+              lastProof.ch24,
+              fomoAb,
+              bp,
+            );
             fomo.classList.add('is-dip');
             fomo.classList.remove('is-up', 'is-down');
+            if ($('dd-fomo-ab')) {
+              $('dd-fomo-ab').hidden = false;
+              $('dd-fomo-ab').textContent = String(fomoAb).toUpperCase();
+            }
+            // Soft size nudge on dip: recommend 1 SOL once if still on 0.5 default
+            try {
+              if (
+                buySol === 0.5 &&
+                sessionStorage.getItem('dd_dip_size_nudge') !== '1' &&
+                localStorage.getItem('dd_buy_sol') == null
+              ) {
+                buySol = 1;
+                sessionStorage.setItem('dd_dip_size_nudge', '1');
+              }
+            } catch (eNudge) {}
           } else if (bp && bp.moreBuyers && bp.pct >= 55) {
             $('dd-fomo-main').textContent =
               'Buy pressure · ' + bp.pct + '% buys 24h · mcap ' + lastProof.mcap;
@@ -1440,6 +1544,12 @@
     }
     if ($('dd-fomo-raid-dip')) {
       $('dd-fomo-raid-dip').hidden = !lastProof.dip;
+    }
+    if ($('dd-fomo-amts')) {
+      $('dd-fomo-amts').hidden = !lastProof.dip;
+    }
+    if ($('dd-fomo-ab') && !lastProof.dip) {
+      $('dd-fomo-ab').hidden = true;
     }
     if ($('dd-exit-buy')) {
       $('dd-exit-buy').textContent =

@@ -653,11 +653,28 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 }
 .dd-move-chip.dd-up{color:#b8ffd0;border-color:rgba(125,255,163,.4)}
 .dd-move-chip.dd-down{color:#ffc8c8;border-color:rgba(255,155,155,.4)}
+.dd-fomo-amts{
+  display:none;flex-wrap:wrap;gap:6px;align-items:center;width:100%;margin:0 0 8px;
+}
+.dd-fomo.is-dip .dd-fomo-amts{display:flex}
+.dd-fomo-amts[hidden]{display:none!important}
+.dd-fomo-ab{
+  margin-left:auto;font-size:10px;font-weight:800;opacity:.55;color:var(--muted);
+  border:1px solid var(--line);border-radius:6px;padding:2px 6px;
+}
 .dd-fomo-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .dd-fomo-actions .dd-btn{min-height:40px;padding:8px 12px;font-size:12px}
 .dd-fomo-actions #dd-fomo-buy{min-height:44px;padding:10px 14px;font-weight:800}
 .dd-fomo.is-dip #dd-fomo-buy{display:inline-flex}
 .dd-fomo.is-dip #dd-copy-buy-pack{order:3}
+.dd-net-line{
+  margin:0 0 12px;padding:8px 12px;border-radius:12px;font-size:12px;font-weight:800;
+  border:1px solid rgba(125,255,163,.35);background:rgba(125,255,163,.08);color:#b8ffd0;
+}
+.dd-net-line.is-sell{border-color:rgba(255,155,155,.35);background:rgba(255,100,100,.08);color:#ffc8c8}
+.dd-net-line[hidden]{display:none!important}
+#p-net.dd-up{color:#7dffa3}
+#p-net.dd-down{color:#ff9b9b}
 .dd-fomo.is-move{box-shadow:0 0 0 1px rgba(255,180,120,.45),0 0 24px rgba(255,140,80,.18)}
 .dd-post-share{
   display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%;margin-top:8px;
