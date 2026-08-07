@@ -454,7 +454,11 @@ const sessDn = DD.sessionDelta(90000, 83871);
 assert.ok(sessDn && !sessDn.up && sessDn.pct < 0, 'session down');
 const dualSess = DD.dualGoPlan(1, true, 'dip', sessUp);
 assert.ok(/sess \+/.test(dualSess.label) || /sess \+/.test(dualSess.toast), 'dual carries session short');
-assert.ok(/CA copied/.test(dualSess.toast) && /sess/.test(dualSess.toast), 'dual toast session urgency');
+assert.ok(
+  (/CA copied|CA\+buy|CA ·/i.test(dualSess.toast) || dualSess.toast.includes('CA')) &&
+    /sess/.test(dualSess.toast),
+  'dual toast session urgency',
+);
 assert.ok(body.includes('id="dd-session-line"'), 'session line DOM');
 assert.ok(appJs.includes('sessionDelta') && appJs.includes('dd-session-line'), 'session wiring');
 assert.ok(kitStyles.includes('dd-session-line'), 'session styles');
@@ -481,5 +485,25 @@ assert.ok(
   stickyBlock.indexOf('dd-dual-go') < stickyBlock.indexOf('dd-buy-sticky'),
   'dual before sticky buy',
 );
+
+// V27: dual copy payload (CA+buy+desk) + net proof on dual label
+assert.ok(typeof DD.dualCopyPayload === 'function', 'dualCopyPayload exported');
+const pack = DD.dualCopyPayload(
+  DD.CA || '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump',
+  DD.buyUrl(1),
+  DD.deskUrl(),
+  '1 SOL · ~$73',
+);
+assert.ok(pack.includes('53uxQt') && pack.includes('jup.ag') && pack.includes('amount=1'), 'payload has CA+jup+amount');
+assert.ok(pack.includes('ref=') && pack.includes('webflow.io/dasha'), 'payload has invite desk');
+assert.ok(/Size 1 SOL/.test(pack) && /NFA/i.test(pack), 'payload size + NFA');
+const dualNet = DD.dualGoPlan(1, true, 'dip', null, 73, '+126');
+assert.ok(dualNet.hasNet && /\+126 net/.test(dualNet.label), 'dual label shows +net');
+assert.ok(dualNet.copyText && dualNet.copyText.includes('53uxQt') && dualNet.copyText.includes('jup.ag'), 'plan has copyText pack');
+assert.ok(/CA\+buy/i.test(dualNet.toast) || /CA\+buy/.test(dualNet.toast) || dualNet.toast.includes('CA+buy'), 'toast is CA+buy pack');
+const dualNoNet = DD.dualGoPlan(1, true, 'dip', null, 73, '-10');
+assert.ok(!dualNoNet.hasNet && !/\-10 net/.test(dualNoNet.label), 'negative net not on dual label');
+assert.ok(appJs.includes('dualCopyPayload') && appJs.includes('copyText'), 'v27 dual payload wiring');
+assert.ok(kitStyles.includes('has-net') || kitStyles.includes('has-usd'), 'dual net style hook');
 
 console.log('dasha-share.test.mjs: PASS');

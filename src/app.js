@@ -517,13 +517,14 @@
   }
 
   /**
-   * One-tap dual action plan: copy full CA then open wallet/buy.
-   * Pure — unit-tested; runtime copies CA and navigates to href.
+   * One-tap dual action plan: copy CA+buy+desk then open wallet/buy.
+   * Pure — unit-tested; runtime copies payload and navigates to href.
    * regime: 'dip' | 'hot' | 'neutral' shapes the label.
    * session: optional sessionDelta() for toast urgency.
    * solUsd: optional SOL→USD rate for size proof on label.
+   * netShort: optional netBuysShort() for social proof on label.
    */
-  function dualGoPlan(sol, mobile, regime, session, solUsd) {
+  function dualGoPlan(sol, mobile, regime, session, solUsd, netShort) {
     var jup = buyUrl(sol);
     var href = mobile ? phantomBrowseUrl(jup) : jup;
     var r = regime || 'neutral';
@@ -535,11 +536,20 @@
     // Size proof (SOL + rough USD) when known; else wallet/buy verb
     if (size && size.label) label = label + ' · ' + size.label;
     else label = label + (mobile ? ' · Wallet' : ' · Buy');
+    // Positive net buys social proof (honest Dex)
+    if (netShort && String(netShort).charAt(0) === '+') {
+      label = label + ' · ' + netShort + ' net';
+    }
     if (session && session.short && Math.abs(session.pct) >= 0.5) {
       label = label + ' · ' + session.short;
     }
-    var toast = 'CA copied · open wallet';
-    if (size && size.label) toast = 'CA copied · ' + size.label;
+    // One-paste payload: CA + amounted jup (w/ invite ref) + desk loop
+    var copyText = dualCopyPayload(CA, jup, deskUrl(), size && size.label);
+    var toast = 'CA+buy copied · open';
+    if (size && size.label) toast = 'CA+buy · ' + size.label;
+    if (netShort && String(netShort).charAt(0) === '+') {
+      toast = toast + ' · ' + netShort + ' net';
+    }
     if (session && session.short) {
       toast = toast + ' · ' + session.short;
     }
@@ -550,8 +560,10 @@
       regime: r,
       label: label,
       toast: toast,
+      copyText: copyText,
       size: size,
       session: session || null,
+      netShort: netShort || null,
       hasRef: /[?&]ref=/.test(jup),
       hasAmount:
         sol != null &&
@@ -560,7 +572,17 @@
         Number(sol) > 0 &&
         /amount=/.test(jup),
       hasUsd: !!(size && size.usd != null && size.usd > 0),
+      hasNet: !!(netShort && String(netShort).charAt(0) === '+'),
     };
+  }
+
+  /** Multi-line paste pack for dual-go (CA + Jupiter + desk) — pure */
+  function dualCopyPayload(ca, jup, desk, sizeLabel) {
+    var lines = [String(ca || CA), String(jup || '')];
+    if (desk) lines.push(String(desk));
+    if (sizeLabel) lines.push('Size ' + sizeLabel);
+    lines.push('NFA · can go to zero');
+    return lines.join('\n');
   }
 
   function intentTweet(text) {
@@ -658,6 +680,7 @@
     stickyFlowProof: stickyFlowProof,
     phantomBrowseUrl: phantomBrowseUrl,
     dualGoPlan: dualGoPlan,
+    dualCopyPayload: dualCopyPayload,
     buyRegime: buyRegime,
     hotBuyHeadline: hotBuyHeadline,
     sessionDelta: sessionDelta,
@@ -1506,6 +1529,10 @@
       (lastProof.openMcap != null && lastProof.nowMcap != null
         ? sessionDelta(lastProof.openMcap, lastProof.nowMcap)
         : null);
+    var netBit =
+      lastProof.buys != null && lastProof.sells != null
+        ? netBuysShort(lastProof.buys, lastProof.sells)
+        : null;
     var plan = dualGoPlan(
       buySol,
       isMobileBuyPath(),
@@ -1513,8 +1540,10 @@
         buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure),
       sess,
       lastProof.solUsd,
+      netBit,
     );
-    copy(plan.ca, el || null);
+    // V27: copy CA + buy URL + desk (one paste into wallet/group), then open
+    copy(plan.copyText || plan.ca, el || null);
     try {
       if (el) el.textContent = plan.toast;
       setTimeout(function () {
@@ -1547,7 +1576,18 @@
       (lastProof.openMcap != null && lastProof.nowMcap != null
         ? sessionDelta(lastProof.openMcap, lastProof.nowMcap)
         : null);
-    var plan = dualGoPlan(buySol, isMobileBuyPath(), regime, sess, lastProof.solUsd);
+    var netBit =
+      lastProof.buys != null && lastProof.sells != null
+        ? netBuysShort(lastProof.buys, lastProof.sells)
+        : null;
+    var plan = dualGoPlan(
+      buySol,
+      isMobileBuyPath(),
+      regime,
+      sess,
+      lastProof.solUsd,
+      netBit,
+    );
     document.querySelectorAll('.dd-dual-go').forEach(function (b) {
       if (b.textContent && /copied/i.test(b.textContent)) return;
       b.textContent = plan.label;
@@ -1555,6 +1595,7 @@
       b.classList.toggle('is-dip-dual', regime === 'dip');
       b.classList.toggle('is-hot-dual', regime === 'hot');
       b.classList.toggle('has-usd', !!plan.hasUsd);
+      b.classList.toggle('has-net', !!plan.hasNet);
       b.classList.toggle(
         'is-sess-up',
         !!(sess && sess.up && Math.abs(sess.pct) >= 0.5),
