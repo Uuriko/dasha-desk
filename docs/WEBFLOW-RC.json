@@ -1,19 +1,19 @@
 {
   "schema": "dasha.webflow-rc/1",
-  "capturedAt": "2026-08-07T08:38:47Z",
+  "capturedAt": "2026-08-07T08:50:48Z",
   "source": {
-    "commit": "1af4d7126d4dcfdebaa928651a6b6cb9272dfc36",
+    "commit": "ea035067aaf54bd4f374f694ba99e490f63df607",
     "clean": true,
     "files": {
-      "src/app.html": { "bytes": 55440, "sha256": "e07a33e9991da059964cb860a417b0aa0331dd0b75f44968184b473c8aff73a0" },
-      "src/body.html": { "bytes": 14315, "sha256": "d9d8ff4f955d03f7136010518492c00ce79e006867a1a6e54837c25340b1d12d" },
-      "src/app.js": { "bytes": 20269, "sha256": "0d57482ff3994e1a3f5c5d222212523199299157b896d49fb1a6170ed4cce63d" },
-      "src/styles.css": { "bytes": 20820, "sha256": "801e25d4c517940f53e1baad2dc69b58408d9d2d9f22edb789cadf38d0d37890" }
+      "src/app.html": { "bytes": 54413, "sha256": "d438e5f1ef13fd95bedf654508197bae4158c52d6b9054eee2df565651b943a7" },
+      "src/body.html": { "bytes": 14185, "sha256": "b2b4f57b6c50aecd186ad2f12a3a36c15b12e1ab20c77f68ed30bcad1cd1ff06" },
+      "src/app.js": { "bytes": 19490, "sha256": "cacfec598ec0cc5d48c6c4bc1f79ad5411d374ba7330fe12c201d4f1da19fe1b" },
+      "src/styles.css": { "bytes": 20702, "sha256": "c84de43001c128d2fc51fa3414e321066567343e682d834bced51ae449bcb7c6" }
     }
   },
   "webflow": {
     "siteId": "5f1458122ba25e70a3ff2bd0",
-    "lastPublished": "2026-08-07T08:37:51.013Z",
+    "lastPublished": "2026-08-07T08:50:38.014Z",
     "customDomains": [],
     "homePageId": "5f1458136c15aa41639b8538",
     "legacyDeskPageId": "6a74b59530c70741b1c574c4",
@@ -29,8 +29,8 @@
     "deskCandidate": { "pageId": "6a758d786dc08f46cfb2539c", "slug": "desk-rc", "draft": true, "publicStatus": 404 }
   },
   "candidatePayload": {
-    "markup": { "bytes": 35218, "sha256": "03d43d3c044ad0fed61722fb711ba9bd9e090814424277de364ad162061c20d7" },
-    "runtime": { "bytes": 21711, "sha256": "6ae272377104dddc679cac153fb60203b0bb2d385dd399f37bc69e21344e3ad6" },
+    "markup": { "bytes": 34970, "sha256": "95818b4c4c5c6bc70665d69512a3251583a99b429d5e7ee34cb43d110f6dd59d" },
+    "runtime": { "bytes": 20932, "sha256": "d6d9fabae7be69d3ad27f015d7db7e021dd30a893b99e8d17e3c1da9ab64f43a" },
     "legacyNavigationVisible": false
   },
   "intendedRoutes": {
