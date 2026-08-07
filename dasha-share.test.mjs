@@ -167,6 +167,7 @@ assert.ok(body.includes('data-pack="raid"'));
 assert.ok(body.includes('data-share-quote'));
 assert.ok(body.includes('dd-copy-share') && body.includes('dd-tweet'), 'two share affordances');
 assert.ok(!body.includes('href="#"'), 'every static link has a working no-JavaScript destination');
+assert.ok(!/dd-copy-short|CA\.slice\(0, 4\)/.test(body + src), 'no control copies an invalid ellipsized mint');
 assert.ok(body.includes('id="dd-desk-url" href="https://www.getdasha.com/"'), 'absolute no-JS desk fallback');
 assert.ok(body.includes('id="dd-desk-link" hidden'), 'no-JS output hides the unverified desk-link fallback');
 assert.ok(body.includes('id="dd-labs-link"') && body.includes('hidden>Labs · write the thesis'), 'first viewport has a deployment-gated Labs link');
@@ -229,22 +230,9 @@ assert.ok(mini2.includes(DD.BUY) || mini2.includes('jup.ag'), 'mini buy');
 assert.ok(mini2.toLowerCase().includes('buy') || mini2.includes(DD.BUY), 'mini conversion orient');
 assert.ok(body.includes('dd-copy-buy'), 'copy buy funnel control');
 assert.ok(body.includes('dd-copy-live'), 'copy live pack control');
-assert.ok(body.includes('dd-social-proof'), 'live social proof line');
-
-
-assert.ok(body.includes('dd-buy-sticky') || body.includes('Buy now'), 'sticky buy now');
-assert.ok(body.includes('dd-buy-now') || body.includes('Buy now'), 'mobile buy-now class or label');
-assert.ok(body.includes('dd-social-proof-hint') || body.includes('Tap to copy'), 'social proof one-tap hint');
-assert.ok(body.includes('dd-social-proof-text') || body.includes('role="status"'), 'social proof live text');
-assert.ok(body.includes('One-tap buy') || body.includes('dd-buy-sticky'), 'sticky funnel region');
-
-
 assert.ok(!/dd-fomo|smartPackPicked|dd_raid_ab|data-raid-ab/.test(body + src), 'no urgency signal or hidden pack selection');
-
-
-assert.ok(body.includes('dd-buy-sticky'), 'sticky buy control');
-assert.ok(body.includes('Tap · copy share-ready live pack'), 'live-pack action is explicit');
-assert.ok(!/dd-exit|dd-pulse-buy|dd-sticky-live|dd-sp-strip/.test(body + src), 'no exit interception, urgency pulse, or duplicate live strip');
+assert.ok(!/dd-exit|dd-pulse-buy|dd-sticky|dd-social-proof|dd-sp-strip/.test(body + src), 'no persistent conversion pressure or synthetic social proof');
+assert.ok(!/Still early|Get in ·|make it right by holding/i.test(body + src), 'no unsupported urgency or guilt-based holding copy');
 assert.ok(!/localStorage|dd-hold|dd-copy-burst|dd-ticker|telegram\.me|t\.me\//i.test(body + src), 'no fake holding, copy-count, ticker, or Telegram channel state');
 assert.ok(!src.includes('p.marketCap || p.fdv'), 'FDV is never mislabeled as market cap');
 assert.ok(src.includes("lastProof = { mcap: '—', ch24: '—', at: '' }"), 'offline path clears shareable market state');

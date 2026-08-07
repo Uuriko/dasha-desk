@@ -25,11 +25,6 @@
     <div class="dd-proof-item"><span>Vol 24h</span><strong id="p-vol">—</strong></div>
     <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
   </section>
-  <button type="button" class="dd-social-proof dd-reveal" id="dd-social-proof" aria-label="Copy live share pack with mcap">
-    <span id="dd-social-proof-text">Live on Dex · numbers every 30s · NFA</span>
-    <small class="dd-social-proof-hint">Tap · copy share-ready live pack</small>
-  </button>
-
   <section class="dd-hero-card dd-reveal" id="dd-mint">
     <div class="dd-banner-wrap">
       <img class="dd-banner" id="dd-banner" src="https://files.catbox.moe/qnvc7b.jpg" alt="" width="900" height="220" referrerpolicy="no-referrer" loading="lazy"/>
@@ -53,7 +48,6 @@
       <code id="dd-ca" class="dd-ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
       <div class="dd-mint-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy">Copy CA</button>
-        <button type="button" class="dd-btn" id="dd-copy-short">Short</button>
         <button type="button" class="dd-btn" id="dd-copy-pack-mini">CA + line</button>
         <span class="dd-toast" id="dd-toast" hidden>Copied</span>
       </div>
@@ -70,7 +64,7 @@
 
     <ul class="dd-why" id="dd-why">
       <li><strong>Source:</strong> public @dash_eats CA post — not a brand deal.</li>
-      <li><strong>Verify:</strong> paste any DM mint below; fakes get rejected.</li>
+      <li><strong>Verify:</strong> paste any DM mint below; mismatches are flagged.</li>
       <li><strong>Share:</strong> one-tap raid packs for X / group chats.</li>
     </ul>
   </section>
@@ -120,11 +114,11 @@
       </div>
     </article>
     <article class="dd-card" id="dd-share-room">
-      <h2>Share = oxygen</h2>
-      <p class="dd-meta">Copy a pack. Post it. Buy + chart included. Desk added when available.</p>
+      <h2>Source-aware sharing</h2>
+      <p class="dd-meta">Copy attributed mint, chart, and source context. Desk added when available.</p>
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
-        <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
-        <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
+        <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Full</button>
+        <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Context</button>
         <button type="button" class="dd-pack-tab" data-pack="verify" role="tab" aria-selected="false">Verify</button>
         <button type="button" class="dd-pack-tab" data-pack="meme" role="tab" aria-selected="false">Line</button>
       </div>
@@ -143,7 +137,6 @@
     <p class="dd-meta">Copy a post-ready line or inspect its exact source. Public posts · not merch · not endorsement.</p>
     <div class="dd-meme-grid" id="dd-meme-grid">
       <article class="dd-meme dd-meme-a"><p>How u crying at the casino and u can’t even get in</p><div class="dd-meme-actions"><button type="button" data-share-quote="How u crying at the casino and u can’t even get in">Copy line</button><a href="https://x.com/dash_eats/status/2085405075686801789" target="_blank" rel="nofollow ugc noopener noreferrer">@dash_eats source ↗</a></div></article>
-      <article class="dd-meme dd-meme-e"><p>If you harassed me today you can make it right by holding some $dasha</p><div class="dd-meme-actions"><button type="button" data-share-quote="If you harassed me today you can make it right by holding some $dasha">Copy line</button><a href="https://x.com/dash_eats/status/1901740102289854513" target="_blank" rel="nofollow ugc noopener noreferrer">@dash_eats source ↗</a></div></article>
       <article class="dd-meme dd-meme-b"><p>I'm still holding $dasha</p><div class="dd-meme-actions"><button type="button" data-share-quote="I'm still holding $dasha">Copy line</button><a href="https://x.com/PerryALPHA/status/2085370284400328784" target="_blank" rel="nofollow ugc noopener noreferrer">@PerryALPHA source · third party ↗</a></div></article>
       <article class="dd-meme dd-meme-c"><p>I have sad news to share. Dasha has died in Spain due to lack of air conditioning</p><div class="dd-meme-actions"><button type="button" data-share-quote="I have sad news to share. Dasha has died in Spain due to lack of air conditioning">Copy line</button><a href="https://x.com/PerryALPHA/status/2074960912805486623" target="_blank" rel="nofollow ugc noopener noreferrer">@PerryALPHA source · third party ↗</a></div></article>
     </div>
@@ -204,18 +197,6 @@
       </div>
     </article>
   </section>
-
-  <div class="dd-sticky dd-reveal" role="region" aria-label="One-tap buy and raid">
-    <div class="dd-sticky-meta">
-      <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
-      <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
-    </div>
-    <div class="dd-sticky-actions">
-      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
-      <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
-      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet">Raid X</a>
-    </div>
-  </div>
 
   <footer class="dd-foot dd-reveal">
     <p>Not affiliated with Dasha, Red Scare, or @dash_eats beyond public posts cited here. Can go to zero.</p>
@@ -532,20 +513,6 @@
 }
 .dd-token-hero img:hover{transform:scale(1.05) rotate(-2deg);box-shadow:0 0 32px var(--glow)}
 .dd-section{margin-bottom:14px}
-.dd-sticky{
-  position:sticky;bottom:12px;z-index:5;margin:16px 0 0;padding:10px 12px;border-radius:16px;
-  border:1px solid rgba(167,139,250,.45);
-  background:rgba(12,8,18,.92);
-  backdrop-filter:blur(16px) saturate(1.2);
-  display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-  box-shadow:0 12px 40px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.04) inset;
-  animation:dd-in .5s ease .4s both;
-}
-.dd-sticky-meta{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
-.dd-sticky-px{font-size:14px;color:#c4a5ff;font-variant-numeric:tabular-nums}
-.dd-sticky-ca{font-size:11px;color:#efe9ff;word-break:break-all}
-.dd-sticky-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.dd-sticky-actions .dd-btn-lg{min-height:44px;padding:10px 16px}
 .dd-up{color:#7dffa3!important}
 .dd-down{color:#ff9b9b!important}
 .dd-proof-item strong.dd-up,.dd-proof-item strong.dd-down,
@@ -646,54 +613,17 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-steps li::marker{color:var(--accent)}
 
 @media (prefers-reduced-motion:reduce){
-  #dd-app::before,.dd-marquee-track,.dd-pill-live,.dd-mint-box::after,.dd-reveal,.dd-sticky{animation:none!important}
+  #dd-app::before,.dd-marquee-track,.dd-pill-live,.dd-mint-box::after,.dd-reveal{animation:none!important}
   .dd-reveal{opacity:1;transform:none}
   .dd-btn,.dd-gal-item,.dd-meme,.dd-stat,.dd-banner,.dd-token-hero img,.dd-share-card{transition:none}
 }
 
-.dd-social-proof{
-  margin:-4px 0 14px;padding:8px 12px;text-align:center;
-  font-size:12px;font-weight:700;letter-spacing:.01em;
-  color:#d4b8ff;border-radius:12px;
-  border:1px solid rgba(167,139,250,.28);
-  background:rgba(167,139,250,.08);
-}
-
-/* mobile one-tap buy funnel */
-.dd-buy-now{letter-spacing:.02em}
-.dd-btn-raid{border-color:rgba(196,165,255,.45);color:#e8dff8}
-.dd-social-proof{
-  display:flex;flex-direction:column;align-items:center;gap:2px;
-  width:100%;cursor:pointer;font:inherit;appearance:none;
-  transition:transform .15s, border-color .2s, background .2s, box-shadow .2s;
-}
-.dd-social-proof:hover,.dd-social-proof:focus-visible{
-  transform:translateY(-1px);
-  border-color:rgba(196,165,255,.55);
-  background:rgba(167,139,250,.14);
-  box-shadow:0 8px 24px rgba(0,0,0,.25);
-  outline:none;
-}
-.dd-social-proof-hint{font-size:10px;font-weight:600;opacity:.72;letter-spacing:.06em;text-transform:uppercase}
-.dd-social-proof.is-flash{animation:dd-pop .35s cubic-bezier(.2,.9,.3,1.2)}
 @media(max-width:560px){
   .dd-actions-primary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .dd-actions-primary #dd-buy{
     grid-column:1/-1;min-height:52px;font-size:16px;
     box-shadow:0 10px 32px rgba(139,92,246,.55);
   }
-  .dd-sticky{
-    bottom:0;left:0;right:0;margin:0;border-radius:16px 16px 0 0;
-    padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
-    position:fixed;z-index:40;
-  }
-  .dd-sticky-meta{display:none}
-  .dd-sticky-actions{width:100%;display:grid;grid-template-columns:1.6fr auto auto;gap:8px}
-  .dd-sticky-actions .dd-buy-now{
-    width:100%;min-height:52px;font-size:16px;padding:12px 14px;
-    box-shadow:0 8px 28px rgba(139,92,246,.5);
-  }
-  #dd-app.dd{padding-bottom:96px}
 }
 </style>
 <script>
@@ -786,7 +716,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     }
     if (kind === 'boost') {
       return (
-        'Still early on $dasha\n' +
+        '$dasha source pack\n' +
         CASINO +
         '\n' +
         'CA: ' +
@@ -816,7 +746,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       PAIR +
       '\n' +
       (DESK ? 'Desk → ' + DESK + '\n' : '') +
-      'Get in · NFA · can go to zero'
+      'NFA · can go to zero'
     );
   }
 
@@ -1052,13 +982,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
-    if ($('dd-sticky-tweet')) {
-      var raidLine =
-        lastProof.mcap && lastProof.mcap !== '—'
-          ? buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at)
-          : buildSharePack('raid');
-      $('dd-sticky-tweet').href = intentTweet(raidLine);
-    }
     if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
   }
 
@@ -1131,34 +1054,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         var fetchedAt = new Date();
         lastPair = p;
         lastProof.at = fetchedAt.toISOString();
-        if ($('dd-social-proof-text')) {
-          $('dd-social-proof-text').textContent =
-            'Dexscreener · mcap ' +
-            lastProof.mcap +
-            ' · 24h ' +
-            lastProof.ch24 +
-            ' · NFA';
-        } else if ($('dd-social-proof')) {
-          $('dd-social-proof').textContent =
-            'Dexscreener · mcap ' +
-            lastProof.mcap +
-            ' · 24h ' +
-            lastProof.ch24 +
-            ' · NFA';
-        }
-        if ($('dd-social-proof')) {
-          $('dd-social-proof').classList.remove('is-flash');
-          void $('dd-social-proof').offsetWidth;
-          $('dd-social-proof').classList.add('is-flash');
-        }
-        // Keep Raid X intent fresh with live numbers when available
-        if ($('dd-sticky-tweet')) {
-          $('dd-sticky-tweet').href = intentTweet(
-            lastProof.mcap && lastProof.mcap !== '—'
-              ? buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at)
-              : buildSharePack('raid'),
-          );
-        }
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -1169,7 +1064,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
             el.classList.add('dd-flash');
           } else el.textContent = next;
         }
-        if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
         var info = p.info || {};
         var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
         if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
@@ -1186,10 +1080,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         });
         lastProof = { mcap: '—', ch24: '—', at: '' };
         lastPair = null;
-        if ($('dd-social-proof-text')) $('dd-social-proof-text').textContent = 'Market data unavailable · NFA';
         if ($('dd-live')) $('dd-live').textContent = 'unavailable';
         if ($('dd-px')) $('dd-px').textContent = 'unavailable';
-        if ($('dd-sticky-px')) $('dd-sticky-px').textContent = '—';
       });
   }
   function hardenImages() {
@@ -1243,17 +1135,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     $('dd-copy').addEventListener('click', function () {
       copy(CA, $('dd-copy'));
     });
-  if ($('dd-copy-short'))
-    $('dd-copy-short').addEventListener('click', function () {
-      copy(CA.slice(0, 4) + '…' + CA.slice(-4), $('dd-copy-short'));
-    });
   if ($('dd-copy-pack-mini'))
     $('dd-copy-pack-mini').addEventListener('click', function () {
       copy(buildMiniPack(), $('dd-copy-pack-mini'));
-    });
-  if ($('dd-sticky-copy'))
-    $('dd-sticky-copy').addEventListener('click', function () {
-      copy(CA, $('dd-sticky-copy'));
     });
   if ($('dd-copy-buy'))
     $('dd-copy-buy').addEventListener('click', function () {
@@ -1262,10 +1146,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at), $('dd-copy-live'));
-    });
-  if ($('dd-social-proof'))
-    $('dd-social-proof').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at), $('dd-social-proof-hint') || $('dd-social-proof'));
     });
 
   if ($('dd-copy-share'))

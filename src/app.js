@@ -87,7 +87,7 @@
     }
     if (kind === 'boost') {
       return (
-        'Still early on $dasha\n' +
+        '$dasha source pack\n' +
         CASINO +
         '\n' +
         'CA: ' +
@@ -117,7 +117,7 @@
       PAIR +
       '\n' +
       (DESK ? 'Desk → ' + DESK + '\n' : '') +
-      'Get in · NFA · can go to zero'
+      'NFA · can go to zero'
     );
   }
 
@@ -353,13 +353,6 @@
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
-    if ($('dd-sticky-tweet')) {
-      var raidLine =
-        lastProof.mcap && lastProof.mcap !== '—'
-          ? buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at)
-          : buildSharePack('raid');
-      $('dd-sticky-tweet').href = intentTweet(raidLine);
-    }
     if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
   }
 
@@ -432,34 +425,6 @@
         var fetchedAt = new Date();
         lastPair = p;
         lastProof.at = fetchedAt.toISOString();
-        if ($('dd-social-proof-text')) {
-          $('dd-social-proof-text').textContent =
-            'Dexscreener · mcap ' +
-            lastProof.mcap +
-            ' · 24h ' +
-            lastProof.ch24 +
-            ' · NFA';
-        } else if ($('dd-social-proof')) {
-          $('dd-social-proof').textContent =
-            'Dexscreener · mcap ' +
-            lastProof.mcap +
-            ' · 24h ' +
-            lastProof.ch24 +
-            ' · NFA';
-        }
-        if ($('dd-social-proof')) {
-          $('dd-social-proof').classList.remove('is-flash');
-          void $('dd-social-proof').offsetWidth;
-          $('dd-social-proof').classList.add('is-flash');
-        }
-        // Keep Raid X intent fresh with live numbers when available
-        if ($('dd-sticky-tweet')) {
-          $('dd-sticky-tweet').href = intentTweet(
-            lastProof.mcap && lastProof.mcap !== '—'
-              ? buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at)
-              : buildSharePack('raid'),
-          );
-        }
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -470,7 +435,6 @@
             el.classList.add('dd-flash');
           } else el.textContent = next;
         }
-        if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
         var info = p.info || {};
         var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
         if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
@@ -487,10 +451,8 @@
         });
         lastProof = { mcap: '—', ch24: '—', at: '' };
         lastPair = null;
-        if ($('dd-social-proof-text')) $('dd-social-proof-text').textContent = 'Market data unavailable · NFA';
         if ($('dd-live')) $('dd-live').textContent = 'unavailable';
         if ($('dd-px')) $('dd-px').textContent = 'unavailable';
-        if ($('dd-sticky-px')) $('dd-sticky-px').textContent = '—';
       });
   }
   function hardenImages() {
@@ -544,17 +506,9 @@
     $('dd-copy').addEventListener('click', function () {
       copy(CA, $('dd-copy'));
     });
-  if ($('dd-copy-short'))
-    $('dd-copy-short').addEventListener('click', function () {
-      copy(CA.slice(0, 4) + '…' + CA.slice(-4), $('dd-copy-short'));
-    });
   if ($('dd-copy-pack-mini'))
     $('dd-copy-pack-mini').addEventListener('click', function () {
       copy(buildMiniPack(), $('dd-copy-pack-mini'));
-    });
-  if ($('dd-sticky-copy'))
-    $('dd-sticky-copy').addEventListener('click', function () {
-      copy(CA, $('dd-sticky-copy'));
     });
   if ($('dd-copy-buy'))
     $('dd-copy-buy').addEventListener('click', function () {
@@ -563,10 +517,6 @@
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at), $('dd-copy-live'));
-    });
-  if ($('dd-social-proof'))
-    $('dd-social-proof').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24, lastProof.at), $('dd-social-proof-hint') || $('dd-social-proof'));
     });
 
   if ($('dd-copy-share'))
