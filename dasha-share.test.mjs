@@ -549,4 +549,24 @@ assert.ok(
 );
 assert.ok(kitStyles.includes('dd-trust-bar'), 'trust bar styles');
 
+// V30: deep/hard dip urgency + size nudge
+assert.ok(typeof DD.dipDepth === 'function' && typeof DD.dipSizeNudgeSol === 'function', 'dip depth helpers');
+const softDip = { shortLabel: '1h', shortPct: -4.5, ch24: 200 };
+const hardDip = { shortLabel: '6h', shortPct: -15.2, ch24: 200 };
+const deepDip = { shortLabel: '6h', shortPct: -29.17, ch24: 204 };
+assert.equal(DD.dipDepth(softDip).tier, 'soft', 'soft dip tier');
+assert.equal(DD.dipDepth(hardDip).tier, 'hard', 'hard dip tier');
+assert.equal(DD.dipDepth(deepDip).tier, 'deep', 'deep dip tier');
+assert.equal(DD.dipSizeNudgeSol(deepDip), 2, 'deep dip nudges 2 SOL');
+assert.equal(DD.dipSizeNudgeSol(hardDip), 1, 'hard dip nudges 1 SOL');
+const headDeepA = DD.fomoDipHeadline(deepDip, '+204%', 'a', bpHot);
+const headDeepB = DD.fomoDipHeadline(deepDip, '+204%', 'b', bpHot);
+assert.ok(/Deep dip/i.test(headDeepA) && /24h still/i.test(headDeepA), 'FOMO A deep lead');
+assert.ok(/Deep dip|buy/i.test(headDeepB), 'FOMO B deep lead');
+const dualDeep = DD.dualGoPlan(2, true, 'dip', null, 74, '+101', 358, deepDip);
+assert.ok(dualDeep.isDeepDip && /Deep dip/i.test(dualDeep.label), 'dual deep dip label');
+assert.ok(dualDeep.header && /deep dip/i.test(dualDeep.header) && /-29/.test(dualDeep.header), 'dual header has depth pct');
+assert.ok(appJs.includes('dipDepth') && appJs.includes('is-deep-dip') && appJs.includes('dd_dip_size_nudge'), 'v30 wiring');
+assert.ok(kitStyles.includes('is-deep-dip') || kitStyles.includes('is-hard-dip'), 'deep dip styles');
+
 console.log('dasha-share.test.mjs: PASS');

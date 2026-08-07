@@ -356,16 +356,73 @@
     };
   }
 
+  /**
+   * Deep-dip tier from honest short TF % — pure.
+   * hard: ≤ -10%, deep: ≤ -20%. null if not a meaningful dip depth.
+   */
+  function dipDepth(dip) {
+    if (!dip || dip.shortPct == null) return null;
+    var pct = Number(dip.shortPct);
+    if (!isFinite(pct) || pct >= -0.5) return null;
+    if (pct <= -20) {
+      return {
+        tier: 'deep',
+        shortLabel: dip.shortLabel,
+        shortPct: pct,
+        word: 'Deep dip',
+        tag: 'Deep',
+      };
+    }
+    if (pct <= -10) {
+      return {
+        tier: 'hard',
+        shortLabel: dip.shortLabel,
+        shortPct: pct,
+        word: 'Hard dip',
+        tag: 'Hard',
+      };
+    }
+    return {
+      tier: 'soft',
+      shortLabel: dip.shortLabel,
+      shortPct: pct,
+      word: 'Dip',
+      tag: 'Dip',
+    };
+  }
+
+  /** Soft size nudge SOL for dip depth — pure (session applies once) */
+  function dipSizeNudgeSol(dip) {
+    var d = dipDepth(dip);
+    if (!d) return null;
+    if (d.tier === 'deep') return 2;
+    if (d.tier === 'hard') return 1;
+    return 1;
+  }
+
   /** FOMO A/B dip headlines — pure, unit-tested via DDShare.fomoDipHeadline */
   function fomoDipHeadline(dip, ch24Label, ab, bp) {
     if (!dip) return '';
     var short =
       (dip.shortPct > 0 ? '+' : '') + Number(dip.shortPct).toFixed(2) + '%';
+    var depth = dipDepth(dip);
+    var still = '';
+    if (ch24Label && String(ch24Label) !== '—') {
+      still = String(ch24Label).replace(/^24h\s+/i, '');
+    } else {
+      still =
+        (dip.ch24 > 0 ? '+' : '') + Number(dip.ch24).toFixed(2) + '%';
+    }
     if (ab === 'b') {
       var press =
         bp && bp.moreBuyers ? ' · ' + bp.pct + '% buys' : '';
+      var lead =
+        depth && depth.tier !== 'soft'
+          ? depth.word + ' · buy'
+          : 'Buy the dip';
       return (
-        'Buy the dip · ' +
+        lead +
+        ' · ' +
         dip.shortLabel +
         ' ' +
         short +
@@ -373,13 +430,18 @@
         ' · NFA'
       );
     }
-    // A = status style (default). ch24Label may already be "+511.00%" or "24h +511%"
-    var still = '';
-    if (ch24Label && String(ch24Label) !== '—') {
-      still = String(ch24Label).replace(/^24h\s+/i, '');
-    } else {
-      still =
-        (dip.ch24 > 0 ? '+' : '') + Number(dip.ch24).toFixed(2) + '%';
+    // A = status style (default). Deep/hard lead with depth word.
+    if (depth && depth.tier !== 'soft') {
+      return (
+        depth.word +
+        ' ' +
+        dip.shortLabel +
+        ' ' +
+        short +
+        ' · 24h still ' +
+        still +
+        ' · NFA'
+      );
     }
     return dip.shortLabel + ' dip ' + short + ' · 24h still ' + still;
   }
@@ -562,15 +624,20 @@
    * netShort: optional netBuysShort() for social proof on label.
    * buys: optional Dex 24h buys for pace short on label/header.
    */
-  function dualGoPlan(sol, mobile, regime, session, solUsd, netShort, buys) {
+  function dualGoPlan(sol, mobile, regime, session, solUsd, netShort, buys, dip) {
     var jup = buyUrl(sol);
     var href = mobile ? phantomBrowseUrl(jup) : jup;
     var r = regime || 'neutral';
     var size = solSizeLabel(sol, solUsd);
     var pace = buyPaceShort(buys);
+    var depth = r === 'dip' ? dipDepth(dip) : null;
     var label;
-    if (r === 'dip') label = 'CA · Dip';
-    else if (r === 'hot') label = 'CA · Ride';
+    if (r === 'dip') {
+      label =
+        depth && depth.tier !== 'soft'
+          ? 'CA · ' + depth.tag + ' dip'
+          : 'CA · Dip';
+    } else if (r === 'hot') label = 'CA · Ride';
     else label = 'CA';
     // Size proof (SOL + rough USD) when known; else wallet/buy verb
     if (size && size.label) label = label + ' · ' + size.label;
@@ -583,10 +650,24 @@
     if (session && session.short && Math.abs(session.pct) >= 0.5) {
       label = label + ' · ' + session.short;
     }
-    // Share header: regime + net + pace for viral paste/share
+    // Share header: regime + depth + net + pace for viral paste/share
     var headerBits = ['$dasha'];
-    if (r === 'dip') headerBits.push('dip');
-    else if (r === 'hot') headerBits.push('hot');
+    if (r === 'dip') {
+      headerBits.push(
+        depth && depth.tier !== 'soft'
+          ? depth.tag.toLowerCase() + ' dip'
+          : 'dip',
+      );
+      if (depth) {
+        headerBits.push(
+          depth.shortLabel +
+            ' ' +
+            (depth.shortPct > 0 ? '+' : '') +
+            depth.shortPct.toFixed(1) +
+            '%',
+        );
+      }
+    } else if (r === 'hot') headerBits.push('hot');
     if (netShort && String(netShort).charAt(0) === '+') {
       headerBits.push(netShort + ' net');
     }
@@ -633,6 +714,9 @@
       hasUsd: !!(size && size.usd != null && size.usd > 0),
       hasNet: !!(netShort && String(netShort).charAt(0) === '+'),
       hasPace: !!pace,
+      depth: depth,
+      isDeepDip: !!(depth && depth.tier === 'deep'),
+      isHardDip: !!(depth && (depth.tier === 'deep' || depth.tier === 'hard')),
     };
   }
 
@@ -736,6 +820,8 @@
     fmtUsdRough: fmtUsdRough,
     dipBuySignal: dipBuySignal,
     fomoDipHeadline: fomoDipHeadline,
+    dipDepth: dipDepth,
+    dipSizeNudgeSol: dipSizeNudgeSol,
     netBuysLine: netBuysLine,
     netBuysShort: netBuysShort,
     buysPaceLine: buysPaceLine,
@@ -1291,18 +1377,22 @@
             );
             fomo.classList.add('is-dip');
             fomo.classList.remove('is-up', 'is-down', 'is-hot-win');
+            var depthNow = dipDepth(lastProof.dip);
+            fomo.classList.toggle('is-deep', !!(depthNow && depthNow.tier === 'deep'));
+            fomo.classList.toggle('is-hard', !!(depthNow && depthNow.tier === 'hard'));
             if ($('dd-fomo-ab')) {
               $('dd-fomo-ab').hidden = false;
               $('dd-fomo-ab').textContent = String(fomoAb).toUpperCase();
             }
-            // Soft size nudge on dip: recommend 1 SOL once if still on 0.5 default
+            // Size nudge by dip depth: soft/hard→1 SOL, deep→2 SOL (once, if unset)
             try {
+              var nudgeSol = dipSizeNudgeSol(lastProof.dip);
               if (
-                buySol === 0.5 &&
+                nudgeSol &&
                 sessionStorage.getItem('dd_dip_size_nudge') !== '1' &&
                 localStorage.getItem('dd_buy_sol') == null
               ) {
-                buySol = 1;
+                buySol = nudgeSol;
                 sessionStorage.setItem('dd_dip_size_nudge', '1');
               }
             } catch (eNudge) {}
@@ -1610,6 +1700,7 @@
       lastProof.solUsd,
       netBit,
       lastProof.buys,
+      lastProof.dip,
     );
     // V27/V28: copy pack (header+CA+buy+desk), open wallet, share dual pack
     var pack = plan.copyText || plan.ca;
@@ -1686,6 +1777,7 @@
       lastProof.solUsd,
       netBit,
       lastProof.buys,
+      lastProof.dip,
     );
     document.querySelectorAll('.dd-dual-go').forEach(function (b) {
       if (b.textContent && /copied/i.test(b.textContent)) return;
@@ -1693,6 +1785,8 @@
       b.classList.toggle('dd-pulse-buy', regime === 'dip' || regime === 'hot');
       b.classList.toggle('is-dip-dual', regime === 'dip');
       b.classList.toggle('is-hot-dual', regime === 'hot');
+      b.classList.toggle('is-deep-dip', !!plan.isDeepDip);
+      b.classList.toggle('is-hard-dip', !!plan.isHardDip);
       b.classList.toggle('has-usd', !!plan.hasUsd);
       b.classList.toggle('has-net', !!plan.hasNet);
       b.classList.toggle('has-pace', !!plan.hasPace);
@@ -2007,8 +2101,10 @@
         lastProof.regime ||
         buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure);
       if (stickyRegime === 'dip') {
+        var sd = dipDepth(lastProof.dip);
         $('dd-buy-sticky').textContent =
-          'Dip buy · ' +
+          (sd && sd.tier !== 'soft' ? sd.tag + ' dip' : 'Dip') +
+          ' · ' +
           buySol +
           ' SOL' +
           (netBit && netBit !== '—' && netBit !== '0' ? ' · ' + netBit + ' net' : '') +
@@ -2043,8 +2139,16 @@
       if (showFomoBuy) {
         $('dd-fomo-buy').hidden = false;
         var fomoBits = [];
-        if (regime === 'dip') fomoBits.push(mobile ? 'Dip' : 'Dip buy');
-        else fomoBits.push(mobile ? 'Ride' : 'Ride');
+        if (regime === 'dip') {
+          var fd = dipDepth(lastProof.dip);
+          fomoBits.push(
+            fd && fd.tier !== 'soft'
+              ? fd.tag + ' dip'
+              : mobile
+                ? 'Dip'
+                : 'Dip buy',
+          );
+        } else fomoBits.push('Ride');
         fomoBits.push(buySol + ' SOL' + (usd1 ? ' · ' + usd1 : ''));
         if (netBit && netBit !== '—' && String(netBit).charAt(0) === '+') {
           fomoBits.push(netBit + ' net');
