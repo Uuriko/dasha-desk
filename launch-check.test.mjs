@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { inspectEvidence, inspectPage, redirectsArePermanent, robotsBlocksRoot } from './launch-check.mjs';
 
 const page = inspectPage(`<!doctype html><html><head>
@@ -24,5 +26,13 @@ assert.equal(robotsBlocksRoot('User-agent: *\nDisallow: /'), true);
 const evidence = `<p>The digest covers only the embedded account bytes.</p><script type="application/json" id="dd-evidence-json">{"mint":"53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump","account":{"initialized":true,"decimals":6,"supply":"999831950053985","mintAuthority":null,"freezeAuthority":null,"accountDataBase64":"AAAAAAbFwc5jjSVn0mRosF65UdGijcxuEjSCtcZ1FJdw5ivyYdI3hFeNAwAGAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==","accountDataSha256":"971d6214271d7c502ccea75ded909f2830b426240aa008d2a9a01e9452152cd0"}}</script>`;
 assert.deepEqual(inspectEvidence(evidence), []);
 assert.ok(inspectEvidence(evidence.replace('971d6214', '071d6214')).includes('evidence.hash'));
+
+const rc = JSON.parse(readFileSync(new URL('docs/WEBFLOW-RC.json', import.meta.url), 'utf8'));
+for (const [path, expected] of Object.entries(rc.source.files)) {
+  const bytes = readFileSync(new URL(path, import.meta.url));
+  assert.equal(bytes.length, expected.bytes, `${path} RC byte count`);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), expected.sha256, `${path} RC hash`);
+}
+assert.equal(rc.webflow.labsDraft.draft && rc.webflow.deskCandidate.draft && !rc.published, true, 'RC remains unpublished');
 
 console.log('launch-check.test.mjs: PASS');

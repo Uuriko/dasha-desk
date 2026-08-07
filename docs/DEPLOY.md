@@ -20,6 +20,8 @@
 
 Prepared, not published: Webflow page `6a75866d58882fdfb5f7674a` is a draft duplicate of Labs at slug `/labs`; its form embeds, SEO/OG metadata, and future `/labs` ↔ `/` navigation were verified on 2026-08-07. Staging correctly remains 404 until the atomic cutover.
 
+Desk release candidate: Webflow page `6a758d786dc08f46cfb2539c` is a draft-only duplicate at `/desk-rc`, labeled **DO NOT PUBLISH**. Canonical Desk markup/runtime were split across its existing embeds to stay below Webflow's 50,000-character limit; both parts were read back byte-for-byte and the redundant legacy nav is hidden. Frozen hashes and the Webflow publish token are in [`WEBFLOW-RC.json`](WEBFLOW-RC.json). Public `/desk-rc` correctly remains 404.
+
 Cutover order:
 
 1. Preserve the current Dasha Labs tool at `/labs`, including its form behavior and metadata.
