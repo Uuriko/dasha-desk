@@ -79,6 +79,18 @@
         'If a DM shows a different string, ignore it.'
       );
     }
+    if (kind === 'hold') {
+      return (
+        "I'm still holding $dasha\n" +
+        CA +
+        '\n' +
+        'Buy → ' +
+        BUY +
+        '\n' +
+        (DESK ? 'Desk → ' + DESK + '\n' : '') +
+        'NFA · can go to zero · association ≠ endorsement'
+      );
+    }
     if (kind === 'meme') {
       return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
     }
@@ -100,7 +112,7 @@
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented
+    // raid default — casino hook + full funnel
     return (
       CASINO +
       '\n' +
@@ -475,7 +487,6 @@
     $('dd-copy-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
     });
-
   if ($('dd-social-proof'))
     $('dd-social-proof').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-social-proof-hint') || $('dd-social-proof'));
@@ -519,6 +530,7 @@
     });
   }
   if ($('dd-refresh')) $('dd-refresh').addEventListener('click', loadMarket);
+
 
   setShare('raid');
   bindQuoteTaps();

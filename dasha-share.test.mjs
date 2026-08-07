@@ -166,4 +166,14 @@ assert.ok(body.includes('dd-social-proof-hint') || body.includes('Tap to copy'),
 assert.ok(body.includes('dd-social-proof-text') || body.includes('role="status"'), 'social proof live text');
 assert.ok(body.includes('One-tap buy') || body.includes('dd-buy-sticky'), 'sticky funnel region');
 
+
+const hold = DD.buildSharePack('hold');
+assert.ok(hold.includes(DD.CA), 'hold pack mint');
+assert.ok(/still holding/i.test(hold), 'hold pack holding language');
+assert.ok(hold.includes(DD.BUY) || hold.includes('jup.ag'), 'hold pack buy');
+assert.ok(hold.includes(DD.DESK) || hold.includes('webflow.io/dasha'), 'hold pack desk');
+assert.ok(body.includes('data-pack="hold"'), 'hold pack tab');
+assert.ok(!unsafe.buildSharePack('hold').includes('Desk →'), 'unsafe mirrors omit desk from hold pack');
+assert.ok(!/dd-fomo|smartPackPicked|dd_raid_ab|data-raid-ab/.test(body + src), 'no urgency signal or hidden pack selection');
+
 console.log('dasha-share.test.mjs: PASS');

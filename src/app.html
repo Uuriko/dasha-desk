@@ -124,6 +124,7 @@
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
         <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
         <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
+        <button type="button" class="dd-pack-tab" data-pack="hold" role="tab" aria-selected="false">Hold</button>
         <button type="button" class="dd-pack-tab" data-pack="verify" role="tab" aria-selected="false">Verify</button>
         <button type="button" class="dd-pack-tab" data-pack="meme" role="tab" aria-selected="false">Line</button>
       </div>
@@ -776,6 +777,18 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         'If a DM shows a different string, ignore it.'
       );
     }
+    if (kind === 'hold') {
+      return (
+        "I'm still holding $dasha\n" +
+        CA +
+        '\n' +
+        'Buy → ' +
+        BUY +
+        '\n' +
+        (DESK ? 'Desk → ' + DESK + '\n' : '') +
+        'NFA · can go to zero · association ≠ endorsement'
+      );
+    }
     if (kind === 'meme') {
       return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
     }
@@ -797,7 +810,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented
+    // raid default — casino hook + full funnel
     return (
       CASINO +
       '\n' +
@@ -1172,7 +1185,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     $('dd-copy-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
     });
-
   if ($('dd-social-proof'))
     $('dd-social-proof').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-social-proof-hint') || $('dd-social-proof'));
@@ -1216,6 +1228,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     });
   }
   if ($('dd-refresh')) $('dd-refresh').addEventListener('click', loadMarket);
+
 
   setShare('raid');
   bindQuoteTaps();
