@@ -1,14 +1,14 @@
 {
   "schema": "dasha.webflow-rc/1",
-  "capturedAt": "2026-08-07T16:39:47Z",
+  "capturedAt": "2026-08-07T16:50:00Z",
   "source": {
-    "commit": "c592486e0fbbaed394d74c8373fac12be43516f3",
+    "commit": "0d1c47af385689a2401ff6c580cc2407459cdaf8",
     "clean": true,
     "files": {
-      "src/app.html": { "bytes": 50639, "sha256": "8186e8930772dd01be607c74550e4b6099ee801920e650cda261c20f3e43549b" },
-      "src/body.html": { "bytes": 12271, "sha256": "9a68af620454e699c69c57065c3e7e9f129f47c459b4c1e54801fc001c8ccc1d" },
+      "src/app.html": { "bytes": 51841, "sha256": "3c6c97c9bc6618e9874ec6f49ef905e274296bad4befd97ac9ecc4dca3b485b4" },
+      "src/body.html": { "bytes": 13198, "sha256": "c05fdd5e4bba8b56a77ae43af5ca32043332782b47a51d9d3aa0184e11c221cf" },
       "src/app.js": { "bytes": 20111, "sha256": "f9ee1055f5b08e70c14a3e4f200247a6a1c3aa1786b2f7271f42b27a08e13a61" },
-      "src/styles.css": { "bytes": 18221, "sha256": "1293714806cbd62591ed60a128e19c4842773a7a9abcd044a9d4f5ec9977f2ab" }
+      "src/styles.css": { "bytes": 18496, "sha256": "4749e639791718ad395e97be8658e9ac85df1272d8c3f85ddc60d0e66795e6ef" }
     }
   },
   "webflow": {
@@ -41,7 +41,7 @@
     }
   },
   "candidatePayload": {
-    "markup": { "bytes": 30576, "sha256": "d1c76d31d49eef5d2faadfb3adc77898158c93e5f2f67c5f05063ba605801753" },
+    "markup": { "bytes": 31777, "sha256": "d2f76e6566c46cf21a9d2d7ae99471b93aa9e14c284f40834e9976be6d000e35" },
     "runtime": { "bytes": 20058, "sha256": "39ac9bdc678a06a1bebde3c03b8c90a4f73b9968dae5b6fed23c1568374df136" },
     "legacyNavigationVisible": false
   },
