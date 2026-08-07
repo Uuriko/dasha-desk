@@ -1,16 +1,18 @@
-# Product: dasha desk
+# Product: Dasha
 
 ## One-liner
 
-**dasha desk** is an open-source static mint desk for the Solana culture coin `$dasha`.
+**Dasha** is an independent, open-source, evidence-first crypto workspace: Labs records a thesis before price moves; Desk inspects the associated mint, sources, and exact-pair provider report before action.
+
+The workflow is **write → inspect → decide**. Neither module recommends a trade, authenticates a person, or scores a token.
 
 ## Jobs
 
-1. Show the mint she posted — hard to fake, easy to copy  
-2. Sound like the internet room around her — short quotes, not a whitepaper  
-3. Open trade rails — Jupiter / chart / explorers  
-4. Catch reply-guy CAs — paste checker  
-5. Share the right string — one pack for X  
+1. Record a falsifiable thesis, invalidation condition, and resolution date in Labs
+2. Compare a pasted mint with the exact configured CA in Desk
+3. Inspect finalized mint-account evidence and the exact configured market pair
+4. Export a portable evidence receipt, with provider and limitation labels
+5. Open independent trade and explorer rails without connecting a wallet
 
 ## Non-goals
 
@@ -23,7 +25,9 @@
 
 | Term | Meaning |
 |------|---------|
-| **dasha desk** | This open-source product |
+| **Dasha** | The independent open-source workspace |
+| **Dasha Labs** | Write the thesis before the chart writes the story |
+| **dasha desk** | Inspect the mint, sources, and provider-reported market observation |
 | **$dasha** | The token (mint in config) |
 | **@dash_eats** | Public X account referenced by quotes/links |
 
@@ -31,6 +35,8 @@
 
 - **0.1** — single-file static app + config snapshot + MIT
 
-## Product boundary
+## Evidence roadmap
 
-Dasha Desk is the live coin/source/community landing product. The separate Dasha Thesis Card is an optional experiment and is not required to understand or use the Desk.
+The current portable receipt is enough until people actually retain or exchange evidence. Content-addressed bundles, release attestations, IPFS/CAR files, signatures, dashboards, scores, and onchain registries remain deferred; add one only when the plain receipt cannot satisfy an observed use.
+
+The `$dasha` instance is the flagship configuration, not evidence of endorsement by a person, account, community, or token issuer.
