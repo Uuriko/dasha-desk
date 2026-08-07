@@ -138,4 +138,12 @@ assert.ok(body.includes('data-raid-ab'), 'raid A/B UI');
 assert.ok(body.includes('dd-raid-a') && body.includes('dd-raid-b'), 'raid A/B buttons');
 assert.ok(body.includes('dd-fomo-hot'), 'FOMO hot badge');
 
+
+assert.ok(body.includes('dd-sticky-live'), 'sticky live pack CTA');
+assert.ok(body.includes('dd-pulse-buy'), 'buy CTA pulse class');
+assert.ok(body.includes('dd-buy-sticky'), 'sticky buy control');
+const styles = readFileSync(join(__dirname, 'src/styles.css'), 'utf8');
+assert.ok(styles.includes('dd-buy-pulse') || styles.includes('dd-pulse-buy'), 'buy pulse styles');
+assert.ok(/dd-buy-pulse|@keyframes dd-buy-pulse/.test(styles), 'buy pulse keyframes');
+
 console.log('dasha-share.test.mjs: PASS');

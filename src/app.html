@@ -26,7 +26,7 @@
   </section>
   <button type="button" class="dd-social-proof dd-reveal" id="dd-social-proof" aria-label="Copy live share pack with mcap">
     <span id="dd-social-proof-text">Live on Dex · numbers every 30s · NFA</span>
-    <small class="dd-social-proof-hint">Tap to copy live pack</small>
+    <small class="dd-social-proof-hint">Tap · copy share-ready live pack</small>
   </button>
 
   <aside class="dd-fomo dd-reveal" id="dd-fomo" aria-live="polite">
@@ -69,7 +69,7 @@
     </div>
 
     <div class="dd-actions dd-actions-primary">
-      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now on Jupiter</a>
+      <a class="dd-btn dd-btn-primary dd-btn-lg dd-pulse-buy" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now on Jupiter</a>
       <button type="button" class="dd-btn dd-btn-lg" id="dd-copy-buy">Copy buy link</button>
       <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
       <button type="button" class="dd-btn" id="dd-copy-live">Copy live pack</button>
@@ -205,7 +205,8 @@
       <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
     </div>
     <div class="dd-sticky-actions">
-      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+      <button type="button" class="dd-btn" id="dd-sticky-live" title="Copy live mcap pack">Live</button>
       <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
       <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
     </div>
@@ -721,6 +722,23 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   padding:3px 7px;border-radius:999px;background:rgba(255,120,80,.2);
   color:#ffc8a8;border:1px solid rgba(255,140,80,.45);
 }
+
+.dd-pulse-buy{
+  animation:dd-buy-pulse 1.7s ease-in-out infinite;
+}
+@keyframes dd-buy-pulse{
+  0%,100%{box-shadow:0 6px 22px rgba(139,92,246,.42);filter:brightness(1)}
+  50%{box-shadow:0 10px 34px rgba(167,139,250,.72);filter:brightness(1.06)}
+}
+.dd-sticky.is-hot .dd-pulse-buy{animation-duration:.85s}
+#dd-buy.dd-pulse-buy{animation-duration:1.5s}
+@media(max-width:560px){
+  .dd-sticky-actions{grid-template-columns:1.5fr auto auto auto}
+  .dd-sticky-actions .dd-buy-now{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  .dd-pulse-buy{animation:none!important}
+}
 </style>
 <script>
 (function () {
@@ -1108,6 +1126,23 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           if (hot) fomo.classList.add('is-hot');
           else fomo.classList.remove('is-hot');
           if ($('dd-fomo-hot')) $('dd-fomo-hot').hidden = !hot;
+          if ($('dd-sticky')) {
+            if (hot) $('dd-sticky').classList.add('is-hot');
+            else $('dd-sticky').classList.remove('is-hot');
+          }
+          if ($('dd-buy-sticky')) {
+            $('dd-buy-sticky').textContent =
+              lastProof.mcap && lastProof.mcap !== '—'
+                ? 'Buy · ' + lastProof.mcap
+                : 'Buy now';
+            $('dd-buy-sticky').classList.add('dd-pulse-buy');
+          }
+          if ($('dd-buy')) $('dd-buy').classList.add('dd-pulse-buy');
+          if ($('dd-social-proof-hint')) {
+            $('dd-social-proof-hint').textContent = hot
+              ? 'HOT · tap to copy live pack'
+              : 'Tap · copy share-ready live pack';
+          }
         }
         if ($('dd-fomo-sub')) {
           var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
@@ -1247,6 +1282,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   if ($('dd-sticky-copy'))
     $('dd-sticky-copy').addEventListener('click', function () {
       copy(CA, $('dd-sticky-copy'));
+    });
+  if ($('dd-sticky-live'))
+    $('dd-sticky-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-sticky-live'));
     });
   if ($('dd-copy-buy'))
     $('dd-copy-buy').addEventListener('click', function () {

@@ -383,6 +383,23 @@
           if (hot) fomo.classList.add('is-hot');
           else fomo.classList.remove('is-hot');
           if ($('dd-fomo-hot')) $('dd-fomo-hot').hidden = !hot;
+          if ($('dd-sticky')) {
+            if (hot) $('dd-sticky').classList.add('is-hot');
+            else $('dd-sticky').classList.remove('is-hot');
+          }
+          if ($('dd-buy-sticky')) {
+            $('dd-buy-sticky').textContent =
+              lastProof.mcap && lastProof.mcap !== '—'
+                ? 'Buy · ' + lastProof.mcap
+                : 'Buy now';
+            $('dd-buy-sticky').classList.add('dd-pulse-buy');
+          }
+          if ($('dd-buy')) $('dd-buy').classList.add('dd-pulse-buy');
+          if ($('dd-social-proof-hint')) {
+            $('dd-social-proof-hint').textContent = hot
+              ? 'HOT · tap to copy live pack'
+              : 'Tap · copy share-ready live pack';
+          }
         }
         if ($('dd-fomo-sub')) {
           var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
@@ -522,6 +539,10 @@
   if ($('dd-sticky-copy'))
     $('dd-sticky-copy').addEventListener('click', function () {
       copy(CA, $('dd-sticky-copy'));
+    });
+  if ($('dd-sticky-live'))
+    $('dd-sticky-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-sticky-live'));
     });
   if ($('dd-copy-buy'))
     $('dd-copy-buy').addEventListener('click', function () {

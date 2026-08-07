@@ -502,3 +502,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   padding:3px 7px;border-radius:999px;background:rgba(255,120,80,.2);
   color:#ffc8a8;border:1px solid rgba(255,140,80,.45);
 }
+
+.dd-pulse-buy{
+  animation:dd-buy-pulse 1.7s ease-in-out infinite;
+}
+@keyframes dd-buy-pulse{
+  0%,100%{box-shadow:0 6px 22px rgba(139,92,246,.42);filter:brightness(1)}
+  50%{box-shadow:0 10px 34px rgba(167,139,250,.72);filter:brightness(1.06)}
+}
+.dd-sticky.is-hot .dd-pulse-buy{animation-duration:.85s}
+#dd-buy.dd-pulse-buy{animation-duration:1.5s}
+@media(max-width:560px){
+  .dd-sticky-actions{grid-template-columns:1.5fr auto auto auto}
+  .dd-sticky-actions .dd-buy-now{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  .dd-pulse-buy{animation:none!important}
+}
