@@ -364,4 +364,27 @@ assert.ok(appJs.includes('dd_fomo_ab') && appJs.includes('fomoAb'), 'FOMO A/B pe
 assert.ok(appJs.includes('dd_dip_size_nudge') || appJs.includes('dip_size'), 'dip size nudge');
 assert.ok(kitStyles.includes('dd-fomo-amts') && kitStyles.includes('dd-net-line'), 'v20 styles');
 
+// V21: buy pace + sticky flow proof + Phantom UL helper
+assert.ok(typeof DD.buysPaceLine === 'function', 'buysPaceLine exported');
+assert.ok(typeof DD.stickyFlowProof === 'function', 'stickyFlowProof exported');
+assert.ok(typeof DD.phantomBrowseUrl === 'function', 'phantomBrowseUrl exported');
+const pace = DD.buysPaceLine(362);
+assert.ok(pace && /buys\/hr/i.test(pace) && /NFA/i.test(pace), 'pace line from Dex buys');
+const flow = DD.stickyFlowProof(362, 237);
+assert.ok(flow && /\+125\s+net/i.test(flow) && /buys\/hr/i.test(flow), 'sticky flow net+pace');
+assert.equal(DD.stickyFlowProof(null, null), null, 'no flow without txns');
+const jupAmt =
+  'https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump&amount=1';
+const ph = DD.phantomBrowseUrl(jupAmt);
+assert.ok(
+  ph.startsWith('https://phantom.app/ul/browse/') && ph.includes(encodeURIComponent(jupAmt).slice(0, 20)),
+  'phantom UL wraps amounted jup',
+);
+assert.ok(body.includes('id="dd-sticky-flow"'), 'sticky flow DOM');
+assert.ok(appJs.includes('phantomBrowseUrl') && appJs.includes('Wallet dip'), 'mobile FOMO phantom path');
+assert.ok(kitStyles.includes('dd-sticky-flow'), 'v21 sticky flow style');
+// A headline should not double "24h" when label already has 24h prefix
+const headClean = DD.fomoDipHeadline(dip, '24h +511%', 'a', bp);
+assert.ok(!/24h still 24h/i.test(headClean), 'no double 24h in FOMO A');
+
 console.log('dasha-share.test.mjs: PASS');

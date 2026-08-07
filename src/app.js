@@ -348,16 +348,15 @@
         ' · NFA'
       );
     }
-    // A = status style (default)
-    return (
-      dip.shortLabel +
-      ' dip ' +
-      short +
-      ' · 24h still ' +
-      (ch24Label && String(ch24Label) !== '—'
-        ? String(ch24Label)
-        : (dip.ch24 > 0 ? '+' : '') + Number(dip.ch24).toFixed(2) + '%')
-    );
+    // A = status style (default). ch24Label may already be "+511.00%" or "24h +511%"
+    var still = '';
+    if (ch24Label && String(ch24Label) !== '—') {
+      still = String(ch24Label).replace(/^24h\s+/i, '');
+    } else {
+      still =
+        (dip.ch24 > 0 ? '+' : '') + Number(dip.ch24).toFixed(2) + '%';
+    }
+    return dip.shortLabel + ' dip ' + short + ' · 24h still ' + still;
   }
 
   /** Net buys social proof from real Dex txn counts */
@@ -380,6 +379,40 @@
     if (net > 0) return '+' + net;
     if (net < 0) return String(net);
     return '0';
+  }
+
+  /** Honest 24h buy pace from Dex buys count (not real-time) */
+  function buysPaceLine(buys) {
+    var b = Number(buys);
+    if (!isFinite(b) || b <= 0) return null;
+    var perH = b / 24;
+    if (perH >= 10) return '~' + Math.round(perH) + ' buys/hr 24h · NFA';
+    return '~' + (Math.round(perH * 10) / 10) + ' buys/hr · NFA';
+  }
+
+  /** Compact sticky/FOMO proof: net + pace when meaningful */
+  function stickyFlowProof(buys, sells) {
+    var net = netBuysShort(buys, sells);
+    var pace = buysPaceLine(buys);
+    var parts = [];
+    if (net && net !== '—' && net !== '0') parts.push(net + ' net');
+    if (pace) parts.push(pace.replace(/\s*·\s*NFA\s*$/i, ''));
+    if (!parts.length) return null;
+    return parts.join(' · ') + ' · NFA';
+  }
+
+  /** Phantom universal-link browse wrapper for mobile one-tap (amounted jup inside) */
+  function phantomBrowseUrl(jupHref) {
+    if (!jupHref) return jupHref;
+    try {
+      return (
+        'https://phantom.app/ul/browse/' +
+        encodeURIComponent(jupHref) +
+        '?ref=https://phantom.app'
+      );
+    } catch (eP) {
+      return jupHref;
+    }
   }
 
   function intentTweet(text) {
@@ -472,6 +505,9 @@
     fomoDipHeadline: fomoDipHeadline,
     netBuysLine: netBuysLine,
     netBuysShort: netBuysShort,
+    buysPaceLine: buysPaceLine,
+    stickyFlowProof: stickyFlowProof,
+    phantomBrowseUrl: phantomBrowseUrl,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -889,6 +925,20 @@
           } else {
             $('dd-net-line').hidden = true;
           }
+        }
+        // Sticky + FOMO flow proof (net + pace) — honest Dex, near buy CTA
+        var flow = stickyFlowProof(lastProof.buys, lastProof.sells);
+        lastProof.flow = flow;
+        if ($('dd-sticky-flow')) {
+          if (flow) {
+            $('dd-sticky-flow').hidden = false;
+            $('dd-sticky-flow').textContent = flow;
+          } else {
+            $('dd-sticky-flow').hidden = true;
+          }
+        }
+        if ($('dd-fomo-sub') && flow) {
+          $('dd-fomo-sub').textContent = flow;
         }
         var bp = buyPressure(lastProof.buys, lastProof.sells);
         lastProof.pressure = bp;
@@ -1500,6 +1550,7 @@
   function wireBuyHrefs() {
     var href = buyUrl(buySol);
     var mobile = isMobileBuyPath();
+    var phantomHref = mobile ? phantomBrowseUrl(href) : href;
     ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet', 'dd-kit-wallet', 'dd-buy-amt', 'dd-fomo-buy'].forEach(
       function (id) {
         if ($(id)) $(id).href = href;
@@ -1508,6 +1559,10 @@
     var usd1 =
       lastProof.solUsd != null && isFinite(lastProof.solUsd)
         ? fmtUsdRough(buySol * lastProof.solUsd)
+        : '';
+    var netBit =
+      lastProof.buys != null && lastProof.sells != null
+        ? netBuysShort(lastProof.buys, lastProof.sells)
         : '';
     if ($('dd-buy-amt')) {
       $('dd-buy-amt').textContent =
@@ -1523,21 +1578,28 @@
           'Dip buy · ' +
           buySol +
           ' SOL' +
+          (netBit && netBit !== '—' && netBit !== '0' ? ' · ' + netBit + ' net' : '') +
           (lastProof.mcap && lastProof.mcap !== '—' ? ' · ' + lastProof.mcap : '');
       } else {
         $('dd-buy-sticky').textContent =
           lastProof.mcap && lastProof.mcap !== '—'
-            ? 'Buy ' + buySol + ' · ' + lastProof.mcap
+            ? 'Buy ' +
+              buySol +
+              (netBit && netBit !== '—' && netBit !== '0' ? ' · ' + netBit + ' net' : '') +
+              ' · ' +
+              lastProof.mcap
             : 'Buy ' + buySol + ' SOL';
       }
     }
     // FOMO dip CTAs — buy link + raid share when short-TF dip
+    // Mobile: Phantom UL browse with amounted Jupiter URL (one-tap wallet path)
     if ($('dd-fomo-buy')) {
-      $('dd-fomo-buy').href = href;
+      $('dd-fomo-buy').href = lastProof.dip && mobile ? phantomHref : href;
       if (lastProof.dip) {
         $('dd-fomo-buy').hidden = false;
-        $('dd-fomo-buy').textContent =
-          'Buy the dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+        $('dd-fomo-buy').textContent = mobile
+          ? 'Wallet dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '')
+          : 'Buy the dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
       } else {
         $('dd-fomo-buy').hidden = true;
       }
@@ -1566,12 +1628,7 @@
     // Phantom universal-link browse for mobile wallet one-tap (amounted jup URL inside)
     ['dd-buy-wallet', 'dd-kit-wallet'].forEach(function (wid) {
       if (!$(wid)) return;
-      try {
-        $(wid).href =
-          'https://phantom.app/ul/browse/' + encodeURIComponent(href) + '?ref=https://phantom.app';
-      } catch (eW) {
-        $(wid).href = href;
-      }
+      $(wid).href = phantomBrowseUrl(href);
       $(wid).textContent = mobile
         ? 'Wallet · ' + buySol + ' SOL'
         : 'Open wallet · ' + buySol + ' SOL';
