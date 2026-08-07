@@ -689,11 +689,14 @@ assert.ok(kitStyles.includes('has-micro'), 'micro styles');
 // V38: deep size-chip nudge + live proof still-after-deep
 assert.ok(typeof DD.sizeChipHint === 'function', 'sizeChipHint exported');
 const hintDeep = DD.sizeChipHint(2, deepReclaim);
-assert.ok(hintDeep && hintDeep.recommended && hintDeep.tag === 'Deep', 'deep 2 SOL recommended');
+assert.ok(hintDeep && hintDeep.recommended && /Deep/.test(hintDeep.tag), 'deep 2 SOL recommended');
+// V55: deep + still green → still tag
+assert.ok(/still/i.test(hintDeep.tag) && hintDeep.hasStill, 'deep chip still tag');
 assert.equal(DD.sizeChipHint(1, deepReclaim), null, '1 SOL not deep nudge');
 assert.equal(DD.sizeChipHint(2, null), null, 'no dip null');
 const hintHard = DD.sizeChipHint(1, hardDip);
-assert.ok(hintHard && hintHard.tag === 'Hard', 'hard 1 SOL recommended');
+assert.ok(hintHard && /Hard/.test(hintHard.tag), 'hard 1 SOL recommended');
+assert.ok(/still/i.test(hintHard.tag) && hintHard.hasStill, 'hard chip still tag');
 const liveDeep = DD.buildLiveProof('$60.0K', '+25%', deepReclaim, '+41');
 assert.ok(/deep dip/i.test(liveDeep) && /24h \+.*still/i.test(liveDeep), 'live pack deep still');
 assert.ok(/\+41 net/.test(liveDeep) && liveDeep.includes('$60.0K'), 'live pack net+mcap');
@@ -710,7 +713,7 @@ assert.ok(dualMixed.isDeepDip && /Deep dip/i.test(dualMixed.label), 'mixed dual 
 assert.ok(dualMixed.header && /6h/.test(dualMixed.header) && /-29/.test(dualMixed.header), 'mixed header deepest TF');
 const stillMixed = DD.dipStillLine(DD.stillGreen24(mixedDepth), mixedDepth);
 assert.ok(stillMixed && /after 6h deep/i.test(stillMixed), 'mixed still-after-deep');
-assert.equal(DD.sizeChipHint(2, mixedDepth).tag, 'Deep', 'mixed chip Deep');
+assert.ok(/Deep/.test(DD.sizeChipHint(2, mixedDepth).tag), 'mixed chip Deep');
 assert.ok(appJs.includes('depthPct') && appJs.includes('depthLabel'), 'v39 wiring');
 
 // V40: dump watch when 24h not green but short TF hard/deep
@@ -924,5 +927,14 @@ const headSoftRedB = DD.fomoDipHeadline(softRed, '-2%', 'b', bpHot);
 assert.ok(/1h dip/i.test(headSoftRedA), 'v54 soft red A status');
 assert.ok(/^Buy the dip/i.test(headSoftRedB), 'v54 soft red B buy the dip');
 assert.ok(appJs.includes('Buy · Soft dip') || appJs.includes('buyFirstMain'), 'v54 wiring');
+
+// V55: size chip still tags when 24h green (dump stays Dump)
+const hintDumpNoStill = DD.sizeChipHint(1, dump);
+assert.ok(hintDumpNoStill && hintDumpNoStill.tag === 'Dump', 'dump chip no still');
+assert.ok(!hintDumpNoStill.hasStill, 'dump hasStill false');
+const hardLive55 = { shortLabel: '6h', shortPct: -15.3, ch24: 1.6 };
+const hintLive = DD.sizeChipHint(1, hardLive55);
+assert.ok(hintLive && hintLive.tag === 'Hard · still', 'v55 live hard still tag');
+assert.ok(appJs.includes('Hard · still') || appJs.includes('hasStill'), 'v55 wiring');
 
 console.log('dasha-share.test.mjs: PASS');

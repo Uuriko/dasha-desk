@@ -253,6 +253,7 @@
   /**
    * Recommended size chip during dip — pure (V38).
    * Marks the depth-nudge SOL on FOMO/sticky chips for conversion.
+   * V55: when 24h still green, tag becomes "Hard · still" / "Deep · still" / "still".
    */
   function sizeChipHint(sol, dip) {
     if (sol == null || sol === '' || !dip) return null;
@@ -266,11 +267,18 @@
         : depth && depth.tier !== 'soft'
           ? depth.tag
           : 'Dip';
+    var still = dip.kind === 'dump' ? null : stillGreen24(dip);
+    // V55: still-green recommended chip → honest still tag for conversion
+    if (still && still.short) {
+      tag =
+        depth && depth.tier !== 'soft' ? depth.tag + ' · still' : 'still';
+    }
     return {
       recommended: true,
       nudgeSol: nudge,
       tag: tag,
       tier: depth ? depth.tier : 'soft',
+      hasStill: !!still,
     };
   }
 
