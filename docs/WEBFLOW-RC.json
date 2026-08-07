@@ -22,8 +22,8 @@
       "slug": "labs",
       "draft": true,
       "publicStatus": 404,
-      "embedBytes": 32819,
-      "embedSha256": "bdef01cd7439451127ff0deb699b0c29d39fec8360815e9752343d0d0a8829c0",
+      "embedBytes": 32812,
+      "embedSha256": "44f94956e19d5b9447accaa7ffe5b68936a96f83fd10ba605d29bc96c29c94af",
       "openGraphDescription": "Record a thesis, an invalidation condition, and an exact resolution date. Device-timed and locally checksummed. No wallet, no trading, no safety score."
     },
     "deskCandidate": { "pageId": "6a758d786dc08f46cfb2539c", "slug": "desk-rc", "draft": true, "publicStatus": 404 }
