@@ -595,10 +595,11 @@
   }
 
   /**
-   * FOMO-sub / trust dump proof line — pure V41.
+   * FOMO-sub / trust dump proof line — pure V41/V43.
    * e.g. "Deep dump · 6h -29.4% · 24h -23.1% · NFA"
+   * V43: optional 1h micro-green (ch1 ≥0.2%) as honest bounce-into-dump.
    */
-  function dumpWatchLine(dump) {
+  function dumpWatchLine(dump, ch1) {
     if (!dump || dump.kind !== 'dump') return null;
     var depth = dipDepth(dump);
     var bits = [depth && depth.word ? depth.word : 'Dump'];
@@ -613,6 +614,17 @@
     if (dump.ch24 != null && isFinite(Number(dump.ch24))) {
       var h24 = Number(dump.ch24);
       bits.push('24h ' + (h24 > 0 ? '+' : '') + h24.toFixed(1) + '%');
+    }
+    var c1 =
+      dump.ch1 != null
+        ? Number(dump.ch1)
+        : ch1 != null
+          ? Number(ch1)
+          : NaN;
+    if (isFinite(c1) && c1 >= 0.2) {
+      bits.push(
+        '1h +' + (Math.abs(c1) >= 10 ? c1.toFixed(0) : c1.toFixed(1)) + '%',
+      );
     }
     return bits.join(' · ') + ' · NFA';
   }
@@ -968,16 +980,16 @@
         .replace(/^[·\s]+|[·\s]+$/g, '');
     }
     var parts = [];
-    // V33: reclaim first; V36 still; V41 dump proof when no reclaim/still
-    if (reclaimLine) {
+    // V43: dump first (never hide dump under 1h reclaim); else reclaim > still
+    if (dumpLine) {
+      var du = stripNfa(dumpLine);
+      if (du) parts.push(du);
+    } else if (reclaimLine) {
       var r = stripNfa(reclaimLine);
       if (r) parts.push(r);
     } else if (stillLine) {
       var st = stripNfa(stillLine);
       if (st) parts.push(st);
-    } else if (dumpLine) {
-      var du = stripNfa(dumpLine);
-      if (du) parts.push(du);
     }
     if (flow) {
       var f = stripNfa(flow);
@@ -1732,7 +1744,7 @@
             $('dd-sticky-flow').hidden = true;
           }
         }
-        // V33/V34/V41: FOMO sub — reclaim > still-after-deep > dump line > flow
+        // V33/V34/V41/V43: FOMO sub — dump first, else reclaim > still > flow
         var reclaimNow =
           lastProof.dip && lastProof.dip.kind !== 'dump'
             ? dipReclaim(lastProof.dip, lastProof.ch1n)
@@ -1749,16 +1761,16 @@
           : null;
         var dumpLineNow =
           lastProof.dip && lastProof.dip.kind === 'dump'
-            ? dumpWatchLine(lastProof.dip)
+            ? dumpWatchLine(lastProof.dip, lastProof.ch1n)
             : null;
         lastProof.reclaim = reclaimNow;
         lastProof.reclaimLine = reclaimLineNow;
         lastProof.stillLine = stillLineNow;
         lastProof.dumpLine = dumpLineNow;
         if ($('dd-fomo-sub')) {
-          if (reclaimLineNow) $('dd-fomo-sub').textContent = reclaimLineNow;
+          if (dumpLineNow) $('dd-fomo-sub').textContent = dumpLineNow;
+          else if (reclaimLineNow) $('dd-fomo-sub').textContent = reclaimLineNow;
           else if (stillLineNow) $('dd-fomo-sub').textContent = stillLineNow;
-          else if (dumpLineNow) $('dd-fomo-sub').textContent = dumpLineNow;
           else if (flow) $('dd-fomo-sub').textContent = flow;
         }
         if ($('dd-fomo')) {
@@ -1810,14 +1822,14 @@
               $('dd-session-line').hidden = true;
             }
           }
-          // FOMO sub: reclaim > still > dump line > session > flow
+          // FOMO sub: dump first (V43), else reclaim > still > session > flow
           if ($('dd-fomo-sub')) {
-            if (lastProof.reclaimLine) {
+            if (lastProof.dumpLine) {
+              $('dd-fomo-sub').textContent = lastProof.dumpLine;
+            } else if (lastProof.reclaimLine) {
               $('dd-fomo-sub').textContent = lastProof.reclaimLine;
             } else if (lastProof.stillLine) {
               $('dd-fomo-sub').textContent = lastProof.stillLine;
-            } else if (lastProof.dumpLine) {
-              $('dd-fomo-sub').textContent = lastProof.dumpLine;
             } else if (
               lastProof.session &&
               Math.abs(lastProof.session.pct) >= 0.5
@@ -2018,13 +2030,13 @@
           }
         }
         if ($('dd-fomo-sub')) {
-          // reclaim > still > dump line > session > flow > vol fallback
-          if (lastProof.reclaimLine) {
+          // V43: dump first, else reclaim > still > session > flow > vol fallback
+          if (lastProof.dumpLine) {
+            $('dd-fomo-sub').textContent = lastProof.dumpLine;
+          } else if (lastProof.reclaimLine) {
             $('dd-fomo-sub').textContent = lastProof.reclaimLine;
           } else if (lastProof.stillLine) {
             $('dd-fomo-sub').textContent = lastProof.stillLine;
-          } else if (lastProof.dumpLine) {
-            $('dd-fomo-sub').textContent = lastProof.dumpLine;
           } else if (
             lastProof.session &&
             Math.abs(lastProof.session.pct) >= 0.5 &&
@@ -2270,26 +2282,31 @@
   function paintTrustBar() {
     var bar = $('dd-trust-bar');
     var textEl = $('dd-trust-bar-text');
+    // V43: never compute reclaim during dump — dumpWatchLine owns 1h bounce
+    var isDump = !!(lastProof.dip && lastProof.dip.kind === 'dump');
     var reclaim =
-      lastProof.dip != null
+      lastProof.dip != null && !isDump
         ? dipReclaim(lastProof.dip, lastProof.ch1n)
         : null;
     var reclaimLine = reclaim ? dipReclaimLine(reclaim, lastProof.dip) : null;
     lastProof.reclaim = reclaim;
     lastProof.reclaimLine = reclaimLine;
     // Ensure stillLine / dumpLine available for trust bar (same pure path as FOMO sub)
-    if (!lastProof.stillLine && lastProof.dip && lastProof.dip.kind !== 'dump') {
+    if (!lastProof.stillLine && lastProof.dip && !isDump) {
       var stillForBar = stillGreen24(lastProof.dip, lastProof.ch24n);
       lastProof.stillLine = stillForBar
         ? dipStillLine(stillForBar, lastProof.dip)
         : null;
     }
-    if (
+    if (isDump) {
+      lastProof.stillLine = null;
+      lastProof.dumpLine = dumpWatchLine(lastProof.dip, lastProof.ch1n);
+    } else if (
       !lastProof.dumpLine &&
       lastProof.dip &&
       lastProof.dip.kind === 'dump'
     ) {
-      lastProof.dumpLine = dumpWatchLine(lastProof.dip);
+      lastProof.dumpLine = dumpWatchLine(lastProof.dip, lastProof.ch1n);
     }
     var line = trustBarLine(
       lastProof.flow,

@@ -764,4 +764,28 @@ assert.ok(dualImpDump.hasImpact && /% liq/.test(dualImpDump.label), 'dump dual l
 assert.ok(/% liq/.test(dualImpDump.toast || ''), 'dump dual toast has liq impact');
 assert.ok(appJs.includes('into the dump') && appJs.includes('solLiqImpact'), 'v42 wiring');
 
+// V43: dump-first FOMO sub/trust + 1h bounce on dumpWatchLine
+const dumpBounce = Object.assign({}, dump, { ch1: 0.24 });
+const dumpLnBounce = DD.dumpWatchLine(dumpBounce, 0.24);
+assert.ok(
+  dumpLnBounce && /Deep dump/i.test(dumpLnBounce) && /1h \+0\.2%/.test(dumpLnBounce),
+  'dump line keeps dump + 1h bounce',
+);
+assert.ok(/6h/.test(dumpLnBounce) && /24h/.test(dumpLnBounce), 'dump line keeps TF proof');
+const reclaimLn = DD.dipReclaimLine(
+  { short: '1h +0.2%', pct: 0.24 },
+  dumpBounce,
+);
+const tblDumpFirst = DD.trustBarLine(
+  '+19 net · ~10 buys/hr',
+  'Liq $24.0K · NFA',
+  null,
+  reclaimLn,
+  null,
+  dumpLnBounce,
+);
+assert.ok(tblDumpFirst && /Deep dump/i.test(tblDumpFirst), 'trust dump-first over reclaim');
+assert.ok(!/reclaiming/i.test(tblDumpFirst), 'trust does not lead with reclaim during dump');
+assert.ok(appJs.includes('dump first') || appJs.includes('V43'), 'v43 wiring comment');
+
 console.log('dasha-share.test.mjs: PASS');
