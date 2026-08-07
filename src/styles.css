@@ -734,6 +734,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 }
 .dd-dual-go.has-usd{letter-spacing:-.01em}
 .dd-dual-go.has-net{border-color:rgba(120,255,180,.5)!important}
+.dd-dual-go.has-pace{font-variant-numeric:tabular-nums}
 .dd-dual-go.is-sess-up{box-shadow:0 0 14px rgba(80,220,140,.25)}
 .dd-dual-go.is-sess-down{box-shadow:0 0 14px rgba(255,140,80,.22)}
 .dd-dual-go{

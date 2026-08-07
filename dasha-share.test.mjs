@@ -506,4 +506,21 @@ assert.ok(!dualNoNet.hasNet && !/\-10 net/.test(dualNoNet.label), 'negative net 
 assert.ok(appJs.includes('dualCopyPayload') && appJs.includes('copyText'), 'v27 dual payload wiring');
 assert.ok(kitStyles.includes('has-net') || kitStyles.includes('has-usd'), 'dual net style hook');
 
+// V28: dual pack header + pace on label + post-share uses dual pack + native share
+assert.ok(typeof DD.buyPaceShort === 'function', 'buyPaceShort exported');
+assert.ok(DD.buyPaceShort(365) && /\/hr/.test(DD.buyPaceShort(365)), 'pace short from buys');
+assert.equal(DD.buyPaceShort(0), null, 'zero buys no pace');
+const dualPace = DD.dualGoPlan(1, true, 'dip', null, 73, '+127', 365);
+assert.ok(dualPace.hasPace && /\/hr/.test(dualPace.label), 'dual label has pace');
+assert.ok(dualPace.header && /\$dasha/.test(dualPace.header) && /dip/.test(dualPace.header), 'dual header regime');
+assert.ok(
+  dualPace.copyText &&
+    dualPace.copyText.indexOf(dualPace.header) === 0 &&
+    dualPace.copyText.includes('53uxQt') &&
+    dualPace.copyText.includes('jup.ag'),
+  'copyText starts with header then CA+jup',
+);
+assert.ok(appJs.includes('buyPaceShort') && appJs.includes('navigator.share'), 'v28 pace + native share');
+assert.ok(appJs.includes('showPostShare(pack)') || /showPostShare\(\s*pack\s*\)/.test(appJs), 'post-share dual pack');
+
 console.log('dasha-share.test.mjs: PASS');

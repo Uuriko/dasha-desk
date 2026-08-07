@@ -516,6 +516,15 @@
     return 'Liq ' + label + ' · NFA';
   }
 
+  /** Compact buys/hr from Dex 24h buys — pure (honest average, not live stream) */
+  function buyPaceShort(buys) {
+    var b = Number(buys);
+    if (!isFinite(b) || b <= 0) return null;
+    var perH = b / 24;
+    if (perH >= 10) return '~' + Math.round(perH) + '/hr';
+    return '~' + (Math.round(perH * 10) / 10) + '/hr';
+  }
+
   /**
    * One-tap dual action plan: copy CA+buy+desk then open wallet/buy.
    * Pure — unit-tested; runtime copies payload and navigates to href.
@@ -523,12 +532,14 @@
    * session: optional sessionDelta() for toast urgency.
    * solUsd: optional SOL→USD rate for size proof on label.
    * netShort: optional netBuysShort() for social proof on label.
+   * buys: optional Dex 24h buys for pace short on label/header.
    */
-  function dualGoPlan(sol, mobile, regime, session, solUsd, netShort) {
+  function dualGoPlan(sol, mobile, regime, session, solUsd, netShort, buys) {
     var jup = buyUrl(sol);
     var href = mobile ? phantomBrowseUrl(jup) : jup;
     var r = regime || 'neutral';
     var size = solSizeLabel(sol, solUsd);
+    var pace = buyPaceShort(buys);
     var label;
     if (r === 'dip') label = 'CA · Dip';
     else if (r === 'hot') label = 'CA · Ride';
@@ -540,16 +551,34 @@
     if (netShort && String(netShort).charAt(0) === '+') {
       label = label + ' · ' + netShort + ' net';
     }
+    if (pace) label = label + ' · ' + pace;
     if (session && session.short && Math.abs(session.pct) >= 0.5) {
       label = label + ' · ' + session.short;
     }
-    // One-paste payload: CA + amounted jup (w/ invite ref) + desk loop
-    var copyText = dualCopyPayload(CA, jup, deskUrl(), size && size.label);
+    // Share header: regime + net + pace for viral paste/share
+    var headerBits = ['$dasha'];
+    if (r === 'dip') headerBits.push('dip');
+    else if (r === 'hot') headerBits.push('hot');
+    if (netShort && String(netShort).charAt(0) === '+') {
+      headerBits.push(netShort + ' net');
+    }
+    if (pace) headerBits.push(pace);
+    headerBits.push('NFA');
+    var header = headerBits.join(' · ');
+    // One-paste payload: header + CA + amounted jup (w/ invite ref) + desk loop
+    var copyText = dualCopyPayload(
+      CA,
+      jup,
+      deskUrl(),
+      size && size.label,
+      header,
+    );
     var toast = 'CA+buy copied · open';
     if (size && size.label) toast = 'CA+buy · ' + size.label;
     if (netShort && String(netShort).charAt(0) === '+') {
       toast = toast + ' · ' + netShort + ' net';
     }
+    if (pace) toast = toast + ' · ' + pace;
     if (session && session.short) {
       toast = toast + ' · ' + session.short;
     }
@@ -561,7 +590,9 @@
       label: label,
       toast: toast,
       copyText: copyText,
+      header: header,
       size: size,
+      pace: pace,
       session: session || null,
       netShort: netShort || null,
       hasRef: /[?&]ref=/.test(jup),
@@ -573,12 +604,15 @@
         /amount=/.test(jup),
       hasUsd: !!(size && size.usd != null && size.usd > 0),
       hasNet: !!(netShort && String(netShort).charAt(0) === '+'),
+      hasPace: !!pace,
     };
   }
 
-  /** Multi-line paste pack for dual-go (CA + Jupiter + desk) — pure */
-  function dualCopyPayload(ca, jup, desk, sizeLabel) {
-    var lines = [String(ca || CA), String(jup || '')];
+  /** Multi-line paste pack for dual-go (header + CA + Jupiter + desk) — pure */
+  function dualCopyPayload(ca, jup, desk, sizeLabel, header) {
+    var lines = [];
+    if (header) lines.push(String(header));
+    lines.push(String(ca || CA), String(jup || ''));
     if (desk) lines.push(String(desk));
     if (sizeLabel) lines.push('Size ' + sizeLabel);
     lines.push('NFA · can go to zero');
@@ -681,6 +715,7 @@
     phantomBrowseUrl: phantomBrowseUrl,
     dualGoPlan: dualGoPlan,
     dualCopyPayload: dualCopyPayload,
+    buyPaceShort: buyPaceShort,
     buyRegime: buyRegime,
     hotBuyHeadline: hotBuyHeadline,
     sessionDelta: sessionDelta,
@@ -1533,17 +1568,20 @@
       lastProof.buys != null && lastProof.sells != null
         ? netBuysShort(lastProof.buys, lastProof.sells)
         : null;
+    var mobile = isMobileBuyPath();
     var plan = dualGoPlan(
       buySol,
-      isMobileBuyPath(),
+      mobile,
       lastProof.regime ||
         buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure),
       sess,
       lastProof.solUsd,
       netBit,
+      lastProof.buys,
     );
-    // V27: copy CA + buy URL + desk (one paste into wallet/group), then open
-    copy(plan.copyText || plan.ca, el || null);
+    // V27/V28: copy pack (header+CA+buy+desk), open wallet, share dual pack
+    var pack = plan.copyText || plan.ca;
+    copy(pack, el || null);
     try {
       if (el) el.textContent = plan.toast;
       setTimeout(function () {
@@ -1557,7 +1595,14 @@
         location.href = plan.href;
       } catch (eLoc) {}
     }
-    showPostShare(dipPackNow());
+    // Post-share X/TG/WA use dual pack (viral loop), not only dip pack
+    showPostShare(pack);
+    // Mobile native share sheet with dual pack (best-effort, non-blocking)
+    if (mobile && typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        navigator.share({ title: '$dasha', text: pack }).catch(function () {});
+      } catch (eShare) {}
+    }
   }
   document.querySelectorAll('.dd-dual-go, #dd-dual-go, #dd-fomo-dual, #dd-mint-dual').forEach(
     function (btn) {
@@ -1587,6 +1632,7 @@
       sess,
       lastProof.solUsd,
       netBit,
+      lastProof.buys,
     );
     document.querySelectorAll('.dd-dual-go').forEach(function (b) {
       if (b.textContent && /copied/i.test(b.textContent)) return;
@@ -1596,6 +1642,7 @@
       b.classList.toggle('is-hot-dual', regime === 'hot');
       b.classList.toggle('has-usd', !!plan.hasUsd);
       b.classList.toggle('has-net', !!plan.hasNet);
+      b.classList.toggle('has-pace', !!plan.hasPace);
       b.classList.toggle(
         'is-sess-up',
         !!(sess && sess.up && Math.abs(sess.pct) >= 0.5),
