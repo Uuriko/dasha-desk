@@ -187,6 +187,20 @@
     return 'Buy $dasha → ' + buyUrl() + '\n' + CA + '\n' + deskUrl() + '\n' + CASINO;
   }
 
+  /** Ultra-short conversion pack — buy-first, optional live mcap */
+  function buildBuyPack(mcapLabel) {
+    var m =
+      mcapLabel && String(mcapLabel) !== '—' ? ' · mcap ' + String(mcapLabel) : '';
+    return (
+      'Buy $dasha now → ' +
+      buyUrl() +
+      '\n' +
+      CA +
+      m +
+      '\nNFA · can go to zero · association ≠ endorsement'
+    );
+  }
+
   function intentTweet(text) {
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
@@ -267,6 +281,7 @@
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
+    buildBuyPack: buildBuyPack,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -380,9 +395,18 @@
   var currentPack = 'raid';
   var raidAb = 'a';
   var smartPackPicked = false;
-  var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null, delta: '—' };
+  var lastProof = {
+    mcap: '—',
+    ch24: '—',
+    vol: '—',
+    ch24n: null,
+    m5n: null,
+    delta: '—',
+    move: '—',
+  };
   var lastRefreshAt = 0;
   var openMcap = null;
+  var prevMcapNum = null;
   var sparkSamples = [];
   var SPARK_MAX = 48;
 
@@ -593,13 +617,45 @@
             setTone($('sp-delta'), dPct);
           }
         }
+        // Poll-to-poll move flash (real Dex only)
+        var movePct = null;
+        if (prevMcapNum != null && isFinite(Number(mcap)) && prevMcapNum > 0) {
+          movePct = ((Number(mcap) - prevMcapNum) / prevMcapNum) * 100;
+          if (isFinite(movePct) && Math.abs(movePct) >= 0.01) {
+            lastProof.move = (movePct > 0 ? '+' : '') + movePct.toFixed(2) + '%';
+          } else {
+            lastProof.move = '0.00%';
+            movePct = 0;
+          }
+        }
+        if (isFinite(Number(mcap)) && Number(mcap) > 0) prevMcapNum = Number(mcap);
         pushSparkSample(mcap);
         if ($('dd-fomo-main') && $('dd-fomo')) {
           var chN = lastProof.ch24n;
           var m5N = lastProof.m5n;
           var fomo = $('dd-fomo');
-          var hot = (isFinite(chN) && Math.abs(chN) >= 5) || (isFinite(m5N) && Math.abs(m5N) >= 2);
-          if (isFinite(chN) && chN > 0) {
+          var hot =
+            (isFinite(chN) && Math.abs(chN) >= 5) ||
+            (isFinite(m5N) && Math.abs(m5N) >= 2) ||
+            (isFinite(movePct) && Math.abs(movePct) >= 0.5);
+          var usedMove =
+            isFinite(movePct) && Math.abs(movePct) >= 0.05 && lastProof.move !== '—';
+          if (usedMove) {
+            $('dd-fomo-main').textContent =
+              (movePct > 0 ? '↑ mcap ' : movePct < 0 ? '↓ mcap ' : 'Flat mcap ') +
+              lastProof.move +
+              ' just now';
+            if (movePct > 0) {
+              fomo.classList.add('is-up');
+              fomo.classList.remove('is-down');
+            } else if (movePct < 0) {
+              fomo.classList.add('is-down');
+              fomo.classList.remove('is-up');
+            }
+            fomo.classList.remove('is-move');
+            void fomo.offsetWidth;
+            fomo.classList.add('is-move');
+          } else if (isFinite(chN) && chN > 0) {
             $('dd-fomo-main').textContent = 'Moving · 24h ' + lastProof.ch24;
             fomo.classList.add('is-up');
             fomo.classList.remove('is-down');
@@ -614,6 +670,13 @@
           if (hot) fomo.classList.add('is-hot');
           else fomo.classList.remove('is-hot');
           if ($('dd-fomo-hot')) $('dd-fomo-hot').hidden = !hot;
+          if ($('dd-move-chip')) {
+            if (lastProof.move && lastProof.move !== '—') {
+              $('dd-move-chip').hidden = false;
+              $('dd-move-chip').textContent = 'Poll ' + lastProof.move;
+              setTone($('dd-move-chip'), movePct);
+            }
+          }
           if ($('dd-sticky')) {
             if (hot) $('dd-sticky').classList.add('is-hot');
             else $('dd-sticky').classList.remove('is-hot');
@@ -634,9 +697,18 @@
         }
         if ($('dd-fomo-sub')) {
           var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
+          var moveS =
+            lastProof.move && lastProof.move !== '—' ? ' · poll ' + lastProof.move : '';
           $('dd-fomo-sub').textContent =
-            'Vol ' + fmtUsd(vol) + ' · liq ' + fmtUsd(liq) + m5s + ' · just now · NFA';
+            'Vol ' +
+            fmtUsd(vol) +
+            ' · liq ' +
+            fmtUsd(liq) +
+            m5s +
+            moveS +
+            ' · just now · NFA';
         }
+
         lastRefreshAt = Date.now();
         tickFomoAge();
         updateTicker(
@@ -800,6 +872,21 @@
   if ($('dd-copy-buy'))
     $('dd-copy-buy').addEventListener('click', function () {
       copy(buyUrl(), $('dd-copy-buy'));
+    });
+  function copyBuyPack(el) {
+    copy(buildBuyPack(lastProof.mcap), el);
+  }
+  if ($('dd-copy-buy-pack'))
+    $('dd-copy-buy-pack').addEventListener('click', function () {
+      copyBuyPack($('dd-copy-buy-pack'));
+    });
+  if ($('dd-copy-buy-pack-hero'))
+    $('dd-copy-buy-pack-hero').addEventListener('click', function () {
+      copyBuyPack($('dd-copy-buy-pack-hero'));
+    });
+  if ($('dd-sticky-buy-pack'))
+    $('dd-sticky-buy-pack').addEventListener('click', function () {
+      copyBuyPack($('dd-sticky-buy-pack'));
     });
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
@@ -1075,15 +1162,25 @@
     } catch (eB) {}
     return n;
   }
+  function inviteTier(n) {
+    if (n >= 10) return 'Whale';
+    if (n >= 3) return 'Raider';
+    if (n >= 1) return 'Scout';
+    return 'Rookie';
+  }
   function refreshInviteLoop() {
     if ($('dd-invite-code')) $('dd-invite-code').textContent = 'ref=' + getRef();
     if ($('dd-invite-stat')) $('dd-invite-stat').textContent = String(inviteSharesRead());
     if ($('dd-invite-note')) {
       var n = inviteSharesRead();
+      var tier = inviteTier(n);
       $('dd-invite-note').textContent =
         n > 0
-          ? n + ' invite link copies · local only · desk links carry your ref · NFA'
-          : 'Your desk link carries a ref · local share count only · NFA';
+          ? tier +
+            ' · ' +
+            n +
+            ' invite copies · local only · desk links carry your ref · NFA'
+          : 'Rookie · copy your invite link · local share count only · NFA';
     }
   }
   refreshInviteLoop();

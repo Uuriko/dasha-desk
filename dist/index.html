@@ -663,6 +663,16 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-ticker.is-hot{border-color:rgba(255,120,80,.5)}
 .dd-ticker.is-hot .dd-ticker-track{color:#ffd0b0;animation-duration:18s}
 .dd-fomo-age{font-size:10px;font-weight:700;color:var(--muted);opacity:.9}
+.dd-move-chip{
+  display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;
+  font-size:10px;font-weight:800;font-variant-numeric:tabular-nums;
+  border:1px solid rgba(196,165,255,.35);background:rgba(0,0,0,.28);color:#d4b8ff;
+}
+.dd-move-chip.dd-up{color:#b8ffd0;border-color:rgba(125,255,163,.4)}
+.dd-move-chip.dd-down{color:#ffc8c8;border-color:rgba(255,155,155,.4)}
+.dd-fomo-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dd-fomo-actions .dd-btn{min-height:40px;padding:8px 12px;font-size:12px}
+.dd-fomo.is-move{box-shadow:0 0 0 1px rgba(255,180,120,.45),0 0 24px rgba(255,140,80,.18)}
 .dd-copy-count{font-size:10px;font-weight:700;color:#c4a5ff}
 #dd-app.dd-copy-burst::after{
   content:"";position:fixed;left:50%;top:42%;width:12px;height:12px;margin:-6px 0 0 -6px;
@@ -776,9 +786,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       <span class="dd-fomo-hot" id="dd-fomo-hot" hidden>HOT</span>
       <span id="dd-fomo-sub">Live numbers · NFA · can go to zero</span>
       <span class="dd-fomo-age" id="dd-fomo-age">waiting for Dex</span>
+      <span class="dd-move-chip" id="dd-move-chip" hidden>Poll —</span>
       <span class="dd-copy-count" id="dd-copy-count" hidden></span>
     </div>
-    <button type="button" class="dd-btn dd-btn-primary dd-fomo-hold" id="dd-copy-hold">Copy hold pack</button>
+    <div class="dd-fomo-actions">
+      <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-buy-pack">Copy buy pack</button>
+      <button type="button" class="dd-btn dd-fomo-hold" id="dd-copy-hold">Copy hold</button>
+    </div>
   </aside>
 
   <section class="dd-hero-card dd-reveal" id="dd-mint">
@@ -815,6 +829,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       <a class="dd-btn dd-btn-lg dd-wallet-buy" id="dd-buy-wallet" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Open in wallet</a>
       <button type="button" class="dd-btn dd-btn-lg" id="dd-copy-buy">Copy buy link</button>
       <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
+      <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-buy-pack-hero">Copy buy pack</button>
       <button type="button" class="dd-btn" id="dd-copy-live">Copy live pack</button>
       <a class="dd-btn" id="dd-hero-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid on X</a>
       <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">CA post</a>
@@ -994,6 +1009,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
       <a class="dd-btn dd-btn-lg" id="dd-kit-wallet" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Wallet</a>
       <button type="button" class="dd-btn dd-btn-raid dd-btn-lg" id="dd-kit-raid" title="Copy raid pack">Raid</button>
+      <button type="button" class="dd-btn" id="dd-sticky-buy-pack" title="Copy short buy pack">Buy pack</button>
       <button type="button" class="dd-btn" id="dd-sticky-live" title="Copy live mcap pack">Live</button>
       <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
       <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">X</a>
@@ -1195,6 +1211,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     return 'Buy $dasha → ' + buyUrl() + '\n' + CA + '\n' + deskUrl() + '\n' + CASINO;
   }
 
+  /** Ultra-short conversion pack — buy-first, optional live mcap */
+  function buildBuyPack(mcapLabel) {
+    var m =
+      mcapLabel && String(mcapLabel) !== '—' ? ' · mcap ' + String(mcapLabel) : '';
+    return (
+      'Buy $dasha now → ' +
+      buyUrl() +
+      '\n' +
+      CA +
+      m +
+      '\nNFA · can go to zero · association ≠ endorsement'
+    );
+  }
+
   function intentTweet(text) {
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
@@ -1275,6 +1305,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
+    buildBuyPack: buildBuyPack,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -1388,9 +1419,18 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   var currentPack = 'raid';
   var raidAb = 'a';
   var smartPackPicked = false;
-  var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null, delta: '—' };
+  var lastProof = {
+    mcap: '—',
+    ch24: '—',
+    vol: '—',
+    ch24n: null,
+    m5n: null,
+    delta: '—',
+    move: '—',
+  };
   var lastRefreshAt = 0;
   var openMcap = null;
+  var prevMcapNum = null;
   var sparkSamples = [];
   var SPARK_MAX = 48;
 
@@ -1601,13 +1641,45 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
             setTone($('sp-delta'), dPct);
           }
         }
+        // Poll-to-poll move flash (real Dex only)
+        var movePct = null;
+        if (prevMcapNum != null && isFinite(Number(mcap)) && prevMcapNum > 0) {
+          movePct = ((Number(mcap) - prevMcapNum) / prevMcapNum) * 100;
+          if (isFinite(movePct) && Math.abs(movePct) >= 0.01) {
+            lastProof.move = (movePct > 0 ? '+' : '') + movePct.toFixed(2) + '%';
+          } else {
+            lastProof.move = '0.00%';
+            movePct = 0;
+          }
+        }
+        if (isFinite(Number(mcap)) && Number(mcap) > 0) prevMcapNum = Number(mcap);
         pushSparkSample(mcap);
         if ($('dd-fomo-main') && $('dd-fomo')) {
           var chN = lastProof.ch24n;
           var m5N = lastProof.m5n;
           var fomo = $('dd-fomo');
-          var hot = (isFinite(chN) && Math.abs(chN) >= 5) || (isFinite(m5N) && Math.abs(m5N) >= 2);
-          if (isFinite(chN) && chN > 0) {
+          var hot =
+            (isFinite(chN) && Math.abs(chN) >= 5) ||
+            (isFinite(m5N) && Math.abs(m5N) >= 2) ||
+            (isFinite(movePct) && Math.abs(movePct) >= 0.5);
+          var usedMove =
+            isFinite(movePct) && Math.abs(movePct) >= 0.05 && lastProof.move !== '—';
+          if (usedMove) {
+            $('dd-fomo-main').textContent =
+              (movePct > 0 ? '↑ mcap ' : movePct < 0 ? '↓ mcap ' : 'Flat mcap ') +
+              lastProof.move +
+              ' just now';
+            if (movePct > 0) {
+              fomo.classList.add('is-up');
+              fomo.classList.remove('is-down');
+            } else if (movePct < 0) {
+              fomo.classList.add('is-down');
+              fomo.classList.remove('is-up');
+            }
+            fomo.classList.remove('is-move');
+            void fomo.offsetWidth;
+            fomo.classList.add('is-move');
+          } else if (isFinite(chN) && chN > 0) {
             $('dd-fomo-main').textContent = 'Moving · 24h ' + lastProof.ch24;
             fomo.classList.add('is-up');
             fomo.classList.remove('is-down');
@@ -1622,6 +1694,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           if (hot) fomo.classList.add('is-hot');
           else fomo.classList.remove('is-hot');
           if ($('dd-fomo-hot')) $('dd-fomo-hot').hidden = !hot;
+          if ($('dd-move-chip')) {
+            if (lastProof.move && lastProof.move !== '—') {
+              $('dd-move-chip').hidden = false;
+              $('dd-move-chip').textContent = 'Poll ' + lastProof.move;
+              setTone($('dd-move-chip'), movePct);
+            }
+          }
           if ($('dd-sticky')) {
             if (hot) $('dd-sticky').classList.add('is-hot');
             else $('dd-sticky').classList.remove('is-hot');
@@ -1642,9 +1721,18 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         }
         if ($('dd-fomo-sub')) {
           var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
+          var moveS =
+            lastProof.move && lastProof.move !== '—' ? ' · poll ' + lastProof.move : '';
           $('dd-fomo-sub').textContent =
-            'Vol ' + fmtUsd(vol) + ' · liq ' + fmtUsd(liq) + m5s + ' · just now · NFA';
+            'Vol ' +
+            fmtUsd(vol) +
+            ' · liq ' +
+            fmtUsd(liq) +
+            m5s +
+            moveS +
+            ' · just now · NFA';
         }
+
         lastRefreshAt = Date.now();
         tickFomoAge();
         updateTicker(
@@ -1808,6 +1896,21 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   if ($('dd-copy-buy'))
     $('dd-copy-buy').addEventListener('click', function () {
       copy(buyUrl(), $('dd-copy-buy'));
+    });
+  function copyBuyPack(el) {
+    copy(buildBuyPack(lastProof.mcap), el);
+  }
+  if ($('dd-copy-buy-pack'))
+    $('dd-copy-buy-pack').addEventListener('click', function () {
+      copyBuyPack($('dd-copy-buy-pack'));
+    });
+  if ($('dd-copy-buy-pack-hero'))
+    $('dd-copy-buy-pack-hero').addEventListener('click', function () {
+      copyBuyPack($('dd-copy-buy-pack-hero'));
+    });
+  if ($('dd-sticky-buy-pack'))
+    $('dd-sticky-buy-pack').addEventListener('click', function () {
+      copyBuyPack($('dd-sticky-buy-pack'));
     });
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
@@ -2083,15 +2186,25 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     } catch (eB) {}
     return n;
   }
+  function inviteTier(n) {
+    if (n >= 10) return 'Whale';
+    if (n >= 3) return 'Raider';
+    if (n >= 1) return 'Scout';
+    return 'Rookie';
+  }
   function refreshInviteLoop() {
     if ($('dd-invite-code')) $('dd-invite-code').textContent = 'ref=' + getRef();
     if ($('dd-invite-stat')) $('dd-invite-stat').textContent = String(inviteSharesRead());
     if ($('dd-invite-note')) {
       var n = inviteSharesRead();
+      var tier = inviteTier(n);
       $('dd-invite-note').textContent =
         n > 0
-          ? n + ' invite link copies · local only · desk links carry your ref · NFA'
-          : 'Your desk link carries a ref · local share count only · NFA';
+          ? tier +
+            ' · ' +
+            n +
+            ' invite copies · local only · desk links carry your ref · NFA'
+          : 'Rookie · copy your invite link · local share count only · NFA';
     }
   }
   refreshInviteLoop();

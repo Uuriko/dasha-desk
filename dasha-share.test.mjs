@@ -248,4 +248,23 @@ assert.ok(/not a chart promise|NFA/i.test(body), 'spark honesty copy');
 assert.ok(appJs.includes("if ($('s-5m'))") && appJs.includes("if ($('s-price'))"), 'guarded stat writes');
 assert.ok(appJs.includes("if (!$('dd-paste')") || appJs.includes("if (!$('dd-paste') || !$('dd-verify'))"), 'verify guards missing paste');
 
+// V15: short buy pack + poll move flash + invite tier
+assert.ok(typeof DD.buildBuyPack === 'function', 'buildBuyPack exported');
+const buyPack = DD.buildBuyPack('$12.3K');
+assert.ok(buyPack.includes('Buy $dasha'), 'buy pack buy-first');
+assert.ok(buyPack.includes(DD.BUY) || buyPack.includes('jup.ag'), 'buy pack jupiter');
+assert.ok(buyPack.includes(DD.CA), 'buy pack mint');
+assert.ok(buyPack.includes('mcap $12.3K'), 'buy pack live mcap');
+assert.ok(/NFA|zero/i.test(buyPack), 'buy pack NFA');
+const buyPackBare = DD.buildBuyPack('—');
+assert.ok(buyPackBare.includes(DD.CA) && buyPackBare.includes('jup.ag'), 'buy pack without mcap still works');
+assert.ok(!buyPackBare.includes('mcap —'), 'buy pack skips em-dash mcap');
+assert.ok(body.includes('id="dd-copy-buy-pack"') || body.includes('dd-copy-buy-pack'), 'FOMO buy pack CTA');
+assert.ok(body.includes('dd-copy-buy-pack-hero') || body.includes('dd-sticky-buy-pack'), 'hero/sticky buy pack');
+assert.ok(body.includes('id="dd-move-chip"'), 'poll move chip');
+assert.ok(appJs.includes('prevMcapNum') && appJs.includes('lastProof.move'), 'poll move tracking');
+assert.ok(appJs.includes('is-move') || appJs.includes("is-move"), 'move flash class');
+assert.ok(appJs.includes('inviteTier') && /Whale|Raider|Scout|Rookie/.test(appJs), 'invite tiers');
+assert.ok(kitStyles.includes('dd-move-chip') && kitStyles.includes('dd-fomo-actions'), 'move/fomo action styles');
+
 console.log('dasha-share.test.mjs: PASS');
