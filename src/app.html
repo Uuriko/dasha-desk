@@ -19,6 +19,17 @@
     Culture coin · can go to zero · NFA · association ≠ endorsement
   </aside>
 
+  <div class="dd-ticker dd-reveal" id="dd-ticker" role="region" aria-label="Live social proof ticker" title="Tap to copy live pack">
+    <div class="dd-ticker-track" id="dd-ticker-track">
+      <span id="dd-tick-0">Watching Dex…</span>
+      <span>Casino open · NFA</span>
+      <span>Copy CA · Buy Jupiter · Share desk</span>
+      <span id="dd-tick-1">Watching Dex…</span>
+      <span>Casino open · NFA</span>
+      <span>Copy CA · Buy Jupiter · Share desk</span>
+    </div>
+  </div>
+
   <section class="dd-proof dd-reveal" id="dd-proof" aria-label="Live market snapshot">
     <div class="dd-proof-item"><span>Mcap</span><strong id="p-mcap">—</strong></div>
     <div class="dd-proof-item"><span>Liq</span><strong id="p-liq">—</strong></div>
@@ -49,6 +60,7 @@
       <strong id="dd-fomo-main">Watching Dex…</strong>
       <span class="dd-fomo-hot" id="dd-fomo-hot" hidden>HOT</span>
       <span id="dd-fomo-sub">Live numbers · NFA · can go to zero</span>
+      <span class="dd-fomo-age" id="dd-fomo-age">waiting for Dex</span>
     </div>
     <button type="button" class="dd-btn dd-btn-primary dd-fomo-hold" id="dd-copy-hold">Copy hold pack</button>
   </aside>
@@ -846,6 +858,27 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   .dd-kit-actions #dd-sticky-tweet,.dd-kit-actions #dd-sticky-live{display:none}
   .dd-raid-kit-actions .dd-btn{flex:1 1 42%}
 }
+
+.dd-ticker{
+  overflow:hidden;margin:0 0 12px;border-radius:12px;
+  border:1px solid rgba(255,140,200,.28);
+  background:rgba(20,8,24,.75);cursor:pointer;
+  white-space:nowrap;
+}
+.dd-ticker-track{
+  display:inline-block;padding:10px 0;
+  animation:dd-scroll 32s linear infinite;
+  font-size:12px;font-weight:700;color:#ffc6e8;
+}
+.dd-ticker-track span{margin:0 1.2em}
+.dd-ticker-track span::before{content:"✦ ";opacity:.55}
+.dd-ticker:hover .dd-ticker-track,.dd-ticker:focus-within .dd-ticker-track{animation-play-state:paused}
+.dd-ticker.is-hot{border-color:rgba(255,120,80,.5)}
+.dd-ticker.is-hot .dd-ticker-track{color:#ffd0b0;animation-duration:18s}
+.dd-fomo-age{font-size:10px;font-weight:700;color:var(--muted);opacity:.9}
+@media(prefers-reduced-motion:reduce){
+  .dd-ticker-track{animation:none;white-space:normal;display:block;padding:8px 10px}
+}
 </style>
 <script>
 (function () {
@@ -1158,6 +1191,33 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   var raidAb = 'a';
   var smartPackPicked = false;
   var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null };
+  var lastRefreshAt = 0;
+  function updateTicker(mcap, liq, vol, ch24) {
+    var track = $('dd-ticker-track');
+    if (!track) return;
+    var bits = [
+      'Live mcap ' + mcap,
+      '24h ' + ch24,
+      'Vol ' + vol,
+      'Liq ' + liq,
+      CASINO,
+      'Buy → Jupiter',
+      'Desk + ref · share the pack',
+      'NFA · can go to zero',
+    ];
+    // duplicate for seamless loop
+    var html = bits.concat(bits).map(function (t) {
+      return '<span>' + t + '</span>';
+    }).join('');
+    track.innerHTML = html;
+  }
+  function tickFomoAge() {
+    var el = $('dd-fomo-age');
+    if (!el || !lastRefreshAt) return;
+    var s = Math.max(0, Math.floor((Date.now() - lastRefreshAt) / 1000));
+    el.textContent = s < 4 ? 'updated just now' : 'updated ' + s + 's ago';
+  }
+
   function resolvePack(kind) {
     kind = kind || currentPack || 'raid';
     if (kind === 'raid' || kind === 'raid_a' || kind === 'raid_b') {
@@ -1305,6 +1365,16 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
           $('dd-fomo-sub').textContent =
             'Vol ' + fmtUsd(vol) + ' · liq ' + fmtUsd(liq) + m5s + ' · just now · NFA';
+        }
+        lastRefreshAt = Date.now();
+        tickFomoAge();
+        updateTicker(lastProof.mcap, fmtUsd(liq), fmtUsd(vol), lastProof.ch24);
+        if ($('dd-ticker')) {
+          var hotT =
+            (isFinite(lastProof.ch24n) && Math.abs(lastProof.ch24n) >= 5) ||
+            (isFinite(lastProof.m5n) && Math.abs(lastProof.m5n) >= 2);
+          if (hotT) $('dd-ticker').classList.add('is-hot');
+          else $('dd-ticker').classList.remove('is-hot');
         }
         if (!smartPackPicked && isFinite(lastProof.ch24n)) {
           smartPackPicked = true;
@@ -1673,6 +1743,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     });
   window.__ddRefreshRaidKit = refreshRaidKit;
   refreshRaidKit();
+
+
+  if ($('dd-ticker'))
+    $('dd-ticker').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-ticker'));
+    });
+  setInterval(tickFomoAge, 1000);
 
   setShare('raid');
   bindQuoteTaps();

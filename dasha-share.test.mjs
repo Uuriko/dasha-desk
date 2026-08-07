@@ -184,4 +184,19 @@ assert.ok(body.includes('dd-sticky-ch'), 'sticky 24h chip');
 const kitStyles = readFileSync(join(__dirname, 'src/styles.css'), 'utf8');
 assert.ok(kitStyles.includes('dd-raid-kit') && kitStyles.includes('dd-kit-actions'), 'kit styles');
 
+// live social-proof ticker + FOMO age (V11)
+assert.ok(body.includes('id="dd-ticker"') && body.includes('dd-ticker-track'), 'live ticker strip');
+assert.ok(body.includes('id="dd-tick-0"') || body.includes('Watching Dex'), 'ticker seed copy');
+assert.ok(body.includes('id="dd-fomo-age"') && body.includes('dd-fomo-age'), 'FOMO updated-ago');
+assert.ok(kitStyles.includes('.dd-ticker') && kitStyles.includes('dd-ticker-track'), 'ticker styles');
+assert.ok(/@keyframes dd-scroll/.test(kitStyles), 'ticker marquee keyframes');
+assert.ok(kitStyles.includes('dd-fomo-age'), 'fomo age styles');
+const appJs = readFileSync(join(__dirname, 'src/app.js'), 'utf8');
+assert.ok(appJs.includes('function updateTicker'), 'updateTicker in app');
+assert.ok(appJs.includes('function tickFomoAge'), 'tickFomoAge in app');
+assert.ok(appJs.includes('lastRefreshAt'), 'lastRefreshAt clock');
+assert.ok(appJs.includes("updateTicker(lastProof.mcap"), 'loadMarket feeds ticker');
+assert.ok(appJs.includes('setInterval(tickFomoAge'), 'fomo age interval');
+assert.ok(appJs.includes("dd-ticker") && appJs.includes('is-hot'), 'ticker hot class');
+
 console.log('dasha-share.test.mjs: PASS');

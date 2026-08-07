@@ -581,3 +581,24 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   .dd-kit-actions #dd-sticky-tweet,.dd-kit-actions #dd-sticky-live{display:none}
   .dd-raid-kit-actions .dd-btn{flex:1 1 42%}
 }
+
+.dd-ticker{
+  overflow:hidden;margin:0 0 12px;border-radius:12px;
+  border:1px solid rgba(255,140,200,.28);
+  background:rgba(20,8,24,.75);cursor:pointer;
+  white-space:nowrap;
+}
+.dd-ticker-track{
+  display:inline-block;padding:10px 0;
+  animation:dd-scroll 32s linear infinite;
+  font-size:12px;font-weight:700;color:#ffc6e8;
+}
+.dd-ticker-track span{margin:0 1.2em}
+.dd-ticker-track span::before{content:"✦ ";opacity:.55}
+.dd-ticker:hover .dd-ticker-track,.dd-ticker:focus-within .dd-ticker-track{animation-play-state:paused}
+.dd-ticker.is-hot{border-color:rgba(255,120,80,.5)}
+.dd-ticker.is-hot .dd-ticker-track{color:#ffd0b0;animation-duration:18s}
+.dd-fomo-age{font-size:10px;font-weight:700;color:var(--muted);opacity:.9}
+@media(prefers-reduced-motion:reduce){
+  .dd-ticker-track{animation:none;white-space:normal;display:block;padding:8px 10px}
+}

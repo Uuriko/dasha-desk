@@ -308,6 +308,33 @@
   var raidAb = 'a';
   var smartPackPicked = false;
   var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null };
+  var lastRefreshAt = 0;
+  function updateTicker(mcap, liq, vol, ch24) {
+    var track = $('dd-ticker-track');
+    if (!track) return;
+    var bits = [
+      'Live mcap ' + mcap,
+      '24h ' + ch24,
+      'Vol ' + vol,
+      'Liq ' + liq,
+      CASINO,
+      'Buy → Jupiter',
+      'Desk + ref · share the pack',
+      'NFA · can go to zero',
+    ];
+    // duplicate for seamless loop
+    var html = bits.concat(bits).map(function (t) {
+      return '<span>' + t + '</span>';
+    }).join('');
+    track.innerHTML = html;
+  }
+  function tickFomoAge() {
+    var el = $('dd-fomo-age');
+    if (!el || !lastRefreshAt) return;
+    var s = Math.max(0, Math.floor((Date.now() - lastRefreshAt) / 1000));
+    el.textContent = s < 4 ? 'updated just now' : 'updated ' + s + 's ago';
+  }
+
   function resolvePack(kind) {
     kind = kind || currentPack || 'raid';
     if (kind === 'raid' || kind === 'raid_a' || kind === 'raid_b') {
@@ -455,6 +482,16 @@
           var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
           $('dd-fomo-sub').textContent =
             'Vol ' + fmtUsd(vol) + ' · liq ' + fmtUsd(liq) + m5s + ' · just now · NFA';
+        }
+        lastRefreshAt = Date.now();
+        tickFomoAge();
+        updateTicker(lastProof.mcap, fmtUsd(liq), fmtUsd(vol), lastProof.ch24);
+        if ($('dd-ticker')) {
+          var hotT =
+            (isFinite(lastProof.ch24n) && Math.abs(lastProof.ch24n) >= 5) ||
+            (isFinite(lastProof.m5n) && Math.abs(lastProof.m5n) >= 2);
+          if (hotT) $('dd-ticker').classList.add('is-hot');
+          else $('dd-ticker').classList.remove('is-hot');
         }
         if (!smartPackPicked && isFinite(lastProof.ch24n)) {
           smartPackPicked = true;
@@ -823,6 +860,13 @@
     });
   window.__ddRefreshRaidKit = refreshRaidKit;
   refreshRaidKit();
+
+
+  if ($('dd-ticker'))
+    $('dd-ticker').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-ticker'));
+    });
+  setInterval(tickFomoAge, 1000);
 
   setShare('raid');
   bindQuoteTaps();
