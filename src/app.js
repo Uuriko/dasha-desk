@@ -46,6 +46,7 @@
     DESK_FALLBACK,
   );
   var LABS = DESK && !DESK.includes('files.catbox.moe') ? new URL('/labs', DESK).href : '';
+  var LABS_MINT = LABS ? LABS + '?mint=' + encodeURIComponent(CA) : '';
 
   /** Pure share-pack builders — unit-tested via global.DDShare */
   function buildSharePack(kind) {
@@ -244,6 +245,7 @@
     PAIR: PAIR,
     DESK: DESK,
     LABS: LABS,
+    LABS_MINT: LABS_MINT,
     BUY: BUY,
     resolveDeskUrl: resolveDeskUrl,
     buildSharePack: buildSharePack,
@@ -541,7 +543,7 @@
   if ($('dd-labs-link')) {
     if (LABS) fetch(LABS, { method: 'HEAD', cache: 'no-store' }).then(function (response) {
       if (!response.ok) return;
-      $('dd-labs-link').href = LABS;
+      $('dd-labs-link').href = LABS_MINT;
       $('dd-labs-link').hidden = false;
     }).catch(function () {});
   }

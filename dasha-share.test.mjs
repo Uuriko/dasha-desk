@@ -24,6 +24,7 @@ assert.ok(DD, 'DDShare must export from app.js');
 assert.equal(DD.CA, '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump');
 assert.equal(DD.DESK, 'https://www.getdasha.com/');
 assert.equal(DD.LABS, 'https://www.getdasha.com/labs');
+assert.equal(DD.LABS_MINT, 'https://www.getdasha.com/labs?mint=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump');
 
 const fakeDoc = (...hrefs) => ({
   querySelectorAll: () => hrefs.map((href) => ({ getAttribute: (name) => (name === 'rel' ? 'alternate CANONICAL' : href) })),
@@ -53,6 +54,7 @@ assert.equal(DD.resolveDeskUrl(fakeDoc('https://www.getdasha.com/', 'https://evi
 const unsafe = load({ document: fakeDoc(), location: { href: 'https://example.test/dasha' } });
 assert.equal(unsafe.DESK, '');
 assert.equal(unsafe.LABS, '');
+assert.equal(unsafe.LABS_MINT, '');
 assert.equal(load({ document: fakeDoc(), location: { href: 'https://johns-awesome-project-39b1b5.webflow.io/' } }).LABS, 'https://johns-awesome-project-39b1b5.webflow.io/labs');
 assert.equal(load({ document: fakeDoc(), location: { href: 'https://files.catbox.moe/sm5mo0.html' } }).LABS, '');
 assert.ok(!unsafe.buildSharePack('discord').includes('Desk:'), 'unsafe mirrors omit desk from Discord pack');
