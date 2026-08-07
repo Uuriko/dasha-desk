@@ -274,6 +274,46 @@
     };
   }
 
+  /**
+   * Dump/deep size autofocus — pure V48.
+   * While dump watch is active (and user has not manually overridden),
+   * snap buy size to dump-safe SOL (1). Deep dip still uses depth nudge.
+   */
+  function dumpSizeAutofocus(sol, dip, manual) {
+    if (manual) {
+      return {
+        sol: sol,
+        changed: false,
+        manual: true,
+        nudgeSol: dip ? dipSizeNudgeSol(dip) : null,
+      };
+    }
+    if (!dip) {
+      return { sol: sol, changed: false, manual: false, nudgeSol: null };
+    }
+    var nudge = dipSizeNudgeSol(dip);
+    if (nudge == null) {
+      return { sol: sol, changed: false, manual: false, nudgeSol: null };
+    }
+    // Always autofocus during dump; deep/hard dip only when unset soft default
+    var force =
+      dip.kind === 'dump' ||
+      (dipDepth(dip) &&
+        (dipDepth(dip).tier === 'deep' || dipDepth(dip).tier === 'hard'));
+    if (!force) {
+      return { sol: sol, changed: false, manual: false, nudgeSol: nudge };
+    }
+    var next = Number(nudge);
+    var cur = Number(sol);
+    return {
+      sol: next,
+      changed: !isFinite(cur) || cur !== next,
+      manual: false,
+      nudgeSol: next,
+      isDump: dip.kind === 'dump',
+    };
+  }
+
   function buildQuoteShare(quote) {
     var q = String(quote || '').trim();
     if (!q) return '';
@@ -1307,6 +1347,7 @@
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
     sizeChipHint: sizeChipHint,
+    dumpSizeAutofocus: dumpSizeAutofocus,
     buildBuyPack: buildBuyPack,
     buildDipPack: buildDipPack,
     buyPressure: buyPressure,
@@ -1946,15 +1987,20 @@
               !!(depthDump && depthDump.tier === 'hard'),
             );
             if ($('dd-fomo-ab')) $('dd-fomo-ab').hidden = true;
+            // V48: dump size autofocus every paint until user overrides chip
             try {
-              var nudgeDump = dipSizeNudgeSol(lastProof.dip);
-              if (
-                nudgeDump &&
-                sessionStorage.getItem('dd_dump_size_nudge') !== '1' &&
-                localStorage.getItem('dd_buy_sol') == null
-              ) {
-                buySol = nudgeDump;
-                sessionStorage.setItem('dd_dump_size_nudge', '1');
+              var dumpManual =
+                sessionStorage.getItem('dd_dump_manual') === '1';
+              var autoDump = dumpSizeAutofocus(
+                buySol,
+                lastProof.dip,
+                dumpManual,
+              );
+              if (autoDump && autoDump.changed) {
+                buySol = autoDump.sol;
+                try {
+                  localStorage.setItem('dd_buy_sol', String(buySol));
+                } catch (eLs) {}
               }
             } catch (eDumpN) {}
           } else if (lastProof.dip) {
@@ -2723,6 +2769,17 @@
       b.classList.toggle('is-nudge', !!(hint && hint.recommended));
       if (hint && hint.tier === 'deep') b.classList.add('is-nudge-deep');
       else b.classList.remove('is-nudge-deep');
+      // V48: dump autofocus chip pulse
+      b.classList.toggle(
+        'is-dump-focus',
+        !!(
+          hint &&
+          hint.recommended &&
+          lastProof.dip &&
+          lastProof.dip.kind === 'dump' &&
+          on
+        ),
+      );
       var usd = null;
       if (lastProof.solUsd != null && isFinite(lastProof.solUsd)) {
         usd = Number(sol) * lastProof.solUsd;
@@ -2996,6 +3053,10 @@
       buySol = n;
       try {
         localStorage.setItem('dd_buy_sol', String(buySol));
+        // V48: user overrode dump autofocus for this session
+        if (lastProof.dip && lastProof.dip.kind === 'dump') {
+          sessionStorage.setItem('dd_dump_manual', '1');
+        }
       } catch (eAmt) {}
       wireBuyHrefs();
       if (lastProof.mcap && lastProof.mcap !== '—') {

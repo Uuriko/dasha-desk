@@ -832,4 +832,15 @@ assert.ok(appJs.includes('dumpRaidPlan') && appJs.includes('is-dump-raid'), 'v47
 assert.ok(kitStyles.includes('is-dump-raid'), 'v47 dump-raid styles');
 assert.ok(/<a[^>]*id="dd-fomo-raid-dip"/.test(body), 'raid is one-tap anchor');
 
+// V48: dump size autofocus snaps to dump-safe 1 SOL unless manual
+assert.ok(typeof DD.dumpSizeAutofocus === 'function', 'dumpSizeAutofocus exported');
+const autoDump = DD.dumpSizeAutofocus(0.5, dump, false);
+assert.ok(autoDump && autoDump.changed && autoDump.sol === 1 && autoDump.isDump, 'dump autofocus 0.5→1');
+const autoManual = DD.dumpSizeAutofocus(2, dump, true);
+assert.ok(autoManual && !autoManual.changed && autoManual.sol === 2, 'manual dump keeps size');
+const autoDeep = DD.dumpSizeAutofocus(0.5, deepReclaim, false);
+assert.ok(autoDeep && autoDeep.changed && autoDeep.sol === 2, 'deep dip autofocus 0.5→2');
+assert.ok(appJs.includes('dumpSizeAutofocus') && appJs.includes('dd_dump_manual') && appJs.includes('is-dump-focus'), 'v48 wiring');
+assert.ok(kitStyles.includes('is-dump-focus'), 'v48 dump-focus chip styles');
+
 console.log('dasha-share.test.mjs: PASS');

@@ -1103,6 +1103,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   color:#fff;
 }
 .dd-amt.is-nudge small,.dd-amt-sm.is-nudge small{color:#ffd0b0;font-weight:800}
+.dd-amt.is-dump-focus,.dd-amt-sm.is-dump-focus{
+  border-color:rgba(255,90,70,.85)!important;
+  box-shadow:0 0 0 1px rgba(255,90,70,.45),0 0 14px rgba(255,70,50,.25);
+  font-weight:900;
+}
 .dd-trust-bar{
   display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;
   width:100%;margin:0 0 6px;padding:4px 2px;font-size:11px;font-weight:700;
@@ -1486,6 +1491,46 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       nudgeSol: nudge,
       tag: tag,
       tier: depth ? depth.tier : 'soft',
+    };
+  }
+
+  /**
+   * Dump/deep size autofocus — pure V48.
+   * While dump watch is active (and user has not manually overridden),
+   * snap buy size to dump-safe SOL (1). Deep dip still uses depth nudge.
+   */
+  function dumpSizeAutofocus(sol, dip, manual) {
+    if (manual) {
+      return {
+        sol: sol,
+        changed: false,
+        manual: true,
+        nudgeSol: dip ? dipSizeNudgeSol(dip) : null,
+      };
+    }
+    if (!dip) {
+      return { sol: sol, changed: false, manual: false, nudgeSol: null };
+    }
+    var nudge = dipSizeNudgeSol(dip);
+    if (nudge == null) {
+      return { sol: sol, changed: false, manual: false, nudgeSol: null };
+    }
+    // Always autofocus during dump; deep/hard dip only when unset soft default
+    var force =
+      dip.kind === 'dump' ||
+      (dipDepth(dip) &&
+        (dipDepth(dip).tier === 'deep' || dipDepth(dip).tier === 'hard'));
+    if (!force) {
+      return { sol: sol, changed: false, manual: false, nudgeSol: nudge };
+    }
+    var next = Number(nudge);
+    var cur = Number(sol);
+    return {
+      sol: next,
+      changed: !isFinite(cur) || cur !== next,
+      manual: false,
+      nudgeSol: next,
+      isDump: dip.kind === 'dump',
     };
   }
 
@@ -2522,6 +2567,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
     sizeChipHint: sizeChipHint,
+    dumpSizeAutofocus: dumpSizeAutofocus,
     buildBuyPack: buildBuyPack,
     buildDipPack: buildDipPack,
     buyPressure: buyPressure,
@@ -3161,15 +3207,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
               !!(depthDump && depthDump.tier === 'hard'),
             );
             if ($('dd-fomo-ab')) $('dd-fomo-ab').hidden = true;
+            // V48: dump size autofocus every paint until user overrides chip
             try {
-              var nudgeDump = dipSizeNudgeSol(lastProof.dip);
-              if (
-                nudgeDump &&
-                sessionStorage.getItem('dd_dump_size_nudge') !== '1' &&
-                localStorage.getItem('dd_buy_sol') == null
-              ) {
-                buySol = nudgeDump;
-                sessionStorage.setItem('dd_dump_size_nudge', '1');
+              var dumpManual =
+                sessionStorage.getItem('dd_dump_manual') === '1';
+              var autoDump = dumpSizeAutofocus(
+                buySol,
+                lastProof.dip,
+                dumpManual,
+              );
+              if (autoDump && autoDump.changed) {
+                buySol = autoDump.sol;
+                try {
+                  localStorage.setItem('dd_buy_sol', String(buySol));
+                } catch (eLs) {}
               }
             } catch (eDumpN) {}
           } else if (lastProof.dip) {
@@ -3938,6 +3989,17 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       b.classList.toggle('is-nudge', !!(hint && hint.recommended));
       if (hint && hint.tier === 'deep') b.classList.add('is-nudge-deep');
       else b.classList.remove('is-nudge-deep');
+      // V48: dump autofocus chip pulse
+      b.classList.toggle(
+        'is-dump-focus',
+        !!(
+          hint &&
+          hint.recommended &&
+          lastProof.dip &&
+          lastProof.dip.kind === 'dump' &&
+          on
+        ),
+      );
       var usd = null;
       if (lastProof.solUsd != null && isFinite(lastProof.solUsd)) {
         usd = Number(sol) * lastProof.solUsd;
@@ -4211,6 +4273,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       buySol = n;
       try {
         localStorage.setItem('dd_buy_sol', String(buySol));
+        // V48: user overrode dump autofocus for this session
+        if (lastProof.dip && lastProof.dip.kind === 'dump') {
+          sessionStorage.setItem('dd_dump_manual', '1');
+        }
       } catch (eAmt) {}
       wireBuyHrefs();
       if (lastProof.mcap && lastProof.mcap !== '—') {
