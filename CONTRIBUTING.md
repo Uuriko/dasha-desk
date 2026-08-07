@@ -9,17 +9,18 @@
 
 ## How to help
 
+Use Node.js 24 or newer. The project has no package dependencies and needs no install step.
+
 1. Fork + branch.
 2. Change `src/body.html`, `src/styles.css`, `src/app.js`, and/or `config/dasha.json`.
-3. Run `node build.mjs --write` after source changes.
-4. Verify with:
+3. Run `npm run build` after source changes.
+4. Run the same deterministic gate CI uses:
 
    ```bash
-   node build.mjs --check
-   node dasha-share.test.mjs
-   node mint-manifest-lint.mjs
-   node mint-manifest-lint.test.mjs
+   npm test
    ```
+
+   `npm run evidence:live` is a separate, opt-in network check; it is not required for ordinary pull requests.
 
 5. Open a PR with a short reason, screenshots for visible changes, and the verification result.
 

@@ -6,7 +6,17 @@ Static webapp: candidate mint evidence · @dash_eats quotes · live Dex numbers 
 
 No backend. No wallet connect. No fake roadmap.
 
-> **Status:** early alpha. The Webflow page is the working demo; GitHub Pages is configured but currently returns 404 until Pages is enabled for the repository.
+## Trust and status
+
+| Boundary | Current state |
+|---|---|
+| Maturity | Early alpha; no independent security audit |
+| Deployment | The Webflow demo can differ from this source; `getdasha.com` is not connected and GitHub Pages is not enabled |
+| Accounts and custody | No account, server, wallet connection, signing request or custody; outbound buy links leave this site |
+| Evidence | Embedded hashes detect changed bytes only; they do not prove authorship, endorsement, safety, publication time or inclusion in Solana consensus |
+| Market data | Exact-pair Dexscreener observations can be stale, unavailable or wrong; they are not a price oracle or recommendation |
+| Incentives | Unofficial promotional desk; operator position and compensation are not disclosed |
+| Supported source | Latest commit on `main`; private vulnerability reporting is documented in [`SECURITY.md`](SECURITY.md) |
 
 ![Dasha Desk landing page](receipts/concise-landing.png)
 
@@ -20,9 +30,12 @@ No backend. No wallet connect. No fake roadmap.
 
 ## Quick start
 
+Requires Node.js 24 or newer. The site has no package dependencies, so no install step is needed.
+
 ```bash
 git clone https://github.com/Uuriko/dasha-desk.git
 cd dasha-desk
+npm test
 python3 -m http.server 8766
 # → http://127.0.0.1:8766/
 ```
@@ -44,16 +57,11 @@ python3 -m http.server 8766
 Canonical sources: [`src/body.html`](src/body.html), [`src/styles.css`](src/styles.css), [`src/app.js`](src/app.js), and [`config/dasha.json`](config/dasha.json).
 
 ```bash
-node build.mjs --write  # regenerate Webflow embed, standalone and single-file build
-node build.mjs --check  # fail if generated files drift
-node dasha-share.test.mjs
-node mint-manifest-lint.mjs       # deterministic identity/provenance checks
-node mint-manifest-lint.test.mjs  # hostile-input mutation checks
-node mint-evidence-refresh.mjs --check # compare the snapshot with finalized Solana account bytes
-node mint-evidence-refresh.test.mjs    # offline RPC/decode/drift checks
+npm run build         # regenerate Webflow embed, standalone and single-file build
+npm test              # the deterministic, offline contributor and CI gate
+npm run evidence:live # opt-in network check against finalized Solana account bytes
 node launch-check.mjs --prelaunch # warning-only report before domain cutover
 node launch-check.mjs --launch    # strict production readiness
-node launch-check.test.mjs        # offline parser regression check
 ```
 
 Generated surfaces: [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for normal hosting, and [`dist/index.html`](dist/index.html) for single-file hosting.

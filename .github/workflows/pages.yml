@@ -17,12 +17,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
-      - run: node build.mjs --check
-      - run: node dasha-share.test.mjs
-      - run: node mint-manifest-lint.mjs
-      - run: node mint-manifest-lint.test.mjs
-      - run: node mint-evidence-refresh.test.mjs
-      - run: node launch-check.test.mjs
+      - run: npm test
 
   deploy:
     if: github.event_name != 'pull_request'

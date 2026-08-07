@@ -1,0 +1,17 @@
+{
+  "name": "dasha-desk",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": "https://github.com/Uuriko/dasha-desk.git",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node build.mjs --write",
+    "build:check": "node build.mjs --check",
+    "test": "npm run verify",
+    "verify": "node build.mjs --check && node dasha-share.test.mjs && node mint-manifest-lint.mjs && node mint-manifest-lint.test.mjs && node mint-evidence-refresh.test.mjs && node launch-check.test.mjs",
+    "evidence:live": "node mint-evidence-refresh.mjs --check"
+  }
+}
