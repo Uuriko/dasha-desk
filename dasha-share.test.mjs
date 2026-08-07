@@ -319,6 +319,13 @@ assert.ok(/dip buy zone|NFA/i.test(dip.line), 'dip line honest NFA');
 assert.ok(dip.line.includes('511') || dip.line.includes('+511'), 'dip line keeps 24h green');
 assert.equal(DD.dipBuySignal(2, 3, 10), null, 'no dip when shorts green');
 assert.equal(DD.dipBuySignal(-5, -3, -10), null, 'no dip-buy when 24h also red');
+// V39: deepest TF for tier when 1h soft-red + 6h deep
+const mixedDepth = DD.dipBuySignal(-1.03, -29.63, 22.94);
+assert.ok(mixedDepth && mixedDepth.shortLabel === '1h', 'mixed display 1h');
+assert.equal(mixedDepth.depthLabel, '6h', 'mixed depthLabel 6h');
+assert.ok(mixedDepth.depthPct <= -29, 'mixed depthPct deep');
+assert.equal(DD.dipDepth(mixedDepth).tier, 'deep', 'mixed dip is deep tier');
+assert.equal(DD.dipSizeNudgeSol(mixedDepth), 2, 'mixed deep nudges 2 SOL');
 const usd = DD.solUsdEstimate(1, 0.00008223, 0.000001128);
 assert.ok(usd && usd > 50 && usd < 200, 'solUsdEstimate in plausible SOL USD range');
 assert.ok(DD.fmtUsdRough(72.9).startsWith('~$'), 'fmtUsdRough tilde dollars');
@@ -617,11 +624,12 @@ const stillDeep = DD.stillGreen24(deepReclaim);
 const stillLine = DD.dipStillLine(stillDeep, deepReclaim);
 assert.ok(stillLine && /still/i.test(stillLine) && /after 6h deep/i.test(stillLine), 'still-after-deep line');
 assert.ok(/NFA/i.test(stillLine), 'still line NFA');
-assert.equal(
-  DD.dipStillLine(stillDeep, { shortLabel: '1h', shortPct: -3, ch24: 10 }),
-  null,
-  'soft dip no still-line',
+// V39: soft dips also get a still line (shorter form)
+const softStillLn = DD.dipStillLine(
+  DD.stillGreen24({ shortLabel: '1h', shortPct: -3, ch24: 10 }),
+  { shortLabel: '1h', shortPct: -3, ch24: 10 },
 );
+assert.ok(softStillLn && /still/i.test(softStillLn) && /1h dip/i.test(softStillLn), 'soft still line');
 assert.ok(appJs.includes('dipStillLine') && appJs.includes('is-still-deep'), 'v34 wiring');
 assert.ok(kitStyles.includes('is-still-deep'), 'still-deep sub styles');
 
@@ -690,5 +698,15 @@ const livePlain = DD.buildLiveProof('$12.3K', '+4.2%');
 assert.ok(livePlain.includes('$12.3K') && livePlain.includes('+4.2%'), 'plain live pack still works');
 assert.ok(appJs.includes('sizeChipHint') && appJs.includes('is-nudge') && appJs.includes('liveProofNow'), 'v38 wiring');
 assert.ok(kitStyles.includes('is-nudge'), 'nudge chip styles');
+
+// V39: depthPct/depthLabel restore deep when 6h deep + 1h soft red
+assert.ok(mixedDepth.ch6 != null && mixedDepth.ch6 <= -29, 'mixed carries ch6');
+const dualMixed = DD.dualGoPlan(2, true, 'dip', null, 74, '+40', 268, mixedDepth, 24000);
+assert.ok(dualMixed.isDeepDip && /Deep dip/i.test(dualMixed.label), 'mixed dual deep label');
+assert.ok(dualMixed.header && /6h/.test(dualMixed.header) && /-29/.test(dualMixed.header), 'mixed header deepest TF');
+const stillMixed = DD.dipStillLine(DD.stillGreen24(mixedDepth), mixedDepth);
+assert.ok(stillMixed && /after 6h deep/i.test(stillMixed), 'mixed still-after-deep');
+assert.equal(DD.sizeChipHint(2, mixedDepth).tag, 'Deep', 'mixed chip Deep');
+assert.ok(appJs.includes('depthPct') && appJs.includes('depthLabel'), 'v39 wiring');
 
 console.log('dasha-share.test.mjs: PASS');

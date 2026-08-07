@@ -1613,31 +1613,38 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   /**
    * Dip-buy signal from real TF changes: short red + 24h still green.
    * Honest NFA copy only — never invents green short TFs.
+   * V39: short* = freshest red TF for headlines; depth* = deepest red for tier/nudge.
    */
   function dipBuySignal(ch1, ch6, ch24) {
     var h1 = Number(ch1);
     var h6 = Number(ch6);
     var h24 = Number(ch24);
-    var short =
-      (isFinite(h1) && h1 < -0.5 ? h1 : null) != null
-        ? h1
-        : isFinite(h6) && h6 < -0.5
-          ? h6
-          : null;
-    var shortLabel =
-      isFinite(h1) && h1 < -0.5 ? '1h' : isFinite(h6) && h6 < -0.5 ? '6h' : null;
-    if (short == null || shortLabel == null) return null;
+    var reds = [];
+    if (isFinite(h1) && h1 < -0.5) reds.push({ label: '1h', pct: h1 });
+    if (isFinite(h6) && h6 < -0.5) reds.push({ label: '6h', pct: h6 });
+    if (!reds.length) return null;
     if (!isFinite(h24) || h24 <= 0) return null;
+    // Freshest: prefer 1h when red, else 6h (reds already ordered 1h then 6h)
+    var display = reds[0];
+    // Deepest: most negative short TF (drives Deep/Hard tier + size nudge)
+    var deepest = reds[0];
+    var ri;
+    for (ri = 1; ri < reds.length; ri++) {
+      if (reds[ri].pct < deepest.pct) deepest = reds[ri];
+    }
     return {
-      shortLabel: shortLabel,
-      shortPct: short,
+      shortLabel: display.label,
+      shortPct: display.pct,
+      depthLabel: deepest.label,
+      depthPct: deepest.pct,
       ch24: h24,
       ch1: isFinite(h1) ? h1 : null,
+      ch6: isFinite(h6) ? h6 : null,
       line:
-        shortLabel +
+        display.label +
         ' ' +
-        (short > 0 ? '+' : '') +
-        short.toFixed(2) +
+        (display.pct > 0 ? '+' : '') +
+        display.pct.toFixed(2) +
         '% · 24h still ' +
         (h24 > 0 ? '+' : '') +
         h24.toFixed(2) +
@@ -1648,15 +1655,19 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   /**
    * Deep-dip tier from honest short TF % — pure.
    * hard: ≤ -10%, deep: ≤ -20%. null if not a meaningful dip depth.
+   * V39: prefers depthPct (deepest red TF) when present.
    */
   function dipDepth(dip) {
-    if (!dip || dip.shortPct == null) return null;
-    var pct = Number(dip.shortPct);
+    if (!dip) return null;
+    var pct =
+      dip.depthPct != null ? Number(dip.depthPct) : Number(dip.shortPct);
     if (!isFinite(pct) || pct >= -0.5) return null;
+    var label =
+      dip.depthLabel || dip.shortLabel || (pct <= -20 || pct <= -10 ? '6h' : '1h');
     if (pct <= -20) {
       return {
         tier: 'deep',
-        shortLabel: dip.shortLabel,
+        shortLabel: label,
         shortPct: pct,
         word: 'Deep dip',
         tag: 'Deep',
@@ -1665,7 +1676,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if (pct <= -10) {
       return {
         tier: 'hard',
-        shortLabel: dip.shortLabel,
+        shortLabel: label,
         shortPct: pct,
         word: 'Hard dip',
         tag: 'Hard',
@@ -1673,8 +1684,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     }
     return {
       tier: 'soft',
-      shortLabel: dip.shortLabel,
-      shortPct: pct,
+      shortLabel: dip.shortLabel || label,
+      shortPct: Number(dip.shortPct) || pct,
       word: 'Dip',
       tag: 'Dip',
     };
@@ -1765,13 +1776,22 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
 
   /**
-   * FOMO-sub line when 24h still green after hard/deep short-TF dip — pure.
-   * e.g. "24h +2.1% still · after 6h deep · NFA"
+   * FOMO-sub line when 24h still green during a dip — pure.
+   * Hard/deep: "24h +2.1% still · after 6h deep · NFA"
+   * V39 soft: "24h +2.1% still · 1h dip · NFA"
    */
   function dipStillLine(still, dip) {
     if (!still || !still.short) return null;
     var depth = dipDepth(dip);
-    if (!depth || depth.tier === 'soft') return null;
+    if (!depth) return null;
+    if (depth.tier === 'soft') {
+      return (
+        still.short +
+        ' still · ' +
+        (depth.shortLabel || 'short') +
+        ' dip · NFA'
+      );
+    }
     return (
       still.short +
       ' still · after ' +
