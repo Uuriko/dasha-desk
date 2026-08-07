@@ -419,3 +419,40 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   border:1px solid rgba(167,139,250,.28);
   background:rgba(167,139,250,.08);
 }
+
+/* mobile one-tap buy funnel */
+.dd-buy-now{letter-spacing:.02em}
+.dd-btn-raid{border-color:rgba(196,165,255,.45);color:#e8dff8}
+.dd-social-proof{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  width:100%;cursor:pointer;font:inherit;appearance:none;
+  transition:transform .15s, border-color .2s, background .2s, box-shadow .2s;
+}
+.dd-social-proof:hover,.dd-social-proof:focus-visible{
+  transform:translateY(-1px);
+  border-color:rgba(196,165,255,.55);
+  background:rgba(167,139,250,.14);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  outline:none;
+}
+.dd-social-proof-hint{font-size:10px;font-weight:600;opacity:.72;letter-spacing:.06em;text-transform:uppercase}
+.dd-social-proof.is-flash{animation:dd-pop .35s cubic-bezier(.2,.9,.3,1.2)}
+@media(max-width:560px){
+  .dd-actions-primary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .dd-actions-primary #dd-buy{
+    grid-column:1/-1;min-height:52px;font-size:16px;
+    box-shadow:0 10px 32px rgba(139,92,246,.55);
+  }
+  .dd-sticky{
+    bottom:0;left:0;right:0;margin:0;border-radius:16px 16px 0 0;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+    position:fixed;z-index:40;
+  }
+  .dd-sticky-meta{display:none}
+  .dd-sticky-actions{width:100%;display:grid;grid-template-columns:1.6fr auto auto;gap:8px}
+  .dd-sticky-actions .dd-buy-now{
+    width:100%;min-height:52px;font-size:16px;padding:12px 14px;
+    box-shadow:0 8px 28px rgba(139,92,246,.5);
+  }
+  #dd-app.dd{padding-bottom:96px}
+}

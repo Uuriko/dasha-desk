@@ -110,4 +110,11 @@ assert.ok(body.includes('dd-copy-buy'), 'copy buy funnel control');
 assert.ok(body.includes('dd-copy-live'), 'copy live pack control');
 assert.ok(body.includes('dd-social-proof'), 'live social proof line');
 
+
+assert.ok(body.includes('dd-buy-sticky') || body.includes('Buy now'), 'sticky buy now');
+assert.ok(body.includes('dd-buy-now') || body.includes('Buy now'), 'mobile buy-now class or label');
+assert.ok(body.includes('dd-social-proof-hint') || body.includes('Tap to copy'), 'social proof one-tap hint');
+assert.ok(body.includes('dd-social-proof-text') || body.includes('role="status"'), 'social proof live text');
+assert.ok(body.includes('One-tap buy') || body.includes('dd-buy-sticky'), 'sticky funnel region');
+
 console.log('dasha-share.test.mjs: PASS');

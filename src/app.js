@@ -240,7 +240,13 @@
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
-    if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(buildSharePack('raid'));
+    if ($('dd-sticky-tweet')) {
+      var raidLine =
+        lastProof.mcap && lastProof.mcap !== '—'
+          ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+          : buildSharePack('raid');
+      $('dd-sticky-tweet').href = intentTweet(raidLine);
+    }
     if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
   }
 
@@ -316,13 +322,33 @@
         setTone($('s-6h'), ch.h6);
         lastProof.mcap = fmtUsd(mcap);
         lastProof.ch24 = fmtPct(ch.h24);
-        if ($('dd-social-proof')) {
+        if ($('dd-social-proof-text')) {
+          $('dd-social-proof-text').textContent =
+            '$dasha live · mcap ' +
+            lastProof.mcap +
+            ' · 24h ' +
+            lastProof.ch24 +
+            ' · NFA';
+        } else if ($('dd-social-proof')) {
           $('dd-social-proof').textContent =
             '$dasha live · mcap ' +
             lastProof.mcap +
             ' · 24h ' +
             lastProof.ch24 +
             ' · NFA';
+        }
+        if ($('dd-social-proof')) {
+          $('dd-social-proof').classList.remove('is-flash');
+          void $('dd-social-proof').offsetWidth;
+          $('dd-social-proof').classList.add('is-flash');
+        }
+        // Keep Raid X intent fresh with live numbers when available
+        if ($('dd-sticky-tweet')) {
+          $('dd-sticky-tweet').href = intentTweet(
+            lastProof.mcap && lastProof.mcap !== '—'
+              ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+              : buildSharePack('raid'),
+          );
         }
         if ($('dd-px')) {
           var el = $('dd-px');
@@ -425,6 +451,11 @@
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+    });
+
+  if ($('dd-social-proof'))
+    $('dd-social-proof').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-social-proof-hint') || $('dd-social-proof'));
     });
 
   if ($('dd-copy-share'))

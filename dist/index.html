@@ -436,6 +436,43 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   border:1px solid rgba(167,139,250,.28);
   background:rgba(167,139,250,.08);
 }
+
+/* mobile one-tap buy funnel */
+.dd-buy-now{letter-spacing:.02em}
+.dd-btn-raid{border-color:rgba(196,165,255,.45);color:#e8dff8}
+.dd-social-proof{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  width:100%;cursor:pointer;font:inherit;appearance:none;
+  transition:transform .15s, border-color .2s, background .2s, box-shadow .2s;
+}
+.dd-social-proof:hover,.dd-social-proof:focus-visible{
+  transform:translateY(-1px);
+  border-color:rgba(196,165,255,.55);
+  background:rgba(167,139,250,.14);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  outline:none;
+}
+.dd-social-proof-hint{font-size:10px;font-weight:600;opacity:.72;letter-spacing:.06em;text-transform:uppercase}
+.dd-social-proof.is-flash{animation:dd-pop .35s cubic-bezier(.2,.9,.3,1.2)}
+@media(max-width:560px){
+  .dd-actions-primary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .dd-actions-primary #dd-buy{
+    grid-column:1/-1;min-height:52px;font-size:16px;
+    box-shadow:0 10px 32px rgba(139,92,246,.55);
+  }
+  .dd-sticky{
+    bottom:0;left:0;right:0;margin:0;border-radius:16px 16px 0 0;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+    position:fixed;z-index:40;
+  }
+  .dd-sticky-meta{display:none}
+  .dd-sticky-actions{width:100%;display:grid;grid-template-columns:1.6fr auto auto;gap:8px}
+  .dd-sticky-actions .dd-buy-now{
+    width:100%;min-height:52px;font-size:16px;padding:12px 14px;
+    box-shadow:0 8px 28px rgba(139,92,246,.5);
+  }
+  #dd-app.dd{padding-bottom:96px}
+}
 </style>
 </head>
 <body>
@@ -465,7 +502,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     <div class="dd-proof-item"><span>Vol 24h</span><strong id="p-vol">—</strong></div>
     <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
   </section>
-  <p class="dd-social-proof dd-reveal" id="dd-social-proof" role="status">Live on Dex · numbers every 30s · NFA</p>
+  <button type="button" class="dd-social-proof dd-reveal" id="dd-social-proof" aria-label="Copy live share pack with mcap">
+    <span id="dd-social-proof-text">Live on Dex · numbers every 30s · NFA</span>
+    <small class="dd-social-proof-hint">Tap to copy live pack</small>
+  </button>
 
   <section class="dd-hero-card dd-reveal" id="dd-mint">
     <div class="dd-banner-wrap">
@@ -497,7 +537,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </div>
 
     <div class="dd-actions dd-actions-primary">
-      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy on Jupiter</a>
+      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now on Jupiter</a>
       <button type="button" class="dd-btn dd-btn-lg" id="dd-copy-buy">Copy buy link</button>
       <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
       <button type="button" class="dd-btn" id="dd-copy-live">Copy live pack</button>
@@ -620,15 +660,15 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </article>
   </section>
 
-  <div class="dd-sticky dd-reveal" role="region" aria-label="Quick actions">
+  <div class="dd-sticky dd-reveal" role="region" aria-label="One-tap buy and raid">
     <div class="dd-sticky-meta">
       <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
       <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
     </div>
     <div class="dd-sticky-actions">
-      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
-      <button type="button" class="dd-btn dd-btn-primary" id="dd-sticky-copy">Copy CA</button>
-      <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid</a>
+      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+      <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
+      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
     </div>
   </div>
 
@@ -880,7 +920,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
-    if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(buildSharePack('raid'));
+    if ($('dd-sticky-tweet')) {
+      var raidLine =
+        lastProof.mcap && lastProof.mcap !== '—'
+          ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+          : buildSharePack('raid');
+      $('dd-sticky-tweet').href = intentTweet(raidLine);
+    }
     if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
   }
 
@@ -956,13 +1002,33 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         setTone($('s-6h'), ch.h6);
         lastProof.mcap = fmtUsd(mcap);
         lastProof.ch24 = fmtPct(ch.h24);
-        if ($('dd-social-proof')) {
+        if ($('dd-social-proof-text')) {
+          $('dd-social-proof-text').textContent =
+            '$dasha live · mcap ' +
+            lastProof.mcap +
+            ' · 24h ' +
+            lastProof.ch24 +
+            ' · NFA';
+        } else if ($('dd-social-proof')) {
           $('dd-social-proof').textContent =
             '$dasha live · mcap ' +
             lastProof.mcap +
             ' · 24h ' +
             lastProof.ch24 +
             ' · NFA';
+        }
+        if ($('dd-social-proof')) {
+          $('dd-social-proof').classList.remove('is-flash');
+          void $('dd-social-proof').offsetWidth;
+          $('dd-social-proof').classList.add('is-flash');
+        }
+        // Keep Raid X intent fresh with live numbers when available
+        if ($('dd-sticky-tweet')) {
+          $('dd-sticky-tweet').href = intentTweet(
+            lastProof.mcap && lastProof.mcap !== '—'
+              ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+              : buildSharePack('raid'),
+          );
         }
         if ($('dd-px')) {
           var el = $('dd-px');
@@ -1065,6 +1131,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+    });
+
+  if ($('dd-social-proof'))
+    $('dd-social-proof').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-social-proof-hint') || $('dd-social-proof'));
     });
 
   if ($('dd-copy-share'))
