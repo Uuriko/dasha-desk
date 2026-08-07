@@ -417,8 +417,9 @@ assert.ok(dualM.href.includes('phantom.app/ul/browse/'), 'mobile dual opens Phan
 assert.ok(decodeURIComponent(dualM.href).includes('amount=1'), 'mobile dual keeps amount');
 assert.ok(decodeURIComponent(dualM.href).includes('ref='), 'mobile dual keeps invite ref');
 assert.ok(dualD.href.includes('jup.ag') && dualD.href.includes('amount=1') && dualD.href.includes('ref='), 'desktop dual is amounted jup+ref');
-assert.ok(/CA/i.test(dualM.label) && /Wallet/i.test(dualM.label), 'mobile dual label');
-assert.ok(/CA/i.test(dualD.label) && /Buy/i.test(dualD.label), 'desktop dual label');
+// Without solUsd: still SOL size on label; with solUsd: USD rough
+assert.ok(/CA/i.test(dualM.label) && /1 SOL/i.test(dualM.label), 'mobile dual label has SOL size');
+assert.ok(/CA/i.test(dualD.label) && /1 SOL/i.test(dualD.label), 'desktop dual label has SOL size');
 assert.ok(body.includes('id="dd-dual-go"') && body.includes('id="dd-fomo-dual"') && body.includes('id="dd-mint-dual"'), 'dual DOM sticky+fomo+mint');
 assert.ok(body.includes('dd-dual-go'), 'dual class');
 assert.ok(appJs.includes('runDualGo') && appJs.includes('dualGoPlan'), 'dual runtime wiring');
@@ -434,8 +435,8 @@ const hotLine = DD.hotBuyHeadline({ m5: 0.9, h1: 1.4 }, bpHot, '$83.9K');
 assert.ok(/Hot window/i.test(hotLine) && /5m/i.test(hotLine) && /NFA/i.test(hotLine), 'hot headline');
 const dualDip = DD.dualGoPlan(1, true, 'dip');
 const dualHot = DD.dualGoPlan(1, false, 'hot');
-assert.ok(/Dip/i.test(dualDip.label), 'dip dual label');
-assert.ok(/Ride/i.test(dualHot.label), 'hot dual label');
+assert.ok(/Dip/i.test(dualDip.label) && /1 SOL/i.test(dualDip.label), 'dip dual label');
+assert.ok(/Ride/i.test(dualHot.label) && /1 SOL/i.test(dualHot.label), 'hot dual label');
 assert.ok(
   appJs.includes('is-hot-win') && (appJs.includes('Wallet ride') || appJs.includes('Ride ·')),
   'hot FOMO buy path',
@@ -457,5 +458,28 @@ assert.ok(/CA copied/.test(dualSess.toast) && /sess/.test(dualSess.toast), 'dual
 assert.ok(body.includes('id="dd-session-line"'), 'session line DOM');
 assert.ok(appJs.includes('sessionDelta') && appJs.includes('dd-session-line'), 'session wiring');
 assert.ok(kitStyles.includes('dd-session-line'), 'session styles');
+
+// V26: USD size on dual + liq trust near sticky
+assert.ok(typeof DD.solSizeLabel === 'function' && typeof DD.liqTrustLine === 'function', 'size+liq helpers');
+const size1 = DD.solSizeLabel(1, 73);
+assert.ok(size1 && /1 SOL/.test(size1.label) && /~\$/.test(size1.label), 'sol size has USD rough');
+assert.equal(DD.solSizeLabel(0, 73), null, 'zero sol null');
+assert.ok(DD.liqTrustLine(28308) && /Liq/.test(DD.liqTrustLine(28308)) && /NFA/.test(DD.liqTrustLine(28308)), 'liq trust line');
+assert.equal(DD.liqTrustLine(100), null, 'tiny liq null');
+const dualUsd = DD.dualGoPlan(1, true, 'dip', null, 73);
+assert.ok(/1 SOL/.test(dualUsd.label) && /~\$/.test(dualUsd.label), 'dual label has size USD');
+assert.ok(dualUsd.hasUsd === true, 'dual hasUsd flag');
+assert.ok(/1 SOL/.test(dualUsd.toast) || /~\$/.test(dualUsd.toast), 'dual toast has size');
+const dualHotUsd = DD.dualGoPlan(1, false, 'hot', null, 73);
+assert.ok(/Ride/.test(dualHotUsd.label) && /1 SOL/.test(dualHotUsd.label), 'hot dual with size');
+assert.ok(body.includes('id="dd-liq-trust"'), 'liq trust DOM');
+assert.ok(appJs.includes('liqTrustLine') && appJs.includes('solSizeLabel'), 'v26 wiring');
+assert.ok(kitStyles.includes('dd-liq-trust'), 'liq trust styles');
+// dual should be first sticky action (before buy) for copy-CA conversion
+const stickyBlock = body.slice(body.indexOf('dd-sticky-actions'), body.indexOf('dd-sticky-actions') + 800);
+assert.ok(
+  stickyBlock.indexOf('dd-dual-go') < stickyBlock.indexOf('dd-buy-sticky'),
+  'dual before sticky buy',
+);
 
 console.log('dasha-share.test.mjs: PASS');

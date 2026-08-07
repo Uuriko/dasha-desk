@@ -489,26 +489,59 @@
     };
   }
 
+  /** Honest SOL size label with rough USD from Dex solUsd — pure */
+  function solSizeLabel(sol, solUsd) {
+    var n = Number(sol);
+    if (!isFinite(n) || n <= 0) return null;
+    var bit = n + ' SOL';
+    var usd = null;
+    if (solUsd != null && isFinite(Number(solUsd)) && Number(solUsd) > 0) {
+      usd = n * Number(solUsd);
+      var rough = fmtUsdRough(usd);
+      if (rough) bit = bit + ' · ' + rough;
+    }
+    return { sol: n, usd: usd, label: bit };
+  }
+
+  /**
+   * Liq trust near buy CTA — pure. Only when real Dex liq is meaningful.
+   */
+  function liqTrustLine(liq) {
+    var n = Number(liq);
+    if (!isFinite(n) || n < 5000) return null;
+    var label;
+    if (n >= 1e6) label = '$' + (n / 1e6).toFixed(2) + 'M';
+    else if (n >= 1000) label = '$' + (n / 1000).toFixed(1) + 'K';
+    else label = '$' + Math.round(n);
+    return 'Liq ' + label + ' · NFA';
+  }
+
   /**
    * One-tap dual action plan: copy full CA then open wallet/buy.
    * Pure — unit-tested; runtime copies CA and navigates to href.
    * regime: 'dip' | 'hot' | 'neutral' shapes the label.
    * session: optional sessionDelta() for toast urgency.
+   * solUsd: optional SOL→USD rate for size proof on label.
    */
-  function dualGoPlan(sol, mobile, regime, session) {
+  function dualGoPlan(sol, mobile, regime, session, solUsd) {
     var jup = buyUrl(sol);
     var href = mobile ? phantomBrowseUrl(jup) : jup;
     var r = regime || 'neutral';
+    var size = solSizeLabel(sol, solUsd);
     var label;
-    if (r === 'dip') label = mobile ? 'CA · Dip wallet' : 'CA · Dip buy';
-    else if (r === 'hot') label = mobile ? 'CA · Ride wallet' : 'CA · Ride';
-    else label = mobile ? 'CA · Wallet' : 'CA · Buy';
+    if (r === 'dip') label = 'CA · Dip';
+    else if (r === 'hot') label = 'CA · Ride';
+    else label = 'CA';
+    // Size proof (SOL + rough USD) when known; else wallet/buy verb
+    if (size && size.label) label = label + ' · ' + size.label;
+    else label = label + (mobile ? ' · Wallet' : ' · Buy');
     if (session && session.short && Math.abs(session.pct) >= 0.5) {
       label = label + ' · ' + session.short;
     }
     var toast = 'CA copied · open wallet';
+    if (size && size.label) toast = 'CA copied · ' + size.label;
     if (session && session.short) {
-      toast = 'CA copied · ' + session.short;
+      toast = toast + ' · ' + session.short;
     }
     return {
       ca: CA,
@@ -517,6 +550,7 @@
       regime: r,
       label: label,
       toast: toast,
+      size: size,
       session: session || null,
       hasRef: /[?&]ref=/.test(jup),
       hasAmount:
@@ -525,6 +559,7 @@
         isFinite(Number(sol)) &&
         Number(sol) > 0 &&
         /amount=/.test(jup),
+      hasUsd: !!(size && size.usd != null && size.usd > 0),
     };
   }
 
@@ -626,6 +661,8 @@
     buyRegime: buyRegime,
     hotBuyHeadline: hotBuyHeadline,
     sessionDelta: sessionDelta,
+    solSizeLabel: solSizeLabel,
+    liqTrustLine: liqTrustLine,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -999,12 +1036,24 @@
         lastProof.mcap = fmtUsd(mcap);
         lastProof.ch24 = fmtPct(ch.h24);
         lastProof.vol = fmtUsd(vol);
+        lastProof.liq = isFinite(Number(liq)) ? Number(liq) : null;
         lastProof.ch24n = Number(ch.h24);
         lastProof.m5n = Number(ch.m5);
         lastProof.ch1n = Number(ch.h1);
         lastProof.ch6n = Number(ch.h6);
         lastProof.priceUsd = Number(p.priceUsd);
         lastProof.solUsd = solUsdEstimate(1, p.priceUsd, p.priceNative);
+        // V26: liq trust near sticky dual
+        var liqLine = liqTrustLine(lastProof.liq);
+        lastProof.liqLine = liqLine;
+        if ($('dd-liq-trust')) {
+          if (liqLine) {
+            $('dd-liq-trust').hidden = false;
+            $('dd-liq-trust').textContent = liqLine;
+          } else {
+            $('dd-liq-trust').hidden = true;
+          }
+        }
         lastProof.dip = dipBuySignal(ch.h1, ch.h6, ch.h24);
         var tx = (p.txns && p.txns.h24) || {};
         lastProof.buys = isFinite(Number(tx.buys)) ? Number(tx.buys) : null;
@@ -1463,6 +1512,7 @@
       lastProof.regime ||
         buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure),
       sess,
+      lastProof.solUsd,
     );
     copy(plan.ca, el || null);
     try {
@@ -1497,13 +1547,14 @@
       (lastProof.openMcap != null && lastProof.nowMcap != null
         ? sessionDelta(lastProof.openMcap, lastProof.nowMcap)
         : null);
-    var plan = dualGoPlan(buySol, isMobileBuyPath(), regime, sess);
+    var plan = dualGoPlan(buySol, isMobileBuyPath(), regime, sess, lastProof.solUsd);
     document.querySelectorAll('.dd-dual-go').forEach(function (b) {
       if (b.textContent && /copied/i.test(b.textContent)) return;
       b.textContent = plan.label;
       b.classList.toggle('dd-pulse-buy', regime === 'dip' || regime === 'hot');
       b.classList.toggle('is-dip-dual', regime === 'dip');
       b.classList.toggle('is-hot-dual', regime === 'hot');
+      b.classList.toggle('has-usd', !!plan.hasUsd);
       b.classList.toggle(
         'is-sess-up',
         !!(sess && sess.up && Math.abs(sess.pct) >= 0.5),
