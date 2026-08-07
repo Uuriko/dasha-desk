@@ -11,12 +11,14 @@
 
 ## Custom domain launch gate
 
-`getdasha.com` is not launch-ready as of 2026-08-06:
+`getdasha.com` is not launch-ready as of 2026-08-07:
 
 - Webflow site `5f1458122ba25e70a3ff2bd0` reports `customDomains: []`;
 - both `getdasha.com` and `www.getdasha.com` fail DNS resolution from the project host;
 - the Webflow root is a separate working **Dasha Labs** thesis-card tool, while the mint desk lives at `/dasha`;
 - neither page emits `rel=canonical` or `og:url`, the root does not link to the desk, and the generated sitemap is unavailable.
+
+Prepared, not published: Webflow page `6a75866d58882fdfb5f7674a` is a draft duplicate of Labs at slug `/labs`; its form embeds, SEO/OG metadata, and future `/labs` ↔ `/` navigation were verified on 2026-08-07. Staging correctly remains 404 until the atomic cutover.
 
 Cutover order:
 
