@@ -337,10 +337,14 @@
       <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
       <span id="dd-sticky-ch" class="dd-sticky-ch">24h —</span>
       <span id="dd-sticky-dip" class="dd-sticky-dip" hidden></span>
-      <span id="dd-sticky-flow" class="dd-sticky-flow" hidden></span>
-      <span id="dd-session-line" class="dd-session-line" hidden aria-live="polite"></span>
-      <span id="dd-liq-trust" class="dd-liq-trust" hidden></span>
       <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
+    </div>
+    <!-- V29: trust bar outside sticky-meta so mobile (meta display:none) still sees proof -->
+    <div class="dd-trust-bar" id="dd-trust-bar" hidden>
+      <span id="dd-sticky-flow" class="dd-sticky-flow" hidden></span>
+      <span id="dd-liq-trust" class="dd-liq-trust" hidden></span>
+      <span id="dd-session-line" class="dd-session-line" hidden aria-live="polite"></span>
+      <span id="dd-trust-bar-text" class="dd-trust-bar-text" hidden></span>
     </div>
     <div class="dd-sticky-amts" id="dd-sticky-amts" role="group" aria-label="Sticky buy size">
       <button type="button" class="dd-amt-sm" data-sol="0.5">0.5</button>
@@ -1085,6 +1089,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   font-weight:800;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.15;
 }
 .dd-amt-sm.is-on{border-color:rgba(196,165,255,.65);background:rgba(196,165,255,.18);color:#fff}
+.dd-trust-bar{
+  display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;
+  width:100%;margin:0 0 6px;padding:4px 2px;font-size:11px;font-weight:700;
+  font-variant-numeric:tabular-nums;color:#d4c0ff;
+}
+.dd-trust-bar[hidden]{display:none!important}
+.dd-trust-bar-text{color:#e8d4ff}
 .dd-sticky-flow{
   font-size:11px;font-weight:700;color:#b8f0c8;font-variant-numeric:tabular-nums;
   letter-spacing:.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -1098,6 +1109,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-liq-trust{
   font-size:11px;font-weight:700;color:#c8b4ff;font-variant-numeric:tabular-nums;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+@media (max-width:560px){
+  .dd-trust-bar{margin:2px 0 8px;gap:2px 8px}
+  .dd-sticky-flow,.dd-liq-trust,.dd-session-line{display:none!important}
+  .dd-trust-bar-text{display:inline!important}
 }
 .dd-dual-go.has-usd{letter-spacing:-.01em}
 .dd-dual-go.has-net{border-color:rgba(120,255,180,.5)!important}
@@ -1689,6 +1705,21 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
 
   /**
+   * Mobile-visible trust strip near sticky dual — pure.
+   * Combines flow + liq + session shorts (each already NFA-tagged).
+   */
+  function trustBarLine(flow, liqLine, session) {
+    var parts = [];
+    if (flow) parts.push(String(flow).replace(/\s*·\s*NFA\s*$/i, ''));
+    if (liqLine) parts.push(String(liqLine).replace(/\s*·\s*NFA\s*$/i, ''));
+    if (session && session.short && Math.abs(Number(session.pct)) >= 0.5) {
+      parts.push(session.short);
+    }
+    if (!parts.length) return null;
+    return parts.join(' · ') + ' · NFA';
+  }
+
+  /**
    * One-tap dual action plan: copy CA+buy+desk then open wallet/buy.
    * Pure — unit-tested; runtime copies payload and navigates to href.
    * regime: 'dip' | 'hot' | 'neutral' shapes the label.
@@ -1879,6 +1910,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     dualGoPlan: dualGoPlan,
     dualCopyPayload: dualCopyPayload,
     buyPaceShort: buyPaceShort,
+    trustBarLine: trustBarLine,
     buyRegime: buyRegime,
     hotBuyHeadline: hotBuyHeadline,
     sessionDelta: sessionDelta,
@@ -2328,6 +2360,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         if ($('dd-fomo-sub') && flow) {
           $('dd-fomo-sub').textContent = flow;
         }
+        // V29: paint mobile-visible trust bar (outside sticky-meta)
+        paintTrustBar();
         var bp = buyPressure(lastProof.buys, lastProof.sells);
         lastProof.pressure = bp;
         if ($('dd-pressure')) {
@@ -2372,6 +2406,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           if ($('dd-fomo-sub') && lastProof.session && Math.abs(lastProof.session.pct) >= 0.5) {
             $('dd-fomo-sub').textContent = lastProof.session.line;
           }
+          paintTrustBar();
         }
         // Poll-to-poll move flash (real Dex only)
         var movePct = null;
@@ -2774,6 +2809,27 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       });
     },
   );
+  function paintTrustBar() {
+    var bar = $('dd-trust-bar');
+    var textEl = $('dd-trust-bar-text');
+    var line = trustBarLine(
+      lastProof.flow,
+      lastProof.liqLine,
+      lastProof.session,
+    );
+    lastProof.trustBar = line;
+    if (bar) {
+      bar.hidden = !line;
+    }
+    if (textEl) {
+      if (line) {
+        textEl.hidden = false;
+        textEl.textContent = line;
+      } else {
+        textEl.hidden = true;
+      }
+    }
+  }
   function paintDualLabels() {
     var regime =
       lastProof.regime ||
@@ -3146,20 +3202,21 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       lastProof.regime ||
       buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure);
     lastProof.regime = regime;
+    var paceBit = buyPaceShort(lastProof.buys);
     if ($('dd-fomo-buy')) {
       var showFomoBuy = regime === 'dip' || regime === 'hot';
       $('dd-fomo-buy').href = showFomoBuy && mobile ? phantomHref : href;
       if (showFomoBuy) {
         $('dd-fomo-buy').hidden = false;
-        if (regime === 'dip') {
-          $('dd-fomo-buy').textContent = mobile
-            ? 'Wallet dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '')
-            : 'Buy the dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
-        } else {
-          $('dd-fomo-buy').textContent = mobile
-            ? 'Wallet ride · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '')
-            : 'Ride · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+        var fomoBits = [];
+        if (regime === 'dip') fomoBits.push(mobile ? 'Dip' : 'Dip buy');
+        else fomoBits.push(mobile ? 'Ride' : 'Ride');
+        fomoBits.push(buySol + ' SOL' + (usd1 ? ' · ' + usd1 : ''));
+        if (netBit && netBit !== '—' && String(netBit).charAt(0) === '+') {
+          fomoBits.push(netBit + ' net');
         }
+        if (paceBit) fomoBits.push(paceBit);
+        $('dd-fomo-buy').textContent = fomoBits.join(' · ');
       } else {
         $('dd-fomo-buy').hidden = true;
       }

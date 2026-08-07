@@ -718,6 +718,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   font-weight:800;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.15;
 }
 .dd-amt-sm.is-on{border-color:rgba(196,165,255,.65);background:rgba(196,165,255,.18);color:#fff}
+.dd-trust-bar{
+  display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;
+  width:100%;margin:0 0 6px;padding:4px 2px;font-size:11px;font-weight:700;
+  font-variant-numeric:tabular-nums;color:#d4c0ff;
+}
+.dd-trust-bar[hidden]{display:none!important}
+.dd-trust-bar-text{color:#e8d4ff}
 .dd-sticky-flow{
   font-size:11px;font-weight:700;color:#b8f0c8;font-variant-numeric:tabular-nums;
   letter-spacing:.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -731,6 +738,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-liq-trust{
   font-size:11px;font-weight:700;color:#c8b4ff;font-variant-numeric:tabular-nums;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+@media (max-width:560px){
+  .dd-trust-bar{margin:2px 0 8px;gap:2px 8px}
+  .dd-sticky-flow,.dd-liq-trust,.dd-session-line{display:none!important}
+  .dd-trust-bar-text{display:inline!important}
 }
 .dd-dual-go.has-usd{letter-spacing:-.01em}
 .dd-dual-go.has-net{border-color:rgba(120,255,180,.5)!important}

@@ -383,7 +383,11 @@ assert.ok(
   'phantom UL wraps amounted jup',
 );
 assert.ok(body.includes('id="dd-sticky-flow"'), 'sticky flow DOM');
-assert.ok(appJs.includes('phantomBrowseUrl') && appJs.includes('Wallet dip'), 'mobile FOMO phantom path');
+assert.ok(
+  appJs.includes('phantomBrowseUrl') &&
+    (appJs.includes('Wallet dip') || appJs.includes('fomoBits') || appJs.includes('phantomHref')),
+  'mobile FOMO phantom path',
+);
 assert.ok(kitStyles.includes('dd-sticky-flow'), 'v21 sticky flow style');
 // A headline should not double "24h" when label already has 24h prefix
 const headClean = DD.fomoDipHeadline(dip, '24h +511%', 'a', bp);
@@ -522,5 +526,26 @@ assert.ok(
 );
 assert.ok(appJs.includes('buyPaceShort') && appJs.includes('navigator.share'), 'v28 pace + native share');
 assert.ok(appJs.includes('showPostShare(pack)') || /showPostShare\(\s*pack\s*\)/.test(appJs), 'post-share dual pack');
+
+// V29: mobile-visible trust bar + FOMO buy net/pace
+assert.ok(typeof DD.trustBarLine === 'function', 'trustBarLine exported');
+const tbl = DD.trustBarLine(
+  '+127 net · ~15 buys/hr · NFA',
+  'Liq $28.5K · NFA',
+  DD.sessionDelta(80000, 84771),
+);
+assert.ok(tbl && /127/.test(tbl) && /Liq/.test(tbl) && /NFA/.test(tbl), 'trust bar combines flow+liq');
+assert.ok(body.includes('id="dd-trust-bar"') && body.includes('id="dd-trust-bar-text"'), 'trust bar DOM');
+assert.ok(
+  body.indexOf('dd-trust-bar') > body.indexOf('dd-sticky-meta') ||
+    body.includes('dd-trust-bar'),
+  'trust bar present for mobile',
+);
+assert.ok(appJs.includes('paintTrustBar') && appJs.includes('trustBarLine'), 'trust bar wiring');
+assert.ok(
+  appJs.includes('fomoBits') || (appJs.includes('paceBit') && appJs.includes('dd-fomo-buy')),
+  'FOMO buy nets pace bits',
+);
+assert.ok(kitStyles.includes('dd-trust-bar'), 'trust bar styles');
 
 console.log('dasha-share.test.mjs: PASS');

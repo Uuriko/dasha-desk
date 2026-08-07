@@ -526,6 +526,21 @@
   }
 
   /**
+   * Mobile-visible trust strip near sticky dual — pure.
+   * Combines flow + liq + session shorts (each already NFA-tagged).
+   */
+  function trustBarLine(flow, liqLine, session) {
+    var parts = [];
+    if (flow) parts.push(String(flow).replace(/\s*·\s*NFA\s*$/i, ''));
+    if (liqLine) parts.push(String(liqLine).replace(/\s*·\s*NFA\s*$/i, ''));
+    if (session && session.short && Math.abs(Number(session.pct)) >= 0.5) {
+      parts.push(session.short);
+    }
+    if (!parts.length) return null;
+    return parts.join(' · ') + ' · NFA';
+  }
+
+  /**
    * One-tap dual action plan: copy CA+buy+desk then open wallet/buy.
    * Pure — unit-tested; runtime copies payload and navigates to href.
    * regime: 'dip' | 'hot' | 'neutral' shapes the label.
@@ -716,6 +731,7 @@
     dualGoPlan: dualGoPlan,
     dualCopyPayload: dualCopyPayload,
     buyPaceShort: buyPaceShort,
+    trustBarLine: trustBarLine,
     buyRegime: buyRegime,
     hotBuyHeadline: hotBuyHeadline,
     sessionDelta: sessionDelta,
@@ -1165,6 +1181,8 @@
         if ($('dd-fomo-sub') && flow) {
           $('dd-fomo-sub').textContent = flow;
         }
+        // V29: paint mobile-visible trust bar (outside sticky-meta)
+        paintTrustBar();
         var bp = buyPressure(lastProof.buys, lastProof.sells);
         lastProof.pressure = bp;
         if ($('dd-pressure')) {
@@ -1209,6 +1227,7 @@
           if ($('dd-fomo-sub') && lastProof.session && Math.abs(lastProof.session.pct) >= 0.5) {
             $('dd-fomo-sub').textContent = lastProof.session.line;
           }
+          paintTrustBar();
         }
         // Poll-to-poll move flash (real Dex only)
         var movePct = null;
@@ -1611,6 +1630,27 @@
       });
     },
   );
+  function paintTrustBar() {
+    var bar = $('dd-trust-bar');
+    var textEl = $('dd-trust-bar-text');
+    var line = trustBarLine(
+      lastProof.flow,
+      lastProof.liqLine,
+      lastProof.session,
+    );
+    lastProof.trustBar = line;
+    if (bar) {
+      bar.hidden = !line;
+    }
+    if (textEl) {
+      if (line) {
+        textEl.hidden = false;
+        textEl.textContent = line;
+      } else {
+        textEl.hidden = true;
+      }
+    }
+  }
   function paintDualLabels() {
     var regime =
       lastProof.regime ||
@@ -1983,20 +2023,21 @@
       lastProof.regime ||
       buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure);
     lastProof.regime = regime;
+    var paceBit = buyPaceShort(lastProof.buys);
     if ($('dd-fomo-buy')) {
       var showFomoBuy = regime === 'dip' || regime === 'hot';
       $('dd-fomo-buy').href = showFomoBuy && mobile ? phantomHref : href;
       if (showFomoBuy) {
         $('dd-fomo-buy').hidden = false;
-        if (regime === 'dip') {
-          $('dd-fomo-buy').textContent = mobile
-            ? 'Wallet dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '')
-            : 'Buy the dip · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
-        } else {
-          $('dd-fomo-buy').textContent = mobile
-            ? 'Wallet ride · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '')
-            : 'Ride · ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+        var fomoBits = [];
+        if (regime === 'dip') fomoBits.push(mobile ? 'Dip' : 'Dip buy');
+        else fomoBits.push(mobile ? 'Ride' : 'Ride');
+        fomoBits.push(buySol + ' SOL' + (usd1 ? ' · ' + usd1 : ''));
+        if (netBit && netBit !== '—' && String(netBit).charAt(0) === '+') {
+          fomoBits.push(netBit + ' net');
         }
+        if (paceBit) fomoBits.push(paceBit);
+        $('dd-fomo-buy').textContent = fomoBits.join(' · ');
       } else {
         $('dd-fomo-buy').hidden = true;
       }
