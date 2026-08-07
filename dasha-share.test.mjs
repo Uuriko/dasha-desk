@@ -244,5 +244,8 @@ assert.ok(appJs.includes('pushSparkSample') && appJs.includes('renderSpark'), 's
 assert.ok(appJs.includes('dd_invite_shares') || appJs.includes('inviteSharesBump'), 'invite share counter');
 assert.ok(kitStyles.includes('dd-spark') && kitStyles.includes('dd-invite-loop'), 'spark+invite styles');
 assert.ok(/not a chart promise|NFA/i.test(body), 'spark honesty copy');
+// loadMarket must null-guard optional stat nodes (embed may strip rows)
+assert.ok(appJs.includes("if ($('s-5m'))") && appJs.includes("if ($('s-price'))"), 'guarded stat writes');
+assert.ok(appJs.includes("if (!$('dd-paste')") || appJs.includes("if (!$('dd-paste') || !$('dd-verify'))"), 'verify guards missing paste');
 
 console.log('dasha-share.test.mjs: PASS');

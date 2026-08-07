@@ -500,6 +500,7 @@
       .replace(/^["']|["']$/g, '');
   }
   function verify() {
+    if (!$('dd-paste') || !$('dd-verify')) return;
     var raw = normalizeMint($('dd-paste').value);
     var box = $('dd-verify');
     if (!raw) {
@@ -527,7 +528,7 @@
   }
   function loadMarket() {
     var asof = $('dd-asof');
-    asof.textContent = 'Loading Dex…';
+    if (asof) asof.textContent = 'Loading Dex…';
     fetch('https://api.dexscreener.com/latest/dex/tokens/' + CA, { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -546,14 +547,15 @@
         var mcap = p.marketCap || p.fdv;
         var liq = p.liquidity && p.liquidity.usd;
         var vol = p.volume && p.volume.h24;
-        $('s-price').textContent = fmtUsd(p.priceUsd);
-        $('s-mcap').textContent = fmtUsd(mcap);
-        $('s-liq').textContent = fmtUsd(liq);
-        $('s-vol').textContent = fmtUsd(vol);
-        $('s-5m').textContent = fmtPct(ch.m5);
-        $('s-1h').textContent = fmtPct(ch.h1);
-        $('s-6h').textContent = fmtPct(ch.h6);
-        $('s-24h').textContent = fmtPct(ch.h24);
+        // Guard every DOM write — embed minify may strip optional rows
+        if ($('s-price')) $('s-price').textContent = fmtUsd(p.priceUsd);
+        if ($('s-mcap')) $('s-mcap').textContent = fmtUsd(mcap);
+        if ($('s-liq')) $('s-liq').textContent = fmtUsd(liq);
+        if ($('s-vol')) $('s-vol').textContent = fmtUsd(vol);
+        if ($('s-5m')) $('s-5m').textContent = fmtPct(ch.m5);
+        if ($('s-1h')) $('s-1h').textContent = fmtPct(ch.h1);
+        if ($('s-6h')) $('s-6h').textContent = fmtPct(ch.h6);
+        if ($('s-24h')) $('s-24h').textContent = fmtPct(ch.h24);
         if ($('p-mcap')) $('p-mcap').textContent = fmtUsd(mcap);
         if ($('p-liq')) $('p-liq').textContent = fmtUsd(liq);
         if ($('p-vol')) $('p-vol').textContent = fmtUsd(vol);
@@ -711,7 +713,7 @@
         var info = p.info || {};
         var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
         if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
-        asof.textContent = new Date().toLocaleString() + ' · Dex';
+        if (asof) asof.textContent = new Date().toLocaleString() + ' · Dex';
         if ($('dd-live')) $('dd-live').textContent = 'live';
         if (window.__ddRefreshSpTweet) window.__ddRefreshSpTweet();
         if (window.__ddRefreshRaidKit) window.__ddRefreshRaidKit();
