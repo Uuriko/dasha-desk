@@ -1,0 +1,39 @@
+name: Bug report
+description: Report a reproducible Dasha Desk defect
+title: "Bug: "
+body:
+  - type: markdown
+    attributes:
+      value: Security-sensitive reports belong in SECURITY.md. Never post seed phrases, private keys, tokens, or exploit details here.
+  - type: textarea
+    id: observed
+    attributes:
+      label: What happened?
+      description: Include the page, control, and exact result.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Give the shortest steps that reproduce the issue.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: Firefox 142, Android 15
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I did not include secrets, private keys, seed phrases, or private vulnerability details.
+          required: true
