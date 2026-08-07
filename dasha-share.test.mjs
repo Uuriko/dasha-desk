@@ -693,13 +693,13 @@ assert.ok(kitStyles.includes('has-micro'), 'micro styles');
 assert.ok(typeof DD.sizeChipHint === 'function', 'sizeChipHint exported');
 const hintDeep = DD.sizeChipHint(2, deepReclaim);
 assert.ok(hintDeep && hintDeep.recommended && /Deep/.test(hintDeep.tag), 'deep 2 SOL recommended');
-// V55: deep + still green → still tag
-assert.ok(/still/i.test(hintDeep.tag) && hintDeep.hasStill, 'deep chip still tag');
+// V57: deep + still green → Buy · Deep
+assert.ok(/^Buy · Deep/i.test(hintDeep.tag) && hintDeep.hasStill && hintDeep.buyFirst, 'deep chip buy-first');
 assert.equal(DD.sizeChipHint(1, deepReclaim), null, '1 SOL not deep nudge');
 assert.equal(DD.sizeChipHint(2, null), null, 'no dip null');
 const hintHard = DD.sizeChipHint(1, hardDip);
 assert.ok(hintHard && /Hard/.test(hintHard.tag), 'hard 1 SOL recommended');
-assert.ok(/still/i.test(hintHard.tag) && hintHard.hasStill, 'hard chip still tag');
+assert.ok(/^Buy · Hard/i.test(hintHard.tag) && hintHard.hasStill && hintHard.buyFirst, 'hard chip buy-first');
 const liveDeep = DD.buildLiveProof('$60.0K', '+25%', deepReclaim, '+41');
 assert.ok(/deep dip/i.test(liveDeep) && /24h \+.*still/i.test(liveDeep), 'live pack deep still');
 assert.ok(/\+41 net/.test(liveDeep) && liveDeep.includes('$60.0K'), 'live pack net+mcap');
@@ -931,14 +931,14 @@ assert.ok(/1h dip/i.test(headSoftRedA), 'v54 soft red A status');
 assert.ok(/^Buy the dip/i.test(headSoftRedB), 'v54 soft red B buy the dip');
 assert.ok(appJs.includes('Buy · Soft dip') || appJs.includes('buyFirstMain'), 'v54 wiring');
 
-// V55: size chip still tags when 24h green (dump stays Dump)
+// V55/V57: size chip buy-first when 24h green (dump stays Dump)
 const hintDumpNoStill = DD.sizeChipHint(1, dump);
 assert.ok(hintDumpNoStill && hintDumpNoStill.tag === 'Dump', 'dump chip no still');
 assert.ok(!hintDumpNoStill.hasStill, 'dump hasStill false');
 const hardLive55 = { shortLabel: '6h', shortPct: -15.3, ch24: 1.6 };
 const hintLive = DD.sizeChipHint(1, hardLive55);
-assert.ok(hintLive && hintLive.tag === 'Hard · still', 'v55 live hard still tag');
-assert.ok(appJs.includes('Hard · still') || appJs.includes('hasStill'), 'v55 wiring');
+assert.ok(hintLive && hintLive.tag === 'Buy · Hard', 'v57 live hard buy chip');
+assert.ok(appJs.includes('Buy · ') && appJs.includes('hasStill'), 'v55/v57 wiring');
 
 // V56: FOMO sub + raid buy-first when still green
 const stillHard56 = DD.dipStillLine(DD.stillGreen24(hardLive55), hardLive55);
@@ -946,5 +946,19 @@ assert.ok(/^Buy · Hard/i.test(stillHard56) && /still/i.test(stillHard56), 'v56 
 const raidHard56 = DD.dipRaidLabel(hardLive55, DD.stillGreen24(hardLive55), true);
 assert.ok(/^Buy · Hard raid/i.test(raidHard56) && /· X$/.test(raidHard56), 'v56 hard raid buy-first X');
 assert.ok(appJs.includes('Buy · ') && appJs.includes('dipRaidLabel'), 'v56 wiring');
+
+// V57: sticky dip + sticky 24h still labels (buy-first sticky meta)
+assert.ok(typeof DD.stickyDipLabel === 'function', 'stickyDipLabel exported');
+assert.ok(typeof DD.stickyChLabel === 'function', 'stickyChLabel exported');
+const sd = DD.stickyDipLabel(hardLive55);
+assert.ok(sd && /^Buy · 6h\s+-15/.test(sd), 'v57 sticky dip buy-first short TF');
+assert.equal(DD.stickyDipLabel(null), null, 'null sticky dip');
+const sc = DD.stickyChLabel(1.45, hardLive55);
+assert.ok(sc && /^24h \+1\.45% still$/.test(sc), 'v57 sticky ch still tag');
+const scRed = DD.stickyChLabel(-2, { shortLabel: '1h', shortPct: -3, ch24: -2 });
+assert.ok(scRed && scRed === '24h -2.00%' && !/still/i.test(scRed), 'v57 red 24h no still');
+const scFlat = DD.stickyChLabel(5, null);
+assert.ok(scFlat && scFlat === '24h +5.00%' && !/still/i.test(scFlat), 'v57 no-dip ch plain');
+assert.ok(appJs.includes('stickyDipLabel') && appJs.includes('stickyChLabel'), 'v57 wiring');
 
 console.log('dasha-share.test.mjs: PASS');

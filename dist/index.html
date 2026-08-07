@@ -1499,7 +1499,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   /**
    * Recommended size chip during dip — pure (V38).
    * Marks the depth-nudge SOL on FOMO/sticky chips for conversion.
-   * V55: when 24h still green, tag becomes "Hard · still" / "Deep · still" / "still".
+   * V55/V57: still-green → "Buy · Hard" / "Buy · Deep" / "Buy · still"; dump → "Dump".
    */
   function sizeChipHint(sol, dip) {
     if (sol == null || sol === '' || !dip) return null;
@@ -1514,10 +1514,12 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           ? depth.tag
           : 'Dip';
     var still = dip.kind === 'dump' ? null : stillGreen24(dip);
-    // V55: still-green recommended chip → honest still tag for conversion
+    // V57: buy-first chip tag when 24h still green (hard/deep/soft)
     if (still && still.short) {
       tag =
-        depth && depth.tier !== 'soft' ? depth.tag + ' · still' : 'still';
+        depth && depth.tier !== 'soft'
+          ? 'Buy · ' + depth.tag
+          : 'Buy · still';
     }
     return {
       recommended: true,
@@ -1525,7 +1527,37 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       tag: tag,
       tier: depth ? depth.tier : 'soft',
       hasStill: !!still,
+      buyFirst: !!(still && still.short),
     };
+  }
+
+  /**
+   * Sticky dip chip label — pure V57.
+   * Raw "1h -5.97%" becomes "Buy · 1h -5.97%" during dip/dump.
+   */
+  function stickyDipLabel(dip) {
+    if (!dip || dip.shortLabel == null || dip.shortPct == null) return null;
+    var pct = Number(dip.shortPct);
+    if (!isFinite(pct)) return null;
+    var short =
+      (pct > 0 ? '+' : '') +
+      (Math.abs(pct) >= 10 ? pct.toFixed(0) : pct.toFixed(2)) +
+      '%';
+    return 'Buy · ' + dip.shortLabel + ' ' + short;
+  }
+
+  /**
+   * Sticky 24h chip label — pure V57.
+   * During dip with 24h still green: "24h +1.4% still"; else "24h +1.4%".
+   */
+  function stickyChLabel(ch24, dip) {
+    var n = ch24 != null ? Number(ch24) : NaN;
+    if (!isFinite(n)) return null;
+    var core =
+      '24h ' + (n > 0 ? '+' : '') + (Math.abs(n) >= 10 ? n.toFixed(0) : n.toFixed(2)) + '%';
+    var still = dip && dip.kind !== 'dump' ? stillGreen24(dip, n) : null;
+    if (still && still.short) return core + ' still';
+    return core;
   }
 
   /**
@@ -2698,6 +2730,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
     sizeChipHint: sizeChipHint,
+    stickyDipLabel: stickyDipLabel,
+    stickyChLabel: stickyChLabel,
     dumpBuyLead: dumpBuyLead,
     dipBuyLead: dipBuyLead,
     dumpSizeAutofocus: dumpSizeAutofocus,
@@ -3473,7 +3507,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           if ($('dd-sticky-dip')) {
             if (lastProof.dip) {
               $('dd-sticky-dip').hidden = false;
+              // V57: buy-first sticky dip chip (honest short TF)
               $('dd-sticky-dip').textContent =
+                stickyDipLabel(lastProof.dip) ||
                 lastProof.dip.shortLabel + ' ' + fmtPct(lastProof.dip.shortPct);
             } else {
               $('dd-sticky-dip').hidden = true;
@@ -3614,7 +3650,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         }
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
         if ($('dd-sticky-ch')) {
-          $('dd-sticky-ch').textContent = '24h ' + fmtPct(ch.h24);
+          // V57: 24h still tag on sticky when dip+green
+          var chLab =
+            stickyChLabel(ch.h24, lastProof.dip) ||
+            '24h ' + fmtPct(ch.h24);
+          $('dd-sticky-ch').textContent = chLab;
           setTone($('dd-sticky-ch'), ch.h24);
         }
         var chartUrl = safeProviderUrl(p.url, 'dexscreener.com');
