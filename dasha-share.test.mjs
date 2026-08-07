@@ -608,4 +608,18 @@ assert.equal((tblRec.match(/NFA/gi) || []).length, 1, 'trust bar single NFA with
 assert.ok(appJs.includes('dipReclaimLine') && appJs.includes('is-reclaim'), 'v33 wiring');
 assert.ok(kitStyles.includes('is-reclaim'), 'reclaim sub styles');
 
+// V34: still-after-deep FOMO sub line
+assert.ok(typeof DD.dipStillLine === 'function', 'dipStillLine exported');
+const stillDeep = DD.stillGreen24(deepReclaim);
+const stillLine = DD.dipStillLine(stillDeep, deepReclaim);
+assert.ok(stillLine && /still/i.test(stillLine) && /after 6h deep/i.test(stillLine), 'still-after-deep line');
+assert.ok(/NFA/i.test(stillLine), 'still line NFA');
+assert.equal(
+  DD.dipStillLine(stillDeep, { shortLabel: '1h', shortPct: -3, ch24: 10 }),
+  null,
+  'soft dip no still-line',
+);
+assert.ok(appJs.includes('dipStillLine') && appJs.includes('is-still-deep'), 'v34 wiring');
+assert.ok(kitStyles.includes('is-still-deep'), 'still-deep sub styles');
+
 console.log('dasha-share.test.mjs: PASS');

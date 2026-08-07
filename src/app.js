@@ -450,6 +450,24 @@
     return bits.join(' · ') + ' · NFA';
   }
 
+  /**
+   * FOMO-sub line when 24h still green after hard/deep short-TF dip — pure.
+   * e.g. "24h +2.1% still · after 6h deep · NFA"
+   */
+  function dipStillLine(still, dip) {
+    if (!still || !still.short) return null;
+    var depth = dipDepth(dip);
+    if (!depth || depth.tier === 'soft') return null;
+    return (
+      still.short +
+      ' still · after ' +
+      depth.shortLabel +
+      ' ' +
+      depth.tag.toLowerCase() +
+      ' · NFA'
+    );
+  }
+
   /** FOMO A/B dip headlines — pure, unit-tested via DDShare.fomoDipHeadline */
   function fomoDipHeadline(dip, ch24Label, ab, bp) {
     if (!dip) return '';
@@ -894,6 +912,7 @@
     stillGreen24: stillGreen24,
     dipReclaim: dipReclaim,
     dipReclaimLine: dipReclaimLine,
+    dipStillLine: dipStillLine,
     netBuysLine: netBuysLine,
     netBuysShort: netBuysShort,
     buysPaceLine: buysPaceLine,
@@ -1349,21 +1368,33 @@
             $('dd-sticky-flow').hidden = true;
           }
         }
-        // V33: FOMO sub prefers reclaim line when multi-hour dip is bouncing
+        // V33/V34: FOMO sub — reclaim > still-after-deep > flow
         var reclaimNow = lastProof.dip
           ? dipReclaim(lastProof.dip, lastProof.ch1n)
           : null;
         var reclaimLineNow = reclaimNow
           ? dipReclaimLine(reclaimNow, lastProof.dip)
           : null;
+        var stillNow = lastProof.dip
+          ? stillGreen24(lastProof.dip, lastProof.ch24n)
+          : null;
+        var stillLineNow = stillNow
+          ? dipStillLine(stillNow, lastProof.dip)
+          : null;
         lastProof.reclaim = reclaimNow;
         lastProof.reclaimLine = reclaimLineNow;
+        lastProof.stillLine = stillLineNow;
         if ($('dd-fomo-sub')) {
           if (reclaimLineNow) $('dd-fomo-sub').textContent = reclaimLineNow;
+          else if (stillLineNow) $('dd-fomo-sub').textContent = stillLineNow;
           else if (flow) $('dd-fomo-sub').textContent = flow;
         }
         if ($('dd-fomo')) {
           $('dd-fomo').classList.toggle('is-reclaim', !!reclaimNow);
+          $('dd-fomo').classList.toggle(
+            'is-still-deep',
+            !reclaimNow && !!stillLineNow,
+          );
         }
         // V29: paint mobile-visible trust bar (outside sticky-meta)
         paintTrustBar();
@@ -1407,10 +1438,12 @@
               $('dd-session-line').hidden = true;
             }
           }
-          // FOMO sub: reclaim > session urgency > flow (conversion during bounce)
+          // FOMO sub: reclaim > still-after-deep > session > flow
           if ($('dd-fomo-sub')) {
             if (lastProof.reclaimLine) {
               $('dd-fomo-sub').textContent = lastProof.reclaimLine;
+            } else if (lastProof.stillLine) {
+              $('dd-fomo-sub').textContent = lastProof.stillLine;
             } else if (
               lastProof.session &&
               Math.abs(lastProof.session.pct) >= 0.5
