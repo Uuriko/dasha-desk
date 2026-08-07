@@ -1,19 +1,19 @@
 {
   "schema": "dasha.webflow-rc/1",
-  "capturedAt": "2026-08-07T08:07:56Z",
+  "capturedAt": "2026-08-07T08:22:18Z",
   "source": {
-    "commit": "679a7fa607590ef49236e763260c4b427a609f80",
+    "commit": "9cffc4ab2dae8748c2fcde1d3f8ac0a490615286",
     "clean": true,
     "files": {
-      "src/app.html": { "bytes": 55240, "sha256": "75c72084fccbc684a6b0031d3ff8705afedcbc01879ba8476e91bb2649c8e08c" },
+      "src/app.html": { "bytes": 55343, "sha256": "d79774b326b519749ed421a08c2d5189062fc1f60b80d514b5f51505314ac6bd" },
       "src/body.html": { "bytes": 14218, "sha256": "0a278802ad0aba86f5a4c67b008f1b2e8c27daf8f520d5d883b05c6f4129d0dc" },
-      "src/app.js": { "bytes": 20122, "sha256": "ca4137cbeae10a5f45824833d615e4f3ade383a62f00a82dde18f309cd2fd5f5" },
+      "src/app.js": { "bytes": 20225, "sha256": "c70d1ed564324ba42aa83bff52f6bab225f668b9ce174416b22c482d3d2c81aa" },
       "src/styles.css": { "bytes": 20864, "sha256": "366b1446f28aeaa4de3f2c1868343af0dc5a73390f24815ff39bfa6b915e736c" }
     }
   },
   "webflow": {
     "siteId": "5f1458122ba25e70a3ff2bd0",
-    "lastPublished": "2026-08-07T08:07:00.684Z",
+    "lastPublished": "2026-08-07T08:18:23.770Z",
     "customDomains": [],
     "homePageId": "5f1458136c15aa41639b8538",
     "legacyDeskPageId": "6a74b59530c70741b1c574c4",
@@ -22,15 +22,15 @@
       "slug": "labs",
       "draft": true,
       "publicStatus": 404,
-      "embedBytes": 32812,
-      "embedSha256": "44f94956e19d5b9447accaa7ffe5b68936a96f83fd10ba605d29bc96c29c94af",
+      "embedBytes": 32778,
+      "embedSha256": "c0691583e27b04d3f92422bb13182ab750e46ffd896632f302b0cc72b223f748",
       "openGraphDescription": "Record a thesis, an invalidation condition, and an exact resolution date. Device-timed and locally checksummed. No wallet, no trading, no safety score."
     },
     "deskCandidate": { "pageId": "6a758d786dc08f46cfb2539c", "slug": "desk-rc", "draft": true, "publicStatus": 404 }
   },
   "candidatePayload": {
     "markup": { "bytes": 35160, "sha256": "99f362040d11c10732db4cc23ec916de712e4b6b1ffb6cbbc81ace32a4d648f4" },
-    "runtime": { "bytes": 21564, "sha256": "f9cbd9c662ac4b2353239e998d765bc45539a346924e5b2398a57b7b15aaefc5" },
+    "runtime": { "bytes": 21667, "sha256": "4605b21f79efd70e4c2b17d9e512205e46d0dff7a128c04ed87cb0c1aa0b06ec" },
     "legacyNavigationVisible": false
   },
   "intendedRoutes": {
