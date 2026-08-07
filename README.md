@@ -49,6 +49,9 @@ node build.mjs --check  # fail if generated files drift
 node dasha-share.test.mjs
 node mint-manifest-lint.mjs       # deterministic identity/provenance checks
 node mint-manifest-lint.test.mjs  # hostile-input mutation checks
+node launch-check.mjs --prelaunch # warning-only report before domain cutover
+node launch-check.mjs --launch    # strict production readiness
+node launch-check.test.mjs        # offline parser regression check
 ```
 
 Generated surfaces: [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for normal hosting, and [`dist/index.html`](dist/index.html) for single-file hosting.
@@ -73,7 +76,7 @@ X scrape for landing voice/media: [`docs/X-RESEARCH-DASHA-2026-08-06.md`](docs/X
 
 See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
-**GitHub Pages** is enabled from `main` (root).  
+**GitHub Pages:** workflow prepared; repository Pages is not yet enabled and currently returns 404.
 **Webflow:** embed `src/app.html` inline — do not iframe third-party hosts that send `X-Frame-Options: DENY`.
 
 ## License

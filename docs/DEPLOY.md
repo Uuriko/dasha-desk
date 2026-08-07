@@ -15,17 +15,28 @@
 
 - Webflow site `5f1458122ba25e70a3ff2bd0` reports `customDomains: []`;
 - both `getdasha.com` and `www.getdasha.com` fail DNS resolution from the project host;
-- the Webflow root page is still titled “John's Awesome Project”; Dasha currently lives at `/dasha`.
+- the Webflow root is a separate working **Dasha Labs** thesis-card tool, while the mint desk lives at `/dasha`;
+- neither page emits `rel=canonical` or `og:url`, the root does not link to the desk, and the generated sitemap is unavailable.
 
 Cutover order:
 
-1. Make the Dasha landing experience the Webflow root and keep every important surface reachable through ordinary links.
-2. Add the custom domain in Webflow and copy the site-specific DNS records it returns; do not reuse remembered Webflow IP addresses.
-3. Preserve unrelated MX/TXT records, verify ownership, publish, and confirm SSL.
-4. Use `www.getdasha.com` as the sole canonical host and permanently redirect the apex, staging hostname, and duplicate paths.
-5. Set absolute canonical/OG URLs, block staging indexing, enable the generated sitemap, and verify its routes.
+1. Preserve the current Dasha Labs tool at `/labs`, including its form behavior and metadata.
+2. Make the mint desk the Webflow root from canonical `src/app.html`; add visible reciprocal links between `/` and `/labs`.
+3. Permanently redirect legacy `/dasha` and `/dasha/` requests to `/`, preserving query strings.
+4. Add the custom domain in Webflow and copy the site-specific DNS records it returns; do not reuse remembered Webflow IP addresses.
+5. Preserve unrelated MX/TXT records, verify ownership, publish, and confirm SSL.
+6. Use `www.getdasha.com` as the sole canonical host and permanently redirect the apex and staging hostname.
+7. Set page-specific absolute canonical/OG URLs, block staging indexing, enable the generated sitemap, and list only `/` and `/labs`.
 
-Acceptance evidence: apex and `www` resolve; one redirects permanently to the other; the canonical root returns the Dasha page over HTTPS; certificate coverage is valid; `/robots.txt`, `/sitemap.xml`, canonical tags, OG image, and every internal link use the production host.
+Acceptance evidence: apex and `www` resolve; one redirects permanently to the other; `/` serves the mint desk; `/labs` preserves the thesis tool; `/dasha` redirects permanently to `/`; both pages link to each other; certificate coverage is valid; `/robots.txt`, `/sitemap.xml`, canonical tags, OG images, and every internal link use the production host.
+
+Run the live audit at any point:
+
+```bash
+node launch-check.mjs --prelaunch         # unavailable infrastructure is warning-only
+node launch-check.mjs --prelaunch --json  # machine-readable receipt
+node launch-check.mjs --launch            # production requirements are failures
+```
 
 ## Local
 
