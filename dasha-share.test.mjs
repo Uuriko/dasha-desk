@@ -622,4 +622,14 @@ assert.equal(
 assert.ok(appJs.includes('dipStillLine') && appJs.includes('is-still-deep'), 'v34 wiring');
 assert.ok(kitStyles.includes('is-still-deep'), 'still-deep sub styles');
 
+// V35: size vs liq impact on deep dual toast
+assert.ok(typeof DD.solLiqImpact === 'function', 'solLiqImpact exported');
+const impact = DD.solLiqImpact(2, 74, 24230);
+assert.ok(impact && impact.pct > 0 && /% liq/.test(impact.short), 'impact short');
+assert.equal(DD.solLiqImpact(2, 74, 100), null, 'tiny liq null');
+const dualImp = DD.dualGoPlan(2, true, 'dip', null, 74, '+42', 280, deepReclaim, 24230);
+assert.ok(dualImp.hasImpact && /% liq/.test(dualImp.toast), 'dual toast has liq impact');
+assert.ok(!/% liq/.test(dualImp.label || ''), 'label stays short without impact');
+assert.ok(appJs.includes('solLiqImpact') && appJs.includes('hasImpact'), 'v35 wiring');
+
 console.log('dasha-share.test.mjs: PASS');

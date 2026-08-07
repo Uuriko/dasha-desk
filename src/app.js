@@ -656,6 +656,26 @@
   }
 
   /**
+   * Buy size as % of pool liq — pure, honest Dex.
+   * Helps convert deep 2 SOL nudge (shows low impact when true).
+   */
+  function solLiqImpact(sol, solUsd, liq) {
+    var s = Number(sol);
+    var u = Number(solUsd);
+    var L = Number(liq);
+    if (!isFinite(s) || s <= 0 || !isFinite(u) || u <= 0 || !isFinite(L) || L < 1000) {
+      return null;
+    }
+    var pct = ((s * u) / L) * 100;
+    if (!isFinite(pct) || pct <= 0) return null;
+    var short =
+      '~' +
+      (pct < 1 ? pct.toFixed(2) : pct >= 10 ? pct.toFixed(0) : pct.toFixed(1)) +
+      '% liq';
+    return { pct: pct, short: short, label: short };
+  }
+
+  /**
    * Mobile-visible trust strip near sticky dual — pure.
    * Combines flow + liq + session shorts (each already NFA-tagged).
    */
@@ -697,7 +717,7 @@
    * netShort: optional netBuysShort() for social proof on label.
    * buys: optional Dex 24h buys for pace short on label/header.
    */
-  function dualGoPlan(sol, mobile, regime, session, solUsd, netShort, buys, dip) {
+  function dualGoPlan(sol, mobile, regime, session, solUsd, netShort, buys, dip, liq) {
     var jup = buyUrl(sol);
     var href = mobile ? phantomBrowseUrl(jup) : jup;
     var r = regime || 'neutral';
@@ -706,6 +726,11 @@
     var depth = r === 'dip' ? dipDepth(dip) : null;
     var still = r === 'dip' ? stillGreen24(dip) : null;
     var reclaim = r === 'dip' ? dipReclaim(dip) : null;
+    // V35: size vs liq impact (toast; deep dips only to keep labels short)
+    var impact =
+      r === 'dip' && depth && depth.tier !== 'soft'
+        ? solLiqImpact(sol, solUsd, liq)
+        : null;
     var label;
     if (r === 'dip') {
       label =
@@ -767,6 +792,7 @@
     if (size && size.label) toast = 'CA+buy · ' + size.label;
     if (still && still.short) toast = toast + ' · ' + still.short;
     if (reclaim && reclaim.short) toast = toast + ' · ' + reclaim.short;
+    if (impact && impact.short) toast = toast + ' · ' + impact.short;
     if (netShort && String(netShort).charAt(0) === '+') {
       toast = toast + ' · ' + netShort + ' net';
     }
@@ -787,6 +813,7 @@
       pace: pace,
       still: still,
       reclaim: reclaim,
+      impact: impact,
       session: session || null,
       netShort: netShort || null,
       hasRef: /[?&]ref=/.test(jup),
@@ -801,6 +828,7 @@
       hasPace: !!pace,
       hasStill24: !!still,
       hasReclaim: !!reclaim,
+      hasImpact: !!impact,
       depth: depth,
       isDeepDip: !!(depth && depth.tier === 'deep'),
       isHardDip: !!(depth && (depth.tier === 'deep' || depth.tier === 'hard')),
@@ -913,6 +941,7 @@
     dipReclaim: dipReclaim,
     dipReclaimLine: dipReclaimLine,
     dipStillLine: dipStillLine,
+    solLiqImpact: solLiqImpact,
     netBuysLine: netBuysLine,
     netBuysShort: netBuysShort,
     buysPaceLine: buysPaceLine,
@@ -1830,6 +1859,7 @@
       netBit,
       lastProof.buys,
       lastProof.dip,
+      lastProof.liq,
     );
     // V27/V28: copy pack (header+CA+buy+desk), open wallet, share dual pack
     var pack = plan.copyText || plan.ca;
@@ -1915,6 +1945,7 @@
       netBit,
       lastProof.buys,
       lastProof.dip,
+      lastProof.liq,
     );
     document.querySelectorAll('.dd-dual-go').forEach(function (b) {
       if (b.textContent && /copied/i.test(b.textContent)) return;
