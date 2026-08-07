@@ -447,6 +447,7 @@
    * Deep-dip tier from honest short TF % — pure.
    * hard: ≤ -10%, deep: ≤ -20%. null if not a meaningful dip depth.
    * V39: prefers depthPct (deepest red TF) when present.
+   * V40: dip.kind==='dump' → Deep/Hard dump words (not "dip buy zone").
    */
   function dipDepth(dip) {
     if (!dip) return null;
@@ -455,13 +456,15 @@
     if (!isFinite(pct) || pct >= -0.5) return null;
     var label =
       dip.depthLabel || dip.shortLabel || (pct <= -20 || pct <= -10 ? '6h' : '1h');
+    var dump = dip.kind === 'dump';
     if (pct <= -20) {
       return {
         tier: 'deep',
         shortLabel: label,
         shortPct: pct,
-        word: 'Deep dip',
+        word: dump ? 'Deep dump' : 'Deep dip',
         tag: 'Deep',
+        dump: dump,
       };
     }
     if (pct <= -10) {
@@ -469,23 +472,88 @@
         tier: 'hard',
         shortLabel: label,
         shortPct: pct,
-        word: 'Hard dip',
+        word: dump ? 'Hard dump' : 'Hard dip',
         tag: 'Hard',
+        dump: dump,
       };
     }
     return {
       tier: 'soft',
       shortLabel: dip.shortLabel || label,
       shortPct: Number(dip.shortPct) || pct,
-      word: 'Dip',
-      tag: 'Dip',
+      word: dump ? 'Dump' : 'Dip',
+      tag: dump ? 'Dump' : 'Dip',
+      dump: dump,
     };
+  }
+
+  /**
+   * Multi-hour hard/deep dump when classic dip-buy (24h green) is off — pure V40.
+   * Honest dump watch only; never invents green 24h.
+   */
+  function dumpWatchSignal(ch1, ch6, ch24) {
+    var h1 = Number(ch1);
+    var h6 = Number(ch6);
+    var h24 = Number(ch24);
+    // Classic dip-buy covers green 24h
+    if (isFinite(h24) && h24 > 0) return null;
+    var reds = [];
+    if (isFinite(h1) && h1 < -0.5) reds.push({ label: '1h', pct: h1 });
+    if (isFinite(h6) && h6 < -0.5) reds.push({ label: '6h', pct: h6 });
+    if (!reds.length) return null;
+    var display = reds[0];
+    var deepest = reds[0];
+    var ri;
+    for (ri = 1; ri < reds.length; ri++) {
+      if (reds[ri].pct < deepest.pct) deepest = reds[ri];
+    }
+    // Only hard/deep dumps (soft short + red 24h is noise)
+    if (deepest.pct > -10) return null;
+    var h24n = isFinite(h24) ? h24 : null;
+    return {
+      kind: 'dump',
+      shortLabel: display.label,
+      shortPct: display.pct,
+      depthLabel: deepest.label,
+      depthPct: deepest.pct,
+      ch24: h24n,
+      ch1: isFinite(h1) ? h1 : null,
+      ch6: isFinite(h6) ? h6 : null,
+      line:
+        deepest.label +
+        ' ' +
+        deepest.pct.toFixed(1) +
+        '%' +
+        (h24n != null
+          ? ' · 24h ' + (h24n > 0 ? '+' : '') + h24n.toFixed(1) + '%'
+          : '') +
+        ' · dump · NFA',
+    };
+  }
+
+  /** FOMO dump headline — pure V40 */
+  function fomoDumpHeadline(dump, bp) {
+    if (!dump) return '';
+    var depth = dipDepth(dump);
+    var lead = depth && depth.word ? depth.word : 'Dump';
+    var bits = [
+      lead,
+      (dump.depthLabel || dump.shortLabel) +
+        ' ' +
+        Number(dump.depthPct != null ? dump.depthPct : dump.shortPct).toFixed(1) +
+        '%',
+    ];
+    if (bp && bp.moreBuyers) bits.push(bp.pct + '% buys');
+    bits.push('NFA');
+    return bits.join(' · ');
   }
 
   /** Soft size nudge SOL for dip depth — pure (session applies once) */
   function dipSizeNudgeSol(dip) {
     var d = dipDepth(dip);
     if (!d) return null;
+    // V40: dump watch stays 1 SOL (24h not green — cautious size)
+    if (dip && dip.kind === 'dump') return 1;
     if (d.tier === 'deep') return 2;
     if (d.tier === 'hard') return 1;
     return 1;
@@ -698,10 +766,12 @@
   /**
    * Buy regime from honest Dex signals — pure, unit-tested.
    * dip: short-TF red with 24h green (dipBuySignal)
+   * dump: hard/deep short dump when 24h not green (dumpWatchSignal V40)
    * hot: short green + buy pressure (pump window)
    * neutral: otherwise
    */
   function buyRegime(dip, ch, bp) {
+    if (dip && dip.kind === 'dump') return 'dump';
     if (dip) return 'dip';
     var m5 = ch && ch.m5 != null ? Number(ch.m5) : NaN;
     var h1 = ch && ch.h1 != null ? Number(ch.h1) : NaN;
@@ -849,22 +919,32 @@
   function dualGoPlan(sol, mobile, regime, session, solUsd, netShort, buys, dip, liq) {
     var jup = buyUrl(sol);
     var href = mobile ? phantomBrowseUrl(jup) : jup;
-    var r = regime || 'neutral';
+    var isDump = !!(dip && dip.kind === 'dump');
+    var r = regime || (isDump ? 'dump' : 'neutral');
+    if (isDump && r !== 'hot') r = 'dump';
     var size = solSizeLabel(sol, solUsd);
     var pace = buyPaceShort(buys);
-    var depth = r === 'dip' ? dipDepth(dip) : null;
-    var still = r === 'dip' ? stillGreen24(dip) : null;
-    var reclaim = r === 'dip' ? dipReclaim(dip) : null;
+    var depth =
+      r === 'dip' || r === 'dump' || isDump ? dipDepth(dip) : null;
+    var still = r === 'dip' && !isDump ? stillGreen24(dip) : null;
+    var reclaim = r === 'dip' && !isDump ? dipReclaim(dip) : null;
     // V37: 5m micro-bounce when multi-hour dip and no 1h reclaim yet
     var micro =
-      r === 'dip' ? dipMicroBounce(dip, dip && dip.m5, reclaim) : null;
-    // V35: size vs liq impact (toast; deep dips only to keep labels short)
+      r === 'dip' && !isDump
+        ? dipMicroBounce(dip, dip && dip.m5, reclaim)
+        : null;
+    // V35: size vs liq impact (toast; hard/deep dip or dump)
     var impact =
-      r === 'dip' && depth && depth.tier !== 'soft'
+      depth && depth.tier !== 'soft'
         ? solLiqImpact(sol, solUsd, liq)
         : null;
     var label;
-    if (r === 'dip') {
+    if (r === 'dump' || isDump) {
+      label =
+        depth && depth.tier !== 'soft'
+          ? 'CA · ' + depth.tag + ' dump'
+          : 'CA · Dump';
+    } else if (r === 'dip') {
       label =
         depth && depth.tier !== 'soft'
           ? 'CA · ' + depth.tag + ' dip'
@@ -889,7 +969,22 @@
     }
     // Share header: regime + depth + still + reclaim + net + pace for viral paste
     var headerBits = ['$dasha'];
-    if (r === 'dip') {
+    if (r === 'dump' || isDump) {
+      headerBits.push(
+        depth && depth.tier !== 'soft'
+          ? depth.tag.toLowerCase() + ' dump'
+          : 'dump',
+      );
+      if (depth) {
+        headerBits.push(
+          depth.shortLabel +
+            ' ' +
+            (depth.shortPct > 0 ? '+' : '') +
+            depth.shortPct.toFixed(1) +
+            '%',
+        );
+      }
+    } else if (r === 'dip') {
       headerBits.push(
         depth && depth.tier !== 'soft'
           ? depth.tag.toLowerCase() + ' dip'
@@ -1072,6 +1167,8 @@
     solUsdEstimate: solUsdEstimate,
     fmtUsdRough: fmtUsdRough,
     dipBuySignal: dipBuySignal,
+    dumpWatchSignal: dumpWatchSignal,
+    fomoDumpHeadline: fomoDumpHeadline,
     fomoDipHeadline: fomoDipHeadline,
     dipDepth: dipDepth,
     dipSizeNudgeSol: dipSizeNudgeSol,
@@ -1488,6 +1585,10 @@
           }
         }
         lastProof.dip = dipBuySignal(ch.h1, ch.h6, ch.h24);
+        // V40: hard/deep dump watch when 24h not green (classic dip off)
+        if (!lastProof.dip) {
+          lastProof.dip = dumpWatchSignal(ch.h1, ch.h6, ch.h24);
+        }
         // V37: carry m5 on dip for micro-bounce (pure helpers read dip.m5)
         if (lastProof.dip) lastProof.dip.m5 = lastProof.m5n;
         var tx = (p.txns && p.txns.h24) || {};
@@ -1662,6 +1763,33 @@
             fomo.classList.remove('is-move');
             void fomo.offsetWidth;
             fomo.classList.add('is-move');
+          } else if (lastProof.dip && lastProof.dip.kind === 'dump') {
+            // V40: hard/deep dump when 24h not green — honest dump watch CTAs
+            lastProof.regime = 'dump';
+            $('dd-fomo-main').textContent = fomoDumpHeadline(lastProof.dip, bp);
+            fomo.classList.add('is-dip', 'is-dump');
+            fomo.classList.remove('is-up', 'is-down', 'is-hot-win');
+            var depthDump = dipDepth(lastProof.dip);
+            fomo.classList.toggle(
+              'is-deep',
+              !!(depthDump && depthDump.tier === 'deep'),
+            );
+            fomo.classList.toggle(
+              'is-hard',
+              !!(depthDump && depthDump.tier === 'hard'),
+            );
+            if ($('dd-fomo-ab')) $('dd-fomo-ab').hidden = true;
+            try {
+              var nudgeDump = dipSizeNudgeSol(lastProof.dip);
+              if (
+                nudgeDump &&
+                sessionStorage.getItem('dd_dump_size_nudge') !== '1' &&
+                localStorage.getItem('dd_buy_sol') == null
+              ) {
+                buySol = nudgeDump;
+                sessionStorage.setItem('dd_dump_size_nudge', '1');
+              }
+            } catch (eDumpN) {}
           } else if (lastProof.dip) {
             // Short-TF dip with 24h still green — A/B FOMO headlines
             lastProof.regime = 'dip';
@@ -1672,7 +1800,7 @@
               bp,
             );
             fomo.classList.add('is-dip');
-            fomo.classList.remove('is-up', 'is-down', 'is-hot-win');
+            fomo.classList.remove('is-up', 'is-down', 'is-hot-win', 'is-dump');
             var depthNow = dipDepth(lastProof.dip);
             fomo.classList.toggle('is-deep', !!(depthNow && depthNow.tier === 'deep'));
             fomo.classList.toggle('is-hard', !!(depthNow && depthNow.tier === 'hard'));
@@ -2100,9 +2228,13 @@
     document.querySelectorAll('.dd-dual-go').forEach(function (b) {
       if (b.textContent && /copied/i.test(b.textContent)) return;
       b.textContent = plan.label;
-      b.classList.toggle('dd-pulse-buy', regime === 'dip' || regime === 'hot');
-      b.classList.toggle('is-dip-dual', regime === 'dip');
+      b.classList.toggle(
+        'dd-pulse-buy',
+        regime === 'dip' || regime === 'hot' || regime === 'dump',
+      );
+      b.classList.toggle('is-dip-dual', regime === 'dip' || regime === 'dump');
       b.classList.toggle('is-hot-dual', regime === 'hot');
+      b.classList.toggle('is-dump-dual', regime === 'dump');
       b.classList.toggle('is-deep-dip', !!plan.isDeepDip);
       b.classList.toggle('is-hard-dip', !!plan.isHardDip);
       b.classList.toggle('has-usd', !!plan.hasUsd);
@@ -2122,7 +2254,11 @@
     });
     if ($('dd-sticky')) {
       $('dd-sticky').classList.toggle('is-hot', regime === 'hot');
-      $('dd-sticky').classList.toggle('is-dip', regime === 'dip');
+      $('dd-sticky').classList.toggle(
+        'is-dip',
+        regime === 'dip' || regime === 'dump',
+      );
+      $('dd-sticky').classList.toggle('is-dump', regime === 'dump');
     }
   }
   if ($('dd-sticky-live'))
@@ -2455,23 +2591,32 @@
       var stickyRegime =
         lastProof.regime ||
         buyRegime(lastProof.dip, { m5: lastProof.m5n, h1: lastProof.ch1n }, lastProof.pressure);
-      if (stickyRegime === 'dip') {
+      if (stickyRegime === 'dip' || stickyRegime === 'dump') {
         var sd = dipDepth(lastProof.dip);
-        var stillSticky = stillGreen24(lastProof.dip, lastProof.ch24n);
-        var reclaimSticky = dipReclaim(lastProof.dip, lastProof.ch1n);
-        var microSticky = dipMicroBounce(
-          lastProof.dip,
-          lastProof.m5n,
-          reclaimSticky,
-        );
+        var isDumpSticky = stickyRegime === 'dump' || (lastProof.dip && lastProof.dip.kind === 'dump');
+        var stillSticky = !isDumpSticky
+          ? stillGreen24(lastProof.dip, lastProof.ch24n)
+          : null;
+        var reclaimSticky = !isDumpSticky
+          ? dipReclaim(lastProof.dip, lastProof.ch1n)
+          : null;
+        var microSticky = !isDumpSticky
+          ? dipMicroBounce(lastProof.dip, lastProof.m5n, reclaimSticky)
+          : null;
         var bounceSticky =
           reclaimSticky && reclaimSticky.short
             ? reclaimSticky.short
             : microSticky && microSticky.short
               ? microSticky.short
               : '';
+        var dumpVerb =
+          sd && sd.tier !== 'soft'
+            ? sd.tag + (isDumpSticky ? ' dump' : ' dip')
+            : isDumpSticky
+              ? 'Dump'
+              : 'Dip';
         $('dd-buy-sticky').textContent =
-          (sd && sd.tier !== 'soft' ? sd.tag + ' dip' : 'Dip') +
+          dumpVerb +
           ' · ' +
           buySol +
           ' SOL' +
@@ -2504,12 +2649,20 @@
     lastProof.regime = regime;
     var paceBit = buyPaceShort(lastProof.buys);
     if ($('dd-fomo-buy')) {
-      var showFomoBuy = regime === 'dip' || regime === 'hot';
+      var showFomoBuy =
+        regime === 'dip' || regime === 'hot' || regime === 'dump';
       $('dd-fomo-buy').href = showFomoBuy && mobile ? phantomHref : href;
       if (showFomoBuy) {
         $('dd-fomo-buy').hidden = false;
         var fomoBits = [];
-        if (regime === 'dip') {
+        if (regime === 'dump') {
+          var fdDump = dipDepth(lastProof.dip);
+          fomoBits.push(
+            fdDump && fdDump.tier !== 'soft'
+              ? fdDump.tag + ' dump'
+              : 'Dump',
+          );
+        } else if (regime === 'dip') {
           var fd = dipDepth(lastProof.dip);
           fomoBits.push(
             fd && fd.tier !== 'soft'

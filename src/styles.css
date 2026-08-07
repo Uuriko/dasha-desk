@@ -770,6 +770,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   background:linear-gradient(180deg,rgba(240,60,20,.5),rgba(80,20,5,.55))!important;
   animation:dd-pulse 1.1s ease-in-out infinite;
 }
+.dd-dual-go.is-dump-dual{
+  border-color:rgba(255,120,90,.7)!important;
+  background:linear-gradient(180deg,rgba(180,50,30,.45),rgba(60,15,10,.5))!important;
+}
+#dd-fomo.is-dump .dd-fomo-main{color:#ffb8a0}
 .dd-dual-go.has-still24{box-shadow:0 0 12px rgba(100,220,140,.22)}
 .dd-dual-go.has-reclaim{box-shadow:0 0 14px rgba(120,255,160,.32)}
 .dd-dual-go.has-micro{box-shadow:0 0 12px rgba(140,230,180,.28)}

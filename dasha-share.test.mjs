@@ -709,4 +709,23 @@ assert.ok(stillMixed && /after 6h deep/i.test(stillMixed), 'mixed still-after-de
 assert.equal(DD.sizeChipHint(2, mixedDepth).tag, 'Deep', 'mixed chip Deep');
 assert.ok(appJs.includes('depthPct') && appJs.includes('depthLabel'), 'v39 wiring');
 
+// V40: dump watch when 24h not green but short TF hard/deep
+assert.ok(typeof DD.dumpWatchSignal === 'function', 'dumpWatchSignal exported');
+assert.ok(typeof DD.fomoDumpHeadline === 'function', 'fomoDumpHeadline exported');
+const dump = DD.dumpWatchSignal(-1.03, -29.63, -0.89);
+assert.ok(dump && dump.kind === 'dump' && dump.depthPct <= -29, 'dump from live-like TFs');
+assert.equal(DD.dumpWatchSignal(-1, -30, 5), null, 'no dump when 24h green');
+assert.equal(DD.dumpWatchSignal(-2, -5, -1), null, 'no dump for soft short only');
+assert.equal(DD.dipDepth(dump).tier, 'deep', 'dump depth deep');
+assert.ok(/Deep dump/i.test(DD.dipDepth(dump).word), 'dump word Deep dump');
+assert.equal(DD.dipSizeNudgeSol(dump), 1, 'dump size cautious 1 SOL');
+const headDump = DD.fomoDumpHeadline(dump, bpHot);
+assert.ok(/Deep dump/i.test(headDump) && /6h/.test(headDump) && /NFA/i.test(headDump), 'dump FOMO headline');
+const dualDump = DD.dualGoPlan(1, true, 'dump', null, 74, '+32', 258, dump, 24000);
+assert.ok(/Deep dump/i.test(dualDump.label) && dualDump.isDeepDip, 'dual dump label');
+assert.ok(dualDump.header && /deep dump/i.test(dualDump.header), 'dual dump header');
+assert.ok(dualDump.hasImpact && /% liq/.test(dualDump.toast || ''), 'dump toast impact');
+assert.ok(appJs.includes('dumpWatchSignal') && appJs.includes('is-dump') && appJs.includes('is-dump-dual'), 'v40 wiring');
+assert.ok(kitStyles.includes('is-dump-dual') || kitStyles.includes('is-dump'), 'dump styles');
+
 console.log('dasha-share.test.mjs: PASS');
