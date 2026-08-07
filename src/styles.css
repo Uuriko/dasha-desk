@@ -303,15 +303,23 @@
 .dd-token-hero img:hover{transform:scale(1.05) rotate(-2deg);box-shadow:0 0 32px var(--glow)}
 .dd-section{margin-bottom:14px}
 .dd-sticky{
-  position:sticky;bottom:12px;z-index:5;margin:16px 0 0;padding:12px 14px;border-radius:16px;
+  position:sticky;bottom:12px;z-index:5;margin:16px 0 0;padding:10px 12px;border-radius:16px;
   border:1px solid rgba(167,139,250,.45);
-  background:rgba(12,8,18,.88);
+  background:rgba(12,8,18,.92);
   backdrop-filter:blur(16px) saturate(1.2);
   display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
   box-shadow:0 12px 40px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.04) inset;
   animation:dd-in .5s ease .4s both;
 }
-.dd-sticky code{font-size:11px;word-break:break-all;color:#efe9ff;flex:1;min-width:140px}
+.dd-sticky-meta{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.dd-sticky-px{font-size:14px;color:#c4a5ff;font-variant-numeric:tabular-nums}
+.dd-sticky-ca{font-size:11px;color:#efe9ff;word-break:break-all}
+.dd-sticky-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dd-sticky-actions .dd-btn-lg{min-height:44px;padding:10px 16px}
+.dd-up{color:#7dffa3!important}
+.dd-down{color:#ff9b9b!important}
+.dd-proof-item strong.dd-up,.dd-proof-item strong.dd-down,
+.dd-stat strong.dd-up,.dd-stat strong.dd-down{color:inherit}
 .dd-img-broken{display:flex!important;align-items:center;justify-content:center;background:linear-gradient(145deg,#3b1d6e,#12091c);color:#c4a5ff;font-size:12px;font-weight:700;min-height:88px}
 .dd-foot{margin-top:8px;padding:14px 4px;color:var(--muted);font-size:12px;line-height:1.55;text-align:center}
 .dd-foot p{margin:0 0 6px}

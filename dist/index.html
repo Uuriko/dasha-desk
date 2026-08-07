@@ -320,15 +320,23 @@
 .dd-token-hero img:hover{transform:scale(1.05) rotate(-2deg);box-shadow:0 0 32px var(--glow)}
 .dd-section{margin-bottom:14px}
 .dd-sticky{
-  position:sticky;bottom:12px;z-index:5;margin:16px 0 0;padding:12px 14px;border-radius:16px;
+  position:sticky;bottom:12px;z-index:5;margin:16px 0 0;padding:10px 12px;border-radius:16px;
   border:1px solid rgba(167,139,250,.45);
-  background:rgba(12,8,18,.88);
+  background:rgba(12,8,18,.92);
   backdrop-filter:blur(16px) saturate(1.2);
   display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
   box-shadow:0 12px 40px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.04) inset;
   animation:dd-in .5s ease .4s both;
 }
-.dd-sticky code{font-size:11px;word-break:break-all;color:#efe9ff;flex:1;min-width:140px}
+.dd-sticky-meta{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.dd-sticky-px{font-size:14px;color:#c4a5ff;font-variant-numeric:tabular-nums}
+.dd-sticky-ca{font-size:11px;color:#efe9ff;word-break:break-all}
+.dd-sticky-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dd-sticky-actions .dd-btn-lg{min-height:44px;padding:10px 16px}
+.dd-up{color:#7dffa3!important}
+.dd-down{color:#ff9b9b!important}
+.dd-proof-item strong.dd-up,.dd-proof-item strong.dd-down,
+.dd-stat strong.dd-up,.dd-stat strong.dd-down{color:inherit}
 .dd-img-broken{display:flex!important;align-items:center;justify-content:center;background:linear-gradient(145deg,#3b1d6e,#12091c);color:#c4a5ff;font-size:12px;font-weight:700;min-height:88px}
 .dd-foot{margin-top:8px;padding:14px 4px;color:var(--muted);font-size:12px;line-height:1.55;text-align:center}
 .dd-foot p{margin:0 0 6px}
@@ -601,12 +609,16 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </article>
   </section>
 
-  <div class="dd-sticky dd-reveal" role="region" aria-label="Mint bar">
-    <code title="Associated mint">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
-    <strong id="dd-sticky-px" style="font-size:13px;color:#c4a5ff">—</strong>
-    <button type="button" class="dd-btn dd-btn-primary" id="dd-sticky-copy">Copy CA</button>
-    <a class="dd-btn dd-btn-primary" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
-    <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
+  <div class="dd-sticky dd-reveal" role="region" aria-label="Quick actions">
+    <div class="dd-sticky-meta">
+      <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
+      <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
+    </div>
+    <div class="dd-sticky-actions">
+      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
+      <button type="button" class="dd-btn dd-btn-primary" id="dd-sticky-copy">Copy CA</button>
+      <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid</a>
+    </div>
   </div>
 
   <footer class="dd-foot dd-reveal">
@@ -716,6 +728,15 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
 
+  function safeProviderUrl(raw, host) {
+    try {
+      var url = new URL(String(raw || ''));
+      return url.protocol === 'https:' && url.hostname === host ? url.href : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   var DDShare = {
     CA: CA,
     PAIR: PAIR,
@@ -725,6 +746,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
     intentTweet: intentTweet,
+    safeProviderUrl: safeProviderUrl,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
   if (typeof window !== 'undefined') window.DDShare = DDShare;
@@ -749,6 +771,14 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if (n == null || !isFinite(Number(n))) return '—';
     var v = Number(n);
     return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+  }
+  function setTone(el, n) {
+    if (!el) return;
+    el.classList.remove('dd-up', 'dd-down');
+    if (n == null || !isFinite(Number(n))) return;
+    var v = Number(n);
+    if (v > 0) el.classList.add('dd-up');
+    else if (v < 0) el.classList.add('dd-down');
   }
   function copy(text, el) {
     function ok() {
@@ -883,6 +913,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         if ($('p-liq')) $('p-liq').textContent = fmtUsd(liq);
         if ($('p-vol')) $('p-vol').textContent = fmtUsd(vol);
         if ($('p-24h')) $('p-24h').textContent = fmtPct(ch.h24);
+        setTone($('p-24h'), ch.h24);
+        setTone($('s-24h'), ch.h24);
+        setTone($('s-5m'), ch.m5);
+        setTone($('s-1h'), ch.h1);
+        setTone($('s-6h'), ch.h6);
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -894,10 +929,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           } else el.textContent = next;
         }
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
-        if (p.url) $('dd-chart').href = p.url;
+        var chartUrl = safeProviderUrl(p.url, 'dexscreener.com');
+        if (chartUrl && $('dd-chart')) $('dd-chart').href = chartUrl;
         var info = p.info || {};
-        if (info.imageUrl && $('dd-token-img'))
-          $('dd-token-img').src = String(info.imageUrl).split('?')[0];
+        var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
+        if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
         asof.textContent = new Date().toLocaleString() + ' · Dex';
         if ($('dd-live')) $('dd-live').textContent = 'live';
       })

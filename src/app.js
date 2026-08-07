@@ -99,6 +99,15 @@
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
 
+  function safeProviderUrl(raw, host) {
+    try {
+      var url = new URL(String(raw || ''));
+      return url.protocol === 'https:' && url.hostname === host ? url.href : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   var DDShare = {
     CA: CA,
     PAIR: PAIR,
@@ -108,6 +117,7 @@
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
     intentTweet: intentTweet,
+    safeProviderUrl: safeProviderUrl,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
   if (typeof window !== 'undefined') window.DDShare = DDShare;
@@ -132,6 +142,14 @@
     if (n == null || !isFinite(Number(n))) return '—';
     var v = Number(n);
     return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+  }
+  function setTone(el, n) {
+    if (!el) return;
+    el.classList.remove('dd-up', 'dd-down');
+    if (n == null || !isFinite(Number(n))) return;
+    var v = Number(n);
+    if (v > 0) el.classList.add('dd-up');
+    else if (v < 0) el.classList.add('dd-down');
   }
   function copy(text, el) {
     function ok() {
@@ -266,6 +284,11 @@
         if ($('p-liq')) $('p-liq').textContent = fmtUsd(liq);
         if ($('p-vol')) $('p-vol').textContent = fmtUsd(vol);
         if ($('p-24h')) $('p-24h').textContent = fmtPct(ch.h24);
+        setTone($('p-24h'), ch.h24);
+        setTone($('s-24h'), ch.h24);
+        setTone($('s-5m'), ch.m5);
+        setTone($('s-1h'), ch.h1);
+        setTone($('s-6h'), ch.h6);
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -277,10 +300,11 @@
           } else el.textContent = next;
         }
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
-        if (p.url) $('dd-chart').href = p.url;
+        var chartUrl = safeProviderUrl(p.url, 'dexscreener.com');
+        if (chartUrl && $('dd-chart')) $('dd-chart').href = chartUrl;
         var info = p.info || {};
-        if (info.imageUrl && $('dd-token-img'))
-          $('dd-token-img').src = String(info.imageUrl).split('?')[0];
+        var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
+        if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
         asof.textContent = new Date().toLocaleString() + ' · Dex';
         if ($('dd-live')) $('dd-live').textContent = 'live';
       })
