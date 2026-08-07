@@ -572,7 +572,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         <h2>Mint evidence</h2>
         <p class="dd-meta">RPC-reported mint snapshot at finalized commitment · not a cryptographic inclusion proof or safety score.</p>
       </div>
-      <button type="button" class="dd-linkish" id="dd-copy-evidence">Copy observation receipt</button>
+      <button type="button" class="dd-linkish" id="dd-copy-evidence">Copy evidence receipt</button>
     </div>
     <dl class="dd-evidence-grid">
       <div><dt>Account</dt><dd>SPL Mint · initialized</dd></div>
@@ -1028,8 +1028,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       document.body.appendChild(a);
       a.select();
       try {
-        document.execCommand('copy');
-        ok();
+        if (document.execCommand('copy')) ok();
       } catch (e) {}
       document.body.removeChild(a);
     }

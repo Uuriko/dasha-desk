@@ -241,5 +241,7 @@ assert.ok(!/dd-exit|dd-pulse-buy|dd-sticky-live|dd-sp-strip/.test(body + src), '
 assert.ok(!/localStorage|dd-hold|dd-copy-burst|dd-ticker|telegram\.me|t\.me\//i.test(body + src), 'no fake holding, copy-count, ticker, or Telegram channel state');
 assert.ok(!src.includes('p.marketCap || p.fdv'), 'FDV is never mislabeled as market cap');
 assert.ok(src.includes("lastProof = { mcap: '—', ch24: '—', at: '' }"), 'offline path clears shareable market state');
+assert.ok(body.includes('Copy evidence receipt'), 'receipt label remains accurate when market data is unavailable');
+assert.ok(src.includes("if (document.execCommand('copy')) ok();"), 'clipboard fallback reports success only when copying succeeds');
 
 console.log('dasha-share.test.mjs: PASS');

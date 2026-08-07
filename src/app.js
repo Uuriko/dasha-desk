@@ -312,8 +312,7 @@
       document.body.appendChild(a);
       a.select();
       try {
-        document.execCommand('copy');
-        ok();
+        if (document.execCommand('copy')) ok();
       } catch (e) {}
       document.body.removeChild(a);
     }
