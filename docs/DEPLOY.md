@@ -15,8 +15,10 @@ There is currently no verified public release. The hardened Webflow candidates r
 
 `getdasha.com` is not launch-ready as of 2026-08-07:
 
-- Webflow site `5f1458122ba25e70a3ff2bd0` reports `customDomains: []`;
-- both `getdasha.com` and `www.getdasha.com` fail DNS resolution from the project host;
+- Webflow site `5f1458122ba25e70a3ff2bd0` still reports `customDomains: []` (verified 2026-08-07 16:46 UTC);
+- DNS now exists: apex `A 198.202.211.1`; `www CNAME cdn.webflow.com`; authoritative nameservers remain Cloudflare (`troy` / `vera`);
+- both HTTPS hosts still fail: apex returns Cloudflare “DNS points to prohibited IP,” while `www` returns Cloudflare error 1014. This is an attachment/proxy configuration failure, not propagation;
+- the issued certificate covers `getdasha.com` and `*.getdasha.com` through 2026-11-05, so TLS issuance is not the active blocker;
 - the Webflow root is a separate working **Dasha Labs** thesis-card tool, while the mint desk lives at `/dasha`;
 - neither page emits `rel=canonical` or `og:url`, the root does not link to the desk, and the generated sitemap is unavailable.
 
