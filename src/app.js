@@ -2744,11 +2744,20 @@
             : isDumpSticky
               ? 'Dump'
               : 'Dip';
+        // V44: %liq impact on sticky dump/deep (matches dual/FOMO de-risk)
+        var impactSticky =
+          isDumpSticky || (sd && sd.tier === 'deep')
+            ? solLiqImpact(buySol, lastProof.solUsd, lastProof.liq)
+            : null;
         $('dd-buy-sticky').textContent =
           dumpVerb +
           ' · ' +
           buySol +
           ' SOL' +
+          (usd1 ? ' · ' + usd1 : '') +
+          (impactSticky && impactSticky.short
+            ? ' · ' + impactSticky.short
+            : '') +
           (stillSticky && stillSticky.short ? ' · ' + stillSticky.short : '') +
           (bounceSticky ? ' · ' + bounceSticky : '') +
           (netBit && netBit !== '—' && netBit !== '0' ? ' · ' + netBit + ' net' : '') +

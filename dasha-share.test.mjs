@@ -788,4 +788,14 @@ assert.ok(tblDumpFirst && /Deep dump/i.test(tblDumpFirst), 'trust dump-first ove
 assert.ok(!/reclaiming/i.test(tblDumpFirst), 'trust does not lead with reclaim during dump');
 assert.ok(appJs.includes('dump first') || appJs.includes('V43'), 'v43 wiring comment');
 
+// V44: sticky dump/deep carries solLiqImpact (parity with dual/FOMO buy)
+assert.ok(
+  appJs.includes('impactSticky') &&
+    appJs.includes('dd-buy-sticky') &&
+    appJs.includes('solLiqImpact'),
+  'v44 sticky liq impact wiring',
+);
+const stickyImpact = DD.solLiqImpact(1, 74, 24000);
+assert.ok(stickyImpact && /% liq/.test(stickyImpact.short), '1 SOL impact short for sticky');
+
 console.log('dasha-share.test.mjs: PASS');
