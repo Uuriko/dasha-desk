@@ -31,7 +31,7 @@ const fakeDoc = (...hrefs) => ({
 });
 assert.equal(
   DD.resolveDeskUrl(fakeDoc('https://www.getdasha.com/?utm=x#mint'), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha?utm=y#top' }, DD.DESK),
-  'https://www.getdasha.com/',
+  'https://johns-awesome-project-39b1b5.webflow.io/dasha',
 );
 assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha?utm=x#mint' }, DD.DESK), 'https://johns-awesome-project-39b1b5.webflow.io/dasha');
 assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://files.catbox.moe/sm5mo0.html#top' }, DD.DESK), 'https://files.catbox.moe/sm5mo0.html');
@@ -50,6 +50,7 @@ for (const href of [
 ]) assert.equal(DD.resolveDeskUrl(fakeDoc(), { href }, DD.DESK), '', href);
 assert.equal(DD.resolveDeskUrl(fakeDoc('https://evil.test/'), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha' }, DD.DESK), 'https://johns-awesome-project-39b1b5.webflow.io/dasha');
 assert.equal(DD.resolveDeskUrl(fakeDoc('https://www.getdasha.com/', 'https://evil.test/'), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha' }, DD.DESK), 'https://johns-awesome-project-39b1b5.webflow.io/dasha');
+assert.equal(DD.resolveDeskUrl(fakeDoc('https://www.getdasha.com/'), { href: 'https://example.test/dasha' }, DD.DESK), '', 'canonical metadata cannot turn an unknown host into a trusted runtime destination');
 
 const unsafe = load({ document: fakeDoc(), location: { href: 'https://example.test/dasha' } });
 assert.equal(unsafe.DESK, '');

@@ -29,14 +29,6 @@
     }
     if (!loc) return clean(fallback);
     var current = clean(loc.href);
-    var canonicals = [];
-    try {
-      canonicals = Array.from(doc && doc.querySelectorAll ? doc.querySelectorAll('link[rel]') : []).filter(function (link) {
-        return String(link.getAttribute('rel') || '').toLowerCase().split(/\s+/).includes('canonical');
-      });
-    } catch (_) {}
-    if (canonicals.length === 1 && clean(canonicals[0].getAttribute('href')) === DESK_FALLBACK)
-      return DESK_FALLBACK;
     return DESK_DEPLOYMENTS.includes(current) ? current : '';
   }
 
