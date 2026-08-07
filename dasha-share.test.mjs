@@ -288,4 +288,24 @@ assert.ok(appJs.includes('tx.buys') || appJs.includes('lastProof.buys'), 'dex tx
 assert.ok(kitStyles.includes('dd-buy-amounts') && kitStyles.includes('dd-amt'), 'amount chip styles');
 assert.ok(kitStyles.includes('dd-post-share'), 'post-share styles');
 
+// V17: buy-pressure proof + mobile wallet path
+assert.ok(typeof DD.buyPressure === 'function' && typeof DD.buyPressureLine === 'function', 'pressure helpers');
+const bp = DD.buyPressure(362, 237);
+assert.ok(bp && bp.moreBuyers && bp.pct >= 60, 'buy-heavy pressure from live-like counts');
+const bpLine = DD.buyPressureLine(bp);
+assert.ok(/More buyers/i.test(bpLine) && bpLine.includes('NFA'), 'pressure line honest NFA');
+assert.ok(bpLine.includes('362') && bpLine.includes('237'), 'pressure line carries real counts');
+const sellP = DD.buyPressure(100, 200);
+assert.ok(sellP && sellP.moreSellers, 'sell-heavy detection');
+assert.ok(/More sellers/i.test(DD.buyPressureLine(sellP)), 'sellers line');
+assert.equal(DD.buyPressure(0, 0), null, 'zero flow null');
+assert.equal(DD.buyPressure(null, 5), null, 'invalid null');
+const packPress = DD.buildBuyPack('$82K', 0.5, DD.buyPressureLine(bp));
+assert.ok(packPress.includes('More buyers') && packPress.includes('amount=0.5'), 'buy pack + pressure');
+assert.ok(body.includes('id="dd-pressure"'), 'pressure DOM');
+assert.ok(appJs.includes('isMobileBuyPath') && appJs.includes('Wallet ·'), 'mobile wallet labels');
+assert.ok(appJs.includes('dd-buy-wallet') && appJs.includes('showPostShare'), 'buy-click share loop');
+assert.ok(kitStyles.includes('dd-pressure'), 'pressure styles');
+assert.ok(/Buy pressure|more buyers/i.test(appJs) || appJs.includes('moreBuyers'), 'fomo uses pressure');
+
 console.log('dasha-share.test.mjs: PASS');

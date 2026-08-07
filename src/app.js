@@ -193,12 +193,16 @@
   }
 
   /** Ultra-short conversion pack — buy-first, optional live mcap + SOL size */
-  function buildBuyPack(mcapLabel, sol) {
+  function buildBuyPack(mcapLabel, sol, pressureNote) {
     var m =
       mcapLabel && String(mcapLabel) !== '—' ? ' · mcap ' + String(mcapLabel) : '';
     var size =
       sol != null && isFinite(Number(sol)) && Number(sol) > 0
         ? ' · ' + String(Number(sol)) + ' SOL'
+        : '';
+    var extra =
+      pressureNote && String(pressureNote).trim()
+        ? '\n' + String(pressureNote).trim()
         : '';
     return (
       'Buy $dasha now → ' +
@@ -207,8 +211,46 @@
       CA +
       m +
       size +
+      extra +
       '\nNFA · can go to zero · association ≠ endorsement'
     );
+  }
+
+  /** Pure Dex buy-pressure stats — unit-tested via DDShare.buyPressure */
+  function buyPressure(buys, sells) {
+    if (buys == null || sells == null || buys === '' || sells === '') return null;
+    var b = Number(buys);
+    var s = Number(sells);
+    if (!isFinite(b) || !isFinite(s) || b < 0 || s < 0 || b + s <= 0) return null;
+    var tot = b + s;
+    var pct = Math.round((b / tot) * 100);
+    return { buys: b, sells: s, pct: pct, moreBuyers: b > s, moreSellers: s > b };
+  }
+  function buyPressureLine(bp) {
+    if (!bp) return '';
+    if (bp.moreBuyers) {
+      return (
+        'More buyers · ' +
+        bp.pct +
+        '% of 24h txns were buys (' +
+        bp.buys +
+        'b/' +
+        bp.sells +
+        's) · NFA'
+      );
+    }
+    if (bp.moreSellers) {
+      return (
+        'More sellers · ' +
+        (100 - bp.pct) +
+        '% of 24h txns were sells (' +
+        bp.buys +
+        'b/' +
+        bp.sells +
+        's) · NFA'
+      );
+    }
+    return 'Even flow · ' + bp.pct + '% buys 24h · NFA';
   }
 
   function intentTweet(text) {
@@ -292,6 +334,8 @@
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
     buildBuyPack: buildBuyPack,
+    buyPressure: buyPressure,
+    buyPressureLine: buyPressureLine,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -431,6 +475,7 @@
     move: '—',
     buys: null,
     sells: null,
+    pressure: null,
   };
   var lastRefreshAt = 0;
   var openMcap = null;
@@ -656,6 +701,18 @@
             $('dd-txns').textContent = 'Live Dex · txn counts when available · NFA';
           }
         }
+        var bp = buyPressure(lastProof.buys, lastProof.sells);
+        lastProof.pressure = bp;
+        if ($('dd-pressure')) {
+          if (bp) {
+            $('dd-pressure').hidden = false;
+            $('dd-pressure').textContent = buyPressureLine(bp);
+            $('dd-pressure').classList.toggle('is-sell', !!bp.moreSellers);
+            $('dd-pressure').classList.toggle('is-even', !bp.moreBuyers && !bp.moreSellers);
+          } else {
+            $('dd-pressure').hidden = true;
+          }
+        }
         // Session delta vs first Dex read this visit (honest, local only)
         if (openMcap == null && isFinite(Number(mcap)) && Number(mcap) > 0) {
           openMcap = Number(mcap);
@@ -710,6 +767,11 @@
             fomo.classList.remove('is-move');
             void fomo.offsetWidth;
             fomo.classList.add('is-move');
+          } else if (bp && bp.moreBuyers && bp.pct >= 55) {
+            $('dd-fomo-main').textContent =
+              'Buy pressure · ' + bp.pct + '% buys 24h · mcap ' + lastProof.mcap;
+            fomo.classList.add('is-up');
+            fomo.classList.remove('is-down');
           } else if (isFinite(chN) && chN > 0) {
             $('dd-fomo-main').textContent = 'Moving · 24h ' + lastProof.ch24;
             fomo.classList.add('is-up');
@@ -931,9 +993,22 @@
     $('dd-copy-buy').addEventListener('click', function () {
       copy(buyUrl(), $('dd-copy-buy'));
     });
-  function copyBuyPack(el) {
-    copy(buildBuyPack(lastProof.mcap, buySol), el);
+  function pressureNoteNow() {
+    var bp = lastProof.pressure || buyPressure(lastProof.buys, lastProof.sells);
+    return bp && bp.moreBuyers ? buyPressureLine(bp) : '';
   }
+  function copyBuyPack(el) {
+    copy(buildBuyPack(lastProof.mcap, buySol, pressureNoteNow()), el);
+  }
+  // Buy-click share loop: surface pack share without blocking navigation
+  ['dd-buy', 'dd-buy-amt', 'dd-buy-sticky', 'dd-buy-wallet', 'dd-kit-wallet', 'dd-exit-buy'].forEach(
+    function (id) {
+      if (!$(id)) return;
+      $(id).addEventListener('click', function () {
+        showPostShare(buildBuyPack(lastProof.mcap, buySol, pressureNoteNow()));
+      });
+    },
+  );
   if ($('dd-copy-buy-pack'))
     $('dd-copy-buy-pack').addEventListener('click', function () {
       copyBuyPack($('dd-copy-buy-pack'));
@@ -1110,20 +1185,26 @@
       }
     }
   } catch (eRef) {}
+  function isMobileBuyPath() {
+    try {
+      return (
+        /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ||
+        (window.matchMedia && window.matchMedia('(max-width:560px)').matches)
+      );
+    } catch (eM) {
+      return false;
+    }
+  }
   function wireBuyHrefs() {
     var href = buyUrl(buySol);
+    var mobile = isMobileBuyPath();
     ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet', 'dd-kit-wallet', 'dd-buy-amt'].forEach(
       function (id) {
         if ($(id)) $(id).href = href;
       },
     );
     if ($('dd-buy-amt')) $('dd-buy-amt').textContent = 'Buy ' + buySol + ' SOL';
-    if ($('dd-buy') && lastProof.mcap && lastProof.mcap !== '—') {
-      // keep primary label short; amount is in href
-      $('dd-buy').textContent = 'Buy ' + buySol + ' SOL on Jupiter';
-    } else if ($('dd-buy')) {
-      $('dd-buy').textContent = 'Buy ' + buySol + ' SOL on Jupiter';
-    }
+    if ($('dd-buy')) $('dd-buy').textContent = 'Buy ' + buySol + ' SOL on Jupiter';
     if ($('dd-buy-sticky')) {
       $('dd-buy-sticky').textContent =
         lastProof.mcap && lastProof.mcap !== '—'
@@ -1134,7 +1215,7 @@
       $('dd-buy-amounts-note').textContent =
         buySol + ' SOL → $dasha on Jupiter · NFA';
     }
-    // Phantom universal-link browse for mobile wallet one-tap
+    // Phantom universal-link browse for mobile wallet one-tap (amounted jup URL inside)
     ['dd-buy-wallet', 'dd-kit-wallet'].forEach(function (wid) {
       if (!$(wid)) return;
       try {
@@ -1143,7 +1224,20 @@
       } catch (eW) {
         $(wid).href = href;
       }
+      $(wid).textContent = mobile
+        ? 'Wallet · ' + buySol + ' SOL'
+        : 'Open wallet · ' + buySol + ' SOL';
     });
+    // On mobile sticky: primary stays Jupiter; wallet is Phantom UL with same amount
+    if (mobile && $('dd-buy-sticky')) {
+      $('dd-buy-sticky').setAttribute('title', 'Buy ' + buySol + ' SOL on Jupiter');
+    }
+    if ($('dd-kit-wallet')) {
+      $('dd-kit-wallet').setAttribute(
+        'title',
+        'Open ' + buySol + ' SOL buy in Phantom / wallet',
+      );
+    }
     document.querySelectorAll('.dd-amt').forEach(function (b) {
       b.classList.toggle('is-on', String(b.getAttribute('data-sol')) === String(buySol));
     });

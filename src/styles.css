@@ -680,6 +680,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-amt.is-on{border-color:rgba(196,165,255,.65);background:rgba(196,165,255,.18);color:#fff}
 #dd-buy-amt{min-height:40px;padding:8px 14px;font-weight:800}
 .dd-txns{margin:10px 0 0;font-size:11px;font-weight:700;color:#c4a5ff}
+.dd-pressure{
+  margin:6px 0 0;font-size:12px;font-weight:800;letter-spacing:-.01em;
+  color:#b8ffd0;
+}
+.dd-pressure.is-sell{color:#ffc8c8}
+.dd-pressure.is-even{color:#d4b8ff}
+.dd-wallet-buy,.dd-kit-actions #dd-kit-wallet{border-color:rgba(125,255,163,.35)}
+@media(max-width:560px){
+  .dd-kit-actions{grid-template-columns:1.4fr 1fr!important}
+  .dd-kit-actions #dd-buy-sticky{grid-column:1/-1;min-height:48px;font-size:16px}
+  .dd-kit-actions #dd-kit-wallet{min-height:48px;font-weight:800}
+  .dd-buy-amounts-row .dd-amt{flex:1 1 18%;min-width:0}
+  #dd-buy-amt{flex:1 1 100%;text-align:center;min-height:48px}
+}
 .dd-copy-count{font-size:10px;font-weight:700;color:#c4a5ff}
 #dd-app.dd-copy-burst::after{
   content:"";position:fixed;left:50%;top:42%;width:12px;height:12px;margin:-6px 0 0 -6px;
