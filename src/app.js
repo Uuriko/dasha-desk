@@ -27,9 +27,14 @@
     return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'ref=' + encodeURIComponent(ref);
   }
 
-  function buyUrl() {
-    // Keep one-tap Jupiter swap; optional from-ref for desk analytics only
-    return BUY_BASE;
+  /** Jupiter deep-link; optional SOL input amount (human units) for one-tap size */
+  function buyUrl(sol) {
+    var base = BUY_BASE;
+    if (sol == null || sol === '') return base;
+    var n = Number(sol);
+    if (!isFinite(n) || n <= 0) return base;
+    // jup.ag accepts amount as the sell-side (SOL) quantity
+    return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'amount=' + encodeURIComponent(String(n));
   }
 
   // Compat aliases used throughout
@@ -187,16 +192,21 @@
     return 'Buy $dasha → ' + buyUrl() + '\n' + CA + '\n' + deskUrl() + '\n' + CASINO;
   }
 
-  /** Ultra-short conversion pack — buy-first, optional live mcap */
-  function buildBuyPack(mcapLabel) {
+  /** Ultra-short conversion pack — buy-first, optional live mcap + SOL size */
+  function buildBuyPack(mcapLabel, sol) {
     var m =
       mcapLabel && String(mcapLabel) !== '—' ? ' · mcap ' + String(mcapLabel) : '';
+    var size =
+      sol != null && isFinite(Number(sol)) && Number(sol) > 0
+        ? ' · ' + String(Number(sol)) + ' SOL'
+        : '';
     return (
       'Buy $dasha now → ' +
-      buyUrl() +
+      buyUrl(sol) +
       '\n' +
       CA +
       m +
+      size +
       '\nNFA · can go to zero · association ≠ endorsement'
     );
   }
@@ -322,6 +332,15 @@
     else if (v < 0) el.classList.add('dd-down');
   }
   var packsCopied = 0;
+  var lastCopiedText = '';
+  function showPostShare(text) {
+    if (!$('dd-post-share')) return;
+    lastCopiedText = String(text || '');
+    $('dd-post-share').hidden = false;
+    if ($('dd-post-x')) $('dd-post-x').href = intentTweet(lastCopiedText);
+    if ($('dd-post-tg')) $('dd-post-tg').href = intentTelegram(lastCopiedText);
+    if ($('dd-post-wa')) $('dd-post-wa').href = intentWhatsApp(lastCopiedText);
+  }
   function copy(text, el) {
     function ok() {
       packsCopied += 1;
@@ -350,6 +369,13 @@
         app.classList.remove('dd-copy-burst');
         void app.offsetWidth;
         app.classList.add('dd-copy-burst');
+      }
+      // Virality loop: after buy/raid/live packs, surface X/TG/WA one-tap
+      if (
+        /Buy \$dasha|still holding|mcap |casino|Get in/i.test(String(text || '')) ||
+        (el && el.id && /buy-pack|kit-raid|sticky-live|copy-live|copy-hold|social-proof/i.test(el.id))
+      ) {
+        showPostShare(text);
       }
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -403,12 +429,19 @@
     m5n: null,
     delta: '—',
     move: '—',
+    buys: null,
+    sells: null,
   };
   var lastRefreshAt = 0;
   var openMcap = null;
   var prevMcapNum = null;
   var sparkSamples = [];
   var SPARK_MAX = 48;
+  var buySol = 0.5;
+  try {
+    var savedSol = localStorage.getItem('dd_buy_sol');
+    if (savedSol && isFinite(Number(savedSol)) && Number(savedSol) > 0) buySol = Number(savedSol);
+  } catch (eSol) {}
 
   function pushSparkSample(mcapNum) {
     mcapNum = Number(mcapNum);
@@ -468,7 +501,7 @@
     }
   }
 
-  function updateTicker(mcap, liq, vol, ch24, delta) {
+  function updateTicker(mcap, liq, vol, ch24, delta, buys, sells) {
     var track = $('dd-ticker-track');
     if (!track) return;
     var bits = [
@@ -478,7 +511,15 @@
       'Liq ' + liq,
     ];
     if (delta && delta !== '—') bits.push('Since open ' + delta);
-    bits.push(CASINO, 'Buy → Jupiter', 'Desk + ref · share the pack', 'NFA · can go to zero');
+    if (buys != null && sells != null) {
+      bits.push(buys + ' buys · ' + sells + ' sells 24h');
+    }
+    bits.push(
+      CASINO,
+      'Buy ' + buySol + ' SOL → Jupiter',
+      'Desk + ref · share the pack',
+      'NFA · can go to zero',
+    );
     // duplicate for seamless loop
     var html = bits.concat(bits).map(function (t) {
       return '<span>' + t + '</span>';
@@ -601,6 +642,20 @@
         lastProof.vol = fmtUsd(vol);
         lastProof.ch24n = Number(ch.h24);
         lastProof.m5n = Number(ch.m5);
+        var tx = (p.txns && p.txns.h24) || {};
+        lastProof.buys = isFinite(Number(tx.buys)) ? Number(tx.buys) : null;
+        lastProof.sells = isFinite(Number(tx.sells)) ? Number(tx.sells) : null;
+        if ($('dd-txns')) {
+          if (lastProof.buys != null && lastProof.sells != null) {
+            $('dd-txns').textContent =
+              lastProof.buys +
+              ' buys · ' +
+              lastProof.sells +
+              ' sells 24h · Dex · NFA';
+          } else {
+            $('dd-txns').textContent = 'Live Dex · txn counts when available · NFA';
+          }
+        }
         // Session delta vs first Dex read this visit (honest, local only)
         if (openMcap == null && isFinite(Number(mcap)) && Number(mcap) > 0) {
           openMcap = Number(mcap);
@@ -681,14 +736,10 @@
             if (hot) $('dd-sticky').classList.add('is-hot');
             else $('dd-sticky').classList.remove('is-hot');
           }
-          if ($('dd-buy-sticky')) {
-            $('dd-buy-sticky').textContent =
-              lastProof.mcap && lastProof.mcap !== '—'
-                ? 'Buy · ' + lastProof.mcap
-                : 'Buy now';
-            $('dd-buy-sticky').classList.add('dd-pulse-buy');
-          }
+          if ($('dd-buy-sticky')) $('dd-buy-sticky').classList.add('dd-pulse-buy');
           if ($('dd-buy')) $('dd-buy').classList.add('dd-pulse-buy');
+          if ($('dd-buy-amt')) $('dd-buy-amt').classList.add('dd-pulse-buy');
+          wireBuyHrefs();
           if ($('dd-social-proof-hint')) {
             $('dd-social-proof-hint').textContent = hot
               ? 'HOT · tap to copy live pack'
@@ -699,6 +750,10 @@
           var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
           var moveS =
             lastProof.move && lastProof.move !== '—' ? ' · poll ' + lastProof.move : '';
+          var txS =
+            lastProof.buys != null && lastProof.sells != null
+              ? ' · ' + lastProof.buys + 'b/' + lastProof.sells + 's'
+              : '';
           $('dd-fomo-sub').textContent =
             'Vol ' +
             fmtUsd(vol) +
@@ -706,6 +761,7 @@
             fmtUsd(liq) +
             m5s +
             moveS +
+            txS +
             ' · just now · NFA';
         }
 
@@ -717,6 +773,8 @@
           fmtUsd(vol),
           lastProof.ch24,
           lastProof.delta,
+          lastProof.buys,
+          lastProof.sells,
         );
         if ($('dd-ticker')) {
           var hotT =
@@ -874,7 +932,7 @@
       copy(buyUrl(), $('dd-copy-buy'));
     });
   function copyBuyPack(el) {
-    copy(buildBuyPack(lastProof.mcap), el);
+    copy(buildBuyPack(lastProof.mcap, buySol), el);
   }
   if ($('dd-copy-buy-pack'))
     $('dd-copy-buy-pack').addEventListener('click', function () {
@@ -1053,10 +1111,29 @@
     }
   } catch (eRef) {}
   function wireBuyHrefs() {
-    var href = buyUrl();
-    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet', 'dd-kit-wallet'].forEach(function (id) {
-      if ($(id)) $(id).href = href;
-    });
+    var href = buyUrl(buySol);
+    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet', 'dd-kit-wallet', 'dd-buy-amt'].forEach(
+      function (id) {
+        if ($(id)) $(id).href = href;
+      },
+    );
+    if ($('dd-buy-amt')) $('dd-buy-amt').textContent = 'Buy ' + buySol + ' SOL';
+    if ($('dd-buy') && lastProof.mcap && lastProof.mcap !== '—') {
+      // keep primary label short; amount is in href
+      $('dd-buy').textContent = 'Buy ' + buySol + ' SOL on Jupiter';
+    } else if ($('dd-buy')) {
+      $('dd-buy').textContent = 'Buy ' + buySol + ' SOL on Jupiter';
+    }
+    if ($('dd-buy-sticky')) {
+      $('dd-buy-sticky').textContent =
+        lastProof.mcap && lastProof.mcap !== '—'
+          ? 'Buy ' + buySol + ' · ' + lastProof.mcap
+          : 'Buy ' + buySol + ' SOL';
+    }
+    if ($('dd-buy-amounts-note')) {
+      $('dd-buy-amounts-note').textContent =
+        buySol + ' SOL → $dasha on Jupiter · NFA';
+    }
     // Phantom universal-link browse for mobile wallet one-tap
     ['dd-buy-wallet', 'dd-kit-wallet'].forEach(function (wid) {
       if (!$(wid)) return;
@@ -1067,8 +1144,33 @@
         $(wid).href = href;
       }
     });
+    document.querySelectorAll('.dd-amt').forEach(function (b) {
+      b.classList.toggle('is-on', String(b.getAttribute('data-sol')) === String(buySol));
+    });
   }
   wireBuyHrefs();
+  document.querySelectorAll('.dd-amt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var n = Number(btn.getAttribute('data-sol'));
+      if (!isFinite(n) || n <= 0) return;
+      buySol = n;
+      try {
+        localStorage.setItem('dd_buy_sol', String(buySol));
+      } catch (eAmt) {}
+      wireBuyHrefs();
+      if (lastProof.mcap && lastProof.mcap !== '—') {
+        updateTicker(
+          lastProof.mcap,
+          '—',
+          lastProof.vol,
+          lastProof.ch24,
+          lastProof.delta,
+          lastProof.buys,
+          lastProof.sells,
+        );
+      }
+    });
+  });
 
 
   function raidLineNow() {

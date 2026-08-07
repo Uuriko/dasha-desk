@@ -656,6 +656,30 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-fomo-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .dd-fomo-actions .dd-btn{min-height:40px;padding:8px 12px;font-size:12px}
 .dd-fomo.is-move{box-shadow:0 0 0 1px rgba(255,180,120,.45),0 0 24px rgba(255,140,80,.18)}
+.dd-post-share{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%;margin-top:8px;
+  padding-top:8px;border-top:1px solid rgba(255,255,255,.08);
+}
+.dd-post-share[hidden]{display:none!important}
+.dd-post-share-label{font-size:11px;font-weight:700;color:var(--muted);margin-right:4px}
+.dd-post-share .dd-btn{min-height:36px;padding:6px 12px;font-size:12px}
+.dd-buy-amounts{
+  margin:0 0 14px;padding:12px;border-radius:14px;
+  border:1px solid rgba(196,165,255,.35);
+  background:rgba(167,139,250,.08);
+}
+.dd-buy-amounts-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin:0 0 10px}
+.dd-buy-amounts-head strong{font-size:13px}
+.dd-buy-amounts-head span{font-size:11px;font-weight:600;color:var(--muted)}
+.dd-buy-amounts-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dd-amt{
+  min-width:48px;min-height:40px;padding:8px 12px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--line);background:rgba(0,0,0,.28);color:#efe9ff;
+  font-weight:800;font-variant-numeric:tabular-nums;
+}
+.dd-amt.is-on{border-color:rgba(196,165,255,.65);background:rgba(196,165,255,.18);color:#fff}
+#dd-buy-amt{min-height:40px;padding:8px 14px;font-weight:800}
+.dd-txns{margin:10px 0 0;font-size:11px;font-weight:700;color:#c4a5ff}
 .dd-copy-count{font-size:10px;font-weight:700;color:#c4a5ff}
 #dd-app.dd-copy-burst::after{
   content:"";position:fixed;left:50%;top:42%;width:12px;height:12px;margin:-6px 0 0 -6px;

@@ -267,4 +267,25 @@ assert.ok(appJs.includes('is-move') || appJs.includes("is-move"), 'move flash cl
 assert.ok(appJs.includes('inviteTier') && /Whale|Raider|Scout|Rookie/.test(appJs), 'invite tiers');
 assert.ok(kitStyles.includes('dd-move-chip') && kitStyles.includes('dd-fomo-actions'), 'move/fomo action styles');
 
+// V16: SOL amount chips + txn social proof + post-copy share loop
+assert.ok(typeof DD.buyUrl === 'function', 'buyUrl exported');
+const withAmt = DD.buyUrl(0.5);
+assert.ok(withAmt.includes('jup.ag'), 'amounted buy is jupiter');
+assert.ok(withAmt.includes('amount=0.5'), 'buyUrl appends SOL amount');
+assert.ok(withAmt.includes(DD.CA) || withAmt.includes('53uxQt'), 'amounted buy has mint');
+assert.equal(DD.buyUrl(), DD.BUY || DD.buyUrl(), 'buyUrl() without size stays base-compatible');
+assert.ok(!DD.buyUrl().includes('amount=') || DD.buyUrl(0).includes('jup'), 'default buyUrl has no forced amount');
+const buySized = DD.buildBuyPack('$80K', 1);
+assert.ok(buySized.includes('amount=1') || buySized.includes('1 SOL'), 'buy pack carries size');
+assert.ok(buySized.includes('mcap $80K'), 'sized buy pack mcap');
+assert.ok(body.includes('id="dd-buy-amounts"') && body.includes('data-sol='), 'SOL amount chips UI');
+assert.ok(body.includes('id="dd-buy-amt"'), 'sized buy CTA');
+assert.ok(body.includes('id="dd-txns"'), '24h buys/sells social proof');
+assert.ok(body.includes('id="dd-post-share"') && body.includes('dd-post-tg'), 'post-copy share loop');
+assert.ok(appJs.includes('buySol') && appJs.includes('dd_buy_sol'), 'buy size state');
+assert.ok(appJs.includes('showPostShare') || appJs.includes('dd-post-share'), 'post share wiring');
+assert.ok(appJs.includes('tx.buys') || appJs.includes('lastProof.buys'), 'dex txn counts');
+assert.ok(kitStyles.includes('dd-buy-amounts') && kitStyles.includes('dd-amt'), 'amount chip styles');
+assert.ok(kitStyles.includes('dd-post-share'), 'post-share styles');
+
 console.log('dasha-share.test.mjs: PASS');

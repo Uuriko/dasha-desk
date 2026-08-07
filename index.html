@@ -111,6 +111,12 @@
       <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-buy-pack">Copy buy pack</button>
       <button type="button" class="dd-btn dd-fomo-hold" id="dd-copy-hold">Copy hold</button>
     </div>
+    <div class="dd-post-share" id="dd-post-share" hidden>
+      <span class="dd-post-share-label">Share that pack</span>
+      <a class="dd-btn dd-btn-raid" id="dd-post-x" target="_blank" rel="noopener noreferrer" href="#">X</a>
+      <a class="dd-btn dd-btn-raid" id="dd-post-tg" target="_blank" rel="noopener noreferrer" href="#">TG</a>
+      <a class="dd-btn dd-btn-raid" id="dd-post-wa" target="_blank" rel="noopener noreferrer" href="#">WA</a>
+    </div>
   </aside>
 
   <section class="dd-hero-card dd-reveal" id="dd-mint">
@@ -140,6 +146,21 @@
         <button type="button" class="dd-btn" id="dd-copy-pack-mini">CA + line</button>
         <span class="dd-toast" id="dd-toast" hidden>Copied</span>
       </div>
+    </div>
+
+    <div class="dd-buy-amounts dd-reveal" id="dd-buy-amounts" role="group" aria-label="Buy size in SOL">
+      <div class="dd-buy-amounts-head">
+        <strong>Buy size</strong>
+        <span id="dd-buy-amounts-note">SOL → $dasha on Jupiter · NFA</span>
+      </div>
+      <div class="dd-buy-amounts-row">
+        <button type="button" class="dd-amt" data-sol="0.1">0.1</button>
+        <button type="button" class="dd-amt is-on" data-sol="0.5">0.5</button>
+        <button type="button" class="dd-amt" data-sol="1">1</button>
+        <button type="button" class="dd-amt" data-sol="2">2</button>
+        <a class="dd-btn dd-btn-primary dd-pulse-buy" id="dd-buy-amt" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump&amount=0.5">Buy 0.5 SOL</a>
+      </div>
+      <p class="dd-txns" id="dd-txns" aria-live="polite">Live Dex · waiting for 24h buys/sells</p>
     </div>
 
     <div class="dd-actions dd-actions-primary">
