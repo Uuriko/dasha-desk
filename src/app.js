@@ -1617,8 +1617,12 @@
           }
         }
         if ($('dd-fomo-sub')) {
-          // Prefer session urgency when meaningful, else net+pace flow near FOMO CTA
-          if (
+          // reclaim > still-after-deep > session > flow > vol fallback
+          if (lastProof.reclaimLine) {
+            $('dd-fomo-sub').textContent = lastProof.reclaimLine;
+          } else if (lastProof.stillLine) {
+            $('dd-fomo-sub').textContent = lastProof.stillLine;
+          } else if (
             lastProof.session &&
             Math.abs(lastProof.session.pct) >= 0.5 &&
             lastProof.session.line
