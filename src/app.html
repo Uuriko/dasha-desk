@@ -698,6 +698,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 (function () {
   var CA = '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
   var PAIR = 'https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7';
+  var PAIR_ID = '9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7';
+  var QUOTE = 'So11111111111111111111111111111111111111112';
   var CASINO = 'How u crying at the casino and u can’t even get in';
 
   var DESK_FALLBACK = 'https://www.getdasha.com/';
@@ -860,6 +862,47 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     }
   }
 
+  function selectMarketPair(pairs, pairUrl, mint) {
+    try {
+      var expected = new URL(pairUrl);
+      function optionalNumber(value, nonnegative) {
+        return value == null || (typeof value === 'number' && isFinite(value) && (!nonnegative || value >= 0));
+      }
+      function price(value) {
+        return value == null || (typeof value === 'string' && /^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value) && Number(value) > 0 && isFinite(Number(value)));
+      }
+      function change(value) {
+        return value == null || (typeof value === 'number' && isFinite(value) && value >= -100);
+      }
+      var matches = (Array.isArray(pairs) ? pairs : []).filter(function (pair) {
+        if (
+          !pair ||
+          pair.chainId !== 'solana' ||
+          pair.dexId !== 'raydium' ||
+          pair.pairAddress !== PAIR_ID ||
+          !pair.baseToken ||
+          pair.baseToken.address !== mint ||
+          !pair.quoteToken ||
+          pair.quoteToken.address !== QUOTE ||
+          !price(pair.priceUsd) ||
+          !optionalNumber(pair.marketCap, true) ||
+          !optionalNumber(pair.liquidity && pair.liquidity.usd, true) ||
+          !optionalNumber(pair.volume && pair.volume.h24, true) ||
+          !['m5', 'h1', 'h6', 'h24'].every(function (key) { return change(pair.priceChange && pair.priceChange[key]); })
+        ) return false;
+        var raw = safeProviderUrl(pair.url, 'dexscreener.com');
+        if (!raw) return false;
+        var url = new URL(raw);
+        url.search = '';
+        url.hash = '';
+        return url.href === expected.href;
+      });
+      return matches.length === 1 ? matches[0] : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   var DDShare = {
     CA: CA,
     PAIR: PAIR,
@@ -872,6 +915,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildLiveProof: buildLiveProof,
     intentTweet: intentTweet,
     safeProviderUrl: safeProviderUrl,
+    selectMarketPair: selectMarketPair,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
   if (typeof window !== 'undefined') window.DDShare = DDShare;
@@ -1016,20 +1060,14 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   function loadMarket() {
     var asof = $('dd-asof');
     asof.textContent = 'Loading Dex…';
-    fetch('https://api.dexscreener.com/latest/dex/tokens/' + CA, { cache: 'no-store' })
+    fetch('https://api.dexscreener.com/latest/dex/pairs/solana/' + PAIR_ID, { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         return r.json();
       })
       .then(function (data) {
-        var pairs = data.pairs || [];
-        if (!pairs.length) throw new Error('No pairs');
-        pairs.sort(function (a, b) {
-          return (
-            ((b.liquidity && b.liquidity.usd) || 0) - ((a.liquidity && a.liquidity.usd) || 0)
-          );
-        });
-        var p = pairs[0];
+        var p = selectMarketPair(data.pairs, PAIR, CA);
+        if (!p) throw new Error('Configured pair unavailable');
         var ch = p.priceChange || {};
         var mcap = p.marketCap;
         var liq = p.liquidity && p.liquidity.usd;
@@ -1094,8 +1132,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           } else el.textContent = next;
         }
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = fmtUsd(p.priceUsd);
-        var chartUrl = safeProviderUrl(p.url, 'dexscreener.com');
-        if (chartUrl && $('dd-chart')) $('dd-chart').href = chartUrl;
         var info = p.info || {};
         var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
         if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
@@ -1103,7 +1139,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         if ($('dd-live')) $('dd-live').textContent = 'live';
       })
       .catch(function () {
-        if (asof) asof.textContent = 'Dex offline — use Chart.';
+        if (asof) asof.textContent = 'Market data unavailable — open chart.';
         ['s-price', 's-mcap', 's-liq', 's-vol', 's-5m', 's-1h', 's-6h', 's-24h', 'p-mcap', 'p-liq', 'p-vol', 'p-24h'].forEach(function (id) {
           if ($(id)) {
             $(id).textContent = '—';
@@ -1111,9 +1147,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           }
         });
         lastProof = { mcap: '—', ch24: '—', at: '' };
-        if ($('dd-social-proof-text')) $('dd-social-proof-text').textContent = 'Dexscreener offline · market numbers unavailable · NFA';
-        if ($('dd-live')) $('dd-live').textContent = 'offline';
-        if ($('dd-px')) $('dd-px').textContent = 'offline';
+        if ($('dd-social-proof-text')) $('dd-social-proof-text').textContent = 'Market data unavailable · NFA';
+        if ($('dd-live')) $('dd-live').textContent = 'unavailable';
+        if ($('dd-px')) $('dd-px').textContent = 'unavailable';
         if ($('dd-sticky-px')) $('dd-sticky-px').textContent = '—';
       });
   }

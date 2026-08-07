@@ -103,6 +103,51 @@ assert.equal(DD.safeProviderUrl('http://dexscreener.com/solana/pair', 'dexscreen
 assert.equal(DD.safeProviderUrl('https://dexscreener.com.evil.test/pair', 'dexscreener.com'), '');
 assert.equal(DD.safeProviderUrl('javascript:alert(1)', 'dexscreener.com'), '');
 
+const configuredPair = {
+  chainId: 'solana',
+  dexId: 'raydium',
+  pairAddress: '9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7',
+  baseToken: { address: DD.CA },
+  quoteToken: { address: 'So11111111111111111111111111111111111111112' },
+  url: DD.PAIR,
+  priceUsd: '0.001',
+  liquidity: { usd: 1 },
+};
+assert.equal(
+  DD.selectMarketPair([
+    { ...configuredPair, pairAddress: 'wrong', liquidity: { usd: 1e9 } },
+    { ...configuredPair, chainId: 'ethereum' },
+    { ...configuredPair, baseToken: { address: 'wrong' }, quoteToken: { address: DD.CA } },
+    configuredPair,
+  ], DD.PAIR, DD.CA),
+  configuredPair,
+);
+for (const pair of [
+  null,
+  { ...configuredPair, pairAddress: 'wrong' },
+  { ...configuredPair, pairAddress: configuredPair.pairAddress.toLowerCase() },
+  { ...configuredPair, chainId: 'ethereum' },
+  { ...configuredPair, dexId: 'wrong' },
+  { ...configuredPair, baseToken: { address: 'wrong' }, quoteToken: { address: DD.CA } },
+  { ...configuredPair, quoteToken: { address: 'wrong' } },
+  { ...configuredPair, priceUsd: '<script>' },
+  { ...configuredPair, priceUsd: '0x10' },
+  { ...configuredPair, priceUsd: ' ' },
+  { ...configuredPair, priceUsd: '0' },
+  { ...configuredPair, marketCap: -1 },
+  { ...configuredPair, marketCap: true },
+  { ...configuredPair, liquidity: { usd: 'Infinity' } },
+  { ...configuredPair, volume: { h24: {} } },
+  { ...configuredPair, priceChange: { h24: -101 } },
+  { ...configuredPair, url: 'https://user:pass@dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7' },
+  { ...configuredPair, url: 'https://dexscreener.com:444/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7' },
+  { ...configuredPair, url: 'https://dexscreener.com/ethereum/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7' },
+  { ...configuredPair, url: 'https://dexscreener.com.evil.test/solana/' + configuredPair.pairAddress },
+]) assert.equal(DD.selectMarketPair(pair ? [pair] : null, DD.PAIR, DD.CA), null);
+assert.equal(DD.selectMarketPair([configuredPair, { ...configuredPair }], DD.PAIR, DD.CA), null, 'duplicate identity is ambiguous');
+assert.equal(DD.selectMarketPair([{ ...configuredPair, priceChange: { h24: 544 } }], DD.PAIR, DD.CA).pairAddress, configuredPair.pairAddress);
+assert.ok(src.includes('/latest/dex/pairs/solana/'), 'uses documented exact-pair endpoint');
+
 // body structural gates (built visitor surface later also checked)
 const body = readFileSync(join(__dirname, 'src/body.html'), 'utf8');
 assert.ok(body.includes('files.catbox.moe/gpjyb0.jpg'), 'casino-open durable media');
