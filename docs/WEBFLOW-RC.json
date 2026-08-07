@@ -26,7 +26,19 @@
       "embedSha256": "57e9ce86b3917a7d5375246a3d9bbcea4006e316c0977eee07f7ce0dc335c3ef",
       "openGraphDescription": "Record a thesis, an invalidation condition, and an exact resolution date. Device-timed and locally checksummed. No wallet, no trading, no safety score."
     },
-    "deskCandidate": { "pageId": "6a758d786dc08f46cfb2539c", "slug": "desk-rc", "draft": true, "publicStatus": 404 }
+    "deskCandidate": {
+      "pageId": "6a758d786dc08f46cfb2539c",
+      "slug": "desk-rc",
+      "draft": true,
+      "publicStatus": 404,
+      "metadataVerifiedAt": "2026-08-07T16:44:04.783Z",
+      "seoTitle": "$dasha desk — inspect mint evidence · Solana",
+      "seoDescription": "Unofficial promotional desk for an associated $dasha mint. Inspect cited sources and exact-pair data. Operator position and compensation not disclosed. Can go to zero.",
+      "openGraphTitle": "$dasha desk — evidence before action",
+      "openGraphDescription": "Unofficial promotional desk for an associated mint. Operator position and compensation not disclosed. Inspect cited evidence; association is not endorsement.",
+      "openGraphImageUrl": null,
+      "openGraphImageAssetId": null
+    }
   },
   "candidatePayload": {
     "markup": { "bytes": 30576, "sha256": "d1c76d31d49eef5d2faadfb3adc77898158c93e5f2f67c5f05063ba605801753" },

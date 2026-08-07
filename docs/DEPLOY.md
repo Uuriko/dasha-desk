@@ -24,7 +24,7 @@ Prepared, not published: Webflow page `6a75866d58882fdfb5f7674a` is a draft dupl
 
 Desk release candidate: Webflow page `6a758d786dc08f46cfb2539c` is a draft-only duplicate at `/desk-rc`, labeled **DO NOT PUBLISH**. Canonical Desk markup/runtime were split across its existing embeds to stay below Webflow's 50,000-character limit; both parts were read back byte-for-byte and the redundant legacy nav is hidden. Frozen hashes and publication state are in [`WEBFLOW-RC.json`](WEBFLOW-RC.json). Public `/desk-rc` correctly remains 404.
 
-Local standalone SEO/OG metadata is evidence-first and carries incentive uncertainty as of commit `9849f2f`; the equivalent Webflow page-setting update is pending because the MCP access token expired before the write. No Webflow metadata mutation was reported or assumed.
+Local standalone SEO/OG metadata is evidence-first and carries incentive uncertainty. The unpublished Webflow candidate now matches that text, remains explicitly draft-only, and has both Open Graph image fields cleared; readback is recorded in [`WEBFLOW-RC.json`](WEBFLOW-RC.json).
 
 Cutover order:
 
