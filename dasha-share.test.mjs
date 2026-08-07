@@ -3,8 +3,6 @@
  * Loads the real app.js entry — does not re-implement pack strings.
  */
 import { readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
-import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -14,20 +12,48 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(__dirname, 'src/app.js'), 'utf8');
 
-const sandbox = {
-  globalThis: {},
-  window: undefined,
-  document: undefined,
-  navigator: undefined,
-  console,
-  URL,
-};
-sandbox.globalThis = sandbox;
-vm.runInNewContext(src, sandbox, { filename: 'src/app.js' });
+function load(overrides = {}) {
+  const sandbox = { globalThis: {}, window: undefined, document: undefined, navigator: undefined, console, URL, ...overrides };
+  sandbox.globalThis = sandbox;
+  vm.runInNewContext(src, sandbox, { filename: 'src/app.js' });
+  return sandbox.globalThis.DDShare;
+}
 
-const DD = sandbox.globalThis.DDShare;
+const DD = load();
 assert.ok(DD, 'DDShare must export from app.js');
 assert.equal(DD.CA, '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump');
+assert.equal(DD.DESK, 'https://www.getdasha.com/');
+
+const fakeDoc = (...hrefs) => ({
+  querySelectorAll: () => hrefs.map((href) => ({ getAttribute: (name) => (name === 'rel' ? 'alternate CANONICAL' : href) })),
+});
+assert.equal(
+  DD.resolveDeskUrl(fakeDoc('https://www.getdasha.com/?utm=x#mint'), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha?utm=y#top' }, DD.DESK),
+  'https://www.getdasha.com/',
+);
+assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha?utm=x#mint' }, DD.DESK), 'https://johns-awesome-project-39b1b5.webflow.io/dasha');
+assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://files.catbox.moe/sm5mo0.html#top' }, DD.DESK), 'https://files.catbox.moe/sm5mo0.html');
+assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://www.getdasha.com/?utm=x#mint' }, DD.DESK), 'https://www.getdasha.com/');
+for (const href of [
+  'https://getdasha.com/',
+  'https://www.getdasha.com/labs',
+  'https://www.getdasha.com.evil.test/',
+  'https://www.getdasha.com:444/',
+  'https://user:pass@www.getdasha.com/',
+  'https://johns-awesome-project-39b1b5.webflow.io/',
+  'https://files.catbox.moe/other.html',
+  'http://127.0.0.1:8766/dasha',
+  'file:///tmp/index.html',
+  'https://example.test/dasha',
+]) assert.equal(DD.resolveDeskUrl(fakeDoc(), { href }, DD.DESK), '', href);
+assert.equal(DD.resolveDeskUrl(fakeDoc('https://evil.test/'), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha' }, DD.DESK), 'https://johns-awesome-project-39b1b5.webflow.io/dasha');
+assert.equal(DD.resolveDeskUrl(fakeDoc('https://www.getdasha.com/', 'https://evil.test/'), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha' }, DD.DESK), 'https://johns-awesome-project-39b1b5.webflow.io/dasha');
+
+const unsafe = load({ document: fakeDoc(), location: { href: 'https://example.test/dasha' } });
+assert.equal(unsafe.DESK, '');
+assert.ok(!unsafe.buildSharePack('discord').includes('Desk:'), 'unsafe mirrors omit desk from Discord pack');
+assert.ok(!unsafe.buildSharePack('boost').includes('Desk:'), 'unsafe mirrors omit desk from boost pack');
+assert.match(src, /if \(DESK\) payload\.url = DESK;/, 'native share omits an unsafe URL');
 
 const raid = DD.buildSharePack('raid');
 assert.ok(raid.includes(DD.CA), 'raid pack includes mint');
@@ -88,6 +114,8 @@ assert.ok(body.includes('53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump'));
 assert.ok(body.includes('data-pack="raid"'));
 assert.ok(body.includes('data-share-quote'));
 assert.ok(body.includes('dd-copy-share') && body.includes('dd-tweet'), 'two share affordances');
+assert.ok(body.includes('id="dd-desk-url" href="https://www.getdasha.com/"'), 'absolute no-JS desk fallback');
+assert.ok(body.includes('id="dd-desk-link"'), 'runtime can hide the complete desk-link separator');
 assert.ok(body.includes('dd-buy') && body.includes('jup.ag'), 'buy CTA');
 assert.ok(body.includes('dd-proof') && body.includes('p-mcap'), 'live proof strip');
 assert.ok(body.includes('data-pack="boost"'), 'boost share pack tab');

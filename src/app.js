@@ -3,10 +3,45 @@
   var PAIR = 'https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7';
   var CASINO = 'How u crying at the casino and u can’t even get in';
 
-  var DESK =
-    'https://johns-awesome-project-39b1b5.webflow.io/dasha';
+  var DESK_FALLBACK = 'https://www.getdasha.com/';
+  var DESK_DEPLOYMENTS = [
+    DESK_FALLBACK,
+    'https://johns-awesome-project-39b1b5.webflow.io/dasha',
+    'https://files.catbox.moe/sm5mo0.html',
+  ];
   var BUY =
     'https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
+
+  function resolveDeskUrl(doc, loc, fallback) {
+    function clean(raw) {
+      try {
+        var url = new URL(String(raw || ''));
+        if (url.protocol !== 'https:' || url.username || url.password || url.port) return '';
+        url.search = '';
+        url.hash = '';
+        return url.href;
+      } catch (_) {
+        return '';
+      }
+    }
+    if (!loc) return clean(fallback);
+    var current = clean(loc.href);
+    var canonicals = [];
+    try {
+      canonicals = Array.from(doc && doc.querySelectorAll ? doc.querySelectorAll('link[rel]') : []).filter(function (link) {
+        return String(link.getAttribute('rel') || '').toLowerCase().split(/\s+/).includes('canonical');
+      });
+    } catch (_) {}
+    if (canonicals.length === 1 && clean(canonicals[0].getAttribute('href')) === DESK_FALLBACK)
+      return DESK_FALLBACK;
+    return DESK_DEPLOYMENTS.includes(current) ? current : '';
+  }
+
+  var DESK = resolveDeskUrl(
+    typeof document === 'undefined' ? null : document,
+    typeof location === 'undefined' ? null : location,
+    DESK_FALLBACK,
+  );
 
   /** Pure share-pack builders — unit-tested via global.DDShare */
   function buildSharePack(kind) {
@@ -25,9 +60,7 @@
         'Chart: ' +
         PAIR +
         '\n' +
-        'Desk: ' +
-        DESK +
-        '\n' +
+        (DESK ? 'Desk: ' + DESK + '\n' : '') +
         'NFA · can go to zero · association ≠ endorsement'
       );
     }
@@ -62,9 +95,7 @@
         'Buy: ' +
         BUY +
         '\n' +
-        'Desk: ' +
-        DESK +
-        '\n' +
+        (DESK ? 'Desk: ' + DESK + '\n' : '') +
         'NFA · can go to zero'
       );
     }
@@ -113,6 +144,7 @@
     PAIR: PAIR,
     DESK: DESK,
     BUY: BUY,
+    resolveDeskUrl: resolveDeskUrl,
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
@@ -378,6 +410,10 @@
     $('dd-copy-oneliners').addEventListener('click', function () {
       copy($('dd-oneliners').textContent, $('dd-copy-oneliners'));
     });
+  if ($('dd-desk-link')) {
+    if (DESK) $('dd-desk-url').href = DESK;
+    else $('dd-desk-link').hidden = true;
+  }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {
       copy($('dd-evidence-json').textContent, $('dd-copy-evidence'));
@@ -386,8 +422,10 @@
     $('dd-native-share').addEventListener('click', function () {
       var text = ($('dd-share') && $('dd-share').value) || buildSharePack('raid');
       if (navigator.share) {
+        var payload = { title: '$dasha', text: text };
+        if (DESK) payload.url = DESK;
         navigator
-          .share({ title: '$dasha', text: text, url: DESK })
+          .share(payload)
           .catch(function () {
             copy(text, $('dd-native-share'));
           });
