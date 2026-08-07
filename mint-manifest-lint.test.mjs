@@ -18,5 +18,10 @@ assert.ok(mutated((x) => (x.evidence.cluster = 'devnet')).includes('evidence.clu
 assert.ok(mutated((x) => (x.evidence.account.accountDataSha256 = '0'.repeat(64))).includes('evidence.hash'));
 assert.ok(mutated((x) => (x.evidence.claims.find((c) => c.kind === 'association').source = 'https://x.com/example/status/1')).includes('association.source'));
 assert.ok(mutated((x) => (x.evidence.account.mintAuthority = '11111111111111111111111111111111')).includes('evidence.layout-mint-authority'));
+assert.ok(mutated((x) => delete x.config.quotes[0].url).includes('url.parse'));
+assert.ok(mutated((x) => (x.config.quotes[0].url = 'https://x.com/other/status/2085405075686801789')).includes('quote.source-url'));
+assert.ok(mutated((x) => delete x.config.quotes.find((quote) => quote.source === '@PerryALPHA').thirdParty).includes('quote.third-party'));
+assert.ok(mutated((x) => (x.body += '<button data-share-quote="Unproven line">Copy</button>')).includes('quote.unconfigured'));
+assert.ok(mutated((x) => (x.body = x.body.replace(x.config.quotes[0].url, 'https://x.com/other/status/1'))).includes('quote.source-link'));
 
 console.log('mint-manifest-lint.test.mjs: PASS');

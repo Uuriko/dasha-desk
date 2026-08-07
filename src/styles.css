@@ -258,7 +258,11 @@
 }
 .dd-meme:hover{transform:translateY(-3px) rotate(-.3deg);box-shadow:0 16px 40px rgba(0,0,0,.35)}
 .dd-meme p{margin:0;font-size:clamp(16px,3.5vw,22px);font-weight:800;line-height:1.25;letter-spacing:-.02em;position:relative;z-index:1}
-.dd-meme small{margin-top:10px;font-size:11px;opacity:.78;position:relative;z-index:1;letter-spacing:.02em}
+.dd-meme-actions{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px;position:relative;z-index:1;font-size:11px}
+.dd-meme-actions button,.dd-meme-actions a{color:#eee7fb;text-decoration:none;font:inherit;letter-spacing:.02em}
+.dd-meme-actions button{padding:0;border:0;border-bottom:1px solid currentColor;background:none}
+.dd-meme-actions a{opacity:.78}
+.dd-meme-actions button:hover,.dd-meme-actions a:hover{opacity:1;color:#fff}
 .dd-meme-a{background:linear-gradient(145deg,#4a2680,#160b24 68%)}
 .dd-meme-b{background:linear-gradient(145deg,#1f4a35,#0a120e 68%)}
 .dd-meme-c{background:linear-gradient(145deg,#5a2450,#160810 68%)}

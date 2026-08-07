@@ -430,12 +430,6 @@
         copy(buildQuoteShare(q), el.querySelector('small') || el);
       }
       el.addEventListener('click', fire);
-      el.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          fire();
-        }
-      });
     });
   }
 

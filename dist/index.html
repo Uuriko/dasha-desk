@@ -275,7 +275,11 @@
 }
 .dd-meme:hover{transform:translateY(-3px) rotate(-.3deg);box-shadow:0 16px 40px rgba(0,0,0,.35)}
 .dd-meme p{margin:0;font-size:clamp(16px,3.5vw,22px);font-weight:800;line-height:1.25;letter-spacing:-.02em;position:relative;z-index:1}
-.dd-meme small{margin-top:10px;font-size:11px;opacity:.78;position:relative;z-index:1;letter-spacing:.02em}
+.dd-meme-actions{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:12px;position:relative;z-index:1;font-size:11px}
+.dd-meme-actions button,.dd-meme-actions a{color:#eee7fb;text-decoration:none;font:inherit;letter-spacing:.02em}
+.dd-meme-actions button{padding:0;border:0;border-bottom:1px solid currentColor;background:none}
+.dd-meme-actions a{opacity:.78}
+.dd-meme-actions button:hover,.dd-meme-actions a:hover{opacity:1;color:#fff}
 .dd-meme-a{background:linear-gradient(145deg,#4a2680,#160b24 68%)}
 .dd-meme-b{background:linear-gradient(145deg,#1f4a35,#0a120e 68%)}
 .dd-meme-c{background:linear-gradient(145deg,#5a2450,#160810 68%)}
@@ -626,14 +630,12 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 
   <section class="dd-card dd-section dd-reveal" id="dd-memes">
     <h2>Lines that travel</h2>
-    <p class="dd-meta">Tap to copy a post-ready line. Public posts · not merch · not endorsement.</p>
+    <p class="dd-meta">Copy a post-ready line or inspect its exact source. Public posts · not merch · not endorsement.</p>
     <div class="dd-meme-grid" id="dd-meme-grid">
-      <button type="button" class="dd-meme dd-meme-a" data-share-quote="How u crying at the casino and u can’t even get in"><p>How u crying at the casino and u can’t even get in</p><small>@dash_eats</small></button>
-      <button type="button" class="dd-meme dd-meme-e" data-share-quote="Go ahead and doubt me see what happens"><p>Go ahead and doubt me see what happens</p><small>@dash_eats</small></button>
-      <button type="button" class="dd-meme dd-meme-c" data-share-quote="The pain of my entire life lifted at Erewhon Pasadena"><p>The pain of my entire life lifted at Erewhon Pasadena</p><small>@dash_eats</small></button>
-      <button type="button" class="dd-meme dd-meme-d" data-share-quote="And still Im optimistic"><p>And still Im optimistic</p><small>@dash_eats</small></button>
-      <button type="button" class="dd-meme dd-meme-b" data-share-quote="I'm still holding $dasha"><p>I'm still holding $dasha</p><small>@PerryALPHA · third party</small></button>
-      <button type="button" class="dd-meme dd-meme-f" data-share-quote="They are angels actually"><p>They are angels actually</p><small>@dash_eats</small></button>
+      <article class="dd-meme dd-meme-a"><p>How u crying at the casino and u can’t even get in</p><div class="dd-meme-actions"><button type="button" data-share-quote="How u crying at the casino and u can’t even get in">Copy line</button><a href="https://x.com/dash_eats/status/2085405075686801789" target="_blank" rel="nofollow ugc noopener noreferrer">@dash_eats source ↗</a></div></article>
+      <article class="dd-meme dd-meme-e"><p>If you harassed me today you can make it right by holding some $dasha</p><div class="dd-meme-actions"><button type="button" data-share-quote="If you harassed me today you can make it right by holding some $dasha">Copy line</button><a href="https://x.com/dash_eats/status/1901740102289854513" target="_blank" rel="nofollow ugc noopener noreferrer">@dash_eats source ↗</a></div></article>
+      <article class="dd-meme dd-meme-b"><p>I'm still holding $dasha</p><div class="dd-meme-actions"><button type="button" data-share-quote="I'm still holding $dasha">Copy line</button><a href="https://x.com/PerryALPHA/status/2085370284400328784" target="_blank" rel="nofollow ugc noopener noreferrer">@PerryALPHA source · third party ↗</a></div></article>
+      <article class="dd-meme dd-meme-c"><p>I have sad news to share. Dasha has died in Spain due to lack of air conditioning</p><div class="dd-meme-actions"><button type="button" data-share-quote="I have sad news to share. Dasha has died in Spain due to lack of air conditioning">Copy line</button><a href="https://x.com/PerryALPHA/status/2074960912805486623" target="_blank" rel="nofollow ugc noopener noreferrer">@PerryALPHA source · third party ↗</a></div></article>
     </div>
   </section>
 
@@ -1143,12 +1145,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         copy(buildQuoteShare(q), el.querySelector('small') || el);
       }
       el.addEventListener('click', fire);
-      el.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          fire();
-        }
-      });
     });
   }
 

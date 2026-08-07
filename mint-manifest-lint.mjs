@@ -81,9 +81,22 @@ export function lintMintManifest({ config, evidence, body, app }) {
   error(app.includes("safeProviderUrl(p.url, 'dexscreener.com')"), 'runtime.chart-host', 'src/app.js', 'chart URL must use exact-host validation');
   error(app.includes("safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com')"), 'runtime.image-host', 'src/app.js', 'image URL must use exact-host validation');
 
-  for (const [i, quote] of (config?.quotes || []).entries()) {
-    if (!quote.url) add('warning', 'quote.source-missing', `config.quotes[${i}].url`, 'quote lacks a source URL');
+  const quotes = config?.quotes || [];
+  const renderedQuotes = [...body.matchAll(/data-share-quote="([^"]+)"/g)].map((match) => match[1]);
+  error(new Set(quotes.map((quote) => quote.text)).size === quotes.length, 'quote.duplicate', 'config.quotes', 'quote text must be unique');
+  for (const [i, quote] of quotes.entries()) {
+    const path = `config.quotes[${i}]`;
+    const source = /^@[A-Za-z0-9_]+$/.test(quote.source || '') ? quote.source.slice(1) : '';
+    error(Boolean(source), 'quote.source', `${path}.source`, 'must be an @handle');
+    const url = checkUrl(quote.url, `${path}.url`, 'x.com', null, error);
+    const status = url?.pathname.match(/^\/([^/]+)\/status\/(\d+)$/);
+    error(status?.[1] === source, 'quote.source-url', `${path}.url`, 'must be an exact status URL for the source handle');
+    error(!url?.search && !url?.hash, 'quote.source-url', `${path}.url`, 'must not include tracking or fragments');
+    error(quote.source === '@dash_eats' || quote.thirdParty === true, 'quote.third-party', path, 'non-@dash_eats quotes must be labeled third-party');
+    error(renderedQuotes.filter((text) => text === quote.text).length === 1, 'quote.render', path, 'must render exactly once');
+    error(body.split(`href="${quote.url}"`).length === 2, 'quote.source-link', path, 'source URL must render exactly once');
   }
+  error(renderedQuotes.every((text) => quotes.some((quote) => quote.text === text)), 'quote.unconfigured', 'src/body.html', 'rendered quotes must exist in config');
   return findings.sort((a, b) => `${a.level}:${a.code}:${a.path}`.localeCompare(`${b.level}:${b.code}:${b.path}`));
 }
 
@@ -97,6 +110,7 @@ function checkUrl(raw, path, host, expectedPath, error) {
   }
   error(url.protocol === 'https:', 'url.https', path, 'must use HTTPS');
   error(!url.username && !url.password, 'url.credentials', path, 'must not contain credentials');
+  error(!url.port, 'url.port', path, 'must not use a non-default port');
   error(url.hostname === host, 'url.host', path, `must use exact host ${host}`);
   if (expectedPath) error(url.pathname === expectedPath, 'url.path', path, `must use ${expectedPath}`);
   return url;
