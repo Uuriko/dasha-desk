@@ -309,12 +309,13 @@
   <div class="dd-exit" id="dd-exit" hidden>
     <div class="dd-exit-card" role="dialog" aria-modal="true" aria-labelledby="dd-exit-title">
       <button type="button" class="dd-exit-x" id="dd-exit-close" aria-label="Close">×</button>
-      <p class="dd-exit-kicker">Before you go</p>
+      <p class="dd-exit-kicker" id="dd-exit-kicker">Before you go</p>
       <h2 id="dd-exit-title">Still holding?</h2>
       <p class="dd-exit-copy" id="dd-exit-copy">Copy a hold pack or buy on Jupiter. Culture coin · NFA · can go to zero.</p>
       <div class="dd-exit-actions">
-        <button type="button" class="dd-btn dd-btn-primary" id="dd-exit-hold">Copy hold pack</button>
         <a class="dd-btn dd-btn-primary dd-buy-now" id="dd-exit-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+        <button type="button" class="dd-btn dd-btn-primary" id="dd-exit-buy-pack">Copy buy pack</button>
+        <button type="button" class="dd-btn" id="dd-exit-hold">Copy hold pack</button>
       </div>
     </div>
   </div>
@@ -323,7 +324,13 @@
     <div class="dd-sticky-meta">
       <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
       <span id="dd-sticky-ch" class="dd-sticky-ch">24h —</span>
+      <span id="dd-sticky-dip" class="dd-sticky-dip" hidden></span>
       <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
+    </div>
+    <div class="dd-sticky-amts" id="dd-sticky-amts" role="group" aria-label="Sticky buy size">
+      <button type="button" class="dd-amt-sm" data-sol="0.5">0.5</button>
+      <button type="button" class="dd-amt-sm is-on" data-sol="1">1</button>
+      <button type="button" class="dd-amt-sm" data-sol="2">2</button>
     </div>
     <div class="dd-sticky-actions dd-kit-actions">
       <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>

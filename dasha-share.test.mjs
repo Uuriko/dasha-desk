@@ -308,4 +308,23 @@ assert.ok(appJs.includes('dd-buy-wallet') && appJs.includes('showPostShare'), 'b
 assert.ok(kitStyles.includes('dd-pressure'), 'pressure styles');
 assert.ok(/Buy pressure|more buyers/i.test(appJs) || appJs.includes('moreBuyers'), 'fomo uses pressure');
 
+// V18: dip-buy signal + USD chip labels + sticky size row
+assert.ok(typeof DD.dipBuySignal === 'function', 'dipBuySignal exported');
+assert.ok(typeof DD.solUsdEstimate === 'function' && typeof DD.fmtUsdRough === 'function', 'usd helpers');
+const dip = DD.dipBuySignal(-4.37, -4.93, 511);
+assert.ok(dip && dip.shortLabel === '1h', 'dip prefers 1h when red');
+assert.ok(/dip buy zone|NFA/i.test(dip.line), 'dip line honest NFA');
+assert.ok(dip.line.includes('511') || dip.line.includes('+511'), 'dip line keeps 24h green');
+assert.equal(DD.dipBuySignal(2, 3, 10), null, 'no dip when shorts green');
+assert.equal(DD.dipBuySignal(-5, -3, -10), null, 'no dip-buy when 24h also red');
+const usd = DD.solUsdEstimate(1, 0.00008223, 0.000001128);
+assert.ok(usd && usd > 50 && usd < 200, 'solUsdEstimate in plausible SOL USD range');
+assert.ok(DD.fmtUsdRough(72.9).startsWith('~$'), 'fmtUsdRough tilde dollars');
+assert.ok(body.includes('id="dd-sticky-amts"') && body.includes('dd-amt-sm'), 'sticky size chips');
+assert.ok(body.includes('id="dd-sticky-dip"'), 'sticky dip chip');
+assert.ok(body.includes('id="dd-exit-buy-pack"'), 'exit buy pack CTA');
+assert.ok(appJs.includes('lastProof.dip') && appJs.includes('is-dip'), 'dip state wiring');
+assert.ok(appJs.includes('paintAmtChips') || appJs.includes('solUsd'), 'usd chip paint');
+assert.ok(kitStyles.includes('dd-sticky-amts') && kitStyles.includes('dd-sticky-dip'), 'dip/sticky styles');
+
 console.log('dasha-share.test.mjs: PASS');

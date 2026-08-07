@@ -703,6 +703,24 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 }
 .dd-pressure.is-sell{color:#ffc8c8}
 .dd-pressure.is-even{color:#d4b8ff}
+.dd-amt small,.dd-amt-sm small{
+  display:block;font-size:9px;font-weight:700;opacity:.85;margin-top:1px;
+}
+.dd-sticky-amts{
+  display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;width:100%;
+}
+.dd-amt-sm{
+  min-width:44px;min-height:36px;padding:6px 10px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--line);background:rgba(0,0,0,.28);color:#efe9ff;
+  font-weight:800;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.15;
+}
+.dd-amt-sm.is-on{border-color:rgba(196,165,255,.65);background:rgba(196,165,255,.18);color:#fff}
+.dd-sticky-dip{
+  font-size:11px;font-weight:800;color:#ffd0b0;font-variant-numeric:tabular-nums;
+}
+.dd-sticky.is-dip{border-color:rgba(255,180,100,.45)}
+.dd-fomo.is-dip{border-color:rgba(255,180,100,.4);box-shadow:0 0 20px rgba(255,160,80,.12)}
+.dd-fomo.is-dip .dd-fomo-copy strong{color:#ffd0b0}
 .dd-wallet-buy,.dd-kit-actions #dd-kit-wallet{border-color:rgba(125,255,163,.35)}
 @media(max-width:560px){
   .dd-kit-actions{grid-template-columns:1.4fr 1fr!important}
@@ -1049,12 +1067,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   <div class="dd-exit" id="dd-exit" hidden>
     <div class="dd-exit-card" role="dialog" aria-modal="true" aria-labelledby="dd-exit-title">
       <button type="button" class="dd-exit-x" id="dd-exit-close" aria-label="Close">×</button>
-      <p class="dd-exit-kicker">Before you go</p>
+      <p class="dd-exit-kicker" id="dd-exit-kicker">Before you go</p>
       <h2 id="dd-exit-title">Still holding?</h2>
       <p class="dd-exit-copy" id="dd-exit-copy">Copy a hold pack or buy on Jupiter. Culture coin · NFA · can go to zero.</p>
       <div class="dd-exit-actions">
-        <button type="button" class="dd-btn dd-btn-primary" id="dd-exit-hold">Copy hold pack</button>
         <a class="dd-btn dd-btn-primary dd-buy-now" id="dd-exit-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+        <button type="button" class="dd-btn dd-btn-primary" id="dd-exit-buy-pack">Copy buy pack</button>
+        <button type="button" class="dd-btn" id="dd-exit-hold">Copy hold pack</button>
       </div>
     </div>
   </div>
@@ -1063,7 +1082,13 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     <div class="dd-sticky-meta">
       <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
       <span id="dd-sticky-ch" class="dd-sticky-ch">24h —</span>
+      <span id="dd-sticky-dip" class="dd-sticky-dip" hidden></span>
       <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
+    </div>
+    <div class="dd-sticky-amts" id="dd-sticky-amts" role="group" aria-label="Sticky buy size">
+      <button type="button" class="dd-amt-sm" data-sol="0.5">0.5</button>
+      <button type="button" class="dd-amt-sm is-on" data-sol="1">1</button>
+      <button type="button" class="dd-amt-sm" data-sol="2">2</button>
     </div>
     <div class="dd-sticky-actions dd-kit-actions">
       <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
@@ -1337,6 +1362,58 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     return 'Even flow · ' + bp.pct + '% buys 24h · NFA';
   }
 
+  /** SOL spend → rough USD using token priceUsd / priceNative (SOL quote) */
+  function solUsdEstimate(sol, priceUsd, priceNative) {
+    var n = Number(sol);
+    var pu = Number(priceUsd);
+    var pn = Number(priceNative);
+    if (!isFinite(n) || n <= 0 || !isFinite(pu) || pu <= 0 || !isFinite(pn) || pn <= 0) {
+      return null;
+    }
+    return n * (pu / pn);
+  }
+  function fmtUsdRough(n) {
+    n = Number(n);
+    if (!isFinite(n) || n <= 0) return '';
+    if (n >= 100) return '~$' + Math.round(n);
+    if (n >= 10) return '~$' + n.toFixed(0);
+    if (n >= 1) return '~$' + n.toFixed(1);
+    return '~$' + n.toFixed(2);
+  }
+  /**
+   * Dip-buy signal from real TF changes: short red + 24h still green.
+   * Honest NFA copy only — never invents green short TFs.
+   */
+  function dipBuySignal(ch1, ch6, ch24) {
+    var h1 = Number(ch1);
+    var h6 = Number(ch6);
+    var h24 = Number(ch24);
+    var short =
+      (isFinite(h1) && h1 < -0.5 ? h1 : null) != null
+        ? h1
+        : isFinite(h6) && h6 < -0.5
+          ? h6
+          : null;
+    var shortLabel =
+      isFinite(h1) && h1 < -0.5 ? '1h' : isFinite(h6) && h6 < -0.5 ? '6h' : null;
+    if (short == null || shortLabel == null) return null;
+    if (!isFinite(h24) || h24 <= 0) return null;
+    return {
+      shortLabel: shortLabel,
+      shortPct: short,
+      ch24: h24,
+      line:
+        shortLabel +
+        ' ' +
+        (short > 0 ? '+' : '') +
+        short.toFixed(2) +
+        '% · 24h still ' +
+        (h24 > 0 ? '+' : '') +
+        h24.toFixed(2) +
+        '% · dip buy zone · NFA',
+    };
+  }
+
   function intentTweet(text) {
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
@@ -1420,6 +1497,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildBuyPack: buildBuyPack,
     buyPressure: buyPressure,
     buyPressureLine: buyPressureLine,
+    solUsdEstimate: solUsdEstimate,
+    fmtUsdRough: fmtUsdRough,
+    dipBuySignal: dipBuySignal,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -1555,11 +1635,16 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     vol: '—',
     ch24n: null,
     m5n: null,
+    ch1n: null,
+    ch6n: null,
     delta: '—',
     move: '—',
     buys: null,
     sells: null,
     pressure: null,
+    dip: null,
+    solUsd: null,
+    priceUsd: null,
   };
   var lastRefreshAt = 0;
   var openMcap = null;
@@ -1771,6 +1856,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         lastProof.vol = fmtUsd(vol);
         lastProof.ch24n = Number(ch.h24);
         lastProof.m5n = Number(ch.m5);
+        lastProof.ch1n = Number(ch.h1);
+        lastProof.ch6n = Number(ch.h6);
+        lastProof.priceUsd = Number(p.priceUsd);
+        lastProof.solUsd = solUsdEstimate(1, p.priceUsd, p.priceNative);
+        lastProof.dip = dipBuySignal(ch.h1, ch.h6, ch.h24);
         var tx = (p.txns && p.txns.h24) || {};
         lastProof.buys = isFinite(Number(tx.buys)) ? Number(tx.buys) : null;
         lastProof.sells = isFinite(Number(tx.sells)) ? Number(tx.sells) : null;
@@ -1851,26 +1941,37 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
             fomo.classList.remove('is-move');
             void fomo.offsetWidth;
             fomo.classList.add('is-move');
+          } else if (lastProof.dip) {
+            // Short-TF dip with 24h still green — honest dip-buy urgency
+            $('dd-fomo-main').textContent =
+              lastProof.dip.shortLabel +
+              ' dip ' +
+              fmtPct(lastProof.dip.shortPct) +
+              ' · 24h still ' +
+              lastProof.ch24;
+            fomo.classList.add('is-dip');
+            fomo.classList.remove('is-up', 'is-down');
           } else if (bp && bp.moreBuyers && bp.pct >= 55) {
             $('dd-fomo-main').textContent =
               'Buy pressure · ' + bp.pct + '% buys 24h · mcap ' + lastProof.mcap;
             fomo.classList.add('is-up');
-            fomo.classList.remove('is-down');
+            fomo.classList.remove('is-down', 'is-dip');
           } else if (isFinite(chN) && chN > 0) {
             $('dd-fomo-main').textContent = 'Moving · 24h ' + lastProof.ch24;
             fomo.classList.add('is-up');
-            fomo.classList.remove('is-down');
+            fomo.classList.remove('is-down', 'is-dip');
           } else if (isFinite(chN) && chN < 0) {
             $('dd-fomo-main').textContent = 'Dip · 24h ' + lastProof.ch24;
             fomo.classList.add('is-down');
-            fomo.classList.remove('is-up');
+            fomo.classList.remove('is-up', 'is-dip');
           } else {
             $('dd-fomo-main').textContent = 'Live · mcap ' + lastProof.mcap;
-            fomo.classList.remove('is-up', 'is-down');
+            fomo.classList.remove('is-up', 'is-down', 'is-dip');
           }
-          if (hot) fomo.classList.add('is-hot');
+          if (usedMove) fomo.classList.remove('is-dip');
+          if (hot || lastProof.dip) fomo.classList.add('is-hot');
           else fomo.classList.remove('is-hot');
-          if ($('dd-fomo-hot')) $('dd-fomo-hot').hidden = !hot;
+          if ($('dd-fomo-hot')) $('dd-fomo-hot').hidden = !(hot || lastProof.dip);
           if ($('dd-move-chip')) {
             if (lastProof.move && lastProof.move !== '—') {
               $('dd-move-chip').hidden = false;
@@ -1879,8 +1980,38 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
             }
           }
           if ($('dd-sticky')) {
-            if (hot) $('dd-sticky').classList.add('is-hot');
+            if (hot || lastProof.dip) $('dd-sticky').classList.add('is-hot');
             else $('dd-sticky').classList.remove('is-hot');
+            if (lastProof.dip) $('dd-sticky').classList.add('is-dip');
+            else $('dd-sticky').classList.remove('is-dip');
+          }
+          if ($('dd-sticky-dip')) {
+            if (lastProof.dip) {
+              $('dd-sticky-dip').hidden = false;
+              $('dd-sticky-dip').textContent =
+                lastProof.dip.shortLabel + ' ' + fmtPct(lastProof.dip.shortPct);
+            } else {
+              $('dd-sticky-dip').hidden = true;
+            }
+          }
+          // Exit sheet: buy-first when dip, amount-aware
+          if ($('dd-exit-title') && $('dd-exit-copy')) {
+            if (lastProof.dip) {
+              if ($('dd-exit-kicker')) $('dd-exit-kicker').textContent = 'Dip window';
+              $('dd-exit-title').textContent = 'Dip buy?';
+              $('dd-exit-copy').textContent =
+                lastProof.dip.line +
+                ' · Buy ' +
+                buySol +
+                ' SOL or copy the pack. Can go to zero.';
+            } else {
+              if ($('dd-exit-kicker')) $('dd-exit-kicker').textContent = 'Before you go';
+              $('dd-exit-title').textContent = 'Still holding?';
+              $('dd-exit-copy').textContent =
+                'Buy ' +
+                buySol +
+                ' SOL on Jupiter or copy a hold pack. Culture coin · NFA · can go to zero.';
+            }
           }
           if ($('dd-buy-sticky')) $('dd-buy-sticky').classList.add('dd-pulse-buy');
           if ($('dd-buy')) $('dd-buy').classList.add('dd-pulse-buy');
@@ -2078,6 +2209,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       copy(buyUrl(), $('dd-copy-buy'));
     });
   function pressureNoteNow() {
+    if (lastProof.dip && lastProof.dip.line) return lastProof.dip.line;
     var bp = lastProof.pressure || buyPressure(lastProof.buys, lastProof.sells);
     return bp && bp.moreBuyers ? buyPressureLine(bp) : '';
   }
@@ -2191,13 +2323,31 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       sessionStorage.setItem('dd_exit_shown', '1');
     } catch (e) {}
     $('dd-exit').hidden = false;
-    if ($('dd-exit-copy') && lastProof.mcap && lastProof.mcap !== '—') {
-      $('dd-exit-copy').textContent =
-        'Live mcap ' +
-        lastProof.mcap +
-        ' · 24h ' +
-        lastProof.ch24 +
-        '. Copy hold pack or buy. NFA · can go to zero.';
+    wireBuyHrefs();
+    if ($('dd-exit-copy')) {
+      if (lastProof.dip) {
+        if ($('dd-exit-kicker')) $('dd-exit-kicker').textContent = 'Dip window';
+        if ($('dd-exit-title')) $('dd-exit-title').textContent = 'Dip buy?';
+        $('dd-exit-copy').textContent =
+          lastProof.dip.line +
+          (lastProof.mcap && lastProof.mcap !== '—'
+            ? ' · mcap ' + lastProof.mcap
+            : '') +
+          ' · Buy ' +
+          buySol +
+          ' SOL or copy pack. Can go to zero.';
+      } else if (lastProof.mcap && lastProof.mcap !== '—') {
+        if ($('dd-exit-kicker')) $('dd-exit-kicker').textContent = 'Before you go';
+        if ($('dd-exit-title')) $('dd-exit-title').textContent = 'Still holding?';
+        $('dd-exit-copy').textContent =
+          'Live mcap ' +
+          lastProof.mcap +
+          ' · 24h ' +
+          lastProof.ch24 +
+          ' · Buy ' +
+          buySol +
+          ' SOL or copy hold. NFA · can go to zero.';
+      }
     }
   }
   function closeExit() {
@@ -2279,6 +2429,23 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       return false;
     }
   }
+  function paintAmtChips() {
+    document.querySelectorAll('.dd-amt, .dd-amt-sm').forEach(function (b) {
+      var sol = b.getAttribute('data-sol');
+      var on = String(sol) === String(buySol);
+      b.classList.toggle('is-on', on);
+      var usd = null;
+      if (lastProof.solUsd != null && isFinite(lastProof.solUsd)) {
+        usd = Number(sol) * lastProof.solUsd;
+      }
+      var rough = fmtUsdRough(usd);
+      if (rough) {
+        b.innerHTML = sol + '<small>' + rough + '</small>';
+      } else {
+        b.textContent = sol;
+      }
+    });
+  }
   function wireBuyHrefs() {
     var href = buyUrl(buySol);
     var mobile = isMobileBuyPath();
@@ -2287,18 +2454,36 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         if ($(id)) $(id).href = href;
       },
     );
-    if ($('dd-buy-amt')) $('dd-buy-amt').textContent = 'Buy ' + buySol + ' SOL';
-    if ($('dd-buy')) $('dd-buy').textContent = 'Buy ' + buySol + ' SOL on Jupiter';
+    var usd1 =
+      lastProof.solUsd != null && isFinite(lastProof.solUsd)
+        ? fmtUsdRough(buySol * lastProof.solUsd)
+        : '';
+    if ($('dd-buy-amt')) {
+      $('dd-buy-amt').textContent =
+        'Buy ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+    }
+    if ($('dd-buy')) {
+      $('dd-buy').textContent =
+        'Buy ' + buySol + ' SOL on Jupiter' + (usd1 ? ' · ' + usd1 : '');
+    }
     if ($('dd-buy-sticky')) {
       $('dd-buy-sticky').textContent =
         lastProof.mcap && lastProof.mcap !== '—'
           ? 'Buy ' + buySol + ' · ' + lastProof.mcap
           : 'Buy ' + buySol + ' SOL';
     }
+    if ($('dd-exit-buy')) {
+      $('dd-exit-buy').textContent =
+        'Buy ' + buySol + ' SOL' + (usd1 ? ' · ' + usd1 : '');
+    }
     if ($('dd-buy-amounts-note')) {
       $('dd-buy-amounts-note').textContent =
-        buySol + ' SOL → $dasha on Jupiter · NFA';
+        buySol +
+        ' SOL' +
+        (usd1 ? ' (' + usd1 + ')' : '') +
+        ' → $dasha on Jupiter · NFA';
     }
+    paintAmtChips();
     // Phantom universal-link browse for mobile wallet one-tap (amounted jup URL inside)
     ['dd-buy-wallet', 'dd-kit-wallet'].forEach(function (wid) {
       if (!$(wid)) return;
@@ -2322,12 +2507,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         'Open ' + buySol + ' SOL buy in Phantom / wallet',
       );
     }
-    document.querySelectorAll('.dd-amt').forEach(function (b) {
-      b.classList.toggle('is-on', String(b.getAttribute('data-sol')) === String(buySol));
-    });
   }
   wireBuyHrefs();
-  document.querySelectorAll('.dd-amt').forEach(function (btn) {
+  document.querySelectorAll('.dd-amt, .dd-amt-sm').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var n = Number(btn.getAttribute('data-sol'));
       if (!isFinite(n) || n <= 0) return;
@@ -2349,6 +2531,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       }
     });
   });
+  if ($('dd-exit-buy-pack'))
+    $('dd-exit-buy-pack').addEventListener('click', function () {
+      copyBuyPack($('dd-exit-buy-pack'));
+    });
 
 
   function raidLineNow() {

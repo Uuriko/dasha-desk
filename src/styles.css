@@ -686,6 +686,24 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 }
 .dd-pressure.is-sell{color:#ffc8c8}
 .dd-pressure.is-even{color:#d4b8ff}
+.dd-amt small,.dd-amt-sm small{
+  display:block;font-size:9px;font-weight:700;opacity:.85;margin-top:1px;
+}
+.dd-sticky-amts{
+  display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px;width:100%;
+}
+.dd-amt-sm{
+  min-width:44px;min-height:36px;padding:6px 10px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--line);background:rgba(0,0,0,.28);color:#efe9ff;
+  font-weight:800;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.15;
+}
+.dd-amt-sm.is-on{border-color:rgba(196,165,255,.65);background:rgba(196,165,255,.18);color:#fff}
+.dd-sticky-dip{
+  font-size:11px;font-weight:800;color:#ffd0b0;font-variant-numeric:tabular-nums;
+}
+.dd-sticky.is-dip{border-color:rgba(255,180,100,.45)}
+.dd-fomo.is-dip{border-color:rgba(255,180,100,.4);box-shadow:0 0 20px rgba(255,160,80,.12)}
+.dd-fomo.is-dip .dd-fomo-copy strong{color:#ffd0b0}
 .dd-wallet-buy,.dd-kit-actions #dd-kit-wallet{border-color:rgba(125,255,163,.35)}
 @media(max-width:560px){
   .dd-kit-actions{grid-template-columns:1.4fr 1fr!important}
