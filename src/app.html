@@ -68,6 +68,30 @@
     </ul>
   </section>
 
+  <section class="dd-card dd-section dd-reveal" id="dd-evidence">
+    <div class="dd-card-head">
+      <div>
+        <h2>Mint evidence</h2>
+        <p class="dd-meta">Finalized Solana snapshot · facts, not a safety score.</p>
+      </div>
+      <button type="button" class="dd-linkish" id="dd-copy-evidence">Copy JSON</button>
+    </div>
+    <dl class="dd-evidence-grid">
+      <div><dt>Account</dt><dd>SPL Mint · initialized</dd></div>
+      <div><dt>Mint authority</dt><dd class="dd-good">Revoked</dd></div>
+      <div><dt>Freeze authority</dt><dd class="dd-good">Revoked</dd></div>
+      <div><dt>Supply</dt><dd>999,831,950.053985</dd></div>
+      <div><dt>Decimals</dt><dd>6</dd></div>
+      <div><dt>Association</dt><dd>Public CA post · not official</dd></div>
+    </dl>
+    <div class="dd-tools">
+      <a target="_blank" rel="nofollow ugc noopener noreferrer" href="https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Inspect on Solscan</a>
+      <a target="_blank" rel="nofollow ugc noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">Association source</a>
+    </div>
+    <p class="dd-evidence-note">Observed 2026-08-07 05:44 UTC at finalized slot 437,730,576. Market numbers above are live and separate.</p>
+    <script type="application/json" id="dd-evidence-json">{"schema":"dasha.mint-evidence/1","observedAt":"2026-08-07T05:44:33Z","commitment":"finalized","slot":437730576,"cluster":"solana-mainnet","mint":"53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump","account":{"type":"mint","ownerProgram":"TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA","initialized":true,"decimals":6,"supply":"999831950053985","mintAuthority":null,"freezeAuthority":null,"rawAccountSha256":"971d6214271d7c502ccea75ded909f2830b426240aa008d2a9a01e9452152cd0"},"claims":[{"kind":"onchain","label":"SPL Mint account","source":"solana:getAccountInfo"},{"kind":"association","label":"Public CA post; not official endorsement","source":"https://x.com/dash_eats/status/2085405228078432279"}]}</script>
+  </section>
+
   <section class="dd-grid dd-reveal" id="dd-numbers">
     <article class="dd-card">
       <div class="dd-card-head">
@@ -545,6 +569,15 @@
   background:rgba(0,0,0,.2);
 }
 .dd-why strong{color:#e8dff8;font-weight:700}
+.dd-evidence-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0;
+}
+.dd-evidence-grid div{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.18)}
+.dd-evidence-grid dt{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.dd-evidence-grid dd{margin:5px 0 0;font-size:13px;font-weight:750;overflow-wrap:anywhere}
+.dd-evidence-grid .dd-good{color:var(--ok)}
+.dd-evidence-note{margin:12px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+@media(max-width:620px){.dd-evidence-grid{grid-template-columns:1fr 1fr}}
 #dd-app.dd{max-width:720px;padding:16px 14px 40px}
 .dd-hero-card{padding:16px}
 .dd-banner-wrap{max-height:120px;margin:-4px -4px 12px}
@@ -976,6 +1009,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   if ($('dd-copy-oneliners') && $('dd-oneliners'))
     $('dd-copy-oneliners').addEventListener('click', function () {
       copy($('dd-oneliners').textContent, $('dd-copy-oneliners'));
+    });
+  if ($('dd-copy-evidence') && $('dd-evidence-json'))
+    $('dd-copy-evidence').addEventListener('click', function () {
+      copy($('dd-evidence-json').textContent, $('dd-copy-evidence'));
     });
   if ($('dd-native-share'))
     $('dd-native-share').addEventListener('click', function () {

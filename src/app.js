@@ -378,6 +378,10 @@
     $('dd-copy-oneliners').addEventListener('click', function () {
       copy($('dd-oneliners').textContent, $('dd-copy-oneliners'));
     });
+  if ($('dd-copy-evidence') && $('dd-evidence-json'))
+    $('dd-copy-evidence').addEventListener('click', function () {
+      copy($('dd-evidence-json').textContent, $('dd-copy-evidence'));
+    });
   if ($('dd-native-share'))
     $('dd-native-share').addEventListener('click', function () {
       var text = ($('dd-share') && $('dd-share').value) || buildSharePack('raid');

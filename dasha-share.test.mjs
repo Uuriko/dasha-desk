@@ -91,5 +91,14 @@ assert.ok(body.includes('dd-buy') && body.includes('jup.ag'), 'buy CTA');
 assert.ok(body.includes('dd-proof') && body.includes('p-mcap'), 'live proof strip');
 assert.ok(body.includes('data-pack="boost"'), 'boost share pack tab');
 assert.ok(body.includes('Buy on Jupiter') || body.includes('dd-buy'), 'primary buy label');
+const evidenceText = body.match(/<script type="application\/json" id="dd-evidence-json">([^<]+)<\/script>/)?.[1];
+assert.ok(evidenceText, 'machine-readable mint evidence');
+const evidence = JSON.parse(evidenceText);
+assert.equal(evidence.mint, DD.CA);
+assert.equal(evidence.commitment, 'finalized');
+assert.equal(evidence.account.type, 'mint');
+assert.equal(evidence.account.mintAuthority, null);
+assert.equal(evidence.account.freezeAuthority, null);
+assert.match(evidence.account.rawAccountSha256, /^[a-f0-9]{64}$/);
 
 console.log('dasha-share.test.mjs: PASS');
