@@ -2230,22 +2230,27 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
           }
         }
         if ($('dd-fomo-sub')) {
-          var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
-          var moveS =
-            lastProof.move && lastProof.move !== '—' ? ' · poll ' + lastProof.move : '';
-          var txS =
-            lastProof.buys != null && lastProof.sells != null
-              ? ' · ' + lastProof.buys + 'b/' + lastProof.sells + 's'
-              : '';
-          $('dd-fomo-sub').textContent =
-            'Vol ' +
-            fmtUsd(vol) +
-            ' · liq ' +
-            fmtUsd(liq) +
-            m5s +
-            moveS +
-            txS +
-            ' · just now · NFA';
+          // Prefer net+pace flow proof near FOMO buy CTA when available
+          if (lastProof.flow) {
+            $('dd-fomo-sub').textContent = lastProof.flow;
+          } else {
+            var m5s = isFinite(lastProof.m5n) ? ' · 5m ' + fmtPct(ch.m5) : '';
+            var moveS =
+              lastProof.move && lastProof.move !== '—' ? ' · poll ' + lastProof.move : '';
+            var txS =
+              lastProof.buys != null && lastProof.sells != null
+                ? ' · ' + lastProof.buys + 'b/' + lastProof.sells + 's'
+                : '';
+            $('dd-fomo-sub').textContent =
+              'Vol ' +
+              fmtUsd(vol) +
+              ' · liq ' +
+              fmtUsd(liq) +
+              m5s +
+              moveS +
+              txS +
+              ' · just now · NFA';
+          }
         }
 
         lastRefreshAt = Date.now();
