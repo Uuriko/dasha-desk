@@ -722,6 +722,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   font-size:11px;font-weight:700;color:#b8f0c8;font-variant-numeric:tabular-nums;
   letter-spacing:.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.dd-dual-go{
+  border-color:rgba(167,139,250,.55)!important;
+  background:linear-gradient(180deg,rgba(120,80,200,.35),rgba(60,30,120,.4))!important;
+  font-weight:800;
+}
 .dd-sticky-dip{
   font-size:11px;font-weight:800;color:#ffd0b0;font-variant-numeric:tabular-nums;
 }

@@ -408,4 +408,20 @@ assert.ok(
   'Phantom UL preserves invite ref + amount',
 );
 
+// V23: one-tap copy-CA + open-wallet dual action
+assert.ok(typeof DD.dualGoPlan === 'function', 'dualGoPlan exported');
+const dualM = DD.dualGoPlan(1, true);
+const dualD = DD.dualGoPlan(1, false);
+assert.equal(dualM.ca, DD.CA || '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump', 'dual copies full mint');
+assert.ok(dualM.href.includes('phantom.app/ul/browse/'), 'mobile dual opens Phantom UL');
+assert.ok(decodeURIComponent(dualM.href).includes('amount=1'), 'mobile dual keeps amount');
+assert.ok(decodeURIComponent(dualM.href).includes('ref='), 'mobile dual keeps invite ref');
+assert.ok(dualD.href.includes('jup.ag') && dualD.href.includes('amount=1') && dualD.href.includes('ref='), 'desktop dual is amounted jup+ref');
+assert.ok(/Copy CA/i.test(dualM.label) && /Wallet/i.test(dualM.label), 'mobile dual label');
+assert.ok(/Copy CA/i.test(dualD.label) && /Buy/i.test(dualD.label), 'desktop dual label');
+assert.ok(body.includes('id="dd-dual-go"') && body.includes('id="dd-fomo-dual"') && body.includes('id="dd-mint-dual"'), 'dual DOM sticky+fomo+mint');
+assert.ok(body.includes('dd-dual-go'), 'dual class');
+assert.ok(appJs.includes('runDualGo') && appJs.includes('dualGoPlan'), 'dual runtime wiring');
+assert.ok(kitStyles.includes('dd-dual-go'), 'dual styles');
+
 console.log('dasha-share.test.mjs: PASS');

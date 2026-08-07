@@ -440,6 +440,29 @@
     }
   }
 
+  /**
+   * One-tap dual action plan: copy full CA then open wallet/buy.
+   * Pure — unit-tested; runtime copies CA and navigates to href.
+   */
+  function dualGoPlan(sol, mobile) {
+    var jup = buyUrl(sol);
+    var href = mobile ? phantomBrowseUrl(jup) : jup;
+    return {
+      ca: CA,
+      href: href,
+      jup: jup,
+      label: mobile ? 'Copy CA · Wallet' : 'Copy CA · Buy',
+      toast: 'CA copied · open wallet',
+      hasRef: /[?&]ref=/.test(jup),
+      hasAmount:
+        sol != null &&
+        sol !== '' &&
+        isFinite(Number(sol)) &&
+        Number(sol) > 0 &&
+        /amount=/.test(jup),
+    };
+  }
+
   function intentTweet(text) {
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
@@ -534,6 +557,7 @@
     buysPaceLine: buysPaceLine,
     stickyFlowProof: stickyFlowProof,
     phantomBrowseUrl: phantomBrowseUrl,
+    dualGoPlan: dualGoPlan,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -1311,6 +1335,39 @@
     $('dd-sticky-copy').addEventListener('click', function () {
       copy(CA, $('dd-sticky-copy'));
     });
+  // V23: one-tap copy CA + open wallet/buy (sticky, FOMO, mint)
+  function runDualGo(el) {
+    var plan = dualGoPlan(buySol, isMobileBuyPath());
+    copy(plan.ca, el || null);
+    try {
+      if (el) el.textContent = plan.toast;
+      setTimeout(function () {
+        if (el) el.textContent = plan.label;
+      }, 1400);
+    } catch (eLbl) {}
+    try {
+      window.open(plan.href, '_blank', 'noopener,noreferrer');
+    } catch (eOpen) {
+      try {
+        location.href = plan.href;
+      } catch (eLoc) {}
+    }
+    showPostShare(dipPackNow());
+  }
+  document.querySelectorAll('.dd-dual-go, #dd-dual-go, #dd-fomo-dual, #dd-mint-dual').forEach(
+    function (btn) {
+      btn.addEventListener('click', function () {
+        runDualGo(btn);
+      });
+    },
+  );
+  function paintDualLabels() {
+    var plan = dualGoPlan(buySol, isMobileBuyPath());
+    document.querySelectorAll('.dd-dual-go').forEach(function (b) {
+      if (b.textContent && /copied/i.test(b.textContent)) return;
+      b.textContent = plan.label;
+    });
+  }
   if ($('dd-sticky-live'))
     $('dd-sticky-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-sticky-live'));
@@ -1656,6 +1713,7 @@
         ' → $dasha on Jupiter · NFA';
     }
     paintAmtChips();
+    if (typeof paintDualLabels === 'function') paintDualLabels();
     // Phantom universal-link browse for mobile wallet one-tap (amounted jup URL inside)
     ['dd-buy-wallet', 'dd-kit-wallet'].forEach(function (wid) {
       if (!$(wid)) return;

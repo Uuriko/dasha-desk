@@ -739,6 +739,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   font-size:11px;font-weight:700;color:#b8f0c8;font-variant-numeric:tabular-nums;
   letter-spacing:.01em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
+.dd-dual-go{
+  border-color:rgba(167,139,250,.55)!important;
+  background:linear-gradient(180deg,rgba(120,80,200,.35),rgba(60,30,120,.4))!important;
+  font-weight:800;
+}
 .dd-sticky-dip{
   font-size:11px;font-weight:800;color:#ffd0b0;font-variant-numeric:tabular-nums;
 }
@@ -879,6 +884,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </div>
     <div class="dd-fomo-actions">
       <a class="dd-btn dd-btn-primary dd-pulse-buy" id="dd-fomo-buy" hidden target="_blank" rel="noopener noreferrer" href="#">Buy the dip</a>
+      <button type="button" class="dd-btn dd-btn-primary dd-dual-go" id="dd-fomo-dual" title="Copy mint then open wallet buy">Copy CA · Wallet</button>
       <button type="button" class="dd-btn dd-btn-raid" id="dd-fomo-raid-dip" hidden>Raid this dip</button>
       <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-buy-pack">Copy buy pack</button>
       <button type="button" class="dd-btn dd-fomo-hold" id="dd-copy-hold">Copy hold</button>
@@ -914,6 +920,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       <code id="dd-ca" class="dd-ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
       <div class="dd-mint-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy">Copy CA</button>
+        <button type="button" class="dd-btn dd-btn-primary dd-dual-go" id="dd-mint-dual" title="Copy mint then open wallet buy">Copy CA · Wallet</button>
         <button type="button" class="dd-btn" id="dd-copy-short">Short</button>
         <button type="button" class="dd-btn" id="dd-copy-pack-mini">CA + line</button>
         <span class="dd-toast" id="dd-toast" hidden>Copied</span>
@@ -1127,6 +1134,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </div>
     <div class="dd-sticky-actions dd-kit-actions">
       <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
+      <button type="button" class="dd-btn dd-btn-lg dd-btn-primary dd-dual-go" id="dd-dual-go" title="Copy mint then open wallet buy">Copy CA · Wallet</button>
       <a class="dd-btn dd-btn-lg" id="dd-kit-wallet" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Wallet</a>
       <button type="button" class="dd-btn dd-btn-raid dd-btn-lg" id="dd-kit-raid" title="Copy raid pack">Raid</button>
       <button type="button" class="dd-btn" id="dd-sticky-buy-pack" title="Copy short buy pack">Buy pack</button>
@@ -1584,6 +1592,29 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     }
   }
 
+  /**
+   * One-tap dual action plan: copy full CA then open wallet/buy.
+   * Pure — unit-tested; runtime copies CA and navigates to href.
+   */
+  function dualGoPlan(sol, mobile) {
+    var jup = buyUrl(sol);
+    var href = mobile ? phantomBrowseUrl(jup) : jup;
+    return {
+      ca: CA,
+      href: href,
+      jup: jup,
+      label: mobile ? 'Copy CA · Wallet' : 'Copy CA · Buy',
+      toast: 'CA copied · open wallet',
+      hasRef: /[?&]ref=/.test(jup),
+      hasAmount:
+        sol != null &&
+        sol !== '' &&
+        isFinite(Number(sol)) &&
+        Number(sol) > 0 &&
+        /amount=/.test(jup),
+    };
+  }
+
   function intentTweet(text) {
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
@@ -1678,6 +1709,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buysPaceLine: buysPaceLine,
     stickyFlowProof: stickyFlowProof,
     phantomBrowseUrl: phantomBrowseUrl,
+    dualGoPlan: dualGoPlan,
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
@@ -2455,6 +2487,39 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     $('dd-sticky-copy').addEventListener('click', function () {
       copy(CA, $('dd-sticky-copy'));
     });
+  // V23: one-tap copy CA + open wallet/buy (sticky, FOMO, mint)
+  function runDualGo(el) {
+    var plan = dualGoPlan(buySol, isMobileBuyPath());
+    copy(plan.ca, el || null);
+    try {
+      if (el) el.textContent = plan.toast;
+      setTimeout(function () {
+        if (el) el.textContent = plan.label;
+      }, 1400);
+    } catch (eLbl) {}
+    try {
+      window.open(plan.href, '_blank', 'noopener,noreferrer');
+    } catch (eOpen) {
+      try {
+        location.href = plan.href;
+      } catch (eLoc) {}
+    }
+    showPostShare(dipPackNow());
+  }
+  document.querySelectorAll('.dd-dual-go, #dd-dual-go, #dd-fomo-dual, #dd-mint-dual').forEach(
+    function (btn) {
+      btn.addEventListener('click', function () {
+        runDualGo(btn);
+      });
+    },
+  );
+  function paintDualLabels() {
+    var plan = dualGoPlan(buySol, isMobileBuyPath());
+    document.querySelectorAll('.dd-dual-go').forEach(function (b) {
+      if (b.textContent && /copied/i.test(b.textContent)) return;
+      b.textContent = plan.label;
+    });
+  }
   if ($('dd-sticky-live'))
     $('dd-sticky-live').addEventListener('click', function () {
       copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-sticky-live'));
@@ -2800,6 +2865,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         ' → $dasha on Jupiter · NFA';
     }
     paintAmtChips();
+    if (typeof paintDualLabels === 'function') paintDualLabels();
     // Phantom universal-link browse for mobile wallet one-tap (amounted jup URL inside)
     ['dd-buy-wallet', 'dd-kit-wallet'].forEach(function (wid) {
       if (!$(wid)) return;
