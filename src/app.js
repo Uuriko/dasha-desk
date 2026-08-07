@@ -99,7 +99,7 @@
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented
+    // raid default — short, postable, conversion-oriented (buy + desk always)
     return (
       CASINO +
       '\n' +
@@ -112,7 +112,30 @@
       'Chart → ' +
       PAIR +
       '\n' +
-      '@dash_eats · still holding · NFA'
+      'Desk → ' +
+      DESK +
+      '\n' +
+      'Get in · NFA · can go to zero'
+    );
+  }
+
+  /** Live social-proof pack — unit-tested via DDShare.buildLiveProof */
+  function buildLiveProof(mcapLabel, ch24Label) {
+    var m = mcapLabel && String(mcapLabel) !== '—' ? String(mcapLabel) : 'live';
+    var c = ch24Label && String(ch24Label) !== '—' ? String(ch24Label) : '';
+    return (
+      '$dasha live · mcap ' +
+      m +
+      (c ? ' · 24h ' + c : '') +
+      '\n' +
+      'Buy → ' +
+      BUY +
+      '\n' +
+      'Desk → ' +
+      DESK +
+      '\n' +
+      CA +
+      '\nNFA · can go to zero'
     );
   }
 
@@ -123,7 +146,7 @@
   }
 
   function buildMiniPack() {
-    return CASINO + '\n' + CA + '\n' + BUY;
+    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO;
   }
 
   function intentTweet(text) {
@@ -148,6 +171,7 @@
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
+    buildLiveProof: buildLiveProof,
     intentTweet: intentTweet,
     safeProviderUrl: safeProviderUrl,
   };
@@ -174,6 +198,14 @@
     if (n == null || !isFinite(Number(n))) return '—';
     var v = Number(n);
     return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+  }
+  function setTone(el, n) {
+    if (!el) return;
+    el.classList.remove('dd-up', 'dd-down');
+    if (n == null || !isFinite(Number(n))) return;
+    var v = Number(n);
+    if (v > 0) el.classList.add('dd-up');
+    else if (v < 0) el.classList.add('dd-down');
   }
   function copy(text, el) {
     function ok() {
@@ -233,13 +265,20 @@
   }
 
   var currentPack = 'raid';
+  var lastProof = { mcap: '—', ch24: '—' };
   function setShare(kind) {
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
-    if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(buildSharePack('raid'));
+    if ($('dd-sticky-tweet')) {
+      var raidLine =
+        lastProof.mcap && lastProof.mcap !== '—'
+          ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+          : buildSharePack('raid');
+      $('dd-sticky-tweet').href = intentTweet(raidLine);
+    }
     if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
   }
 
@@ -308,6 +347,41 @@
         if ($('p-liq')) $('p-liq').textContent = fmtUsd(liq);
         if ($('p-vol')) $('p-vol').textContent = fmtUsd(vol);
         if ($('p-24h')) $('p-24h').textContent = fmtPct(ch.h24);
+        setTone($('p-24h'), ch.h24);
+        setTone($('s-24h'), ch.h24);
+        setTone($('s-5m'), ch.m5);
+        setTone($('s-1h'), ch.h1);
+        setTone($('s-6h'), ch.h6);
+        lastProof.mcap = fmtUsd(mcap);
+        lastProof.ch24 = fmtPct(ch.h24);
+        if ($('dd-social-proof-text')) {
+          $('dd-social-proof-text').textContent =
+            '$dasha live · mcap ' +
+            lastProof.mcap +
+            ' · 24h ' +
+            lastProof.ch24 +
+            ' · NFA';
+        } else if ($('dd-social-proof')) {
+          $('dd-social-proof').textContent =
+            '$dasha live · mcap ' +
+            lastProof.mcap +
+            ' · 24h ' +
+            lastProof.ch24 +
+            ' · NFA';
+        }
+        if ($('dd-social-proof')) {
+          $('dd-social-proof').classList.remove('is-flash');
+          void $('dd-social-proof').offsetWidth;
+          $('dd-social-proof').classList.add('is-flash');
+        }
+        // Keep Raid X intent fresh with live numbers when available
+        if ($('dd-sticky-tweet')) {
+          $('dd-sticky-tweet').href = intentTweet(
+            lastProof.mcap && lastProof.mcap !== '—'
+              ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+              : buildSharePack('raid'),
+          );
+        }
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -402,6 +476,20 @@
     $('dd-sticky-copy').addEventListener('click', function () {
       copy(CA, $('dd-sticky-copy'));
     });
+  if ($('dd-copy-buy'))
+    $('dd-copy-buy').addEventListener('click', function () {
+      copy(BUY, $('dd-copy-buy'));
+    });
+  if ($('dd-copy-live'))
+    $('dd-copy-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+    });
+
+  if ($('dd-social-proof'))
+    $('dd-social-proof').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-social-proof-hint') || $('dd-social-proof'));
+    });
+
   if ($('dd-copy-share'))
     $('dd-copy-share').addEventListener('click', function () {
       copy($('dd-share').value, $('dd-copy-share'));
@@ -420,7 +508,7 @@
     });
   if ($('dd-native-share'))
     $('dd-native-share').addEventListener('click', function () {
-      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('raid');
+      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('boost');
       if (navigator.share) {
         var payload = { title: '$dasha', text: text };
         if (DESK) payload.url = DESK;

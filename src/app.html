@@ -24,6 +24,10 @@
     <div class="dd-proof-item"><span>Vol 24h</span><strong id="p-vol">—</strong></div>
     <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
   </section>
+  <button type="button" class="dd-social-proof dd-reveal" id="dd-social-proof" aria-label="Copy live share pack with mcap">
+    <span id="dd-social-proof-text">Live on Dex · numbers every 30s · NFA</span>
+    <small class="dd-social-proof-hint">Tap to copy live pack</small>
+  </button>
 
   <section class="dd-hero-card dd-reveal" id="dd-mint">
     <div class="dd-banner-wrap">
@@ -55,8 +59,10 @@
     </div>
 
     <div class="dd-actions dd-actions-primary">
-      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy on Jupiter</a>
+      <a class="dd-btn dd-btn-primary dd-btn-lg" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now on Jupiter</a>
+      <button type="button" class="dd-btn dd-btn-lg" id="dd-copy-buy">Copy buy link</button>
       <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
+      <button type="button" class="dd-btn" id="dd-copy-live">Copy live pack</button>
       <a class="dd-btn" id="dd-hero-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid on X</a>
       <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">CA post</a>
     </div>
@@ -114,7 +120,7 @@
     </article>
     <article class="dd-card" id="dd-share-room">
       <h2>Share = oxygen</h2>
-      <p class="dd-meta">Copy a pack. Post it. Chart + CA always included.</p>
+      <p class="dd-meta">Copy a pack. Post it. Buy + chart + desk always included.</p>
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
         <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
         <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
@@ -200,12 +206,16 @@
     </article>
   </section>
 
-  <div class="dd-sticky dd-reveal" role="region" aria-label="Mint bar">
-    <code title="Associated mint">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
-    <strong id="dd-sticky-px" style="font-size:13px;color:#c4a5ff">—</strong>
-    <button type="button" class="dd-btn dd-btn-primary" id="dd-sticky-copy">Copy CA</button>
-    <a class="dd-btn dd-btn-primary" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy</a>
-    <a class="dd-btn" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
+  <div class="dd-sticky dd-reveal" role="region" aria-label="One-tap buy and raid">
+    <div class="dd-sticky-meta">
+      <strong id="dd-sticky-px" class="dd-sticky-px">—</strong>
+      <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
+    </div>
+    <div class="dd-sticky-actions">
+      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+      <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
+      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
+    </div>
   </div>
 
   <footer class="dd-foot dd-reveal">
@@ -519,15 +529,23 @@
 .dd-token-hero img:hover{transform:scale(1.05) rotate(-2deg);box-shadow:0 0 32px var(--glow)}
 .dd-section{margin-bottom:14px}
 .dd-sticky{
-  position:sticky;bottom:12px;z-index:5;margin:16px 0 0;padding:12px 14px;border-radius:16px;
+  position:sticky;bottom:12px;z-index:5;margin:16px 0 0;padding:10px 12px;border-radius:16px;
   border:1px solid rgba(167,139,250,.45);
-  background:rgba(12,8,18,.88);
+  background:rgba(12,8,18,.92);
   backdrop-filter:blur(16px) saturate(1.2);
   display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
   box-shadow:0 12px 40px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.04) inset;
   animation:dd-in .5s ease .4s both;
 }
-.dd-sticky code{font-size:11px;word-break:break-all;color:#efe9ff;flex:1;min-width:140px}
+.dd-sticky-meta{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.dd-sticky-px{font-size:14px;color:#c4a5ff;font-variant-numeric:tabular-nums}
+.dd-sticky-ca{font-size:11px;color:#efe9ff;word-break:break-all}
+.dd-sticky-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dd-sticky-actions .dd-btn-lg{min-height:44px;padding:10px 16px}
+.dd-up{color:#7dffa3!important}
+.dd-down{color:#ff9b9b!important}
+.dd-proof-item strong.dd-up,.dd-proof-item strong.dd-down,
+.dd-stat strong.dd-up,.dd-stat strong.dd-down{color:inherit}
 .dd-img-broken{display:flex!important;align-items:center;justify-content:center;background:linear-gradient(145deg,#3b1d6e,#12091c);color:#c4a5ff;font-size:12px;font-weight:700;min-height:88px}
 .dd-foot{margin-top:8px;padding:14px 4px;color:var(--muted);font-size:12px;line-height:1.55;text-align:center}
 .dd-foot p{margin:0 0 6px}
@@ -627,6 +645,51 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   #dd-app::before,.dd-marquee-track,.dd-pill-live,.dd-mint-box::after,.dd-reveal,.dd-sticky{animation:none!important}
   .dd-reveal{opacity:1;transform:none}
   .dd-btn,.dd-gal-item,.dd-meme,.dd-stat,.dd-banner,.dd-token-hero img,.dd-share-card{transition:none}
+}
+
+.dd-social-proof{
+  margin:-4px 0 14px;padding:8px 12px;text-align:center;
+  font-size:12px;font-weight:700;letter-spacing:.01em;
+  color:#d4b8ff;border-radius:12px;
+  border:1px solid rgba(167,139,250,.28);
+  background:rgba(167,139,250,.08);
+}
+
+/* mobile one-tap buy funnel */
+.dd-buy-now{letter-spacing:.02em}
+.dd-btn-raid{border-color:rgba(196,165,255,.45);color:#e8dff8}
+.dd-social-proof{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  width:100%;cursor:pointer;font:inherit;appearance:none;
+  transition:transform .15s, border-color .2s, background .2s, box-shadow .2s;
+}
+.dd-social-proof:hover,.dd-social-proof:focus-visible{
+  transform:translateY(-1px);
+  border-color:rgba(196,165,255,.55);
+  background:rgba(167,139,250,.14);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  outline:none;
+}
+.dd-social-proof-hint{font-size:10px;font-weight:600;opacity:.72;letter-spacing:.06em;text-transform:uppercase}
+.dd-social-proof.is-flash{animation:dd-pop .35s cubic-bezier(.2,.9,.3,1.2)}
+@media(max-width:560px){
+  .dd-actions-primary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .dd-actions-primary #dd-buy{
+    grid-column:1/-1;min-height:52px;font-size:16px;
+    box-shadow:0 10px 32px rgba(139,92,246,.55);
+  }
+  .dd-sticky{
+    bottom:0;left:0;right:0;margin:0;border-radius:16px 16px 0 0;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+    position:fixed;z-index:40;
+  }
+  .dd-sticky-meta{display:none}
+  .dd-sticky-actions{width:100%;display:grid;grid-template-columns:1.6fr auto auto;gap:8px}
+  .dd-sticky-actions .dd-buy-now{
+    width:100%;min-height:52px;font-size:16px;padding:12px 14px;
+    box-shadow:0 8px 28px rgba(139,92,246,.5);
+  }
+  #dd-app.dd{padding-bottom:96px}
 }
 </style>
 <script>
@@ -731,7 +794,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented
+    // raid default — short, postable, conversion-oriented (buy + desk always)
     return (
       CASINO +
       '\n' +
@@ -744,7 +807,30 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       'Chart → ' +
       PAIR +
       '\n' +
-      '@dash_eats · still holding · NFA'
+      'Desk → ' +
+      DESK +
+      '\n' +
+      'Get in · NFA · can go to zero'
+    );
+  }
+
+  /** Live social-proof pack — unit-tested via DDShare.buildLiveProof */
+  function buildLiveProof(mcapLabel, ch24Label) {
+    var m = mcapLabel && String(mcapLabel) !== '—' ? String(mcapLabel) : 'live';
+    var c = ch24Label && String(ch24Label) !== '—' ? String(ch24Label) : '';
+    return (
+      '$dasha live · mcap ' +
+      m +
+      (c ? ' · 24h ' + c : '') +
+      '\n' +
+      'Buy → ' +
+      BUY +
+      '\n' +
+      'Desk → ' +
+      DESK +
+      '\n' +
+      CA +
+      '\nNFA · can go to zero'
     );
   }
 
@@ -755,7 +841,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
 
   function buildMiniPack() {
-    return CASINO + '\n' + CA + '\n' + BUY;
+    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO;
   }
 
   function intentTweet(text) {
@@ -780,6 +866,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
+    buildLiveProof: buildLiveProof,
     intentTweet: intentTweet,
     safeProviderUrl: safeProviderUrl,
   };
@@ -806,6 +893,14 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if (n == null || !isFinite(Number(n))) return '—';
     var v = Number(n);
     return (v > 0 ? '+' : '') + v.toFixed(2) + '%';
+  }
+  function setTone(el, n) {
+    if (!el) return;
+    el.classList.remove('dd-up', 'dd-down');
+    if (n == null || !isFinite(Number(n))) return;
+    var v = Number(n);
+    if (v > 0) el.classList.add('dd-up');
+    else if (v < 0) el.classList.add('dd-down');
   }
   function copy(text, el) {
     function ok() {
@@ -865,13 +960,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
 
   var currentPack = 'raid';
+  var lastProof = { mcap: '—', ch24: '—' };
   function setShare(kind) {
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
-    if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(buildSharePack('raid'));
+    if ($('dd-sticky-tweet')) {
+      var raidLine =
+        lastProof.mcap && lastProof.mcap !== '—'
+          ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+          : buildSharePack('raid');
+      $('dd-sticky-tweet').href = intentTweet(raidLine);
+    }
     if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
   }
 
@@ -940,6 +1042,41 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         if ($('p-liq')) $('p-liq').textContent = fmtUsd(liq);
         if ($('p-vol')) $('p-vol').textContent = fmtUsd(vol);
         if ($('p-24h')) $('p-24h').textContent = fmtPct(ch.h24);
+        setTone($('p-24h'), ch.h24);
+        setTone($('s-24h'), ch.h24);
+        setTone($('s-5m'), ch.m5);
+        setTone($('s-1h'), ch.h1);
+        setTone($('s-6h'), ch.h6);
+        lastProof.mcap = fmtUsd(mcap);
+        lastProof.ch24 = fmtPct(ch.h24);
+        if ($('dd-social-proof-text')) {
+          $('dd-social-proof-text').textContent =
+            '$dasha live · mcap ' +
+            lastProof.mcap +
+            ' · 24h ' +
+            lastProof.ch24 +
+            ' · NFA';
+        } else if ($('dd-social-proof')) {
+          $('dd-social-proof').textContent =
+            '$dasha live · mcap ' +
+            lastProof.mcap +
+            ' · 24h ' +
+            lastProof.ch24 +
+            ' · NFA';
+        }
+        if ($('dd-social-proof')) {
+          $('dd-social-proof').classList.remove('is-flash');
+          void $('dd-social-proof').offsetWidth;
+          $('dd-social-proof').classList.add('is-flash');
+        }
+        // Keep Raid X intent fresh with live numbers when available
+        if ($('dd-sticky-tweet')) {
+          $('dd-sticky-tweet').href = intentTweet(
+            lastProof.mcap && lastProof.mcap !== '—'
+              ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+              : buildSharePack('raid'),
+          );
+        }
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
@@ -1034,6 +1171,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     $('dd-sticky-copy').addEventListener('click', function () {
       copy(CA, $('dd-sticky-copy'));
     });
+  if ($('dd-copy-buy'))
+    $('dd-copy-buy').addEventListener('click', function () {
+      copy(BUY, $('dd-copy-buy'));
+    });
+  if ($('dd-copy-live'))
+    $('dd-copy-live').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+    });
+
+  if ($('dd-social-proof'))
+    $('dd-social-proof').addEventListener('click', function () {
+      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-social-proof-hint') || $('dd-social-proof'));
+    });
+
   if ($('dd-copy-share'))
     $('dd-copy-share').addEventListener('click', function () {
       copy($('dd-share').value, $('dd-copy-share'));
@@ -1052,7 +1203,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     });
   if ($('dd-native-share'))
     $('dd-native-share').addEventListener('click', function () {
-      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('raid');
+      var text = ($('dd-share') && $('dd-share').value) || buildSharePack('boost');
       if (navigator.share) {
         var payload = { title: '$dasha', text: text };
         if (DESK) payload.url = DESK;

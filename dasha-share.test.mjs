@@ -138,4 +138,29 @@ assert.equal(accountData[44], evidence.account.decimals);
 assert.equal(Boolean(accountData[45]), evidence.account.initialized);
 assert.equal(accountData.readUInt32LE(46), 0, 'freeze authority COption is None');
 
+
+// conversion / virality gates
+assert.ok(raid.includes(DD.DESK) || raid.includes('webflow.io/dasha'), 'raid pack includes desk');
+assert.ok(raid.includes(DD.BUY) || raid.includes('jup.ag'), 'raid pack includes buy');
+assert.ok(typeof DD.buildLiveProof === 'function', 'buildLiveProof exported');
+const live = DD.buildLiveProof('$12.3K', '+4.2%');
+assert.ok(live.includes('mcap $12.3K'), 'live proof mcap');
+assert.ok(live.includes('+4.2%') || live.includes('24h'), 'live proof 24h');
+assert.ok(live.includes(DD.BUY) || live.includes('jup.ag'), 'live proof buy');
+assert.ok(live.includes(DD.DESK) || live.includes('webflow.io/dasha'), 'live proof desk');
+assert.ok(live.includes(DD.CA), 'live proof mint');
+const mini2 = DD.buildMiniPack();
+assert.ok(mini2.includes(DD.BUY) || mini2.includes('jup.ag'), 'mini buy');
+assert.ok(mini2.toLowerCase().includes('buy') || mini2.includes(DD.BUY), 'mini conversion orient');
+assert.ok(body.includes('dd-copy-buy'), 'copy buy funnel control');
+assert.ok(body.includes('dd-copy-live'), 'copy live pack control');
+assert.ok(body.includes('dd-social-proof'), 'live social proof line');
+
+
+assert.ok(body.includes('dd-buy-sticky') || body.includes('Buy now'), 'sticky buy now');
+assert.ok(body.includes('dd-buy-now') || body.includes('Buy now'), 'mobile buy-now class or label');
+assert.ok(body.includes('dd-social-proof-hint') || body.includes('Tap to copy'), 'social proof one-tap hint');
+assert.ok(body.includes('dd-social-proof-text') || body.includes('role="status"'), 'social proof live text');
+assert.ok(body.includes('One-tap buy') || body.includes('dd-buy-sticky'), 'sticky funnel region');
+
 console.log('dasha-share.test.mjs: PASS');
