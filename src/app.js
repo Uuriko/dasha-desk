@@ -205,6 +205,47 @@
     return 'https://wa.me/?text=' + encodeURIComponent(String(text || ''));
   }
 
+  /** Pure SVG polyline path from session samples — unit-tested via DDShare.buildSparkPath */
+  function buildSparkPath(samples, w, h) {
+    w = w || 280;
+    h = h || 48;
+    if (!samples || samples.length < 2) return '';
+    var nums = [];
+    for (var i = 0; i < samples.length; i++) {
+      var n = Number(samples[i]);
+      if (isFinite(n)) nums.push(n);
+    }
+    if (nums.length < 2) return '';
+    var min = nums[0];
+    var max = nums[0];
+    for (var j = 1; j < nums.length; j++) {
+      if (nums[j] < min) min = nums[j];
+      if (nums[j] > max) max = nums[j];
+    }
+    var span = max - min || 1;
+    var parts = [];
+    for (var k = 0; k < nums.length; k++) {
+      var x = (k / (nums.length - 1)) * w;
+      var y = h - ((nums[k] - min) / span) * (h - 6) - 3;
+      parts.push(x.toFixed(1) + ',' + y.toFixed(1));
+    }
+    return 'M' + parts.join(' L');
+  }
+
+  function sparkEndPoint(samples, w, h) {
+    w = w || 280;
+    h = h || 48;
+    if (!samples || samples.length < 2) return null;
+    var path = buildSparkPath(samples, w, h);
+    if (!path) return null;
+    var last = path.split(' ').pop().replace(/^[ML]/, '');
+    var xy = last.split(',');
+    var x = Number(xy[0]);
+    var y = Number(xy[1]);
+    if (!isFinite(x) || !isFinite(y)) return null;
+    return { x: x, y: y };
+  }
+
   function safeProviderUrl(raw, host) {
     try {
       var url = new URL(String(raw || ''));
@@ -229,6 +270,8 @@
     intentTweet: intentTweet,
     intentTelegram: intentTelegram,
     intentWhatsApp: intentWhatsApp,
+    buildSparkPath: buildSparkPath,
+    sparkEndPoint: sparkEndPoint,
     safeProviderUrl: safeProviderUrl,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
@@ -340,6 +383,67 @@
   var lastProof = { mcap: '—', ch24: '—', vol: '—', ch24n: null, m5n: null, delta: '—' };
   var lastRefreshAt = 0;
   var openMcap = null;
+  var sparkSamples = [];
+  var SPARK_MAX = 48;
+
+  function pushSparkSample(mcapNum) {
+    mcapNum = Number(mcapNum);
+    if (!isFinite(mcapNum) || mcapNum <= 0) return;
+    if (!sparkSamples.length) {
+      // flat baseline so the path draws on first Dex hit
+      sparkSamples.push(mcapNum, mcapNum);
+      renderSpark();
+      return;
+    }
+    // de-dupe consecutive identical values after baseline
+    if (sparkSamples[sparkSamples.length - 1] === mcapNum) return;
+    sparkSamples.push(mcapNum);
+    if (sparkSamples.length > SPARK_MAX) sparkSamples = sparkSamples.slice(-SPARK_MAX);
+    renderSpark();
+  }
+
+  function renderSpark() {
+    var pathEl = $('dd-spark-path');
+    var dot = $('dd-spark-dot');
+    var note = $('dd-spark-note');
+    var wrap = $('dd-spark-wrap');
+    if (!pathEl) return;
+    var d = buildSparkPath(sparkSamples, 280, 48);
+    pathEl.setAttribute('d', d || '');
+    var end = sparkEndPoint(sparkSamples, 280, 48);
+    if (dot) {
+      if (end) {
+        dot.setAttribute('cx', end.x);
+        dot.setAttribute('cy', end.y);
+        dot.setAttribute('opacity', '1');
+      } else {
+        dot.setAttribute('opacity', '0');
+      }
+    }
+    if (wrap) {
+      wrap.classList.toggle('is-up', sparkSamples.length >= 2 && sparkSamples[sparkSamples.length - 1] >= sparkSamples[0]);
+      wrap.classList.toggle(
+        'is-down',
+        sparkSamples.length >= 2 && sparkSamples[sparkSamples.length - 1] < sparkSamples[0],
+      );
+    }
+    if (note) {
+      if (sparkSamples.length < 2) {
+        note.textContent = 'fills as Dex polls · NFA · not a chart promise';
+      } else {
+        var first = sparkSamples[0];
+        var last = sparkSamples[sparkSamples.length - 1];
+        var pct = ((last - first) / first) * 100;
+        note.textContent =
+          sparkSamples.length +
+          ' samples · session ' +
+          (pct > 0 ? '+' : '') +
+          pct.toFixed(2) +
+          '% · NFA';
+      }
+    }
+  }
+
   function updateTicker(mcap, liq, vol, ch24, delta) {
     var track = $('dd-ticker-track');
     if (!track) return;
@@ -487,6 +591,7 @@
             setTone($('sp-delta'), dPct);
           }
         }
+        pushSparkSample(mcap);
         if ($('dd-fomo-main') && $('dd-fomo')) {
           var chN = lastProof.ch24n;
           var m5N = lastProof.m5n;
@@ -950,6 +1055,41 @@
           '\nNFA · can go to zero · association ≠ endorsement';
       }
       copy(line, $('dd-hold-share'));
+    });
+
+  // Invite micro-loop: show ref, copy desk URL, local share counter
+  function inviteSharesRead() {
+    try {
+      var n = parseInt(localStorage.getItem('dd_invite_shares') || '0', 10);
+      return isFinite(n) && n > 0 ? n : 0;
+    } catch (eI) {
+      return 0;
+    }
+  }
+  function inviteSharesBump() {
+    var n = inviteSharesRead() + 1;
+    try {
+      localStorage.setItem('dd_invite_shares', String(n));
+    } catch (eB) {}
+    return n;
+  }
+  function refreshInviteLoop() {
+    if ($('dd-invite-code')) $('dd-invite-code').textContent = 'ref=' + getRef();
+    if ($('dd-invite-stat')) $('dd-invite-stat').textContent = String(inviteSharesRead());
+    if ($('dd-invite-note')) {
+      var n = inviteSharesRead();
+      $('dd-invite-note').textContent =
+        n > 0
+          ? n + ' invite link copies · local only · desk links carry your ref · NFA'
+          : 'Your desk link carries a ref · local share count only · NFA';
+    }
+  }
+  refreshInviteLoop();
+  if ($('dd-copy-invite-link'))
+    $('dd-copy-invite-link').addEventListener('click', function () {
+      inviteSharesBump();
+      refreshInviteLoop();
+      copy(deskUrl(), $('dd-copy-invite-link'));
     });
   if ($('dd-kit-raid'))
     $('dd-kit-raid').addEventListener('click', function () {

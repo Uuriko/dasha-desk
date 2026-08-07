@@ -224,4 +224,25 @@ assert.ok(appJs.includes('dd_hold_n') && appJs.includes('holdScoreRead'), 'hold 
 assert.ok(kitStyles.includes('dd-hold-score'), 'hold score styles');
 assert.ok(/local only|still holding/i.test(body), 'hold score honesty copy');
 
+// session sparkline + invite micro-loop (V14)
+assert.ok(typeof DD.buildSparkPath === 'function', 'buildSparkPath exported');
+assert.equal(DD.buildSparkPath([]), '', 'empty samples → empty path');
+assert.equal(DD.buildSparkPath([1]), '', 'single sample → empty path');
+const path = DD.buildSparkPath([100, 110, 105, 120], 280, 48);
+assert.ok(path.startsWith('M'), 'spark path starts with M');
+assert.ok(path.includes(' L'), 'spark path has line segments');
+assert.ok((path.match(/ L/g) || []).length >= 2, 'multi-point path');
+const flat = DD.buildSparkPath([50, 50, 50], 100, 40);
+assert.ok(flat.startsWith('M'), 'flat path still draws');
+const end = DD.sparkEndPoint([10, 20, 30], 100, 40);
+assert.ok(end && isFinite(end.x) && isFinite(end.y), 'spark end point');
+assert.ok(body.includes('id="dd-spark"') && body.includes('dd-spark-path'), 'spark SVG DOM');
+assert.ok(body.includes('Session mcap path') || body.includes('dd-spark-wrap'), 'spark label');
+assert.ok(body.includes('id="dd-invite-loop"') && body.includes('dd-copy-invite-link'), 'invite loop UI');
+assert.ok(body.includes('dd-invite-stat') && body.includes('dd-invite-code'), 'invite counter + ref');
+assert.ok(appJs.includes('pushSparkSample') && appJs.includes('renderSpark'), 'spark hooks in app');
+assert.ok(appJs.includes('dd_invite_shares') || appJs.includes('inviteSharesBump'), 'invite share counter');
+assert.ok(kitStyles.includes('dd-spark') && kitStyles.includes('dd-invite-loop'), 'spark+invite styles');
+assert.ok(/not a chart promise|NFA/i.test(body), 'spark honesty copy');
+
 console.log('dasha-share.test.mjs: PASS');

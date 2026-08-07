@@ -37,6 +37,27 @@
     <div class="dd-proof-item"><span>24h</span><strong id="p-24h">—</strong></div>
     <div class="dd-proof-item"><span>Since open</span><strong id="p-delta">—</strong></div>
   </section>
+  <div class="dd-spark-wrap dd-reveal" id="dd-spark-wrap">
+    <div class="dd-spark-meta">
+      <strong>Session mcap path</strong>
+      <span id="dd-spark-note">fills as Dex polls · NFA · not a chart promise</span>
+    </div>
+    <svg class="dd-spark" id="dd-spark" viewBox="0 0 280 48" width="100%" height="48" role="img" aria-label="Session mcap sparkline from live Dex polls">
+      <path id="dd-spark-path" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d=""/>
+      <circle id="dd-spark-dot" r="3.2" cx="0" cy="0" fill="currentColor" opacity="0"/>
+    </svg>
+  </div>
+  <div class="dd-invite-loop dd-reveal" id="dd-invite-loop">
+    <div class="dd-invite-loop-copy">
+      <strong>Invite loop</strong>
+      <span id="dd-invite-note">Your desk link carries a ref · local share count only · NFA</span>
+    </div>
+    <div class="dd-invite-loop-row">
+      <code class="dd-invite-code" id="dd-invite-code">ref=…</code>
+      <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-invite-link">Copy invite link</button>
+      <strong class="dd-invite-stat" id="dd-invite-stat" aria-live="polite">0</strong>
+    </div>
+  </div>
   <div class="dd-sp-strip dd-reveal" id="dd-sp-strip">
     <div class="dd-sp-chips" aria-label="Live social proof">
       <span class="dd-sp-chip"><em>Mcap</em><strong id="sp-mcap">—</strong></span>
