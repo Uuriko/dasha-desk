@@ -582,8 +582,11 @@
     if (DESK) $('dd-desk-url').href = DESK;
   }
   if ($('dd-labs-link')) {
-    $('dd-labs-link').hidden = !LABS;
-    if (LABS) $('dd-labs-link').href = LABS;
+    if (LABS) fetch(LABS, { method: 'HEAD', cache: 'no-store' }).then(function (response) {
+      if (!response.ok) return;
+      $('dd-labs-link').href = LABS;
+      $('dd-labs-link').hidden = false;
+    }).catch(function () {});
   }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {

@@ -64,7 +64,7 @@
       <button type="button" class="dd-btn dd-btn-lg" id="dd-copy-buy">Copy buy link</button>
       <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
       <button type="button" class="dd-btn" id="dd-copy-live">Copy live pack</button>
-      <a class="dd-btn" id="dd-hero-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid on X</a>
+      <a class="dd-btn" id="dd-hero-tweet" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet">Raid on X</a>
       <a class="dd-btn" target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats/status/2085405228078432279">CA post</a>
     </div>
 
@@ -131,9 +131,9 @@
       <textarea id="dd-share" class="dd-textarea" rows="4" readonly aria-label="Share pack"></textarea>
       <div class="dd-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-share">Copy pack</button>
-        <a class="dd-btn" id="dd-tweet" target="_blank" rel="noopener noreferrer" href="#">Draft on X</a>
+        <a class="dd-btn" id="dd-tweet" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet">Draft on X</a>
         <button type="button" class="dd-btn" id="dd-native-share">Share…</button>
-        <a class="dd-btn" id="dd-tweet-alt" target="_blank" rel="noopener noreferrer" href="#" hidden>Alt</a>
+        <a class="dd-btn" id="dd-tweet-alt" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet" hidden>Alt</a>
       </div>
     </article>
   </section>
@@ -213,7 +213,7 @@
     <div class="dd-sticky-actions">
       <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
       <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
-      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>
+      <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet">Raid X</a>
     </div>
   </div>
 
@@ -1281,8 +1281,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if (DESK) $('dd-desk-url').href = DESK;
   }
   if ($('dd-labs-link')) {
-    $('dd-labs-link').hidden = !LABS;
-    if (LABS) $('dd-labs-link').href = LABS;
+    if (LABS) fetch(LABS, { method: 'HEAD', cache: 'no-store' }).then(function (response) {
+      if (!response.ok) return;
+      $('dd-labs-link').href = LABS;
+      $('dd-labs-link').hidden = false;
+    }).catch(function () {});
   }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {
