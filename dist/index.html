@@ -592,6 +592,22 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-raid-kit-copy span{font-size:11px;color:var(--muted);font-weight:600}
 .dd-raid-kit-actions{display:flex;flex-wrap:wrap;gap:8px}
 .dd-raid-kit-actions .dd-btn{min-height:40px}
+.dd-hold-score{
+  margin:0 0 12px;padding:12px;border-radius:14px;
+  border:1px solid rgba(125,255,163,.28);
+  background:rgba(125,255,163,.06);
+}
+.dd-hold-score-copy{display:flex;flex-direction:column;gap:2px;margin:0 0 10px}
+.dd-hold-score-copy strong{font-size:14px;color:#c8ffd8}
+.dd-hold-score-copy span{font-size:11px;color:var(--muted);font-weight:600}
+.dd-hold-score-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dd-hold-score-n{
+  min-width:44px;height:40px;display:inline-flex;align-items:center;justify-content:center;
+  padding:0 12px;border-radius:10px;font-size:18px;font-variant-numeric:tabular-nums;
+  background:rgba(0,0,0,.28);border:1px solid rgba(125,255,163,.35);color:#b8ffd0;
+}
+.dd-hold-score.is-pop .dd-hold-score-n{animation:dd-pop .35s ease}
+.dd-hold-score-row .dd-btn{min-height:40px}
 @media(max-width:560px){
   .dd-kit-actions{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;width:100%}
   .dd-kit-actions #dd-buy-sticky{grid-column:1/-1}
@@ -786,13 +802,26 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       <div class="dd-raid-kit" id="dd-raid-kit">
         <div class="dd-raid-kit-copy">
           <strong>One-tap raid kit</strong>
-          <span id="dd-raid-kit-note">Copy pack · post on X · invite friends</span>
+          <span id="dd-raid-kit-note">Copy pack · post on X · TG · WA · invite</span>
         </div>
         <div class="dd-raid-kit-actions">
           <button type="button" class="dd-btn dd-btn-primary" id="dd-kit-copy-raid">Copy raid</button>
-          <a class="dd-btn dd-btn-raid" id="dd-kit-post-raid" target="_blank" rel="noopener noreferrer" href="#">Post raid</a>
+          <a class="dd-btn dd-btn-raid" id="dd-kit-post-raid" target="_blank" rel="noopener noreferrer" href="#">Post X</a>
+          <a class="dd-btn dd-btn-raid" id="dd-kit-post-tg" target="_blank" rel="noopener noreferrer" href="#">Telegram</a>
+          <a class="dd-btn dd-btn-raid" id="dd-kit-post-wa" target="_blank" rel="noopener noreferrer" href="#">WhatsApp</a>
           <button type="button" class="dd-btn" id="dd-kit-copy-invite">Copy invite</button>
           <button type="button" class="dd-btn" id="dd-kit-copy-live">Copy live</button>
+        </div>
+      </div>
+      <div class="dd-hold-score" id="dd-hold-score">
+        <div class="dd-hold-score-copy">
+          <strong>Hold score</strong>
+          <span id="dd-hold-score-note">Local only · tap if still in · NFA · not a promise</span>
+        </div>
+        <div class="dd-hold-score-row">
+          <strong class="dd-hold-score-n" id="dd-hold-score-n" aria-live="polite">0</strong>
+          <button type="button" class="dd-btn dd-btn-primary" id="dd-hold-checkin">Still holding</button>
+          <button type="button" class="dd-btn" id="dd-hold-share">Share hold</button>
         </div>
       </div>
       <div class="dd-ab" role="group" aria-label="Raid pack A or B">
@@ -812,6 +841,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       <div class="dd-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy-share">Copy pack</button>
         <a class="dd-btn" id="dd-tweet" target="_blank" rel="noopener noreferrer" href="#">Draft on X</a>
+        <a class="dd-btn" id="dd-share-tg" target="_blank" rel="noopener noreferrer" href="#">Telegram</a>
+        <a class="dd-btn" id="dd-share-wa" target="_blank" rel="noopener noreferrer" href="#">WhatsApp</a>
         <button type="button" class="dd-btn" id="dd-native-share">Share…</button>
         <a class="dd-btn" id="dd-tweet-alt" target="_blank" rel="noopener noreferrer" href="#" hidden>Alt</a>
       </div>
@@ -1116,6 +1147,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
 
+  function intentTelegram(text) {
+    // t.me share: url = desk loop, text = pack body
+    return (
+      'https://t.me/share/url?url=' +
+      encodeURIComponent(deskUrl()) +
+      '&text=' +
+      encodeURIComponent(String(text || ''))
+    );
+  }
+
+  function intentWhatsApp(text) {
+    return 'https://wa.me/?text=' + encodeURIComponent(String(text || ''));
+  }
+
   function safeProviderUrl(raw, host) {
     try {
       var url = new URL(String(raw || ''));
@@ -1138,6 +1183,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
     intentTweet: intentTweet,
+    intentTelegram: intentTelegram,
+    intentWhatsApp: intentWhatsApp,
     safeProviderUrl: safeProviderUrl,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
@@ -1285,6 +1332,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     var line = buildSharePack(resolvePack(currentPack));
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
+    if ($('dd-share-tg')) $('dd-share-tg').href = intentTelegram(line);
+    if ($('dd-share-wa')) $('dd-share-wa').href = intentWhatsApp(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
     if ($('dd-sticky-tweet')) {
       var raidLine =
@@ -1792,14 +1841,72 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   function refreshRaidKit() {
     var line = raidLineNow();
     if ($('dd-kit-post-raid')) $('dd-kit-post-raid').href = intentTweet(line);
+    if ($('dd-kit-post-tg')) $('dd-kit-post-tg').href = intentTelegram(line);
+    if ($('dd-kit-post-wa')) $('dd-kit-post-wa').href = intentWhatsApp(line);
     if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(line);
     if ($('dd-raid-kit-note')) {
       $('dd-raid-kit-note').textContent =
         (raidAb === 'b' ? 'Raid B' : 'Raid A') +
         (lastProof.mcap && lastProof.mcap !== '—' ? ' · live mcap ' + lastProof.mcap : '') +
-        ' · ref on desk links';
+        ' · X · TG · WA · ref on desk';
     }
   }
+
+  // Hold score — local check-ins only (not on-chain, not a claim)
+  function holdScoreRead() {
+    try {
+      var n = parseInt(localStorage.getItem('dd_hold_n') || '0', 10);
+      return isFinite(n) && n > 0 ? n : 0;
+    } catch (eH) {
+      return 0;
+    }
+  }
+  function holdScoreWrite(n) {
+    try {
+      localStorage.setItem('dd_hold_n', String(n));
+      localStorage.setItem('dd_hold_last', String(Date.now()));
+    } catch (eW) {}
+  }
+  function refreshHoldScore() {
+    var n = holdScoreRead();
+    if ($('dd-hold-score-n')) $('dd-hold-score-n').textContent = String(n);
+    if ($('dd-hold-score-note')) {
+      $('dd-hold-score-note').textContent =
+        n > 0
+          ? n + ' local check-in' + (n === 1 ? '' : 's') + ' · still holding · NFA'
+          : 'Local only · tap if still in · NFA · not a promise';
+    }
+  }
+  refreshHoldScore();
+  if ($('dd-hold-checkin'))
+    $('dd-hold-checkin').addEventListener('click', function () {
+      var n = holdScoreRead() + 1;
+      holdScoreWrite(n);
+      refreshHoldScore();
+      copy(buildSharePack('hold'), $('dd-hold-checkin'));
+      if ($('dd-hold-score')) {
+        $('dd-hold-score').classList.remove('is-pop');
+        void $('dd-hold-score').offsetWidth;
+        $('dd-hold-score').classList.add('is-pop');
+      }
+    });
+  if ($('dd-hold-share'))
+    $('dd-hold-share').addEventListener('click', function () {
+      var line = buildSharePack('hold');
+      if (holdScoreRead() > 0) {
+        line =
+          "I'm still holding $dasha · hold score " +
+          holdScoreRead() +
+          ' (local)\n' +
+          CA +
+          '\nBuy → ' +
+          buyUrl() +
+          '\nDesk → ' +
+          deskUrl() +
+          '\nNFA · can go to zero · association ≠ endorsement';
+      }
+      copy(line, $('dd-hold-share'));
+    });
   if ($('dd-kit-raid'))
     $('dd-kit-raid').addEventListener('click', function () {
       copy(raidLineNow(), $('dd-kit-raid'));

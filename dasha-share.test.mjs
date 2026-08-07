@@ -207,4 +207,21 @@ assert.ok(appJs.includes('openMcap') && appJs.includes('lastProof.delta'), 'sess
 assert.ok(appJs.includes('packsCopied') && appJs.includes('dd-copy-burst'), 'copy burst + count');
 assert.ok(kitStyles.includes('dd-copy-burst') && /@keyframes dd-burst/.test(kitStyles), 'burst styles');
 
+// hold score + multi-channel share (V13)
+assert.ok(typeof DD.intentTelegram === 'function' && typeof DD.intentWhatsApp === 'function', 'TG/WA intents');
+const tg = DD.intentTelegram(raid);
+assert.ok(tg.startsWith('https://t.me/share/url?'), 'telegram share host');
+assert.ok(tg.includes('url=') && tg.includes('text='), 'telegram url+text');
+assert.ok(decodeURIComponent(tg).includes('webflow.io/dasha') || decodeURIComponent(tg).includes(DD.CA), 'tg carries desk or mint');
+const wa = DD.intentWhatsApp(raid);
+assert.ok(wa.startsWith('https://wa.me/?text='), 'whatsapp share host');
+assert.ok(decodeURIComponent(wa).includes(DD.CA), 'wa pack includes mint');
+assert.ok(body.includes('id="dd-hold-score"') && body.includes('dd-hold-checkin'), 'hold score UI');
+assert.ok(body.includes('dd-hold-share') && body.includes('dd-hold-score-n'), 'hold share + counter');
+assert.ok(body.includes('dd-kit-post-tg') && body.includes('dd-kit-post-wa'), 'raid kit TG/WA');
+assert.ok(body.includes('dd-share-tg') && body.includes('dd-share-wa'), 'pack TG/WA');
+assert.ok(appJs.includes('dd_hold_n') && appJs.includes('holdScoreRead'), 'hold score storage');
+assert.ok(kitStyles.includes('dd-hold-score'), 'hold score styles');
+assert.ok(/local only|still holding/i.test(body), 'hold score honesty copy');
+
 console.log('dasha-share.test.mjs: PASS');

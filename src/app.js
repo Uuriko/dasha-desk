@@ -191,6 +191,20 @@
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
 
+  function intentTelegram(text) {
+    // t.me share: url = desk loop, text = pack body
+    return (
+      'https://t.me/share/url?url=' +
+      encodeURIComponent(deskUrl()) +
+      '&text=' +
+      encodeURIComponent(String(text || ''))
+    );
+  }
+
+  function intentWhatsApp(text) {
+    return 'https://wa.me/?text=' + encodeURIComponent(String(text || ''));
+  }
+
   function safeProviderUrl(raw, host) {
     try {
       var url = new URL(String(raw || ''));
@@ -213,6 +227,8 @@
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
     intentTweet: intentTweet,
+    intentTelegram: intentTelegram,
+    intentWhatsApp: intentWhatsApp,
     safeProviderUrl: safeProviderUrl,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
@@ -360,6 +376,8 @@
     var line = buildSharePack(resolvePack(currentPack));
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
+    if ($('dd-share-tg')) $('dd-share-tg').href = intentTelegram(line);
+    if ($('dd-share-wa')) $('dd-share-wa').href = intentWhatsApp(line);
     if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
     if ($('dd-sticky-tweet')) {
       var raidLine =
@@ -867,14 +885,72 @@
   function refreshRaidKit() {
     var line = raidLineNow();
     if ($('dd-kit-post-raid')) $('dd-kit-post-raid').href = intentTweet(line);
+    if ($('dd-kit-post-tg')) $('dd-kit-post-tg').href = intentTelegram(line);
+    if ($('dd-kit-post-wa')) $('dd-kit-post-wa').href = intentWhatsApp(line);
     if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(line);
     if ($('dd-raid-kit-note')) {
       $('dd-raid-kit-note').textContent =
         (raidAb === 'b' ? 'Raid B' : 'Raid A') +
         (lastProof.mcap && lastProof.mcap !== '—' ? ' · live mcap ' + lastProof.mcap : '') +
-        ' · ref on desk links';
+        ' · X · TG · WA · ref on desk';
     }
   }
+
+  // Hold score — local check-ins only (not on-chain, not a claim)
+  function holdScoreRead() {
+    try {
+      var n = parseInt(localStorage.getItem('dd_hold_n') || '0', 10);
+      return isFinite(n) && n > 0 ? n : 0;
+    } catch (eH) {
+      return 0;
+    }
+  }
+  function holdScoreWrite(n) {
+    try {
+      localStorage.setItem('dd_hold_n', String(n));
+      localStorage.setItem('dd_hold_last', String(Date.now()));
+    } catch (eW) {}
+  }
+  function refreshHoldScore() {
+    var n = holdScoreRead();
+    if ($('dd-hold-score-n')) $('dd-hold-score-n').textContent = String(n);
+    if ($('dd-hold-score-note')) {
+      $('dd-hold-score-note').textContent =
+        n > 0
+          ? n + ' local check-in' + (n === 1 ? '' : 's') + ' · still holding · NFA'
+          : 'Local only · tap if still in · NFA · not a promise';
+    }
+  }
+  refreshHoldScore();
+  if ($('dd-hold-checkin'))
+    $('dd-hold-checkin').addEventListener('click', function () {
+      var n = holdScoreRead() + 1;
+      holdScoreWrite(n);
+      refreshHoldScore();
+      copy(buildSharePack('hold'), $('dd-hold-checkin'));
+      if ($('dd-hold-score')) {
+        $('dd-hold-score').classList.remove('is-pop');
+        void $('dd-hold-score').offsetWidth;
+        $('dd-hold-score').classList.add('is-pop');
+      }
+    });
+  if ($('dd-hold-share'))
+    $('dd-hold-share').addEventListener('click', function () {
+      var line = buildSharePack('hold');
+      if (holdScoreRead() > 0) {
+        line =
+          "I'm still holding $dasha · hold score " +
+          holdScoreRead() +
+          ' (local)\n' +
+          CA +
+          '\nBuy → ' +
+          buyUrl() +
+          '\nDesk → ' +
+          deskUrl() +
+          '\nNFA · can go to zero · association ≠ endorsement';
+      }
+      copy(line, $('dd-hold-share'));
+    });
   if ($('dd-kit-raid'))
     $('dd-kit-raid').addEventListener('click', function () {
       copy(raidLineNow(), $('dd-kit-raid'));

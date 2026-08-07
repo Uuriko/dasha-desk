@@ -575,6 +575,22 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-raid-kit-copy span{font-size:11px;color:var(--muted);font-weight:600}
 .dd-raid-kit-actions{display:flex;flex-wrap:wrap;gap:8px}
 .dd-raid-kit-actions .dd-btn{min-height:40px}
+.dd-hold-score{
+  margin:0 0 12px;padding:12px;border-radius:14px;
+  border:1px solid rgba(125,255,163,.28);
+  background:rgba(125,255,163,.06);
+}
+.dd-hold-score-copy{display:flex;flex-direction:column;gap:2px;margin:0 0 10px}
+.dd-hold-score-copy strong{font-size:14px;color:#c8ffd8}
+.dd-hold-score-copy span{font-size:11px;color:var(--muted);font-weight:600}
+.dd-hold-score-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dd-hold-score-n{
+  min-width:44px;height:40px;display:inline-flex;align-items:center;justify-content:center;
+  padding:0 12px;border-radius:10px;font-size:18px;font-variant-numeric:tabular-nums;
+  background:rgba(0,0,0,.28);border:1px solid rgba(125,255,163,.35);color:#b8ffd0;
+}
+.dd-hold-score.is-pop .dd-hold-score-n{animation:dd-pop .35s ease}
+.dd-hold-score-row .dd-btn{min-height:40px}
 @media(max-width:560px){
   .dd-kit-actions{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px;width:100%}
   .dd-kit-actions #dd-buy-sticky{grid-column:1/-1}
