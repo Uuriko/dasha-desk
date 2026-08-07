@@ -44,11 +44,11 @@ python3 -m http.server 8766
 
 | Feature | Description |
 |---------|-------------|
-| **Mint** | Associated CA, one-click copy, QR |
+| **Mint** | Associated CA, one-click copy, source comparison |
 | **Quotes** | Short @dash_eats lines (public posts) |
 | **Numbers** | Price / mcap / liq / vol from Dexscreener public API |
 | **Checker** | Paste any mint → match / no match |
-| **Evidence** | RPC-reported SPL Mint facts, absent authorities, reproducible account-data digest, and labeled association source |
+| **Evidence** | RPC-reported SPL Mint facts, reproducible account-data digest, downloadable observation receipt, and offline consistency inspection |
 | **Share** | Copy pack + draft on X |
 | **Rails** | Jupiter, Dex, Solscan, Birdeye, Rugcheck, Phantom |
 
@@ -60,6 +60,7 @@ Canonical sources: [`src/body.html`](src/body.html), [`src/styles.css`](src/styl
 npm run build         # regenerate Webflow embed, standalone and single-file build
 npm test              # the deterministic, offline contributor and CI gate
 npm run evidence:live # opt-in network check against finalized Solana account bytes
+node mint-manifest-lint.mjs --receipt FILE # offline receipt consistency check
 node launch-check.mjs --prelaunch # warning-only report before domain cutover
 node launch-check.mjs --launch    # strict production readiness
 ```
@@ -68,7 +69,7 @@ Generated surfaces: [`src/app.html`](src/app.html) for Webflow, [`index.html`](i
 
 The CI workflow runs the same build-drift and behavior checks on every pull request before deployment can run.
 
-The live evidence check is intentionally local rather than a CI dependency. It makes one finalized `getAccountInfo` request (override with `DASHA_SOLANA_RPC_URL`), performs no writes, and reports only unchanged bytes, field-level drift, or an operational error. One RPC response is not an inclusion proof, safety verdict, identity claim, or independent corroboration.
+The live evidence check is intentionally local rather than a CI dependency. It makes one finalized `getAccountInfo` request (override with `DASHA_SOLANA_RPC_URL`), performs no writes, and reports only unchanged bytes, field-level drift, or an operational error. The offline receipt inspector makes no network request and establishes only internal schema/byte consistency; it always reports provenance unverified and safety not assessed. Neither check proves inclusion, authorship, trustworthy timing, endorsement, or token safety.
 
 ## Runtime boundaries
 

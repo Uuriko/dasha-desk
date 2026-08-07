@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const MINT_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -37,6 +37,53 @@ export function decodeMintAccount(bytes) {
     initialized: Boolean(bytes[45]),
     freezeAuthority: authority(46),
   };
+}
+
+export function inspectObservationReceipt(raw, config) {
+  const findings = [];
+  const add = (condition, code) => { if (!condition) findings.push(code); };
+  if (typeof raw !== 'string' || Buffer.byteLength(raw) > 1_000_000)
+    return { ok: false, findings: ['receipt.size'], provenance: 'unverified', safety: 'not assessed' };
+  let receipt;
+  try { receipt = JSON.parse(raw); } catch { return { ok: false, findings: ['receipt.json'], provenance: 'unverified', safety: 'not assessed' }; }
+  const evidence = receipt?.mintEvidence;
+  const account = evidence?.account || {};
+  add(receipt?.schema === 'dasha.observation-receipt/1', 'receipt.schema');
+  add(evidence?.schema === 'dasha.mint-evidence/1', 'evidence.schema');
+  add(evidence?.mint === config.mint, 'evidence.mint');
+  add(evidence?.cluster === 'mainnet-beta' && evidence?.commitment === 'finalized', 'evidence.context');
+  add(Number.isSafeInteger(evidence?.slot) && evidence.slot > 0, 'evidence.slot');
+  add(['capturedAt', 'slotBlockTime'].every((key) => /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(evidence?.[key] || '') && !Number.isNaN(Date.parse(evidence[key]))), 'evidence.time');
+  const bytes = Buffer.from(typeof account.accountDataBase64 === 'string' ? account.accountDataBase64 : '', 'base64');
+  add(bytes.length === 82 && bytes.toString('base64') === account.accountDataBase64, 'evidence.bytes');
+  add(createHash('sha256').update(bytes).digest('hex') === account.accountDataSha256, 'evidence.hash');
+  if (bytes.length === 82) try {
+    const decoded = decodeMintAccount(bytes);
+    for (const field of ['supply', 'decimals', 'initialized', 'mintAuthority', 'freezeAuthority'])
+      add(decoded[field] === account[field], `evidence.${field.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`);
+  } catch { findings.push('evidence.layout'); }
+  const market = receipt?.marketObservation;
+  add(market === null || typeof market === 'object', 'market.shape');
+  if (market && typeof market === 'object') {
+    const expectedPair = new URL(config.links.dex).pathname.split('/').pop();
+    const optionalNumber = (value, nonnegative = false) => value == null || (typeof value === 'number' && Number.isFinite(value) && (!nonnegative || value >= 0));
+    add(market.provider === 'Dexscreener', 'market.provider');
+    add(market.mint === config.mint, 'market.mint');
+    add(market.pairUrl === config.links.dex, 'market.url');
+    add(String(market.pairAddress || '').toLowerCase() === expectedPair.toLowerCase(), 'market.pair');
+    add(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{3})?Z$/.test(market.fetchedAt || '') && !Number.isNaN(Date.parse(market.fetchedAt)), 'market.time');
+    add(typeof market.priceUsd === 'string' && /^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(market.priceUsd) && Number(market.priceUsd) > 0, 'market.price');
+    add(['marketCap', 'liquidityUsd', 'volume24h'].every((key) => optionalNumber(market[key], true)), 'market.number');
+    add(market.change && ['m5', 'h1', 'h6', 'h24'].every((key) => optionalNumber(market.change[key]) && (market.change[key] == null || market.change[key] >= -100)), 'market.change');
+  }
+  const requiredLimits = [
+    'The RPC snapshot is not a cryptographic inclusion proof or token assessment.',
+    'Market values are provider-reported observations, not independent corroboration.',
+    'Association evidence is not an endorsement.',
+  ];
+  add(requiredLimits.every((line) => receipt?.limitations?.includes(line)), 'receipt.limitations');
+  return { ok: findings.length === 0, sha256: createHash('sha256').update(raw).digest('hex'),
+    findings: [...new Set(findings)].sort(), provenance: 'unverified', safety: 'not assessed' };
 }
 
 export function lintMintManifest({ config, evidence, body, app }) {
@@ -158,7 +205,23 @@ export async function loadMintManifest(root = new URL('./', import.meta.url)) {
   return { config: JSON.parse(configText), evidence: JSON.parse(evidenceText), body, app };
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1] && process.argv[2] === '--receipt') {
+  const path = process.argv[3];
+  if (!path || process.argv.length !== 4) {
+    console.error('Usage: node mint-manifest-lint.mjs --receipt FILE');
+    process.exitCode = 2;
+  } else try {
+    if ((await stat(path)).size > 1_000_000) throw new Error('receipt.size');
+    const [raw, configText] = await Promise.all([readFile(path, 'utf8'), readFile(new URL('config/dasha.json', import.meta.url), 'utf8')]);
+    const result = inspectObservationReceipt(raw, JSON.parse(configText));
+    console.log(`${result.ok ? 'INTERNALLY CONSISTENT' : 'INVALID'} · provenance ${result.provenance} · safety ${result.safety} · sha256=${result.sha256 || 'unavailable'}`);
+    for (const code of result.findings) console.log(`FAIL ${code}`);
+    process.exitCode = result.ok ? 0 : 1;
+  } catch (error) {
+    console.error(`INVALID · provenance unverified · safety not assessed · ${error.message === 'receipt.size' ? 'receipt.size' : 'receipt.read'}`);
+    process.exitCode = 2;
+  }
+} else if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const findings = lintMintManifest(await loadMintManifest());
   for (const item of findings) console.log(`${item.level.toUpperCase()} ${item.code} ${item.path}: ${item.message}`);
   const errors = findings.filter((item) => item.level === 'error');
