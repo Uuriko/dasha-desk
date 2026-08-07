@@ -799,9 +799,9 @@
   }
 
   /**
-   * FOMO raid CTA label during dip/dump — pure (V37/V41/V47).
-   * Dip: "Deep raid · 24h +27% still"
-   * Dump: "Deep dump raid · 6h -29%"
+   * FOMO raid CTA label during dip/dump — pure (V37/V41/V47/V56).
+   * V56 buy-first: "Buy · Deep raid · 24h +27% still"
+   * Dump: "Buy · Deep dump raid · 6h -29%"
    * V47: optional · X suffix for one-tap tweet CTA.
    */
   function dipRaidLabel(dip, still, withX) {
@@ -810,7 +810,9 @@
     var label;
     if (dip.kind === 'dump') {
       var dLead =
-        depth && depth.tier !== 'soft' ? depth.tag + ' dump raid' : 'Dump raid';
+        depth && depth.tier !== 'soft'
+          ? 'Buy · ' + depth.tag + ' dump raid'
+          : 'Buy · Dump raid';
       if (depth) {
         dLead =
           dLead +
@@ -824,7 +826,9 @@
       label = dLead;
     } else {
       var lead =
-        depth && depth.tier !== 'soft' ? depth.tag + ' raid' : 'Raid dip';
+        depth && depth.tier !== 'soft'
+          ? 'Buy · ' + depth.tag + ' raid'
+          : 'Buy · Raid dip';
       label =
         still && still.short ? lead + ' · ' + still.short + ' still' : lead;
     }
@@ -870,8 +874,8 @@
 
   /**
    * FOMO-sub line when 24h still green during a dip — pure.
-   * Hard/deep: "24h +2.1% still · after 6h deep · NFA"
-   * V39 soft: "24h +2.1% still · 1h dip · NFA"
+   * V56 buy-first: "Buy · Deep · 24h +2.1% still · after 6h · NFA"
+   * Soft: "Buy · Soft · 24h +2.1% still · 1h dip · NFA"
    */
   function dipStillLine(still, dip) {
     if (!still || !still.short) return null;
@@ -879,6 +883,7 @@
     if (!depth) return null;
     if (depth.tier === 'soft') {
       return (
+        'Buy · Soft · ' +
         still.short +
         ' still · ' +
         (depth.shortLabel || 'short') +
@@ -886,11 +891,12 @@
       );
     }
     return (
+      'Buy · ' +
+      depth.tag +
+      ' · ' +
       still.short +
       ' still · after ' +
       depth.shortLabel +
-      ' ' +
-      depth.tag.toLowerCase() +
       ' · NFA'
     );
   }

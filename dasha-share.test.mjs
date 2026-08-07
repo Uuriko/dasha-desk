@@ -621,18 +621,20 @@ assert.equal((tblRec.match(/NFA/gi) || []).length, 1, 'trust bar single NFA with
 assert.ok(appJs.includes('dipReclaimLine') && appJs.includes('is-reclaim'), 'v33 wiring');
 assert.ok(kitStyles.includes('is-reclaim'), 'reclaim sub styles');
 
-// V34: still-after-deep FOMO sub line
+// V34/V56: still-after-deep FOMO sub line (buy-first)
 assert.ok(typeof DD.dipStillLine === 'function', 'dipStillLine exported');
 const stillDeep = DD.stillGreen24(deepReclaim);
 const stillLine = DD.dipStillLine(stillDeep, deepReclaim);
-assert.ok(stillLine && /still/i.test(stillLine) && /after 6h deep/i.test(stillLine), 'still-after-deep line');
+assert.ok(stillLine && /still/i.test(stillLine) && /after 6h/i.test(stillLine), 'still-after-deep line');
+assert.ok(/^Buy · Deep/i.test(stillLine), 'v56 still line buy-first');
 assert.ok(/NFA/i.test(stillLine), 'still line NFA');
-// V39: soft dips also get a still line (shorter form)
+// V39/V56: soft dips also get a still line (buy-first)
 const softStillLn = DD.dipStillLine(
   DD.stillGreen24({ shortLabel: '1h', shortPct: -3, ch24: 10 }),
   { shortLabel: '1h', shortPct: -3, ch24: 10 },
 );
 assert.ok(softStillLn && /still/i.test(softStillLn) && /1h dip/i.test(softStillLn), 'soft still line');
+assert.ok(/^Buy · Soft/i.test(softStillLn), 'v56 soft still buy-first');
 assert.ok(appJs.includes('dipStillLine') && appJs.includes('is-still-deep'), 'v34 wiring');
 assert.ok(kitStyles.includes('is-still-deep'), 'still-deep sub styles');
 
@@ -665,7 +667,8 @@ const tblStill = DD.trustBarLine(
   null,
   stillLn,
 );
-assert.ok(tblStill && /still/i.test(tblStill) && /after 6h deep/i.test(tblStill), 'trust bar still lead');
+assert.ok(tblStill && /still/i.test(tblStill) && /after 6h/i.test(tblStill), 'trust bar still lead');
+assert.ok(/^Buy · Deep/i.test(tblStill), 'v56 trust bar buy-first still');
 assert.ok(/Liq/.test(tblStill), 'trust bar keeps liq');
 assert.equal((tblStill.match(/NFA/gi) || []).length, 1, 'trust bar single NFA with still');
 assert.ok(appJs.includes('buildDipPack') && appJs.includes('stillLine'), 'v36 wiring');
@@ -681,7 +684,7 @@ const dualMicro = DD.dualGoPlan(2, true, 'dip', null, 74, '+44', 276, microDip, 
 assert.ok(dualMicro.hasMicro && /5m \+/.test(dualMicro.label), 'dual label has micro');
 assert.ok(dualMicro.header && /5m \+/.test(dualMicro.header), 'dual header has micro');
 const raidLbl = DD.dipRaidLabel(deepReclaim, DD.stillGreen24(deepReclaim));
-assert.ok(/Deep raid/i.test(raidLbl) && /24h \+.*still/i.test(raidLbl), 'raid CTA still proof');
+assert.ok(/^Buy · Deep raid/i.test(raidLbl) && /24h \+.*still/i.test(raidLbl), 'raid CTA buy-first still');
 assert.equal(DD.dipRaidLabel(null), 'Raid this dip', 'raid default');
 assert.ok(appJs.includes('dipMicroBounce') && appJs.includes('dipRaidLabel') && appJs.includes('has-micro'), 'v37 wiring');
 assert.ok(kitStyles.includes('has-micro'), 'micro styles');
@@ -712,7 +715,7 @@ const dualMixed = DD.dualGoPlan(2, true, 'dip', null, 74, '+40', 268, mixedDepth
 assert.ok(dualMixed.isDeepDip && /Deep dip/i.test(dualMixed.label), 'mixed dual deep label');
 assert.ok(dualMixed.header && /6h/.test(dualMixed.header) && /-29/.test(dualMixed.header), 'mixed header deepest TF');
 const stillMixed = DD.dipStillLine(DD.stillGreen24(mixedDepth), mixedDepth);
-assert.ok(stillMixed && /after 6h deep/i.test(stillMixed), 'mixed still-after-deep');
+assert.ok(stillMixed && /Buy · Deep/i.test(stillMixed) && /after 6h/i.test(stillMixed), 'mixed still-after-deep buy-first');
 assert.ok(/Deep/.test(DD.sizeChipHint(2, mixedDepth).tag), 'mixed chip Deep');
 assert.ok(appJs.includes('depthPct') && appJs.includes('depthLabel'), 'v39 wiring');
 
@@ -754,7 +757,7 @@ const tblDump = DD.trustBarLine(
 assert.ok(tblDump && /Deep dump/i.test(tblDump) && /Liq/.test(tblDump), 'trust bar dump lead');
 assert.equal((tblDump.match(/NFA/gi) || []).length, 1, 'trust bar single NFA with dump');
 const raidDump = DD.dipRaidLabel(dump, null);
-assert.ok(/dump raid/i.test(raidDump) && /6h/.test(raidDump), 'dump raid CTA');
+assert.ok(/^Buy · .*dump raid/i.test(raidDump) && /6h/.test(raidDump), 'dump raid CTA buy-first');
 assert.equal(DD.sizeChipHint(1, dump).tag, 'Dump', 'dump chip tag Dump not Deep');
 assert.ok(appJs.includes('dumpWatchLine') && appJs.includes('dumpLine'), 'v41 wiring');
 
@@ -835,7 +838,7 @@ assert.ok(typeof DD.intentTweet === 'function', 'intentTweet exported');
 const raidPlan = DD.dumpRaidPlan(dump, '$60.0K', 1, '+17', 230);
 assert.ok(raidPlan && raidPlan.isDump && raidPlan.hasIntoDump, 'raid plan dump pack');
 assert.ok(raidPlan.hasCA && raidPlan.hasBuyUrl, 'raid plan mint+jup');
-assert.ok(/Deep dump raid/i.test(raidPlan.label) && /· X$/.test(raidPlan.label), 'raid label · X');
+assert.ok(/^Buy · Deep dump raid/i.test(raidPlan.label) && /· X$/.test(raidPlan.label), 'raid label buy-first · X');
 assert.ok(
   raidPlan.href &&
     /x\.com\/intent\/tweet|twitter\.com\/intent/.test(raidPlan.href) &&
@@ -936,5 +939,12 @@ const hardLive55 = { shortLabel: '6h', shortPct: -15.3, ch24: 1.6 };
 const hintLive = DD.sizeChipHint(1, hardLive55);
 assert.ok(hintLive && hintLive.tag === 'Hard · still', 'v55 live hard still tag');
 assert.ok(appJs.includes('Hard · still') || appJs.includes('hasStill'), 'v55 wiring');
+
+// V56: FOMO sub + raid buy-first when still green
+const stillHard56 = DD.dipStillLine(DD.stillGreen24(hardLive55), hardLive55);
+assert.ok(/^Buy · Hard/i.test(stillHard56) && /still/i.test(stillHard56), 'v56 hard sub buy-first');
+const raidHard56 = DD.dipRaidLabel(hardLive55, DD.stillGreen24(hardLive55), true);
+assert.ok(/^Buy · Hard raid/i.test(raidHard56) && /· X$/.test(raidHard56), 'v56 hard raid buy-first X');
+assert.ok(appJs.includes('Buy · ') && appJs.includes('dipRaidLabel'), 'v56 wiring');
 
 console.log('dasha-share.test.mjs: PASS');
