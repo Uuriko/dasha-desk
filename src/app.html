@@ -2140,24 +2140,26 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         };
       }
     }
-    // V53: hard/deep → Buy · Hard dip · 24h +X% still · +N net · NFA
-    if (depth && depth.tier !== 'soft') {
-      var bits = [dipBuyLead(dip) || 'Buy · ' + depth.tag + ' dip'];
+    // V53/V54: hard/deep always buy-first; soft buy-first when 24h still green
+    if ((depth && depth.tier !== 'soft') || stillObj) {
+      var lead =
+        depth && depth.tier !== 'soft'
+          ? dipBuyLead(dip) || 'Buy · ' + depth.tag + ' dip'
+          : 'Buy · Soft dip';
+      var bits = [lead];
       if (stillObj && stillObj.short) bits.push(stillObj.short + ' still');
       if (netShort && String(netShort).charAt(0) === '+') {
         bits.push(String(netShort) + ' net');
       } else if (bp && bp.moreBuyers) {
         bits.push(bp.pct + '% buys');
+      } else if (!(depth && depth.tier !== 'soft')) {
+        // Soft without net/buys: keep short TF drop as honest context
+        bits.push(dip.shortLabel + ' ' + short);
       }
       bits.push('NFA');
       return bits.join(' · ');
     }
-    var stillSoft = '';
-    if (stillObj && stillObj.short) {
-      stillSoft = stillObj.short.replace(/^24h\s+/i, '');
-    } else if (ch24Label && String(ch24Label) !== '—') {
-      stillSoft = String(ch24Label).replace(/^24h\s+/i, '');
-    }
+    // Soft, no still — A/B status vs buy-pressure
     if (ab === 'b') {
       var press =
         bp && bp.moreBuyers ? ' · ' + bp.pct + '% buys' : '';
@@ -2171,13 +2173,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         ' · NFA'
       );
     }
-    // Soft A = status style
-    return (
-      dip.shortLabel +
-      ' dip ' +
-      short +
-      (stillSoft ? ' · 24h still ' + stillSoft : '')
-    );
+    return dip.shortLabel + ' dip ' + short;
   }
 
   /** Net buys social proof from real Dex txn counts */
@@ -3361,16 +3357,15 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
             var depthNow = dipDepth(lastProof.dip);
             fomo.classList.toggle('is-deep', !!(depthNow && depthNow.tier === 'deep'));
             fomo.classList.toggle('is-hard', !!(depthNow && depthNow.tier === 'hard'));
-            // V53: buy-first hard/deep FOMO main class
-            fomo.classList.toggle(
-              'is-buy-first',
-              !!(depthNow && depthNow.tier !== 'soft'),
-            );
+            // V53/V54: buy-first class for hard/deep, or soft when 24h still green
+            var stillNow = stillGreen24(lastProof.dip, lastProof.ch24n);
+            var buyFirstMain =
+              !!(depthNow && depthNow.tier !== 'soft') || !!stillNow;
+            fomo.classList.toggle('is-buy-first', buyFirstMain);
             if ($('dd-fomo-ab')) {
-              // V53: hide A/B chip for hard/deep (single buy-first format)
-              var hideAb = !!(depthNow && depthNow.tier !== 'soft');
-              $('dd-fomo-ab').hidden = hideAb;
-              if (!hideAb) {
+              // Hide A/B when single buy-first format (hard/deep or soft+still)
+              $('dd-fomo-ab').hidden = buyFirstMain;
+              if (!buyFirstMain) {
                 $('dd-fomo-ab').textContent = String(fomoAb).toUpperCase();
               }
             }

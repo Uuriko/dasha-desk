@@ -358,10 +358,11 @@ assert.ok(typeof DD.fomoDipHeadline === 'function', 'fomoDipHeadline exported');
 assert.ok(typeof DD.netBuysLine === 'function' && typeof DD.netBuysShort === 'function', 'net buys helpers');
 const headA = DD.fomoDipHeadline(dip, '+511.00%', 'a', bp);
 const headB = DD.fomoDipHeadline(dip, '+511.00%', 'b', bp);
-assert.ok(headA.includes('dip') && headA.includes('24h still'), 'FOMO A is status style');
-assert.ok(/^Buy the dip/i.test(headB), 'FOMO B leads with Buy the dip');
-assert.ok(headB.includes('% buys') || headB.includes('NFA'), 'FOMO B includes pressure or NFA');
-assert.notEqual(headA, headB, 'FOMO A/B headlines differ');
+// V54: soft + 24h still → buy-first (A/B converge)
+assert.ok(/^Buy · Soft dip/i.test(headA) && /24h \+.*still/i.test(headA), 'FOMO A soft still buy-first');
+assert.ok(/^Buy · Soft dip/i.test(headB), 'FOMO B soft still buy-first');
+assert.ok(headA.includes('NFA') && headB.includes('NFA'), 'FOMO still includes NFA');
+assert.equal(headA, headB, 'FOMO A/B converge when still green');
 const net = DD.netBuysLine(362, 237);
 assert.ok(net && net.startsWith('+') && /more buys/i.test(net) && /NFA/i.test(net), 'net buys line');
 assert.equal(DD.netBuysShort(362, 237), '+125', 'net buys short +125');
@@ -910,8 +911,18 @@ assert.equal(
   'v53 A/B converge on hard',
 );
 const headSoftA = DD.fomoDipHeadline(softDip, '+10%', 'a', bpHot);
-assert.ok(/dip/i.test(headSoftA) && /still/i.test(headSoftA), 'soft A keeps still status');
+// V54: soft + still green → buy-first (no awkward status-only main)
+assert.ok(/^Buy · Soft dip/i.test(headSoftA), 'v54 soft still buy-first');
+assert.ok(/24h \+.*still/i.test(headSoftA), 'v54 soft still has still');
 assert.ok(appJs.includes('is-buy-first') && appJs.includes('netDip'), 'v53 wiring');
 assert.ok(kitStyles.includes('is-buy-first'), 'v53 buy-first styles');
+
+// V54: soft without still keeps A/B (status vs buy the dip)
+const softRed = { shortLabel: '1h', shortPct: -4.5, ch24: -2 };
+const headSoftRedA = DD.fomoDipHeadline(softRed, '-2%', 'a', bpHot);
+const headSoftRedB = DD.fomoDipHeadline(softRed, '-2%', 'b', bpHot);
+assert.ok(/1h dip/i.test(headSoftRedA), 'v54 soft red A status');
+assert.ok(/^Buy the dip/i.test(headSoftRedB), 'v54 soft red B buy the dip');
+assert.ok(appJs.includes('Buy · Soft dip') || appJs.includes('buyFirstMain'), 'v54 wiring');
 
 console.log('dasha-share.test.mjs: PASS');
