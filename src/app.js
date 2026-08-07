@@ -236,10 +236,17 @@
     var nudge = dipSizeNudgeSol(dip);
     if (nudge == null || Number(sol) !== Number(nudge)) return null;
     var depth = dipDepth(dip);
+    // V41: dump chips say Dump (not Deep) so size≠deep-2 SOL
+    var tag =
+      dip.kind === 'dump'
+        ? 'Dump'
+        : depth && depth.tier !== 'soft'
+          ? depth.tag
+          : 'Dip';
     return {
       recommended: true,
       nudgeSol: nudge,
-      tag: depth && depth.tier !== 'soft' ? depth.tag : 'Dip',
+      tag: tag,
       tier: depth ? depth.tier : 'soft',
     };
   }
@@ -548,6 +555,29 @@
     return bits.join(' · ');
   }
 
+  /**
+   * FOMO-sub / trust dump proof line — pure V41.
+   * e.g. "Deep dump · 6h -29.4% · 24h -23.1% · NFA"
+   */
+  function dumpWatchLine(dump) {
+    if (!dump || dump.kind !== 'dump') return null;
+    var depth = dipDepth(dump);
+    var bits = [depth && depth.word ? depth.word : 'Dump'];
+    bits.push(
+      (dump.depthLabel || dump.shortLabel) +
+        ' ' +
+        Number(dump.depthPct != null ? dump.depthPct : dump.shortPct).toFixed(
+          1,
+        ) +
+        '%',
+    );
+    if (dump.ch24 != null && isFinite(Number(dump.ch24))) {
+      var h24 = Number(dump.ch24);
+      bits.push('24h ' + (h24 > 0 ? '+' : '') + h24.toFixed(1) + '%');
+    }
+    return bits.join(' · ') + ' · NFA';
+  }
+
   /** Soft size nudge SOL for dip depth — pure (session applies once) */
   function dipSizeNudgeSol(dip) {
     var d = dipDepth(dip);
@@ -606,12 +636,28 @@
   }
 
   /**
-   * FOMO raid CTA label during dip — pure, conversion copy near raid (V37).
-   * e.g. "Deep raid · 24h +27% still"
+   * FOMO raid CTA label during dip/dump — pure (V37/V41).
+   * Dip: "Deep raid · 24h +27% still"
+   * Dump: "Deep dump raid · 6h -29%"
    */
   function dipRaidLabel(dip, still) {
     if (!dip) return 'Raid this dip';
     var depth = dipDepth(dip);
+    if (dip.kind === 'dump') {
+      var dLead =
+        depth && depth.tier !== 'soft' ? depth.tag + ' dump raid' : 'Dump raid';
+      if (depth) {
+        dLead =
+          dLead +
+          ' · ' +
+          depth.shortLabel +
+          ' ' +
+          (depth.shortPct > 0 ? '+' : '') +
+          depth.shortPct.toFixed(0) +
+          '%';
+      }
+      return dLead;
+    }
     var lead =
       depth && depth.tier !== 'soft' ? depth.tag + ' raid' : 'Raid dip';
     if (still && still.short) return lead + ' · ' + still.short + ' still';
@@ -874,7 +920,7 @@
    * Mobile-visible trust strip near sticky dual — pure.
    * Combines flow + liq + session shorts (each already NFA-tagged).
    */
-  function trustBarLine(flow, liqLine, session, reclaimLine, stillLine) {
+  function trustBarLine(flow, liqLine, session, reclaimLine, stillLine, dumpLine) {
     function stripNfa(s) {
       return String(s || '')
         .replace(/\s*·?\s*NFA\s*/gi, ' ')
@@ -883,14 +929,16 @@
         .replace(/^[·\s]+|[·\s]+$/g, '');
     }
     var parts = [];
-    // V33: reclaim first on mobile trust bar (bounce during dump)
+    // V33: reclaim first; V36 still; V41 dump proof when no reclaim/still
     if (reclaimLine) {
       var r = stripNfa(reclaimLine);
       if (r) parts.push(r);
     } else if (stillLine) {
-      // V36: still-after-deep when no reclaim (current deep+green regime)
       var st = stripNfa(stillLine);
       if (st) parts.push(st);
+    } else if (dumpLine) {
+      var du = stripNfa(dumpLine);
+      if (du) parts.push(du);
     }
     if (flow) {
       var f = stripNfa(flow);
@@ -1169,6 +1217,7 @@
     dipBuySignal: dipBuySignal,
     dumpWatchSignal: dumpWatchSignal,
     fomoDumpHeadline: fomoDumpHeadline,
+    dumpWatchLine: dumpWatchLine,
     fomoDipHeadline: fomoDipHeadline,
     dipDepth: dipDepth,
     dipSizeNudgeSol: dipSizeNudgeSol,
@@ -1640,25 +1689,33 @@
             $('dd-sticky-flow').hidden = true;
           }
         }
-        // V33/V34: FOMO sub — reclaim > still-after-deep > flow
-        var reclaimNow = lastProof.dip
-          ? dipReclaim(lastProof.dip, lastProof.ch1n)
-          : null;
+        // V33/V34/V41: FOMO sub — reclaim > still-after-deep > dump line > flow
+        var reclaimNow =
+          lastProof.dip && lastProof.dip.kind !== 'dump'
+            ? dipReclaim(lastProof.dip, lastProof.ch1n)
+            : null;
         var reclaimLineNow = reclaimNow
           ? dipReclaimLine(reclaimNow, lastProof.dip)
           : null;
-        var stillNow = lastProof.dip
-          ? stillGreen24(lastProof.dip, lastProof.ch24n)
-          : null;
+        var stillNow =
+          lastProof.dip && lastProof.dip.kind !== 'dump'
+            ? stillGreen24(lastProof.dip, lastProof.ch24n)
+            : null;
         var stillLineNow = stillNow
           ? dipStillLine(stillNow, lastProof.dip)
           : null;
+        var dumpLineNow =
+          lastProof.dip && lastProof.dip.kind === 'dump'
+            ? dumpWatchLine(lastProof.dip)
+            : null;
         lastProof.reclaim = reclaimNow;
         lastProof.reclaimLine = reclaimLineNow;
         lastProof.stillLine = stillLineNow;
+        lastProof.dumpLine = dumpLineNow;
         if ($('dd-fomo-sub')) {
           if (reclaimLineNow) $('dd-fomo-sub').textContent = reclaimLineNow;
           else if (stillLineNow) $('dd-fomo-sub').textContent = stillLineNow;
+          else if (dumpLineNow) $('dd-fomo-sub').textContent = dumpLineNow;
           else if (flow) $('dd-fomo-sub').textContent = flow;
         }
         if ($('dd-fomo')) {
@@ -1710,12 +1767,14 @@
               $('dd-session-line').hidden = true;
             }
           }
-          // FOMO sub: reclaim > still-after-deep > session > flow
+          // FOMO sub: reclaim > still > dump line > session > flow
           if ($('dd-fomo-sub')) {
             if (lastProof.reclaimLine) {
               $('dd-fomo-sub').textContent = lastProof.reclaimLine;
             } else if (lastProof.stillLine) {
               $('dd-fomo-sub').textContent = lastProof.stillLine;
+            } else if (lastProof.dumpLine) {
+              $('dd-fomo-sub').textContent = lastProof.dumpLine;
             } else if (
               lastProof.session &&
               Math.abs(lastProof.session.pct) >= 0.5
@@ -1916,11 +1975,13 @@
           }
         }
         if ($('dd-fomo-sub')) {
-          // reclaim > still-after-deep > session > flow > vol fallback
+          // reclaim > still > dump line > session > flow > vol fallback
           if (lastProof.reclaimLine) {
             $('dd-fomo-sub').textContent = lastProof.reclaimLine;
           } else if (lastProof.stillLine) {
             $('dd-fomo-sub').textContent = lastProof.stillLine;
+          } else if (lastProof.dumpLine) {
+            $('dd-fomo-sub').textContent = lastProof.dumpLine;
           } else if (
             lastProof.session &&
             Math.abs(lastProof.session.pct) >= 0.5 &&
@@ -2173,12 +2234,19 @@
     var reclaimLine = reclaim ? dipReclaimLine(reclaim, lastProof.dip) : null;
     lastProof.reclaim = reclaim;
     lastProof.reclaimLine = reclaimLine;
-    // Ensure stillLine available for trust bar (same pure path as FOMO sub)
-    if (!lastProof.stillLine && lastProof.dip) {
+    // Ensure stillLine / dumpLine available for trust bar (same pure path as FOMO sub)
+    if (!lastProof.stillLine && lastProof.dip && lastProof.dip.kind !== 'dump') {
       var stillForBar = stillGreen24(lastProof.dip, lastProof.ch24n);
       lastProof.stillLine = stillForBar
         ? dipStillLine(stillForBar, lastProof.dip)
         : null;
+    }
+    if (
+      !lastProof.dumpLine &&
+      lastProof.dip &&
+      lastProof.dip.kind === 'dump'
+    ) {
+      lastProof.dumpLine = dumpWatchLine(lastProof.dip);
     }
     var line = trustBarLine(
       lastProof.flow,
@@ -2186,6 +2254,7 @@
       lastProof.session,
       reclaimLine,
       lastProof.stillLine,
+      lastProof.dumpLine,
     );
     lastProof.trustBar = line;
     if (bar) {

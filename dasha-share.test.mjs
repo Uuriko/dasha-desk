@@ -728,4 +728,26 @@ assert.ok(dualDump.hasImpact && /% liq/.test(dualDump.toast || ''), 'dump toast 
 assert.ok(appJs.includes('dumpWatchSignal') && appJs.includes('is-dump') && appJs.includes('is-dump-dual'), 'v40 wiring');
 assert.ok(kitStyles.includes('is-dump-dual') || kitStyles.includes('is-dump'), 'dump styles');
 
+// V41: dump proof line on FOMO sub + trust bar + dump raid CTA + Dump chip tag
+assert.ok(typeof DD.dumpWatchLine === 'function', 'dumpWatchLine exported');
+const dumpLn = DD.dumpWatchLine(dump);
+assert.ok(dumpLn && /Deep dump/i.test(dumpLn) && /6h/.test(dumpLn) && /24h/.test(dumpLn), 'dump line');
+assert.ok(/NFA/i.test(dumpLn), 'dump line NFA');
+assert.equal(DD.dumpWatchLine(null), null, 'null dump line');
+assert.equal(DD.dumpWatchLine({ kind: 'dip' }), null, 'non-dump null');
+const tblDump = DD.trustBarLine(
+  '+20 net · ~10 buys/hr',
+  'Liq $24.0K · NFA',
+  null,
+  null,
+  null,
+  dumpLn,
+);
+assert.ok(tblDump && /Deep dump/i.test(tblDump) && /Liq/.test(tblDump), 'trust bar dump lead');
+assert.equal((tblDump.match(/NFA/gi) || []).length, 1, 'trust bar single NFA with dump');
+const raidDump = DD.dipRaidLabel(dump, null);
+assert.ok(/dump raid/i.test(raidDump) && /6h/.test(raidDump), 'dump raid CTA');
+assert.equal(DD.sizeChipHint(1, dump).tag, 'Dump', 'dump chip tag Dump not Deep');
+assert.ok(appJs.includes('dumpWatchLine') && appJs.includes('dumpLine'), 'v41 wiring');
+
 console.log('dasha-share.test.mjs: PASS');
