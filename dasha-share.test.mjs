@@ -586,8 +586,11 @@ const deepReclaim = { shortLabel: '6h', shortPct: -29.17, ch24: 18.21, ch1: 1.25
 const reclaim = DD.dipReclaim(deepReclaim);
 assert.ok(reclaim && reclaim.pct === 1.25 && /1h \+1\.3%|1h \+1\.2%/.test(reclaim.short), 'reclaim short');
 assert.equal(DD.dipReclaim({ shortLabel: '1h', shortPct: -5, ch24: 10, ch1: 2 }), null, '1h-dip no reclaim');
-assert.equal(DD.dipReclaim({ shortLabel: '6h', shortPct: -12, ch24: 10, ch1: 0.2 }), null, 'flat 1h null');
+assert.equal(DD.dipReclaim({ shortLabel: '6h', shortPct: -12, ch24: 10, ch1: 0.1 }), null, 'flat 1h null');
 assert.equal(DD.dipReclaim({ shortLabel: '6h', shortPct: -12, ch24: 10, ch1: -1 }), null, 'red 1h null');
+// V37: early 1h reclaim ≥0.2%
+const earlyRec = DD.dipReclaim({ shortLabel: '6h', shortPct: -29.9, ch24: 27, ch1: 0.21 });
+assert.ok(earlyRec && /1h \+0\.2%/.test(earlyRec.short), 'early reclaim at +0.21%');
 const dualRec = DD.dualGoPlan(2, true, 'dip', null, 74, '+51', 298, deepReclaim);
 assert.ok(dualRec.hasReclaim && /1h \+/.test(dualRec.label), 'dual label has 1h reclaim');
 assert.ok(dualRec.header && /1h \+/.test(dualRec.header), 'dual header has 1h reclaim');
@@ -654,5 +657,21 @@ assert.ok(tblStill && /still/i.test(tblStill) && /after 6h deep/i.test(tblStill)
 assert.ok(/Liq/.test(tblStill), 'trust bar keeps liq');
 assert.equal((tblStill.match(/NFA/gi) || []).length, 1, 'trust bar single NFA with still');
 assert.ok(appJs.includes('buildDipPack') && appJs.includes('stillLine'), 'v36 wiring');
+
+// V37: early reclaim + 5m micro-bounce + FOMO raid label
+assert.ok(typeof DD.dipMicroBounce === 'function', 'dipMicroBounce exported');
+assert.ok(typeof DD.dipRaidLabel === 'function', 'dipRaidLabel exported');
+const microDip = { shortLabel: '6h', shortPct: -29.9, ch24: 27, ch1: 0.05, m5: 0.24 };
+assert.ok(DD.dipMicroBounce(microDip, 0.24, null) && /5m \+0\.2%/.test(DD.dipMicroBounce(microDip, 0.24, null).short), 'micro bounce');
+assert.equal(DD.dipMicroBounce(microDip, 0.24, { short: '1h +0.3%' }), null, 'micro null when reclaim');
+assert.equal(DD.dipMicroBounce(microDip, 0.05, null), null, 'flat m5 null');
+const dualMicro = DD.dualGoPlan(2, true, 'dip', null, 74, '+44', 276, microDip, 24000);
+assert.ok(dualMicro.hasMicro && /5m \+/.test(dualMicro.label), 'dual label has micro');
+assert.ok(dualMicro.header && /5m \+/.test(dualMicro.header), 'dual header has micro');
+const raidLbl = DD.dipRaidLabel(deepReclaim, DD.stillGreen24(deepReclaim));
+assert.ok(/Deep raid/i.test(raidLbl) && /24h \+.*still/i.test(raidLbl), 'raid CTA still proof');
+assert.equal(DD.dipRaidLabel(null), 'Raid this dip', 'raid default');
+assert.ok(appJs.includes('dipMicroBounce') && appJs.includes('dipRaidLabel') && appJs.includes('has-micro'), 'v37 wiring');
+assert.ok(kitStyles.includes('has-micro'), 'micro styles');
 
 console.log('dasha-share.test.mjs: PASS');

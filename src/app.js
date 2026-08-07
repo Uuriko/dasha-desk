@@ -461,7 +461,7 @@
 
   /**
    * 1h reclaim during a multi-hour dip — pure, honest Dex.
-   * When short TF is 6h (not 1h) and 1h is green ≥0.5%, surface bounce.
+   * When short TF is 6h (not 1h) and 1h is green ≥0.2%, surface early bounce (V37).
    */
   function dipReclaim(dip, ch1) {
     if (!dip || dip.shortLabel === '1h') return null;
@@ -471,9 +471,35 @@
         : ch1 != null
           ? Number(ch1)
           : NaN;
-    if (!isFinite(n) || n < 0.5) return null;
+    if (!isFinite(n) || n < 0.2) return null;
     var label = '1h +' + (Math.abs(n) >= 10 ? n.toFixed(0) : n.toFixed(1)) + '%';
     return { pct: n, label: label, short: label };
+  }
+
+  /**
+   * 5m micro-bounce during multi-hour dip — pure, honest Dex (V37).
+   * Surfaces when m5 ≥0.15% and 1h reclaim is not already firing.
+   */
+  function dipMicroBounce(dip, m5, reclaim) {
+    if (!dip || dip.shortLabel === '1h') return null;
+    if (reclaim) return null;
+    var n = m5 != null ? Number(m5) : dip.m5 != null ? Number(dip.m5) : NaN;
+    if (!isFinite(n) || n < 0.15) return null;
+    var label = '5m +' + (Math.abs(n) >= 10 ? n.toFixed(0) : n.toFixed(1)) + '%';
+    return { pct: n, label: label, short: label };
+  }
+
+  /**
+   * FOMO raid CTA label during dip — pure, conversion copy near raid (V37).
+   * e.g. "Deep raid · 24h +27% still"
+   */
+  function dipRaidLabel(dip, still) {
+    if (!dip) return 'Raid this dip';
+    var depth = dipDepth(dip);
+    var lead =
+      depth && depth.tier !== 'soft' ? depth.tag + ' raid' : 'Raid dip';
+    if (still && still.short) return lead + ' · ' + still.short + ' still';
+    return lead;
   }
 
   /**
@@ -772,6 +798,9 @@
     var depth = r === 'dip' ? dipDepth(dip) : null;
     var still = r === 'dip' ? stillGreen24(dip) : null;
     var reclaim = r === 'dip' ? dipReclaim(dip) : null;
+    // V37: 5m micro-bounce when multi-hour dip and no 1h reclaim yet
+    var micro =
+      r === 'dip' ? dipMicroBounce(dip, dip && dip.m5, reclaim) : null;
     // V35: size vs liq impact (toast; deep dips only to keep labels short)
     var impact =
       r === 'dip' && depth && depth.tier !== 'soft'
@@ -790,8 +819,9 @@
     else label = label + (mobile ? ' · Wallet' : ' · Buy');
     // V31: 24h still green during dip (honest recovery anchor near buy)
     if (still && still.short) label = label + ' · ' + still.short;
-    // V32: 1h reclaim during multi-hour dip (bounce near buy)
+    // V32/V37: 1h reclaim or 5m micro-bounce near buy
     if (reclaim && reclaim.short) label = label + ' · ' + reclaim.short;
+    else if (micro && micro.short) label = label + ' · ' + micro.short;
     // Positive net buys social proof (honest Dex)
     if (netShort && String(netShort).charAt(0) === '+') {
       label = label + ' · ' + netShort + ' net';
@@ -819,6 +849,7 @@
       }
       if (still && still.short) headerBits.push(still.short);
       if (reclaim && reclaim.short) headerBits.push(reclaim.short);
+      else if (micro && micro.short) headerBits.push(micro.short);
     } else if (r === 'hot') headerBits.push('hot');
     if (netShort && String(netShort).charAt(0) === '+') {
       headerBits.push(netShort + ' net');
@@ -838,6 +869,7 @@
     if (size && size.label) toast = 'CA+buy · ' + size.label;
     if (still && still.short) toast = toast + ' · ' + still.short;
     if (reclaim && reclaim.short) toast = toast + ' · ' + reclaim.short;
+    else if (micro && micro.short) toast = toast + ' · ' + micro.short;
     if (impact && impact.short) toast = toast + ' · ' + impact.short;
     if (netShort && String(netShort).charAt(0) === '+') {
       toast = toast + ' · ' + netShort + ' net';
@@ -859,6 +891,7 @@
       pace: pace,
       still: still,
       reclaim: reclaim,
+      micro: micro,
       impact: impact,
       session: session || null,
       netShort: netShort || null,
@@ -874,6 +907,7 @@
       hasPace: !!pace,
       hasStill24: !!still,
       hasReclaim: !!reclaim,
+      hasMicro: !!micro,
       hasImpact: !!impact,
       depth: depth,
       isDeepDip: !!(depth && depth.tier === 'deep'),
@@ -985,6 +1019,8 @@
     dipSizeNudgeSol: dipSizeNudgeSol,
     stillGreen24: stillGreen24,
     dipReclaim: dipReclaim,
+    dipMicroBounce: dipMicroBounce,
+    dipRaidLabel: dipRaidLabel,
     dipReclaimLine: dipReclaimLine,
     dipStillLine: dipStillLine,
     solLiqImpact: solLiqImpact,
@@ -1394,6 +1430,8 @@
           }
         }
         lastProof.dip = dipBuySignal(ch.h1, ch.h6, ch.h24);
+        // V37: carry m5 on dip for micro-bounce (pure helpers read dip.m5)
+        if (lastProof.dip) lastProof.dip.m5 = lastProof.m5n;
         var tx = (p.txns && p.txns.h24) || {};
         lastProof.buys = isFinite(Number(tx.buys)) ? Number(tx.buys) : null;
         lastProof.sells = isFinite(Number(tx.sells)) ? Number(tx.sells) : null;
@@ -2014,6 +2052,7 @@
       b.classList.toggle('has-pace', !!plan.hasPace);
       b.classList.toggle('has-still24', !!plan.hasStill24);
       b.classList.toggle('has-reclaim', !!plan.hasReclaim);
+      b.classList.toggle('has-micro', !!plan.hasMicro);
       b.classList.toggle(
         'is-sess-up',
         !!(sess && sess.up && Math.abs(sess.pct) >= 0.5),
@@ -2338,15 +2377,24 @@
         var sd = dipDepth(lastProof.dip);
         var stillSticky = stillGreen24(lastProof.dip, lastProof.ch24n);
         var reclaimSticky = dipReclaim(lastProof.dip, lastProof.ch1n);
+        var microSticky = dipMicroBounce(
+          lastProof.dip,
+          lastProof.m5n,
+          reclaimSticky,
+        );
+        var bounceSticky =
+          reclaimSticky && reclaimSticky.short
+            ? reclaimSticky.short
+            : microSticky && microSticky.short
+              ? microSticky.short
+              : '';
         $('dd-buy-sticky').textContent =
           (sd && sd.tier !== 'soft' ? sd.tag + ' dip' : 'Dip') +
           ' · ' +
           buySol +
           ' SOL' +
           (stillSticky && stillSticky.short ? ' · ' + stillSticky.short : '') +
-          (reclaimSticky && reclaimSticky.short
-            ? ' · ' + reclaimSticky.short
-            : '') +
+          (bounceSticky ? ' · ' + bounceSticky : '') +
           (netBit && netBit !== '—' && netBit !== '0' ? ' · ' + netBit + ' net' : '') +
           (lastProof.mcap && lastProof.mcap !== '—' ? ' · ' + lastProof.mcap : '');
       } else if (stickyRegime === 'hot') {
@@ -2394,10 +2442,18 @@
         var stillBit =
           regime === 'dip' ? stillGreen24(lastProof.dip, lastProof.ch24n) : null;
         if (stillBit && stillBit.short) fomoBits.push(stillBit.short);
-        // V32: 1h reclaim during multi-hour dip
+        // V32/V37: 1h reclaim or 5m micro-bounce during multi-hour dip
         var reclaimBit =
           regime === 'dip' ? dipReclaim(lastProof.dip, lastProof.ch1n) : null;
         if (reclaimBit && reclaimBit.short) fomoBits.push(reclaimBit.short);
+        else if (regime === 'dip') {
+          var microBit = dipMicroBounce(
+            lastProof.dip,
+            lastProof.m5n,
+            reclaimBit,
+          );
+          if (microBit && microBit.short) fomoBits.push(microBit.short);
+        }
         if (netBit && netBit !== '—' && String(netBit).charAt(0) === '+') {
           fomoBits.push(netBit + ' net');
         }
@@ -2409,6 +2465,19 @@
     }
     if ($('dd-fomo-raid-dip')) {
       $('dd-fomo-raid-dip').hidden = !lastProof.dip;
+      // V37: conversion raid CTA label with depth + still proof
+      if (lastProof.dip) {
+        var stillRaid = stillGreen24(lastProof.dip, lastProof.ch24n);
+        var depthRaid = dipDepth(lastProof.dip);
+        $('dd-fomo-raid-dip').textContent = dipRaidLabel(
+          lastProof.dip,
+          stillRaid,
+        );
+        $('dd-fomo-raid-dip').classList.toggle(
+          'is-deep-raid',
+          !!(depthRaid && depthRaid.tier === 'deep'),
+        );
+      }
     }
     if ($('dd-fomo-amts')) {
       $('dd-fomo-amts').hidden = !lastProof.dip;

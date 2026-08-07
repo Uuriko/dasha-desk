@@ -758,8 +758,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 }
 .dd-dual-go.has-still24{box-shadow:0 0 12px rgba(100,220,140,.22)}
 .dd-dual-go.has-reclaim{box-shadow:0 0 14px rgba(120,255,160,.32)}
+.dd-dual-go.has-micro{box-shadow:0 0 12px rgba(140,230,180,.28)}
 #dd-fomo.is-reclaim .dd-fomo-sub{color:#9dffc0;font-weight:700}
 #dd-fomo.is-still-deep .dd-fomo-sub{color:#b8f0c8;font-weight:700}
+#dd-fomo-raid-dip.is-deep-raid{border-color:rgba(255,140,80,.55)!important;font-weight:800}
 #dd-fomo.is-dip.is-deep .dd-fomo-main{color:#ffc4a0}
 .dd-dual-go.is-sess-up{box-shadow:0 0 14px rgba(80,220,140,.25)}
 .dd-dual-go.is-sess-down{box-shadow:0 0 14px rgba(255,140,80,.22)}
