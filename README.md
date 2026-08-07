@@ -11,7 +11,7 @@ No backend. No wallet connect. No fake roadmap.
 | Boundary | Current state |
 |---|---|
 | Maturity | Early alpha; no independent security audit |
-| Deployment | The Webflow demo can differ from this source; `getdasha.com` is not connected and GitHub Pages is not enabled |
+| Deployment | No verified public build; the Webflow and Catbox copies are legacy/unhardened, `getdasha.com` is not connected, and GitHub Pages is disabled |
 | Accounts and custody | No account, server, wallet connection, signing request or custody; outbound buy links leave this site |
 | Evidence | Embedded hashes detect changed bytes only; they do not prove authorship, endorsement, safety, publication time or inclusion in Solana consensus |
 | Market data | Exact-pair Dexscreener observations can be stale, unavailable or wrong; they are not a price oracle or recommendation |
@@ -23,9 +23,9 @@ No backend. No wallet connect. No fake roadmap.
 | | |
 |--|--|
 | **Repo** | https://github.com/Uuriko/dasha-desk |
-| **Working demo** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
+| **Legacy Webflow copy** | https://johns-awesome-project-39b1b5.webflow.io/dasha — **unhardened; do not use as the verified build** |
 | **Pages (pending)** | https://uuriko.github.io/dasha-desk/ — currently unavailable |
-| **Standalone** | https://files.catbox.moe/sm5mo0.html |
+| **Legacy Catbox copy** | https://files.catbox.moe/sm5mo0.html — **unhardened; do not use** |
 | **Mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
 
 ## Quick start
@@ -75,7 +75,6 @@ The live evidence check is intentionally local rather than a CI dependency. It m
 | Provider | Used for | Failure behavior |
 |---|---|---|
 | Dexscreener API | price, liquidity, volume and chart URL | page stays usable and labels market data offline |
-| qrserver.com | mint QR image | canvas falls back to readable mint text |
 | X, Dexscreener CDN and Catbox | attributed media | broken images collapse to an unavailable placeholder |
 
 Third-party data and media are not endorsements. Provider-supplied chart and image URLs are accepted only from their exact HTTPS Dexscreener hosts; otherwise the canonical links remain unchanged.

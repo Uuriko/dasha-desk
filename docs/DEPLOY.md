@@ -1,13 +1,15 @@
 # Deploy dasha desk
 
-## Live
+## Public surfaces
+
+There is currently no verified public release. The hardened Webflow candidates remain unpublished drafts.
 
 | Surface | URL |
 |---------|-----|
 | **Repo** | https://github.com/Uuriko/dasha-desk |
 | **GitHub Pages** | https://uuriko.github.io/dasha-desk/ (after Actions/Pages enable) |
-| **Standalone single-file** | https://files.catbox.moe/sm5mo0.html |
-| **Webflow shell** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
+| **Legacy standalone** | https://files.catbox.moe/sm5mo0.html — unhardened; do not use as a release |
+| **Legacy Webflow shell** | https://johns-awesome-project-39b1b5.webflow.io/dasha — unhardened; not the verified candidate |
 
 ## Custom domain launch gate
 
@@ -20,7 +22,7 @@
 
 Prepared, not published: Webflow page `6a75866d58882fdfb5f7674a` is a draft duplicate of Labs at slug `/labs`; its form embeds, SEO/OG metadata, and future `/labs` ↔ `/` navigation were verified on 2026-08-07. Staging correctly remains 404 until the atomic cutover.
 
-Desk release candidate: Webflow page `6a758d786dc08f46cfb2539c` is a draft-only duplicate at `/desk-rc`, labeled **DO NOT PUBLISH**. Canonical Desk markup/runtime were split across its existing embeds to stay below Webflow's 50,000-character limit; both parts were read back byte-for-byte and the redundant legacy nav is hidden. Frozen hashes and the Webflow publish token are in [`WEBFLOW-RC.json`](WEBFLOW-RC.json). Public `/desk-rc` correctly remains 404.
+Desk release candidate: Webflow page `6a758d786dc08f46cfb2539c` is a draft-only duplicate at `/desk-rc`, labeled **DO NOT PUBLISH**. Canonical Desk markup/runtime were split across its existing embeds to stay below Webflow's 50,000-character limit; both parts were read back byte-for-byte and the redundant legacy nav is hidden. Frozen hashes and publication state are in [`WEBFLOW-RC.json`](WEBFLOW-RC.json). Public `/desk-rc` correctly remains 404.
 
 Cutover order:
 
@@ -67,11 +69,11 @@ Workflow: `.github/workflows/pages.yml` deploys the repo root on every push to `
 
 **Status:** Actions workflow is live on the repo; `configure-pages` fails until Pages is first enabled for the repo (Settings → Pages → Source: **GitHub Actions**). After that one enable, subsequent pushes publish to https://uuriko.github.io/dasha-desk/.
 
-Until then, use **Webflow** (primary product surface) or **catbox** single-file.
+Until then, local source is the only verified build; the legacy Webflow and Catbox URLs are not substitutes.
 
 ## Single-file / zero-build host
 
-`dist/index.html` is the generated self-contained build (CSS+JS inlined). Re-upload to any static host:
+`dist/index.html` is the generated self-contained build (CSS+JS inlined). A new upload is a release only after its returned bytes and SHA-256 are recorded and independently fetched back:
 
 ```bash
 curl -sF "reqtype=fileupload" -F "fileToUpload=@dist/index.html" https://catbox.moe/user/api.php

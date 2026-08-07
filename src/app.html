@@ -192,9 +192,6 @@
         <a target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats">@dash_eats</a>
         <a target="_blank" rel="noopener noreferrer" href="https://github.com/Uuriko/dasha-desk">OSS</a>
       </div>
-      <div class="dd-qr-wrap">
-        <canvas id="dd-qr" width="120" height="120" aria-label="QR of mint"></canvas>
-      </div>
     </article>
   </section>
 
@@ -424,8 +421,6 @@
   transition:transform .15s, border-color .2s, background .2s;
 }
 .dd-tools a:hover{transform:translateY(-1px);border-color:rgba(196,165,255,.4);background:rgba(167,139,250,.1)}
-.dd-qr-wrap{display:flex}
-#dd-qr{background:#fff;border-radius:14px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .dd-quotes-row{margin-bottom:14px}
 .dd-quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
 @media(max-width:720px){.dd-quote-grid{grid-template-columns:1fr}}
@@ -949,31 +944,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       document.body.removeChild(a);
     }
   }
-  function drawQr(text) {
-    var c = $('dd-qr');
-    if (!c) return;
-    var ctx = c.getContext('2d');
-    var img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = function () {
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.drawImage(img, 6, 6, c.width - 12, c.height - 12);
-    };
-    img.onerror = function () {
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.fillStyle = '#12091c';
-      ctx.font = '9px monospace';
-      (text.match(/.{1,16}/g) || []).forEach(function (line, i) {
-        ctx.fillText(line, 6, 18 + i * 11);
-      });
-    };
-    img.src =
-      'https://api.qrserver.com/v1/create-qr-code/?size=148x148&data=' +
-      encodeURIComponent(text);
-  }
-
   var currentPack = 'raid';
   var lastProof = { mcap: '—', ch24: '—', at: '' };
   var lastPair = null;
@@ -1211,7 +1181,6 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   setShare('raid');
   bindQuoteTaps();
   hardenImages();
-  drawQr(CA);
   loadMarket();
   setInterval(loadMarket, 30000);
 })();

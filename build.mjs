@@ -50,24 +50,15 @@ ${js}
 ${pageEnd}`,
 };
 
-const shell =
-  '<div style="min-height:100vh;background:radial-gradient(1200px 700px at 50% -10%,#2a1840 0%,#0b0a10 50%,#07060a 100%);padding:8px 0 28px">' +
-  files['./src/app.html'] +
-  '</div>';
-
 if (process.argv.includes('--write')) {
   await Promise.all(
     Object.entries(files).map(([path, text]) => writeFile(new URL(path, import.meta.url), text)),
   );
-  await writeFile('/tmp/dasha-webflow-embed.html', shell);
   console.log(
     JSON.stringify({
       ok: true,
       wrote: Object.keys(files),
-      embed: '/tmp/dasha-webflow-embed.html',
-      bytes: Object.fromEntries(
-        Object.entries(files).map(([p, t]) => [p, t.length]).concat([['embed', shell.length]]),
-      ),
+      bytes: Object.fromEntries(Object.entries(files).map(([p, t]) => [p, t.length])),
     }),
   );
 } else {

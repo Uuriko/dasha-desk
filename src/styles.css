@@ -218,8 +218,6 @@
   transition:transform .15s, border-color .2s, background .2s;
 }
 .dd-tools a:hover{transform:translateY(-1px);border-color:rgba(196,165,255,.4);background:rgba(167,139,250,.1)}
-.dd-qr-wrap{display:flex}
-#dd-qr{background:#fff;border-radius:14px;padding:8px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
 .dd-quotes-row{margin-bottom:14px}
 .dd-quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
 @media(max-width:720px){.dd-quote-grid{grid-template-columns:1fr}}

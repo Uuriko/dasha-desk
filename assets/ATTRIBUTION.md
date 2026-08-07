@@ -19,3 +19,4 @@ The root MIT license covers project code and original documentation. It does not
 - Non-portrait original graphics are project assets; each release must identify their license explicitly rather than inheriting MIT by implication.
 - 2026-08-06 share cards (no likeness): `casino-open-card.jpg`, `verify-mint-card.jpg`, `aurora-banner.jpg`
   - Public mirrors: https://files.catbox.moe/gpjyb0.jpg · https://files.catbox.moe/nid4qy.jpg · https://files.catbox.moe/qnvc7b.jpg
+  - No redistribution license or explicit permission is currently documented. They are not offered under MIT and must be treated as unlicensed until the rights holder selects a license.

@@ -321,31 +321,6 @@
       document.body.removeChild(a);
     }
   }
-  function drawQr(text) {
-    var c = $('dd-qr');
-    if (!c) return;
-    var ctx = c.getContext('2d');
-    var img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = function () {
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.drawImage(img, 6, 6, c.width - 12, c.height - 12);
-    };
-    img.onerror = function () {
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, c.width, c.height);
-      ctx.fillStyle = '#12091c';
-      ctx.font = '9px monospace';
-      (text.match(/.{1,16}/g) || []).forEach(function (line, i) {
-        ctx.fillText(line, 6, 18 + i * 11);
-      });
-    };
-    img.src =
-      'https://api.qrserver.com/v1/create-qr-code/?size=148x148&data=' +
-      encodeURIComponent(text);
-  }
-
   var currentPack = 'raid';
   var lastProof = { mcap: '—', ch24: '—', at: '' };
   var lastPair = null;
@@ -583,7 +558,6 @@
   setShare('raid');
   bindQuoteTaps();
   hardenImages();
-  drawQr(CA);
   loadMarket();
   setInterval(loadMarket, 30000);
 })();
