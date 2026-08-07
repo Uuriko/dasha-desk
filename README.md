@@ -35,7 +35,7 @@ python3 -m http.server 8766
 | **Quotes** | Short @dash_eats lines (public posts) |
 | **Numbers** | Price / mcap / liq / vol from Dexscreener public API |
 | **Checker** | Paste any mint → match / no match |
-| **Evidence** | Finalized SPL Mint facts, revoked authorities, account hash, and labeled association source |
+| **Evidence** | RPC-reported SPL Mint facts, absent authorities, reproducible account-data digest, and labeled association source |
 | **Share** | Copy pack + draft on X |
 | **Rails** | Jupiter, Dex, Solscan, Birdeye, Rugcheck, Phantom |
 
@@ -47,6 +47,8 @@ Canonical sources: [`src/body.html`](src/body.html), [`src/styles.css`](src/styl
 node build.mjs --write  # regenerate Webflow embed, standalone and single-file build
 node build.mjs --check  # fail if generated files drift
 node dasha-share.test.mjs
+node mint-manifest-lint.mjs       # deterministic identity/provenance checks
+node mint-manifest-lint.test.mjs  # hostile-input mutation checks
 ```
 
 Generated surfaces: [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for normal hosting, and [`dist/index.html`](dist/index.html) for single-file hosting.

@@ -1,0 +1,122 @@
+#!/usr/bin/env node
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+
+const MINT_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const TOKEN_PROGRAMS = new Set([
+  'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
+  'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+]);
+
+export function lintMintManifest({ config, evidence, body, app }) {
+  const findings = [];
+  const add = (level, code, path, message) => findings.push({ level, code, path, message });
+  const error = (condition, code, path, message) => {
+    if (!condition) add('error', code, path, message);
+  };
+  const mint = config?.mint;
+
+  error(MINT_RE.test(mint || ''), 'mint.shape', 'config.mint', 'must be a base58-shaped address');
+  const appMint = app.match(/var CA = '([^']+)'/)?.[1];
+  error(appMint === mint, 'mint.app-drift', 'src/app.js', 'CA must equal config.mint');
+  error(evidence?.mint === mint, 'mint.evidence-drift', 'evidence.mint', 'must equal config.mint');
+
+  const linkRules = {
+    jupiter: ['jup.ag', `/swap/SOL-${mint}`],
+    solscan: ['solscan.io', `/token/${mint}`],
+    birdeye: ['birdeye.so', `/token/${mint}`],
+    rugcheck: ['rugcheck.xyz', `/tokens/${mint}`],
+    phantom: ['phantom.com', `/tokens/solana/${mint}`],
+  };
+  for (const [key, [host, path]] of Object.entries(linkRules)) {
+    checkUrl(config?.links?.[key], `config.links.${key}`, host, path, error);
+  }
+  const dex = checkUrl(config?.links?.dex, 'config.links.dex', 'dexscreener.com', null, error);
+  error(/^\/solana\/[A-Za-z0-9]+$/.test(dex?.pathname || ''), 'url.path', 'config.links.dex', 'must use /solana/<pair>');
+  const caPost = checkUrl(config?.links?.caPost, 'config.links.caPost', 'x.com', null, error);
+  error(/^\/dash_eats\/status\/\d+$/.test(caPost?.pathname || ''), 'association.url', 'config.links.caPost', 'must be a numeric @dash_eats status URL');
+
+  error(evidence?.schema === 'dasha.mint-evidence/1', 'evidence.schema', 'evidence.schema', 'unsupported schema');
+  error(evidence?.cluster === 'mainnet-beta', 'evidence.cluster', 'evidence.cluster', 'must be mainnet-beta');
+  error(evidence?.commitment === 'finalized', 'evidence.commitment', 'evidence.commitment', 'must be finalized');
+  error(Number.isSafeInteger(evidence?.slot) && evidence.slot > 0, 'evidence.slot', 'evidence.slot', 'must be a positive safe integer');
+  for (const key of ['capturedAt', 'slotBlockTime']) {
+    error(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(evidence?.[key] || '') && !Number.isNaN(Date.parse(evidence[key])), 'evidence.time', `evidence.${key}`, 'must be UTC ISO-8601');
+  }
+
+  const account = evidence?.account || {};
+  error(account.type === 'mint', 'evidence.account-type', 'evidence.account.type', 'must be mint');
+  error(TOKEN_PROGRAMS.has(account.ownerProgram), 'evidence.owner', 'evidence.account.ownerProgram', 'must be an SPL Token program');
+  error(typeof account.initialized === 'boolean', 'evidence.initialized', 'evidence.account.initialized', 'must be boolean');
+  error(Number.isInteger(account.decimals) && account.decimals >= 0 && account.decimals <= 18, 'evidence.decimals', 'evidence.account.decimals', 'must be an integer from 0 to 18');
+  error(/^\d+$/.test(account.supply || ''), 'evidence.supply', 'evidence.account.supply', 'must be an integer string');
+  for (const key of ['mintAuthority', 'freezeAuthority']) {
+    error(account[key] === null || MINT_RE.test(account[key] || ''), 'evidence.authority', `evidence.account.${key}`, 'must be null or a base58 address');
+  }
+
+  let bytes = Buffer.alloc(0);
+  try {
+    bytes = Buffer.from(account.accountDataBase64 || '', 'base64');
+  } catch {}
+  error(account.accountDataEncoding === 'base64' && bytes.length === 82, 'evidence.bytes', 'evidence.account.accountDataBase64', 'must contain the 82-byte Mint account');
+  const digest = createHash('sha256').update(bytes).digest('hex');
+  error(digest === account.accountDataSha256, 'evidence.hash', 'evidence.account.accountDataSha256', 'must hash the embedded account bytes');
+  if (bytes.length === 82) {
+    error(bytes.readBigUInt64LE(36).toString() === account.supply, 'evidence.layout-supply', 'evidence.account.supply', 'must match raw Mint bytes');
+    error(bytes[44] === account.decimals, 'evidence.layout-decimals', 'evidence.account.decimals', 'must match raw Mint bytes');
+    error(Boolean(bytes[45]) === account.initialized, 'evidence.layout-initialized', 'evidence.account.initialized', 'must match raw Mint bytes');
+    error((bytes.readUInt32LE(0) === 0) === (account.mintAuthority === null), 'evidence.layout-mint-authority', 'evidence.account.mintAuthority', 'must match raw Mint bytes');
+    error((bytes.readUInt32LE(46) === 0) === (account.freezeAuthority === null), 'evidence.layout-freeze-authority', 'evidence.account.freezeAuthority', 'must match raw Mint bytes');
+  }
+
+  const association = evidence?.claims?.find((claim) => claim.kind === 'association');
+  error(association?.source === config?.links?.caPost, 'association.source', 'evidence.claims', 'must equal config.links.caPost');
+  error(/can go to zero/i.test(body), 'copy.loss-risk', 'src/body.html', 'must disclose loss risk');
+  error(/association[^<\n]*(?:≠|not)[^<\n]*endorsement/i.test(body), 'copy.endorsement', 'src/body.html', 'must distinguish association from endorsement');
+  error(body.includes('999,831,950.053985'), 'render.supply', 'src/body.html', 'visible supply must match evidence');
+  error(body.includes('437,730,576'), 'render.slot', 'src/body.html', 'visible slot must match evidence');
+  error(account.mintAuthority !== null || /Mint authority<\/dt><dd[^>]*>None/.test(body), 'render.mint-authority', 'src/body.html', 'None label requires null authority');
+  error(account.freezeAuthority !== null || /Freeze authority<\/dt><dd[^>]*>None/.test(body), 'render.freeze-authority', 'src/body.html', 'None label requires null authority');
+  error(app.includes("safeProviderUrl(p.url, 'dexscreener.com')"), 'runtime.chart-host', 'src/app.js', 'chart URL must use exact-host validation');
+  error(app.includes("safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com')"), 'runtime.image-host', 'src/app.js', 'image URL must use exact-host validation');
+
+  for (const [i, quote] of (config?.quotes || []).entries()) {
+    if (!quote.url) add('warning', 'quote.source-missing', `config.quotes[${i}].url`, 'quote lacks a source URL');
+  }
+  return findings.sort((a, b) => `${a.level}:${a.code}:${a.path}`.localeCompare(`${b.level}:${b.code}:${b.path}`));
+}
+
+function checkUrl(raw, path, host, expectedPath, error) {
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    error(false, 'url.parse', path, 'must be an absolute URL');
+    return null;
+  }
+  error(url.protocol === 'https:', 'url.https', path, 'must use HTTPS');
+  error(!url.username && !url.password, 'url.credentials', path, 'must not contain credentials');
+  error(url.hostname === host, 'url.host', path, `must use exact host ${host}`);
+  if (expectedPath) error(url.pathname === expectedPath, 'url.path', path, `must use ${expectedPath}`);
+  return url;
+}
+
+export async function loadMintManifest(root = new URL('./', import.meta.url)) {
+  const [configText, body, app] = await Promise.all([
+    readFile(new URL('config/dasha.json', root), 'utf8'),
+    readFile(new URL('src/body.html', root), 'utf8'),
+    readFile(new URL('src/app.js', root), 'utf8'),
+  ]);
+  const evidenceText = body.match(/<script type="application\/json" id="dd-evidence-json">([^<]+)<\/script>/)?.[1];
+  if (!evidenceText) throw new Error('src/body.html: missing #dd-evidence-json');
+  return { config: JSON.parse(configText), evidence: JSON.parse(evidenceText), body, app };
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const findings = lintMintManifest(await loadMintManifest());
+  for (const item of findings) console.log(`${item.level.toUpperCase()} ${item.code} ${item.path}: ${item.message}`);
+  const errors = findings.filter((item) => item.level === 'error');
+  console.log(`Dasha manifest: ${errors.length ? 'FAIL' : 'PASS'} · ${errors.length} errors · ${findings.length - errors.length} warnings`);
+  process.exitCode = errors.length ? 1 : 0;
+}

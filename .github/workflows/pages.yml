@@ -19,6 +19,8 @@ jobs:
           node-version: 24
       - run: node build.mjs --check
       - run: node dasha-share.test.mjs
+      - run: node mint-manifest-lint.mjs
+      - run: node mint-manifest-lint.test.mjs
 
   deploy:
     if: github.event_name != 'pull_request'

@@ -17,6 +17,8 @@
    ```bash
    node build.mjs --check
    node dasha-share.test.mjs
+   node mint-manifest-lint.mjs
+   node mint-manifest-lint.test.mjs
    ```
 
 5. Open a PR with a short reason, screenshots for visible changes, and the verification result.
