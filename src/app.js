@@ -45,6 +45,7 @@
     typeof location === 'undefined' ? null : location,
     DESK_FALLBACK,
   );
+  var LABS = DESK && !DESK.includes('files.catbox.moe') ? new URL('/labs', DESK).href : '';
 
   /** Pure share-pack builders — unit-tested via global.DDShare */
   function buildSharePack(kind) {
@@ -242,6 +243,7 @@
     CA: CA,
     PAIR: PAIR,
     DESK: DESK,
+    LABS: LABS,
     BUY: BUY,
     resolveDeskUrl: resolveDeskUrl,
     buildSharePack: buildSharePack,
@@ -578,6 +580,10 @@
   if ($('dd-desk-link')) {
     $('dd-desk-link').hidden = !DESK;
     if (DESK) $('dd-desk-url').href = DESK;
+  }
+  if ($('dd-labs-link')) {
+    $('dd-labs-link').hidden = !LABS;
+    if (LABS) $('dd-labs-link').href = LABS;
   }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {

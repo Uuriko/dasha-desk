@@ -90,6 +90,7 @@
   background:rgba(0,0,0,.2);backdrop-filter:blur(8px);
   transition:border-color .2s,color .2s,transform .2s;
 }
+.dd-pill[href]{text-decoration:none}
 .dd-pill-ok{color:var(--ok);border-color:rgba(125,255,163,.4);box-shadow:0 0 16px rgba(125,255,163,.15)}
 .dd-pill-live{animation:dd-pulse 2s ease-in-out infinite}
 @keyframes dd-pulse{
@@ -500,6 +501,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       </div>
     </div>
     <div class="dd-pills">
+      <a class="dd-pill" id="dd-labs-link" href="https://www.getdasha.com/labs" hidden>Labs · write the thesis</a>
       <span class="dd-pill">Solana</span>
       <span class="dd-pill" id="dd-px">—</span>
       <span class="dd-pill dd-pill-ok dd-pill-live" id="dd-live">live</span>
@@ -530,7 +532,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       <div>
         <p class="dd-kicker">@dash_eats · associated mint</p>
         <h1 class="dd-h1">$dasha</h1>
-        <p class="dd-lede">She posted the CA. Buy on Jupiter, chart on Dex, share the pack. No roadmap. Not official.</p>
+        <p class="dd-lede">Independent, open-source mint desk. Inspect the associated CA, source evidence, and provider-reported market data before acting.</p>
       </div>
     </div>
 
@@ -761,6 +763,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     typeof location === 'undefined' ? null : location,
     DESK_FALLBACK,
   );
+  var LABS = DESK && !DESK.includes('files.catbox.moe') ? new URL('/labs', DESK).href : '';
 
   /** Pure share-pack builders — unit-tested via global.DDShare */
   function buildSharePack(kind) {
@@ -958,6 +961,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     CA: CA,
     PAIR: PAIR,
     DESK: DESK,
+    LABS: LABS,
     BUY: BUY,
     resolveDeskUrl: resolveDeskUrl,
     buildSharePack: buildSharePack,
@@ -1294,6 +1298,10 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   if ($('dd-desk-link')) {
     $('dd-desk-link').hidden = !DESK;
     if (DESK) $('dd-desk-url').href = DESK;
+  }
+  if ($('dd-labs-link')) {
+    $('dd-labs-link').hidden = !LABS;
+    if (LABS) $('dd-labs-link').href = LABS;
   }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {

@@ -23,6 +23,7 @@ const DD = load();
 assert.ok(DD, 'DDShare must export from app.js');
 assert.equal(DD.CA, '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump');
 assert.equal(DD.DESK, 'https://www.getdasha.com/');
+assert.equal(DD.LABS, 'https://www.getdasha.com/labs');
 
 const fakeDoc = (...hrefs) => ({
   querySelectorAll: () => hrefs.map((href) => ({ getAttribute: (name) => (name === 'rel' ? 'alternate CANONICAL' : href) })),
@@ -51,6 +52,9 @@ assert.equal(DD.resolveDeskUrl(fakeDoc('https://www.getdasha.com/', 'https://evi
 
 const unsafe = load({ document: fakeDoc(), location: { href: 'https://example.test/dasha' } });
 assert.equal(unsafe.DESK, '');
+assert.equal(unsafe.LABS, '');
+assert.equal(load({ document: fakeDoc(), location: { href: 'https://johns-awesome-project-39b1b5.webflow.io/' } }).LABS, 'https://johns-awesome-project-39b1b5.webflow.io/labs');
+assert.equal(load({ document: fakeDoc(), location: { href: 'https://files.catbox.moe/sm5mo0.html' } }).LABS, '');
 assert.ok(!unsafe.buildSharePack('discord').includes('Desk:'), 'unsafe mirrors omit desk from Discord pack');
 assert.ok(!unsafe.buildSharePack('boost').includes('Desk:'), 'unsafe mirrors omit desk from boost pack');
 assert.ok(!unsafe.buildSharePack('raid').includes('Desk →'), 'unsafe mirrors omit desk from raid pack');
@@ -164,6 +168,7 @@ assert.ok(body.includes('data-share-quote'));
 assert.ok(body.includes('dd-copy-share') && body.includes('dd-tweet'), 'two share affordances');
 assert.ok(body.includes('id="dd-desk-url" href="https://www.getdasha.com/"'), 'absolute no-JS desk fallback');
 assert.ok(body.includes('id="dd-desk-link" hidden'), 'no-JS output hides the unverified desk-link fallback');
+assert.ok(body.includes('id="dd-labs-link"') && body.includes('hidden>Labs · write the thesis'), 'first viewport has a deployment-gated Labs link');
 assert.ok(body.includes('dd-buy') && body.includes('jup.ag'), 'buy CTA');
 assert.ok(body.includes('dd-proof') && body.includes('p-mcap'), 'live proof strip');
 assert.ok(body.includes('data-pack="boost"'), 'boost share pack tab');

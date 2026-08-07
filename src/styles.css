@@ -72,6 +72,7 @@
   background:rgba(0,0,0,.2);backdrop-filter:blur(8px);
   transition:border-color .2s,color .2s,transform .2s;
 }
+.dd-pill[href]{text-decoration:none}
 .dd-pill-ok{color:var(--ok);border-color:rgba(125,255,163,.4);box-shadow:0 0 16px rgba(125,255,163,.15)}
 .dd-pill-live{animation:dd-pulse 2s ease-in-out infinite}
 @keyframes dd-pulse{
