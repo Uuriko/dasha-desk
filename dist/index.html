@@ -1518,6 +1518,18 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   }
 
   /**
+   * Buy-first dump CTA lead — pure V51.
+   * e.g. "Buy · Hard dump" for FOMO buy / sticky parity with dual (V50).
+   */
+  function dumpBuyLead(dip) {
+    if (!dip || dip.kind !== 'dump') return null;
+    var depth = dipDepth(dip);
+    return depth && depth.tier !== 'soft'
+      ? 'Buy · ' + depth.tag + ' dump'
+      : 'Buy · Dump';
+  }
+
+  /**
    * Dump/deep size autofocus — pure V48.
    * While dump watch is active (and user has not manually overridden),
    * snap buy size to dump-safe SOL (1). Deep dip still uses depth nudge.
@@ -2636,6 +2648,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
     sizeChipHint: sizeChipHint,
+    dumpBuyLead: dumpBuyLead,
     dumpSizeAutofocus: dumpSizeAutofocus,
     buildBuyPack: buildBuyPack,
     buildDipPack: buildDipPack,
@@ -4169,12 +4182,26 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
             : microSticky && microSticky.short
               ? microSticky.short
               : '';
-        var dumpVerb =
-          sd && sd.tier !== 'soft'
-            ? sd.tag + (isDumpSticky ? ' dump' : ' dip')
-            : isDumpSticky
-              ? 'Dump'
-              : 'Dip';
+        // V51: 5m bounce on sticky during dump (parity with FOMO main)
+        if (
+          isDumpSticky &&
+          !bounceSticky &&
+          isFinite(lastProof.m5n) &&
+          lastProof.m5n >= 0.15
+        ) {
+          bounceSticky =
+            '5m +' +
+            (Math.abs(lastProof.m5n) >= 10
+              ? lastProof.m5n.toFixed(0)
+              : lastProof.m5n.toFixed(1)) +
+            '%';
+        }
+        // V51: dump sticky buy-first; dip keeps depth dip lead
+        var dumpVerb = isDumpSticky
+          ? dumpBuyLead(lastProof.dip) || 'Buy · Dump'
+          : sd && sd.tier !== 'soft'
+            ? sd.tag + ' dip'
+            : 'Dip';
         // V44: %liq impact on sticky dump/deep (matches dual/FOMO de-risk)
         var impactSticky =
           isDumpSticky || (sd && sd.tier === 'deep')
@@ -4225,12 +4252,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         $('dd-fomo-buy').hidden = false;
         var fomoBits = [];
         if (regime === 'dump') {
-          var fdDump = dipDepth(lastProof.dip);
-          fomoBits.push(
-            fdDump && fdDump.tier !== 'soft'
-              ? fdDump.tag + ' dump'
-              : 'Dump',
-          );
+          // V51: buy-first FOMO buy lead (parity with dual V50)
+          fomoBits.push(dumpBuyLead(lastProof.dip) || 'Buy · Dump');
         } else if (regime === 'dip') {
           var fd = dipDepth(lastProof.dip);
           fomoBits.push(
@@ -4256,6 +4279,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
               dipDepth(lastProof.dip).tier === 'deep'))
         ) {
           fomoBits.push(impactBuy.short);
+        }
+        // V51: 5m bounce on FOMO buy during dump
+        if (
+          regime === 'dump' &&
+          isFinite(lastProof.m5n) &&
+          lastProof.m5n >= 0.15
+        ) {
+          fomoBits.push(
+            '5m +' +
+              (Math.abs(lastProof.m5n) >= 10
+                ? lastProof.m5n.toFixed(0)
+                : lastProof.m5n.toFixed(1)) +
+              '%',
+          );
         }
         // V31: 24h still green during dip on FOMO buy CTA
         var stillBit =

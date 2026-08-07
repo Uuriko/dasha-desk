@@ -868,4 +868,17 @@ assert.ok(/1h \+0\.5%/.test(ln1hWins) && !/5m/.test(ln1hWins), '1h bounce wins o
 assert.ok(appJs.includes('has-m5-bounce') && appJs.includes('lastProof.m5n'), 'v49 wiring');
 assert.ok(kitStyles.includes('has-m5-bounce'), 'v49 m5 bounce styles');
 
+// V51: buy-first FOMO/sticky dump lead (parity with dual Buy ·)
+assert.ok(typeof DD.dumpBuyLead === 'function', 'dumpBuyLead exported');
+assert.equal(DD.dumpBuyLead(dump), 'Buy · Deep dump', 'deep dump buy lead');
+assert.equal(DD.dumpBuyLead(null), null, 'null dump lead');
+assert.equal(DD.dumpBuyLead(softDip), null, 'dip not dump lead');
+assert.ok(appJs.includes('dumpBuyLead') && appJs.includes('Buy · '), 'v51 wiring');
+// runtime sticky/fomo buy use dumpBuyLead during dump
+assert.ok(
+  appJs.includes("dumpBuyLead(lastProof.dip)") ||
+    appJs.includes('dumpBuyLead(lastProof.dip)'),
+  'v51 sticky/fomo use dumpBuyLead',
+);
+
 console.log('dasha-share.test.mjs: PASS');
