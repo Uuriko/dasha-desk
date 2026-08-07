@@ -694,13 +694,15 @@
   }
 
   /**
-   * FOMO raid CTA label during dip/dump — pure (V37/V41).
+   * FOMO raid CTA label during dip/dump — pure (V37/V41/V47).
    * Dip: "Deep raid · 24h +27% still"
    * Dump: "Deep dump raid · 6h -29%"
+   * V47: optional · X suffix for one-tap tweet CTA.
    */
-  function dipRaidLabel(dip, still) {
+  function dipRaidLabel(dip, still, withX) {
     if (!dip) return 'Raid this dip';
     var depth = dipDepth(dip);
+    var label;
     if (dip.kind === 'dump') {
       var dLead =
         depth && depth.tier !== 'soft' ? depth.tag + ' dump raid' : 'Dump raid';
@@ -714,12 +716,35 @@
           depth.shortPct.toFixed(0) +
           '%';
       }
-      return dLead;
+      label = dLead;
+    } else {
+      var lead =
+        depth && depth.tier !== 'soft' ? depth.tag + ' raid' : 'Raid dip';
+      label =
+        still && still.short ? lead + ' · ' + still.short + ' still' : lead;
     }
-    var lead =
-      depth && depth.tier !== 'soft' ? depth.tag + ' raid' : 'Raid dip';
-    if (still && still.short) return lead + ' · ' + still.short + ' still';
-    return lead;
+    return withX ? label + ' · X' : label;
+  }
+
+  /**
+   * One-tap dump/dip raid → X intent with viral pack — pure V47.
+   * Returns { pack, label, href, isDump, hasIntoDump }.
+   */
+  function dumpRaidPlan(dip, mcapLabel, sol, netShort, buys) {
+    if (!dip) return null;
+    var pack = buildDipPack(dip, mcapLabel, sol, netShort, buys);
+    var still = dip.kind === 'dump' ? null : stillGreen24(dip);
+    var label = dipRaidLabel(dip, still, true);
+    var href = intentTweet(pack);
+    return {
+      pack: pack,
+      label: label,
+      href: href,
+      isDump: dip.kind === 'dump',
+      hasIntoDump: /into the dump/i.test(pack),
+      hasBuyUrl: /jup\.ag|amount=/.test(pack),
+      hasCA: pack.indexOf(CA) >= 0,
+    };
   }
 
   /**
@@ -1299,6 +1324,7 @@
     dipReclaim: dipReclaim,
     dipMicroBounce: dipMicroBounce,
     dipRaidLabel: dipRaidLabel,
+    dumpRaidPlan: dumpRaidPlan,
     dipReclaimLine: dipReclaimLine,
     dipStillLine: dipStillLine,
     solLiqImpact: solLiqImpact,
@@ -2464,14 +2490,24 @@
   );
   if ($('dd-fomo-raid-dip'))
     $('dd-fomo-raid-dip').addEventListener('click', function () {
+      // V47: one-tap X — pack already on href; also copy for clipboard/share loop
       var pack = dipPackNow();
+      var xUrl = intentTweet(pack);
       copy(pack, $('dd-fomo-raid-dip'));
       showPostShare(pack);
-      // also wire sticky tweet / post links to dip pack
-      if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = intentTweet(pack);
-      if ($('dd-post-x')) $('dd-post-x').href = intentTweet(pack);
+      if ($('dd-fomo-raid-dip').tagName === 'A') {
+        $('dd-fomo-raid-dip').href = xUrl;
+      }
+      if ($('dd-sticky-tweet')) $('dd-sticky-tweet').href = xUrl;
+      if ($('dd-post-x')) $('dd-post-x').href = xUrl;
       if ($('dd-post-tg')) $('dd-post-tg').href = intentTelegram(pack);
       if ($('dd-post-wa')) $('dd-post-wa').href = intentWhatsApp(pack);
+      // Button fallback (legacy): open X if not an anchor
+      if ($('dd-fomo-raid-dip').tagName !== 'A') {
+        try {
+          window.open(xUrl, '_blank', 'noopener,noreferrer');
+        } catch (eRaid) {}
+      }
     });
   if ($('dd-copy-buy-pack'))
     $('dd-copy-buy-pack').addEventListener('click', function () {
@@ -2880,14 +2916,34 @@
     }
     if ($('dd-fomo-raid-dip')) {
       $('dd-fomo-raid-dip').hidden = !lastProof.dip;
-      // V37: conversion raid CTA label with depth + still proof
+      // V37/V47: raid CTA — dump/deep one-tap X with viral pack on href
       if (lastProof.dip) {
-        var stillRaid = stillGreen24(lastProof.dip, lastProof.ch24n);
-        var depthRaid = dipDepth(lastProof.dip);
-        $('dd-fomo-raid-dip').textContent = dipRaidLabel(
+        var netRaid =
+          lastProof.buys != null && lastProof.sells != null
+            ? netBuysShort(lastProof.buys, lastProof.sells)
+            : null;
+        var raidPlan = dumpRaidPlan(
           lastProof.dip,
-          stillRaid,
+          lastProof.mcap,
+          buySol,
+          netRaid,
+          lastProof.buys,
         );
+        var depthRaid = dipDepth(lastProof.dip);
+        if (raidPlan) {
+          $('dd-fomo-raid-dip').textContent = raidPlan.label;
+          if ($('dd-fomo-raid-dip').tagName === 'A') {
+            $('dd-fomo-raid-dip').href = raidPlan.href;
+          }
+          $('dd-fomo-raid-dip').classList.toggle('is-dump-raid', !!raidPlan.isDump);
+        } else {
+          var stillRaid = stillGreen24(lastProof.dip, lastProof.ch24n);
+          $('dd-fomo-raid-dip').textContent = dipRaidLabel(
+            lastProof.dip,
+            stillRaid,
+            true,
+          );
+        }
         $('dd-fomo-raid-dip').classList.toggle(
           'is-deep-raid',
           !!(depthRaid && depthRaid.tier === 'deep'),

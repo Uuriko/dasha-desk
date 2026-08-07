@@ -812,4 +812,24 @@ assert.ok(dualPackDump.copyText && /into the dump/i.test(dualPackDump.copyText),
 assert.ok(dualPackDump.copyText.includes(DD.CA) && /jup\.ag|amount=1/.test(dualPackDump.copyText), 'dual dump pack mint+jup');
 assert.ok(appJs.includes('buildDipPack') && appJs.includes('copyText'), 'v46 wiring');
 
+// V47: dump-raid one-tap X plan with viral into-the-dump pack
+assert.ok(typeof DD.dumpRaidPlan === 'function', 'dumpRaidPlan exported');
+assert.ok(typeof DD.intentTweet === 'function', 'intentTweet exported');
+const raidPlan = DD.dumpRaidPlan(dump, '$60.0K', 1, '+17', 230);
+assert.ok(raidPlan && raidPlan.isDump && raidPlan.hasIntoDump, 'raid plan dump pack');
+assert.ok(raidPlan.hasCA && raidPlan.hasBuyUrl, 'raid plan mint+jup');
+assert.ok(/Deep dump raid/i.test(raidPlan.label) && /· X$/.test(raidPlan.label), 'raid label · X');
+assert.ok(
+  raidPlan.href &&
+    /x\.com\/intent\/tweet|twitter\.com\/intent/.test(raidPlan.href) &&
+    /into%20the%20dump|into\+the\+dump|Buy/.test(raidPlan.href),
+  'raid href is X intent with pack',
+);
+assert.equal(DD.dumpRaidPlan(null), null, 'null dump raid plan');
+const raidDip = DD.dumpRaidPlan(deepReclaim, '$60K', 2, '+40', 268);
+assert.ok(raidDip && !raidDip.isDump && /raid/i.test(raidDip.label) && /· X$/.test(raidDip.label), 'dip raid · X');
+assert.ok(appJs.includes('dumpRaidPlan') && appJs.includes('is-dump-raid'), 'v47 wiring');
+assert.ok(kitStyles.includes('is-dump-raid'), 'v47 dump-raid styles');
+assert.ok(/<a[^>]*id="dd-fomo-raid-dip"/.test(body), 'raid is one-tap anchor');
+
 console.log('dasha-share.test.mjs: PASS');
