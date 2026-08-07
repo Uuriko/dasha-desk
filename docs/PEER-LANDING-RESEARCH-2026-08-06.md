@@ -46,7 +46,7 @@ The defensible wedge is an inspectable chain from mint → sources → claims �
 |------|-------------|----------|
 | 1 | Mint evidence bundle | **Built:** finalized Mint account type, program, supply, decimals, revoked authorities, raw-account hash, association label, and copyable JSON |
 | 2 | Source-locked thesis receipt | Next experiment only after people use/share the evidence bundle |
-| 3 | Deterministic manifest linter | Extract from current build and URL guards; output pass/warn facts, never a safety score |
+| 3 | Deterministic manifest linter | **Built:** exact mint/link/evidence/render checks plus hostile-input mutation tests; pass/warn facts, never a safety score |
 | 4 | Reusable desk generator | Wait for a second real mint desk before generalizing `$dasha` |
 | 5 | Change/takeover ledger | Wait for the first meaningful authority, metadata, or association change |
 
