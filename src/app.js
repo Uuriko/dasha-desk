@@ -434,6 +434,22 @@
     return { pct: n, label: label, short: label };
   }
 
+  /**
+   * FOMO-sub / trust line for reclaim during multi-hour dip — pure.
+   * e.g. "1h +1.3% reclaiming · 6h deep · NFA"
+   */
+  function dipReclaimLine(reclaim, dip) {
+    if (!reclaim || !reclaim.short) return null;
+    var bits = [reclaim.short + ' reclaiming'];
+    var depth = dipDepth(dip);
+    if (depth && depth.tier !== 'soft') {
+      bits.push(depth.shortLabel + ' ' + depth.tag.toLowerCase());
+    } else if (dip && dip.shortLabel) {
+      bits.push(dip.shortLabel + ' dip');
+    }
+    return bits.join(' · ') + ' · NFA';
+  }
+
   /** FOMO A/B dip headlines — pure, unit-tested via DDShare.fomoDipHeadline */
   function fomoDipHeadline(dip, ch24Label, ab, bp) {
     if (!dip) return '';
@@ -625,7 +641,7 @@
    * Mobile-visible trust strip near sticky dual — pure.
    * Combines flow + liq + session shorts (each already NFA-tagged).
    */
-  function trustBarLine(flow, liqLine, session) {
+  function trustBarLine(flow, liqLine, session, reclaimLine) {
     function stripNfa(s) {
       return String(s || '')
         .replace(/\s*·?\s*NFA\s*/gi, ' ')
@@ -634,6 +650,11 @@
         .replace(/^[·\s]+|[·\s]+$/g, '');
     }
     var parts = [];
+    // V33: reclaim first on mobile trust bar (bounce during dump)
+    if (reclaimLine) {
+      var r = stripNfa(reclaimLine);
+      if (r) parts.push(r);
+    }
     if (flow) {
       var f = stripNfa(flow);
       if (f) parts.push(f);
@@ -872,6 +893,7 @@
     dipSizeNudgeSol: dipSizeNudgeSol,
     stillGreen24: stillGreen24,
     dipReclaim: dipReclaim,
+    dipReclaimLine: dipReclaimLine,
     netBuysLine: netBuysLine,
     netBuysShort: netBuysShort,
     buysPaceLine: buysPaceLine,
@@ -1327,8 +1349,21 @@
             $('dd-sticky-flow').hidden = true;
           }
         }
-        if ($('dd-fomo-sub') && flow) {
-          $('dd-fomo-sub').textContent = flow;
+        // V33: FOMO sub prefers reclaim line when multi-hour dip is bouncing
+        var reclaimNow = lastProof.dip
+          ? dipReclaim(lastProof.dip, lastProof.ch1n)
+          : null;
+        var reclaimLineNow = reclaimNow
+          ? dipReclaimLine(reclaimNow, lastProof.dip)
+          : null;
+        lastProof.reclaim = reclaimNow;
+        lastProof.reclaimLine = reclaimLineNow;
+        if ($('dd-fomo-sub')) {
+          if (reclaimLineNow) $('dd-fomo-sub').textContent = reclaimLineNow;
+          else if (flow) $('dd-fomo-sub').textContent = flow;
+        }
+        if ($('dd-fomo')) {
+          $('dd-fomo').classList.toggle('is-reclaim', !!reclaimNow);
         }
         // V29: paint mobile-visible trust bar (outside sticky-meta)
         paintTrustBar();
@@ -1372,9 +1407,16 @@
               $('dd-session-line').hidden = true;
             }
           }
-          // FOMO sub: session urgency when |delta| meaningful, else keep net+pace flow
-          if ($('dd-fomo-sub') && lastProof.session && Math.abs(lastProof.session.pct) >= 0.5) {
-            $('dd-fomo-sub').textContent = lastProof.session.line;
+          // FOMO sub: reclaim > session urgency > flow (conversion during bounce)
+          if ($('dd-fomo-sub')) {
+            if (lastProof.reclaimLine) {
+              $('dd-fomo-sub').textContent = lastProof.reclaimLine;
+            } else if (
+              lastProof.session &&
+              Math.abs(lastProof.session.pct) >= 0.5
+            ) {
+              $('dd-fomo-sub').textContent = lastProof.session.line;
+            }
           }
           paintTrustBar();
         }
@@ -1787,10 +1829,18 @@
   function paintTrustBar() {
     var bar = $('dd-trust-bar');
     var textEl = $('dd-trust-bar-text');
+    var reclaim =
+      lastProof.dip != null
+        ? dipReclaim(lastProof.dip, lastProof.ch1n)
+        : null;
+    var reclaimLine = reclaim ? dipReclaimLine(reclaim, lastProof.dip) : null;
+    lastProof.reclaim = reclaim;
+    lastProof.reclaimLine = reclaimLine;
     var line = trustBarLine(
       lastProof.flow,
       lastProof.liqLine,
       lastProof.session,
+      reclaimLine,
     );
     lastProof.trustBar = line;
     if (bar) {

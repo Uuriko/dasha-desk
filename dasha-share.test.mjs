@@ -596,4 +596,16 @@ assert.ok(dualRec.hasStill24 && /24h \+/.test(dualRec.label), 'still+reclaim tog
 assert.ok(appJs.includes('dipReclaim') && appJs.includes('has-reclaim'), 'v32 wiring');
 assert.ok(kitStyles.includes('has-reclaim'), 'reclaim styles');
 
+// V33: reclaim line on FOMO sub + trust bar
+assert.ok(typeof DD.dipReclaimLine === 'function', 'dipReclaimLine exported');
+const recLine = DD.dipReclaimLine(reclaim, deepReclaim);
+assert.ok(recLine && /reclaiming/i.test(recLine) && /1h \+/.test(recLine), 'reclaim line');
+assert.ok(/6h/i.test(recLine) && /deep/i.test(recLine), 'reclaim line has depth');
+assert.ok(/NFA/i.test(recLine), 'reclaim line NFA');
+const tblRec = DD.trustBarLine('+44 net · ~12 buys/hr', 'Liq $24.2K · NFA', null, recLine);
+assert.ok(tblRec && /reclaiming/i.test(tblRec) && /Liq/.test(tblRec), 'trust bar leads reclaim');
+assert.equal((tblRec.match(/NFA/gi) || []).length, 1, 'trust bar single NFA with reclaim');
+assert.ok(appJs.includes('dipReclaimLine') && appJs.includes('is-reclaim'), 'v33 wiring');
+assert.ok(kitStyles.includes('is-reclaim'), 'reclaim sub styles');
+
 console.log('dasha-share.test.mjs: PASS');
