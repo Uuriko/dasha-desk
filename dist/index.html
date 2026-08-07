@@ -794,6 +794,12 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO + '\n' + PROMO;
   }
 
+  function buildTweetPack(kind) {
+    if (kind === 'verify')
+      return 'Compare this CA with independent sources:\n' + CA + '\nSolscan: https://solscan.io/token/' + CA + '\nNo safety score · association ≠ endorsement';
+    return (kind === 'meme' ? CASINO : '$dasha · cited CA') + '\n' + CA + '\n' + PAIR + '\n' + PROMO;
+  }
+
   function intentTweet(text) {
     return 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
   }
@@ -891,6 +897,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
+    buildTweetPack: buildTweetPack,
     buildLiveProof: buildLiveProof,
     intentTweet: intentTweet,
     safeProviderUrl: safeProviderUrl,
@@ -993,9 +1000,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
     if ($('dd-share')) $('dd-share').value = line;
-    if ($('dd-tweet')) $('dd-tweet').href = intentTweet(line);
-    if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildSharePack('meme'));
-    if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildSharePack('boost'));
+    if ($('dd-tweet')) $('dd-tweet').href = intentTweet(buildTweetPack(currentPack));
+    if ($('dd-tweet-alt')) $('dd-tweet-alt').href = intentTweet(buildTweetPack('meme'));
+    if ($('dd-hero-tweet')) $('dd-hero-tweet').href = intentTweet(buildTweetPack('boost'));
   }
 
   function normalizeMint(s) {

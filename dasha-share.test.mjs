@@ -94,6 +94,11 @@ assert.notEqual(mini, raid);
 for (const pack of [discord, meme, boost, raid, mini, DD.buildLiveProof('$12K', '+2%'), DD.buildQuoteShare('Example')]) {
   assert.match(pack, /operator position\/compensation not disclosed/, 'every promotional pack carries incentive uncertainty');
 }
+for (const kind of ['raid', 'boost', 'meme', 'verify']) {
+  const post = DD.buildTweetPack(kind);
+  assert.ok(post.length <= 280, `${kind} X draft is ${post.length} characters`);
+  if (kind !== 'verify') assert.match(post, /operator position\/compensation not disclosed/);
+}
 assert.ok(DD.buildSharePack('raid').includes(DD.BUY) || DD.buildSharePack('raid').includes('jup.ag'));
 
 const q = DD.buildQuoteShare('They are angels actually');
