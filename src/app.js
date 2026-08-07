@@ -1142,11 +1142,12 @@
         ? solLiqImpact(sol, solUsd, liq)
         : null;
     var label;
+    // V50: dump dual is buy-first (not CA-first) so CTA reads as purchase
     if (r === 'dump' || isDump) {
       label =
         depth && depth.tier !== 'soft'
-          ? 'CA · ' + depth.tag + ' dump'
-          : 'CA · Dump';
+          ? 'Buy · ' + depth.tag + ' dump'
+          : 'Buy · Dump';
     } else if (r === 'dip') {
       label =
         depth && depth.tier !== 'soft'
@@ -1156,7 +1157,11 @@
     else label = 'CA';
     // Size proof (SOL + rough USD) when known; else wallet/buy verb
     if (size && size.label) label = label + ' · ' + size.label;
-    else label = label + (mobile ? ' · Wallet' : ' · Buy');
+    else if (!(r === 'dump' || isDump)) {
+      label = label + (mobile ? ' · Wallet' : ' · Buy');
+    } else {
+      label = label + (mobile ? ' · Wallet' : '');
+    }
     // V42: liq impact near size on dump/deep dual (de-risks bag size)
     if (impact && impact.short && (isDump || (depth && depth.tier === 'deep'))) {
       label = label + ' · ' + impact.short;
@@ -1236,8 +1241,17 @@
         header,
       );
     }
-    var toast = 'CA+buy copied · open';
-    if (size && size.label) toast = 'CA+buy · ' + size.label;
+    // V50: dump toast buy-first
+    var toast =
+      r === 'dump' || isDump
+        ? 'Buy dump copied · open'
+        : 'CA+buy copied · open';
+    if (size && size.label) {
+      toast =
+        r === 'dump' || isDump
+          ? 'Buy dump · ' + size.label
+          : 'CA+buy · ' + size.label;
+    }
     if (still && still.short) toast = toast + ' · ' + still.short;
     if (reclaim && reclaim.short) toast = toast + ' · ' + reclaim.short;
     else if (micro && micro.short) toast = toast + ' · ' + micro.short;

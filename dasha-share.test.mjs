@@ -724,6 +724,7 @@ const headDump = DD.fomoDumpHeadline(dump, bpHot);
 assert.ok(/Deep dump/i.test(headDump) && /6h/.test(headDump) && /NFA/i.test(headDump), 'dump FOMO headline');
 const dualDump = DD.dualGoPlan(1, true, 'dump', null, 74, '+32', 258, dump, 24000);
 assert.ok(/Deep dump/i.test(dualDump.label) && dualDump.isDeepDip, 'dual dump label');
+assert.ok(/^Buy · /i.test(dualDump.label), 'v50 dump dual buy-first');
 assert.ok(dualDump.header && /deep dump/i.test(dualDump.header), 'dual dump header');
 assert.ok(dualDump.hasImpact && /% liq/.test(dualDump.toast || ''), 'dump toast impact');
 assert.ok(appJs.includes('dumpWatchSignal') && appJs.includes('is-dump') && appJs.includes('is-dump-dual'), 'v40 wiring');
@@ -763,6 +764,16 @@ const dualImpDump = DD.dualGoPlan(1, true, 'dump', null, 74, '+22', 237, dump, 2
 assert.ok(dualImpDump.hasImpact && /% liq/.test(dualImpDump.label), 'dump dual label has liq impact');
 assert.ok(/% liq/.test(dualImpDump.toast || ''), 'dump dual toast has liq impact');
 assert.ok(appJs.includes('into the dump') && appJs.includes('solLiqImpact'), 'v42 wiring');
+
+// V50: buy-first dual dump label + toast (not CA-first)
+const dualBuyFirst = DD.dualGoPlan(1, true, 'dump', null, 74, '+34', 219, dump, 23600);
+assert.ok(/^Buy · Deep dump/i.test(dualBuyFirst.label), 'buy-first deep dump label');
+assert.ok(/1 SOL/.test(dualBuyFirst.label) && /% liq/.test(dualBuyFirst.label), 'buy-first keeps size+impact');
+assert.ok(/Buy dump/i.test(dualBuyFirst.toast || ''), 'buy-first dump toast');
+assert.ok(!/^CA · /i.test(dualBuyFirst.label), 'dump dual not CA-first');
+const dualDipKeepsCa = DD.dualGoPlan(1, true, 'dip', null, 74, '+10', 200, softDip);
+assert.ok(/^CA · /i.test(dualDipKeepsCa.label), 'dip dual still CA-first');
+assert.ok(appJs.includes('Buy · ') && appJs.includes('Buy dump'), 'v50 wiring');
 
 // V43: dump-first FOMO sub/trust + 1h bounce on dumpWatchLine
 const dumpBounce = Object.assign({}, dump, { ch1: 0.24 });
