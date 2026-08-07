@@ -4,6 +4,7 @@
   var PAIR_ID = '9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7';
   var QUOTE = 'So11111111111111111111111111111111111111112';
   var CASINO = 'How u crying at the casino and u can’t even get in';
+  var PROMO = 'Unofficial promo · operator position/compensation not disclosed · association ≠ endorsement · can go to zero';
 
   var DESK_FALLBACK = 'https://www.getdasha.com/';
   var DESK_DEPLOYMENTS = [
@@ -58,12 +59,12 @@
         PAIR +
         '\n' +
         (DESK ? 'Desk: ' + DESK + '\n' : '') +
-        'NFA · can go to zero · association ≠ endorsement'
+        PROMO
       );
     }
     if (kind === 'verify') {
       return (
-        'Verify this mint yourself:\n' +
+        'Compare this CA with independent sources:\n' +
         CA +
         '\n' +
         'Solscan: https://solscan.io/token/' +
@@ -76,7 +77,7 @@
       );
     }
     if (kind === 'meme') {
-      return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
+      return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic\n' + PROMO;
     }
     if (kind === 'boost') {
       return (
@@ -93,7 +94,7 @@
         BUY +
         '\n' +
         (DESK ? 'Desk: ' + DESK + '\n' : '') +
-        'NFA · can go to zero'
+        PROMO
       );
     }
     // raid default — casino hook + full funnel
@@ -110,7 +111,7 @@
       PAIR +
       '\n' +
       (DESK ? 'Desk → ' + DESK + '\n' : '') +
-      'NFA · can go to zero'
+      PROMO
     );
   }
 
@@ -132,18 +133,18 @@
       '\n' +
       (DESK ? 'Desk → ' + DESK + '\n' : '') +
       CA +
-      '\nNFA · can go to zero'
+      '\n' + PROMO
     );
   }
 
   function buildQuoteShare(quote) {
     var q = String(quote || '').trim();
     if (!q) return '';
-    return q + '\n$dasha · ' + CA + '\nBuy ' + BUY + ' · NFA';
+    return q + '\n$dasha · ' + CA + '\nBuy ' + BUY + '\n' + PROMO;
   }
 
   function buildMiniPack() {
-    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO;
+    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO + '\n' + PROMO;
   }
 
   function intentTweet(text) {

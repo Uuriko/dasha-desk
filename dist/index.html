@@ -376,7 +376,6 @@
 .dd-evidence-grid div{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.18)}
 .dd-evidence-grid dt{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
 .dd-evidence-grid dd{margin:5px 0 0;font-size:13px;font-weight:750;overflow-wrap:anywhere}
-.dd-evidence-grid .dd-good{color:var(--ok)}
 .dd-evidence-note{margin:12px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
 @media(max-width:620px){.dd-evidence-grid{grid-template-columns:1fr 1fr}}
 #dd-app.dd{max-width:720px;padding:16px 14px 40px}
@@ -458,7 +457,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   </header>
 
   <aside class="dd-risk dd-reveal" role="note">
-    Culture coin · can go to zero · NFA · association ≠ endorsement · market: Dexscreener exact Raydium pair · promotion status not checked
+    Culture coin · can go to zero · unofficial promotional desk · operator position and compensation not disclosed · association based only on cited public posts · market data: Dexscreener exact Raydium pair
   </aside>
 
   <section class="dd-proof dd-reveal" id="dd-proof" aria-label="Live market snapshot">
@@ -486,7 +485,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </blockquote>
 
     <div class="dd-mint-box">
-      <p class="dd-ca-label">Mint — verify before you buy</p>
+      <p class="dd-ca-label">Mint — compare with the cited source before using</p>
       <code id="dd-ca" class="dd-ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
       <div class="dd-mint-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy">Copy CA</button>
@@ -505,7 +504,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </div>
 
     <ul class="dd-why" id="dd-why">
-      <li><strong>Source:</strong> public @dash_eats CA post — not a brand deal.</li>
+      <li><strong>Source:</strong> cited public @dash_eats CA post; authorization and compensation are not established here.</li>
       <li><strong>Verify:</strong> paste any DM mint below; mismatches are flagged.</li>
       <li><strong>Share:</strong> attributed source packs for X or group chats.</li>
     </ul>
@@ -521,8 +520,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </div>
     <dl class="dd-evidence-grid">
       <div><dt>Account</dt><dd>SPL Mint · initialized</dd></div>
-      <div><dt>Mint authority</dt><dd class="dd-good">None · minting disabled</dd></div>
-      <div><dt>Freeze authority</dt><dd class="dd-good">None · freezing disabled</dd></div>
+      <div><dt>Mint authority</dt><dd>None · minting disabled</dd></div>
+      <div><dt>Freeze authority</dt><dd>None · freezing disabled</dd></div>
       <div><dt>Supply</dt><dd>999,831,950.053985</dd></div>
       <div><dt>Decimals</dt><dd>6</dd></div>
       <div><dt>Association</dt><dd>Public CA post · not official</dd></div>
@@ -652,6 +651,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   var PAIR_ID = '9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7';
   var QUOTE = 'So11111111111111111111111111111111111111112';
   var CASINO = 'How u crying at the casino and u can’t even get in';
+  var PROMO = 'Unofficial promo · operator position/compensation not disclosed · association ≠ endorsement · can go to zero';
 
   var DESK_FALLBACK = 'https://www.getdasha.com/';
   var DESK_DEPLOYMENTS = [
@@ -706,12 +706,12 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         PAIR +
         '\n' +
         (DESK ? 'Desk: ' + DESK + '\n' : '') +
-        'NFA · can go to zero · association ≠ endorsement'
+        PROMO
       );
     }
     if (kind === 'verify') {
       return (
-        'Verify this mint yourself:\n' +
+        'Compare this CA with independent sources:\n' +
         CA +
         '\n' +
         'Solscan: https://solscan.io/token/' +
@@ -724,7 +724,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       );
     }
     if (kind === 'meme') {
-      return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
+      return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic\n' + PROMO;
     }
     if (kind === 'boost') {
       return (
@@ -741,7 +741,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         BUY +
         '\n' +
         (DESK ? 'Desk: ' + DESK + '\n' : '') +
-        'NFA · can go to zero'
+        PROMO
       );
     }
     // raid default — casino hook + full funnel
@@ -758,7 +758,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       PAIR +
       '\n' +
       (DESK ? 'Desk → ' + DESK + '\n' : '') +
-      'NFA · can go to zero'
+      PROMO
     );
   }
 
@@ -780,18 +780,18 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       '\n' +
       (DESK ? 'Desk → ' + DESK + '\n' : '') +
       CA +
-      '\nNFA · can go to zero'
+      '\n' + PROMO
     );
   }
 
   function buildQuoteShare(quote) {
     var q = String(quote || '').trim();
     if (!q) return '';
-    return q + '\n$dasha · ' + CA + '\nBuy ' + BUY + ' · NFA';
+    return q + '\n$dasha · ' + CA + '\nBuy ' + BUY + '\n' + PROMO;
   }
 
   function buildMiniPack() {
-    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO;
+    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO + '\n' + PROMO;
   }
 
   function intentTweet(text) {

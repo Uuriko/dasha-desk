@@ -91,6 +91,9 @@ const mini = DD.buildMiniPack();
 assert.ok(mini.includes(DD.CA));
 assert.ok(mini.includes(DD.BUY) || mini.includes('jup.ag'));
 assert.notEqual(mini, raid);
+for (const pack of [discord, meme, boost, raid, mini, DD.buildLiveProof('$12K', '+2%'), DD.buildQuoteShare('Example')]) {
+  assert.match(pack, /operator position\/compensation not disclosed/, 'every promotional pack carries incentive uncertainty');
+}
 assert.ok(DD.buildSharePack('raid').includes(DD.BUY) || DD.buildSharePack('raid').includes('jup.ag'));
 
 const q = DD.buildQuoteShare('They are angels actually');
@@ -165,7 +168,9 @@ assert.ok(body.includes('dd-verify-how') || body.includes('dd-paste'), 'mint che
 assert.ok(body.includes('dd-risk'), 'risk strip');
 assert.ok(/culture coin|can go to zero|NFA/i.test(body), 'disclaimer language');
 assert.ok(body.includes('endorsement') || body.includes('≠'), 'non-endorsement');
-assert.ok(body.includes('promotion status not checked') && src.includes('fetchedAt.toISOString()'), 'market provenance stays visible and UTC-timestamped');
+assert.ok(body.includes('market data: Dexscreener exact Raydium pair') && src.includes('fetchedAt.toISOString()'), 'market provenance stays visible and UTC-timestamped');
+assert.ok(body.includes('operator position and compensation not disclosed'), 'promotional desk discloses incentive uncertainty at first viewport');
+assert.ok(!body.includes('not a brand deal') && !body.includes('class="dd-good"'), 'unsupported deal claim and safety-positive authority styling stay removed');
 assert.ok(body.includes('id="dd-px" hidden') && src.includes("$('dd-px').hidden = true"), 'unavailable market state does not duplicate status pills');
 assert.ok(body.includes('53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump'));
 assert.ok(body.includes('data-pack="raid"'));
