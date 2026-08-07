@@ -674,4 +674,21 @@ assert.equal(DD.dipRaidLabel(null), 'Raid this dip', 'raid default');
 assert.ok(appJs.includes('dipMicroBounce') && appJs.includes('dipRaidLabel') && appJs.includes('has-micro'), 'v37 wiring');
 assert.ok(kitStyles.includes('has-micro'), 'micro styles');
 
+// V38: deep size-chip nudge + live proof still-after-deep
+assert.ok(typeof DD.sizeChipHint === 'function', 'sizeChipHint exported');
+const hintDeep = DD.sizeChipHint(2, deepReclaim);
+assert.ok(hintDeep && hintDeep.recommended && hintDeep.tag === 'Deep', 'deep 2 SOL recommended');
+assert.equal(DD.sizeChipHint(1, deepReclaim), null, '1 SOL not deep nudge');
+assert.equal(DD.sizeChipHint(2, null), null, 'no dip null');
+const hintHard = DD.sizeChipHint(1, hardDip);
+assert.ok(hintHard && hintHard.tag === 'Hard', 'hard 1 SOL recommended');
+const liveDeep = DD.buildLiveProof('$60.0K', '+25%', deepReclaim, '+41');
+assert.ok(/deep dip/i.test(liveDeep) && /24h \+.*still/i.test(liveDeep), 'live pack deep still');
+assert.ok(/\+41 net/.test(liveDeep) && liveDeep.includes('$60.0K'), 'live pack net+mcap');
+assert.ok(liveDeep.includes(DD.CA) && /jup\.ag|Buy →/.test(liveDeep), 'live pack buy+mint');
+const livePlain = DD.buildLiveProof('$12.3K', '+4.2%');
+assert.ok(livePlain.includes('$12.3K') && livePlain.includes('+4.2%'), 'plain live pack still works');
+assert.ok(appJs.includes('sizeChipHint') && appJs.includes('is-nudge') && appJs.includes('liveProofNow'), 'v38 wiring');
+assert.ok(kitStyles.includes('is-nudge'), 'nudge chip styles');
+
 console.log('dasha-share.test.mjs: PASS');

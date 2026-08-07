@@ -718,6 +718,20 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   font-weight:800;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.15;
 }
 .dd-amt-sm.is-on{border-color:rgba(196,165,255,.65);background:rgba(196,165,255,.18);color:#fff}
+/* V38: depth-recommended size chip (deep→2 SOL, hard→1 SOL) */
+.dd-amt.is-nudge,.dd-amt-sm.is-nudge{
+  border-color:rgba(255,150,80,.7)!important;
+  box-shadow:0 0 10px rgba(255,120,50,.28);
+}
+.dd-amt.is-nudge-deep,.dd-amt-sm.is-nudge-deep{
+  border-color:rgba(255,110,60,.8)!important;
+  box-shadow:0 0 12px rgba(255,90,40,.35);
+}
+.dd-amt.is-nudge.is-on,.dd-amt-sm.is-nudge.is-on{
+  background:linear-gradient(180deg,rgba(230,100,40,.42),rgba(90,35,10,.5))!important;
+  color:#fff;
+}
+.dd-amt.is-nudge small,.dd-amt-sm.is-nudge small{color:#ffd0b0;font-weight:800}
 .dd-trust-bar{
   display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;
   width:100%;margin:0 0 6px;padding:4px 2px;font-size:11px;font-weight:700;

@@ -188,13 +188,33 @@
   }
 
   /** Live social-proof pack — unit-tested via DDShare.buildLiveProof */
-  function buildLiveProof(mcapLabel, ch24Label) {
+  /**
+   * Live social-proof pack — pure, unit-tested via DDShare.buildLiveProof.
+   * V38: hard/deep dip + 24h still → recovery header for viral paste.
+   */
+  function buildLiveProof(mcapLabel, ch24Label, dip, netShort) {
     var m = mcapLabel && String(mcapLabel) !== '—' ? String(mcapLabel) : 'live';
     var c = ch24Label && String(ch24Label) !== '—' ? String(ch24Label) : '';
+    var depth = dip ? dipDepth(dip) : null;
+    var still = dip ? stillGreen24(dip) : null;
+    var head;
+    if (depth && depth.tier !== 'soft' && still && still.short) {
+      head =
+        '$dasha · ' +
+        depth.tag.toLowerCase() +
+        ' dip · ' +
+        still.short +
+        ' still';
+      if (netShort && String(netShort).charAt(0) === '+') {
+        head = head + ' · ' + String(netShort) + ' net';
+      }
+      head = head + ' · mcap ' + m;
+    } else {
+      head =
+        '$dasha live · mcap ' + m + (c ? ' · 24h ' + c : '');
+    }
     return (
-      '$dasha live · mcap ' +
-      m +
-      (c ? ' · 24h ' + c : '') +
+      head +
       '\n' +
       'Buy → ' +
       buyUrl() +
@@ -205,6 +225,23 @@
       CA +
       '\nNFA · can go to zero'
     );
+  }
+
+  /**
+   * Recommended size chip during dip — pure (V38).
+   * Marks the depth-nudge SOL on FOMO/sticky chips for conversion.
+   */
+  function sizeChipHint(sol, dip) {
+    if (sol == null || sol === '' || !dip) return null;
+    var nudge = dipSizeNudgeSol(dip);
+    if (nudge == null || Number(sol) !== Number(nudge)) return null;
+    var depth = dipDepth(dip);
+    return {
+      recommended: true,
+      nudgeSol: nudge,
+      tag: depth && depth.tier !== 'soft' ? depth.tag : 'Dip',
+      tier: depth ? depth.tier : 'soft',
+    };
   }
 
   function buildQuoteShare(quote) {
@@ -1007,6 +1044,7 @@
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
     buildLiveProof: buildLiveProof,
+    sizeChipHint: sizeChipHint,
     buildBuyPack: buildBuyPack,
     buildDipPack: buildDipPack,
     buyPressure: buyPressure,
@@ -1322,7 +1360,7 @@
     if ($('dd-sticky-tweet')) {
       var raidLine =
         lastProof.mcap && lastProof.mcap !== '—'
-          ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+          ? liveProofNow()
           : buildSharePack('raid');
       $('dd-sticky-tweet').href = intentTweet(raidLine);
     }
@@ -1817,7 +1855,7 @@
         if ($('dd-sticky-tweet')) {
           $('dd-sticky-tweet').href = intentTweet(
             lastProof.mcap && lastProof.mcap !== '—'
-              ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+              ? liveProofNow()
               : buildSharePack('raid'),
           );
         }
@@ -2069,7 +2107,7 @@
   }
   if ($('dd-sticky-live'))
     $('dd-sticky-live').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-sticky-live'));
+      copy(liveProofNow(), $('dd-sticky-live'));
     });
   if ($('dd-copy-buy'))
     $('dd-copy-buy').addEventListener('click', function () {
@@ -2137,7 +2175,7 @@
     });
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-copy-live'));
+      copy(liveProofNow(), $('dd-copy-live'));
     });
   if ($('dd-copy-hold'))
     $('dd-copy-hold').addEventListener('click', function () {
@@ -2146,7 +2184,7 @@
 
   if ($('dd-social-proof'))
     $('dd-social-proof').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-social-proof-hint') || $('dd-social-proof'));
+      copy(liveProofNow(), $('dd-social-proof-hint') || $('dd-social-proof'));
     });
 
   if ($('dd-copy-share'))
@@ -2253,7 +2291,7 @@
   }
   if ($('dd-sp-copy-live'))
     $('dd-sp-copy-live').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-sp-copy-live'));
+      copy(liveProofNow(), $('dd-sp-copy-live'));
     });
   if ($('dd-sp-copy-hold'))
     $('dd-sp-copy-hold').addEventListener('click', function () {
@@ -2263,7 +2301,7 @@
     function refreshSpTweet() {
       var line =
         lastProof.mcap && lastProof.mcap !== '—'
-          ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+          ? liveProofNow()
           : buildSharePack('boost');
       $('dd-sp-tweet').href = intentTweet(line);
     }
@@ -2332,17 +2370,41 @@
       var sol = b.getAttribute('data-sol');
       var on = String(sol) === String(buySol);
       b.classList.toggle('is-on', on);
+      // V38: highlight depth-recommended size chip (deep→2, hard→1)
+      var hint = sizeChipHint(sol, lastProof.dip);
+      b.classList.toggle('is-nudge', !!(hint && hint.recommended));
+      if (hint && hint.tier === 'deep') b.classList.add('is-nudge-deep');
+      else b.classList.remove('is-nudge-deep');
       var usd = null;
       if (lastProof.solUsd != null && isFinite(lastProof.solUsd)) {
         usd = Number(sol) * lastProof.solUsd;
       }
       var rough = fmtUsdRough(usd);
-      if (rough) {
+      if (rough && hint && hint.recommended) {
+        b.innerHTML =
+          sol + '<small>' + rough + ' · ' + hint.tag + '</small>';
+      } else if (rough) {
         b.innerHTML = sol + '<small>' + rough + '</small>';
+      } else if (hint && hint.recommended) {
+        b.innerHTML = sol + '<small>' + hint.tag + '</small>';
       } else {
         b.textContent = sol;
       }
     });
+  }
+
+  /** Runtime live pack with dip still/net when available (V38) */
+  function liveProofNow() {
+    var netBit =
+      lastProof.buys != null && lastProof.sells != null
+        ? netBuysShort(lastProof.buys, lastProof.sells)
+        : null;
+    return buildLiveProof(
+      lastProof.mcap,
+      lastProof.ch24,
+      lastProof.dip,
+      netBit,
+    );
   }
   function wireBuyHrefs() {
     var href = buyUrl(buySol);
@@ -2548,7 +2610,7 @@
 
   function raidLineNow() {
     return lastProof.mcap && lastProof.mcap !== '—'
-      ? buildLiveProof(lastProof.mcap, lastProof.ch24)
+      ? liveProofNow()
       : buildSharePack(resolvePack('raid'));
   }
   function refreshRaidKit() {
@@ -2681,7 +2743,7 @@
     });
   if ($('dd-kit-copy-live'))
     $('dd-kit-copy-live').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-kit-copy-live'));
+      copy(liveProofNow(), $('dd-kit-copy-live'));
     });
   window.__ddRefreshRaidKit = refreshRaidKit;
   refreshRaidKit();
@@ -2689,7 +2751,7 @@
 
   if ($('dd-ticker'))
     $('dd-ticker').addEventListener('click', function () {
-      copy(buildLiveProof(lastProof.mcap, lastProof.ch24), $('dd-ticker'));
+      copy(liveProofNow(), $('dd-ticker'));
     });
   setInterval(tickFomoAge, 1000);
 
