@@ -34,13 +34,13 @@ assert.equal(
 assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://johns-awesome-project-39b1b5.webflow.io/dasha?utm=x#mint' }, DD.DESK), 'https://johns-awesome-project-39b1b5.webflow.io/dasha');
 assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://files.catbox.moe/sm5mo0.html#top' }, DD.DESK), 'https://files.catbox.moe/sm5mo0.html');
 assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://www.getdasha.com/?utm=x#mint' }, DD.DESK), 'https://www.getdasha.com/');
+assert.equal(DD.resolveDeskUrl(fakeDoc(), { href: 'https://johns-awesome-project-39b1b5.webflow.io/?utm=x#mint' }, DD.DESK), 'https://johns-awesome-project-39b1b5.webflow.io/');
 for (const href of [
   'https://getdasha.com/',
   'https://www.getdasha.com/labs',
   'https://www.getdasha.com.evil.test/',
   'https://www.getdasha.com:444/',
   'https://user:pass@www.getdasha.com/',
-  'https://johns-awesome-project-39b1b5.webflow.io/',
   'https://files.catbox.moe/other.html',
   'http://127.0.0.1:8766/dasha',
   'file:///tmp/index.html',
@@ -53,6 +53,9 @@ const unsafe = load({ document: fakeDoc(), location: { href: 'https://example.te
 assert.equal(unsafe.DESK, '');
 assert.ok(!unsafe.buildSharePack('discord').includes('Desk:'), 'unsafe mirrors omit desk from Discord pack');
 assert.ok(!unsafe.buildSharePack('boost').includes('Desk:'), 'unsafe mirrors omit desk from boost pack');
+assert.ok(!unsafe.buildSharePack('raid').includes('Desk →'), 'unsafe mirrors omit desk from raid pack');
+assert.ok(!unsafe.buildLiveProof('$12.3K', '+4.2%').includes('Desk →'), 'unsafe mirrors omit desk from live pack');
+assert.ok(!unsafe.buildSharePack('raid').includes('undefined'));
 assert.match(src, /if \(DESK\) payload\.url = DESK;/, 'native share omits an unsafe URL');
 
 const raid = DD.buildSharePack('raid');
@@ -115,7 +118,7 @@ assert.ok(body.includes('data-pack="raid"'));
 assert.ok(body.includes('data-share-quote'));
 assert.ok(body.includes('dd-copy-share') && body.includes('dd-tweet'), 'two share affordances');
 assert.ok(body.includes('id="dd-desk-url" href="https://www.getdasha.com/"'), 'absolute no-JS desk fallback');
-assert.ok(body.includes('id="dd-desk-link"'), 'runtime can hide the complete desk-link separator');
+assert.ok(body.includes('id="dd-desk-link" hidden'), 'no-JS output hides the unverified desk-link fallback');
 assert.ok(body.includes('dd-buy') && body.includes('jup.ag'), 'buy CTA');
 assert.ok(body.includes('dd-proof') && body.includes('p-mcap'), 'live proof strip');
 assert.ok(body.includes('data-pack="boost"'), 'boost share pack tab');

@@ -607,7 +607,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
     </article>
     <article class="dd-card" id="dd-share-room">
       <h2>Share = oxygen</h2>
-      <p class="dd-meta">Copy a pack. Post it. Buy + chart + desk always included.</p>
+      <p class="dd-meta">Copy a pack. Post it. Buy + chart included. Desk added when available.</p>
       <div class="dd-pack-tabs" role="tablist" aria-label="Pack">
         <button type="button" class="dd-pack-tab is-on" data-pack="raid" role="tab" aria-selected="true">Raid</button>
         <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
@@ -707,7 +707,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 
   <footer class="dd-foot dd-reveal">
     <p>Not affiliated with Dasha, Red Scare, or @dash_eats beyond public posts cited here. Can go to zero.</p>
-    <p><a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk</a><span id="dd-desk-link"> · <a id="dd-desk-url" href="https://www.getdasha.com/">live desk</a></span></p>
+    <p><a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk</a><span id="dd-desk-link" hidden> · <a id="dd-desk-url" href="https://www.getdasha.com/">live desk</a></span></p>
   </footer>
 </div>
 <script>
@@ -719,6 +719,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
   var DESK_FALLBACK = 'https://www.getdasha.com/';
   var DESK_DEPLOYMENTS = [
     DESK_FALLBACK,
+    'https://johns-awesome-project-39b1b5.webflow.io/',
     'https://johns-awesome-project-39b1b5.webflow.io/dasha',
     'https://files.catbox.moe/sm5mo0.html',
   ];
@@ -812,7 +813,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented (buy + desk always)
+    // raid default — short, postable, conversion-oriented
     return (
       CASINO +
       '\n' +
@@ -825,9 +826,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       'Chart → ' +
       PAIR +
       '\n' +
-      'Desk → ' +
-      DESK +
-      '\n' +
+      (DESK ? 'Desk → ' + DESK + '\n' : '') +
       'Get in · NFA · can go to zero'
     );
   }
@@ -844,9 +843,7 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       'Buy → ' +
       BUY +
       '\n' +
-      'Desk → ' +
-      DESK +
-      '\n' +
+      (DESK ? 'Desk → ' + DESK + '\n' : '') +
       CA +
       '\nNFA · can go to zero'
     );
@@ -1212,8 +1209,8 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
       copy($('dd-oneliners').textContent, $('dd-copy-oneliners'));
     });
   if ($('dd-desk-link')) {
+    $('dd-desk-link').hidden = !DESK;
     if (DESK) $('dd-desk-url').href = DESK;
-    else $('dd-desk-link').hidden = true;
   }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {

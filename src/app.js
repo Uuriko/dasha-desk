@@ -6,6 +6,7 @@
   var DESK_FALLBACK = 'https://www.getdasha.com/';
   var DESK_DEPLOYMENTS = [
     DESK_FALLBACK,
+    'https://johns-awesome-project-39b1b5.webflow.io/',
     'https://johns-awesome-project-39b1b5.webflow.io/dasha',
     'https://files.catbox.moe/sm5mo0.html',
   ];
@@ -99,7 +100,7 @@
         'NFA · can go to zero'
       );
     }
-    // raid default — short, postable, conversion-oriented (buy + desk always)
+    // raid default — short, postable, conversion-oriented
     return (
       CASINO +
       '\n' +
@@ -112,9 +113,7 @@
       'Chart → ' +
       PAIR +
       '\n' +
-      'Desk → ' +
-      DESK +
-      '\n' +
+      (DESK ? 'Desk → ' + DESK + '\n' : '') +
       'Get in · NFA · can go to zero'
     );
   }
@@ -131,9 +130,7 @@
       'Buy → ' +
       BUY +
       '\n' +
-      'Desk → ' +
-      DESK +
-      '\n' +
+      (DESK ? 'Desk → ' + DESK + '\n' : '') +
       CA +
       '\nNFA · can go to zero'
     );
@@ -499,8 +496,8 @@
       copy($('dd-oneliners').textContent, $('dd-copy-oneliners'));
     });
   if ($('dd-desk-link')) {
+    $('dd-desk-link').hidden = !DESK;
     if (DESK) $('dd-desk-url').href = DESK;
-    else $('dd-desk-link').hidden = true;
   }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {
