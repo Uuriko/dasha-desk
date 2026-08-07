@@ -390,7 +390,7 @@
   }
   function loadMarket() {
     var asof = $('dd-asof');
-    asof.textContent = 'Loading Dex…';
+    asof.textContent = 'Dexscreener · exact Raydium pair · loading…';
     fetch('https://api.dexscreener.com/latest/dex/pairs/solana/' + PAIR_ID, { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -428,6 +428,7 @@
         if ($('dd-px')) {
           var el = $('dd-px');
           var next = fmtUsd(p.priceUsd);
+          el.hidden = false;
           if (el.textContent !== next) {
             el.textContent = next;
             el.classList.remove('dd-flash');
@@ -438,11 +439,14 @@
         var info = p.info || {};
         var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
         if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
-        asof.textContent = fetchedAt.toLocaleString() + ' · Dexscreener';
-        if ($('dd-live')) $('dd-live').textContent = 'live';
+        asof.textContent = fetchedAt.toISOString() + ' · Dexscreener · Raydium ' + PAIR_ID.slice(0, 4) + '…' + PAIR_ID.slice(-4) + ' · promotion status not checked';
+        if ($('dd-live')) {
+          $('dd-live').textContent = 'live';
+          $('dd-live').classList.add('dd-pill-ok');
+        }
       })
       .catch(function () {
-        if (asof) asof.textContent = 'Market data unavailable — open chart.';
+        if (asof) asof.textContent = 'Exact-pair market data unavailable — open chart · promotion status not checked.';
         ['s-price', 's-mcap', 's-liq', 's-vol', 's-5m', 's-1h', 's-6h', 's-24h', 'p-mcap', 'p-liq', 'p-vol', 'p-24h'].forEach(function (id) {
           if ($(id)) {
             $(id).textContent = '—';
@@ -451,8 +455,11 @@
         });
         lastProof = { mcap: '—', ch24: '—', at: '' };
         lastPair = null;
-        if ($('dd-live')) $('dd-live').textContent = 'unavailable';
-        if ($('dd-px')) $('dd-px').textContent = 'unavailable';
+        if ($('dd-live')) {
+          $('dd-live').textContent = 'unavailable';
+          $('dd-live').classList.remove('dd-pill-ok');
+        }
+        if ($('dd-px')) $('dd-px').hidden = true;
       });
   }
   function hardenImages() {

@@ -162,6 +162,8 @@ assert.ok(body.includes('dd-verify-how') || body.includes('dd-paste'), 'mint che
 assert.ok(body.includes('dd-risk'), 'risk strip');
 assert.ok(/culture coin|can go to zero|NFA/i.test(body), 'disclaimer language');
 assert.ok(body.includes('endorsement') || body.includes('≠'), 'non-endorsement');
+assert.ok(body.includes('promotion status not checked') && src.includes('fetchedAt.toISOString()'), 'market provenance stays visible and UTC-timestamped');
+assert.ok(body.includes('id="dd-px" hidden') && src.includes("$('dd-px').hidden = true"), 'unavailable market state does not duplicate status pills');
 assert.ok(body.includes('53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump'));
 assert.ok(body.includes('data-pack="raid"'));
 assert.ok(body.includes('data-share-quote'));
