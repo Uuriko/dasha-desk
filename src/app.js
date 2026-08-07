@@ -413,9 +413,6 @@
             el.classList.add('dd-flash');
           } else el.textContent = next;
         }
-        var info = p.info || {};
-        var imageUrl = safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com');
-        if (imageUrl && $('dd-token-img')) $('dd-token-img').src = imageUrl;
         asof.textContent = fetchedAt.toISOString() + ' · Dexscreener · Raydium ' + PAIR_ID.slice(0, 4) + '…' + PAIR_ID.slice(-4) + ' · promotion status not checked';
         if ($('dd-live')) {
           $('dd-live').textContent = 'live';
@@ -439,25 +436,6 @@
         if ($('dd-px')) $('dd-px').hidden = true;
       });
   }
-  function hardenImages() {
-    var root = document.getElementById('dd-app');
-    if (!root) return;
-    root.querySelectorAll('img').forEach(function (img) {
-      img.addEventListener(
-        'error',
-        function () {
-          if (img.dataset.fallback === '1') return;
-          img.dataset.fallback = '1';
-          img.removeAttribute('src');
-          img.alt = img.alt || 'image unavailable';
-          img.classList.add('dd-img-broken');
-          img.style.minHeight = img.height ? img.height + 'px' : '88px';
-        },
-        { once: true },
-      );
-    });
-  }
-
   function bindQuoteTaps() {
     document.querySelectorAll('[data-share-quote]').forEach(function (el) {
       function fire() {
@@ -557,7 +535,6 @@
 
   setShare('raid');
   bindQuoteTaps();
-  hardenImages();
   loadMarket();
   setInterval(loadMarket, 30000);
 })();

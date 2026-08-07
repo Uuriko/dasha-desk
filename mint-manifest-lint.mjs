@@ -111,7 +111,6 @@ export function lintMintManifest({ config, evidence, body, app }) {
   error(account.mintAuthority !== null || /Mint authority<\/dt><dd[^>]*>None/.test(body), 'render.mint-authority', 'src/body.html', 'None label requires null authority');
   error(account.freezeAuthority !== null || /Freeze authority<\/dt><dd[^>]*>None/.test(body), 'render.freeze-authority', 'src/body.html', 'None label requires null authority');
   error(app.includes("safeProviderUrl(pair.url, 'dexscreener.com')"), 'runtime.chart-host', 'src/app.js', 'chart URL must use exact-host validation');
-  error(app.includes("safeProviderUrl(info.imageUrl, 'cdn.dexscreener.com')"), 'runtime.image-host', 'src/app.js', 'image URL must use exact-host validation');
 
   const quotes = config?.quotes || [];
   const renderedQuotes = [...body.matchAll(/data-share-quote="([^"]+)"/g)].map((match) => match[1]);

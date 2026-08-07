@@ -75,9 +75,9 @@ The live evidence check is intentionally local rather than a CI dependency. It m
 | Provider | Used for | Failure behavior |
 |---|---|---|
 | Dexscreener API | price, liquidity, volume and chart URL | page stays usable and labels market data offline |
-| X, Dexscreener CDN and Catbox | attributed media | broken images collapse to an unavailable placeholder |
+| X | cited source posts | links open in a new tab with opener isolation |
 
-Third-party data and media are not endorsements. Provider-supplied chart and image URLs are accepted only from their exact HTTPS Dexscreener hosts; otherwise the canonical links remain unchanged.
+Third-party data and source posts are not endorsements. Provider-supplied chart URLs are accepted only from the exact HTTPS Dexscreener host; otherwise the canonical link remains unchanged. The release surface ships no third-party images.
 
 ## Research
 
