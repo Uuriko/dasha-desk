@@ -1,13 +1,13 @@
 {
   "schema": "dasha.webflow-rc/1",
-  "capturedAt": "2026-08-07T16:35:21Z",
+  "capturedAt": "2026-08-07T16:39:47Z",
   "source": {
-    "commit": "8382393a1ab3bdc51fc234f608f464b943636779",
+    "commit": "c592486e0fbbaed394d74c8373fac12be43516f3",
     "clean": true,
     "files": {
-      "src/app.html": { "bytes": 49085, "sha256": "d10dceb5d774782bdb4b154ccbafae2ea0eba605eb1cd709c0b35685b18338b3" },
-      "src/body.html": { "bytes": 12126, "sha256": "62fb3d6e33830e58b2e0450fd46bbab7bece1cd32e68e7369582103fe484dd90" },
-      "src/app.js": { "bytes": 18702, "sha256": "b7c389981e51dbb11f0acd00e83028a42116baf96c335f4308ca727017b6f927" },
+      "src/app.html": { "bytes": 50639, "sha256": "8186e8930772dd01be607c74550e4b6099ee801920e650cda261c20f3e43549b" },
+      "src/body.html": { "bytes": 12271, "sha256": "9a68af620454e699c69c57065c3e7e9f129f47c459b4c1e54801fc001c8ccc1d" },
+      "src/app.js": { "bytes": 20111, "sha256": "f9ee1055f5b08e70c14a3e4f200247a6a1c3aa1786b2f7271f42b27a08e13a61" },
       "src/styles.css": { "bytes": 18221, "sha256": "1293714806cbd62591ed60a128e19c4842773a7a9abcd044a9d4f5ec9977f2ab" }
     }
   },
@@ -29,8 +29,8 @@
     "deskCandidate": { "pageId": "6a758d786dc08f46cfb2539c", "slug": "desk-rc", "draft": true, "publicStatus": 404 }
   },
   "candidatePayload": {
-    "markup": { "bytes": 30431, "sha256": "f956cc7d13ca421d85757c1787f97f0d83e82521486a46f0ff731bddbe5dec45" },
-    "runtime": { "bytes": 18649, "sha256": "fc5cfb71222ea27fa3f21cc44a1999a528da02ba7e2c1a703b910147d01c6151" },
+    "markup": { "bytes": 30576, "sha256": "d1c76d31d49eef5d2faadfb3adc77898158c93e5f2f67c5f05063ba605801753" },
+    "runtime": { "bytes": 20058, "sha256": "39ac9bdc678a06a1bebde3c03b8c90a4f73b9968dae5b6fed23c1568374df136" },
     "legacyNavigationVisible": false
   },
   "intendedRoutes": {
