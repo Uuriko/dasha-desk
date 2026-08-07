@@ -887,28 +887,54 @@
     );
   }
 
-  /** FOMO A/B dip headlines — pure, unit-tested via DDShare.fomoDipHeadline */
-  function fomoDipHeadline(dip, ch24Label, ab, bp) {
+  /**
+   * FOMO A/B dip headlines — pure, unit-tested via DDShare.fomoDipHeadline.
+   * V53: hard/deep dip FOMO main is buy-first + 24h still (+ optional net).
+   * Soft dips keep A/B status vs buy-pressure copy.
+   */
+  function fomoDipHeadline(dip, ch24Label, ab, bp, netShort) {
     if (!dip) return '';
     var short =
       (dip.shortPct > 0 ? '+' : '') + Number(dip.shortPct).toFixed(2) + '%';
     var depth = dipDepth(dip);
-    var still = '';
-    if (ch24Label && String(ch24Label) !== '—') {
-      still = String(ch24Label).replace(/^24h\s+/i, '');
-    } else {
-      still =
-        (dip.ch24 > 0 ? '+' : '') + Number(dip.ch24).toFixed(2) + '%';
+    // Resolve 24h still from dip.ch24 or ch24Label string ("+204%" / "24h +204%")
+    var stillObj = stillGreen24(dip);
+    if (!stillObj && ch24Label && String(ch24Label) !== '—') {
+      var rawStill = String(ch24Label).replace(/^24h\s+/i, '').replace(/%/g, '');
+      var stillN = Number(rawStill);
+      if (isFinite(stillN) && stillN > 0) {
+        stillObj = {
+          pct: stillN,
+          short:
+            '24h +' +
+            (Math.abs(stillN) >= 10 ? stillN.toFixed(0) : stillN.toFixed(1)) +
+            '%',
+        };
+      }
+    }
+    // V53: hard/deep → Buy · Hard dip · 24h +X% still · +N net · NFA
+    if (depth && depth.tier !== 'soft') {
+      var bits = [dipBuyLead(dip) || 'Buy · ' + depth.tag + ' dip'];
+      if (stillObj && stillObj.short) bits.push(stillObj.short + ' still');
+      if (netShort && String(netShort).charAt(0) === '+') {
+        bits.push(String(netShort) + ' net');
+      } else if (bp && bp.moreBuyers) {
+        bits.push(bp.pct + '% buys');
+      }
+      bits.push('NFA');
+      return bits.join(' · ');
+    }
+    var stillSoft = '';
+    if (stillObj && stillObj.short) {
+      stillSoft = stillObj.short.replace(/^24h\s+/i, '');
+    } else if (ch24Label && String(ch24Label) !== '—') {
+      stillSoft = String(ch24Label).replace(/^24h\s+/i, '');
     }
     if (ab === 'b') {
       var press =
         bp && bp.moreBuyers ? ' · ' + bp.pct + '% buys' : '';
-      var lead =
-        depth && depth.tier !== 'soft'
-          ? depth.word + ' · buy'
-          : 'Buy the dip';
       return (
-        lead +
+        'Buy the dip' +
         ' · ' +
         dip.shortLabel +
         ' ' +
@@ -917,20 +943,13 @@
         ' · NFA'
       );
     }
-    // A = status style (default). Deep/hard lead with depth word.
-    if (depth && depth.tier !== 'soft') {
-      return (
-        depth.word +
-        ' ' +
-        dip.shortLabel +
-        ' ' +
-        short +
-        ' · 24h still ' +
-        still +
-        ' · NFA'
-      );
-    }
-    return dip.shortLabel + ' dip ' + short + ' · 24h still ' + still;
+    // Soft A = status style
+    return (
+      dip.shortLabel +
+      ' dip ' +
+      short +
+      (stillSoft ? ' · 24h still ' + stillSoft : '')
+    );
   }
 
   /** Net buys social proof from real Dex txn counts */
@@ -2098,20 +2117,34 @@
           } else if (lastProof.dip) {
             // Short-TF dip with 24h still green — A/B FOMO headlines
             lastProof.regime = 'dip';
+            var netDip =
+              lastProof.buys != null && lastProof.sells != null
+                ? netBuysShort(lastProof.buys, lastProof.sells)
+                : null;
             $('dd-fomo-main').textContent = fomoDipHeadline(
               lastProof.dip,
               lastProof.ch24,
               fomoAb,
               bp,
+              netDip,
             );
             fomo.classList.add('is-dip');
             fomo.classList.remove('is-up', 'is-down', 'is-hot-win', 'is-dump');
             var depthNow = dipDepth(lastProof.dip);
             fomo.classList.toggle('is-deep', !!(depthNow && depthNow.tier === 'deep'));
             fomo.classList.toggle('is-hard', !!(depthNow && depthNow.tier === 'hard'));
+            // V53: buy-first hard/deep FOMO main class
+            fomo.classList.toggle(
+              'is-buy-first',
+              !!(depthNow && depthNow.tier !== 'soft'),
+            );
             if ($('dd-fomo-ab')) {
-              $('dd-fomo-ab').hidden = false;
-              $('dd-fomo-ab').textContent = String(fomoAb).toUpperCase();
+              // V53: hide A/B chip for hard/deep (single buy-first format)
+              var hideAb = !!(depthNow && depthNow.tier !== 'soft');
+              $('dd-fomo-ab').hidden = hideAb;
+              if (!hideAb) {
+                $('dd-fomo-ab').textContent = String(fomoAb).toUpperCase();
+              }
             }
             // Size nudge by dip depth: soft/hard→1 SOL, deep→2 SOL (once, if unset)
             try {

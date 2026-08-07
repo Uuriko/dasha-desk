@@ -818,6 +818,9 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-sticky.is-dip{border-color:rgba(255,180,100,.45)}
 .dd-fomo.is-dip{border-color:rgba(255,180,100,.4);box-shadow:0 0 20px rgba(255,160,80,.12)}
 .dd-fomo.is-dip .dd-fomo-copy strong{color:#ffd0b0}
+/* V53: buy-first hard/deep FOMO main */
+.dd-fomo.is-buy-first.is-dip .dd-fomo-copy strong{color:#ffe0c8;font-weight:900}
+.dd-fomo.is-buy-first.is-dip{border-color:rgba(255,160,80,.55)}
 .dd-wallet-buy,.dd-kit-actions #dd-kit-wallet{border-color:rgba(125,255,163,.35)}
 @media(max-width:560px){
   .dd-kit-actions{grid-template-columns:1.4fr 1fr!important}

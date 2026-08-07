@@ -568,7 +568,9 @@ assert.equal(DD.dipSizeNudgeSol(deepDip), 2, 'deep dip nudges 2 SOL');
 assert.equal(DD.dipSizeNudgeSol(hardDip), 1, 'hard dip nudges 1 SOL');
 const headDeepA = DD.fomoDipHeadline(deepDip, '+204%', 'a', bpHot);
 const headDeepB = DD.fomoDipHeadline(deepDip, '+204%', 'b', bpHot);
-assert.ok(/Deep dip/i.test(headDeepA) && /24h still/i.test(headDeepA), 'FOMO A deep lead');
+// V53: hard/deep FOMO main is buy-first + still (A/B converge)
+assert.ok(/Buy · Deep dip/i.test(headDeepA) && /24h \+.*still/i.test(headDeepA), 'FOMO A deep buy-first+still');
+assert.ok(/Buy · Deep dip/i.test(headDeepB) && /24h \+.*still/i.test(headDeepB), 'FOMO B deep buy-first+still');
 assert.ok(/Deep dip|buy/i.test(headDeepB), 'FOMO B deep lead');
 const dualDeep = DD.dualGoPlan(2, true, 'dip', null, 74, '+101', 358, deepDip);
 assert.ok(dualDeep.isDeepDip && /Deep dip/i.test(dualDeep.label), 'dual deep dip label');
@@ -894,5 +896,22 @@ assert.ok(/Buy dip/i.test(dualHardBuy.toast || ''), 'hard dip buy toast');
 const dualSoftCa = DD.dualGoPlan(1, true, 'dip', null, 74, '+10', 200, softDip);
 assert.ok(/^CA · /i.test(dualSoftCa.label), 'soft dip still CA-first');
 assert.ok(appJs.includes('dipBuyLead'), 'v52 wiring');
+
+// V53: FOMO main hard/deep buy-first + still + net (live-like 24h +6.5%)
+const hardLive = { shortLabel: '6h', shortPct: -15.3, ch24: 6.5 };
+const headHard53 = DD.fomoDipHeadline(hardLive, '+6.5%', 'b', bpHot, '+41');
+assert.ok(/^Buy · Hard dip/i.test(headHard53), 'v53 hard main buy-first');
+assert.ok(/24h \+6\.5% still/i.test(headHard53), 'v53 hard main still');
+assert.ok(/\+41 net/.test(headHard53), 'v53 hard main net');
+assert.ok(!/Hard dip · buy/i.test(headHard53), 'v53 no awkward mid buy');
+assert.equal(
+  DD.fomoDipHeadline(hardLive, '+6.5%', 'a', bpHot, '+41'),
+  headHard53,
+  'v53 A/B converge on hard',
+);
+const headSoftA = DD.fomoDipHeadline(softDip, '+10%', 'a', bpHot);
+assert.ok(/dip/i.test(headSoftA) && /still/i.test(headSoftA), 'soft A keeps still status');
+assert.ok(appJs.includes('is-buy-first') && appJs.includes('netDip'), 'v53 wiring');
+assert.ok(kitStyles.includes('is-buy-first'), 'v53 buy-first styles');
 
 console.log('dasha-share.test.mjs: PASS');
