@@ -154,4 +154,25 @@ assert.ok(body.includes('id="dd-exit"') && body.includes('dd-exit-hold'), 'exit-
 assert.ok(body.includes('dd-exit-buy'), 'exit-intent buy CTA');
 assert.ok(/Still holding|Before you go/i.test(body), 'exit-intent hold language');
 
+
+assert.ok(typeof DD.deskUrl === 'function' && typeof DD.buyUrl === 'function', 'ref helpers exported');
+assert.ok(typeof DD.getRef === 'function', 'getRef exported');
+const desk = DD.deskUrl();
+assert.ok(desk.includes('ref='), 'deskUrl has ref');
+assert.ok(desk.includes('webflow.io/dasha'), 'deskUrl base');
+const buy = DD.buyUrl();
+assert.ok(buy.includes('jup.ag'), 'buyUrl jupiter');
+assert.ok(buy.includes(DD.CA) || buy.includes('53uxQt'), 'buyUrl mint');
+const invite = DD.buildSharePack('invite');
+assert.ok(invite.includes('ref=') || invite.includes(DD.deskUrl().slice(0, 20)), 'invite has desk ref');
+assert.ok(invite.includes('jup.ag') || invite.includes(DD.CA), 'invite has buy');
+assert.ok(body.includes('data-pack="invite"'), 'invite tab');
+assert.ok(body.includes('dd-buy-wallet'), 'wallet buy CTA');
+assert.ok(body.includes('dd-ref-chip'), 'inbound ref chip');
+assert.ok(body.includes('jup.ag/swap?') || body.includes('jup.ag/swap/'), 'jupiter deep link in markup');
+assert.ok(body.includes('dd-meme-compact') || body.includes('dd-meme-grid'), 'meme gallery present');
+// share packs must include desk with ref
+assert.ok(DD.buildSharePack('raid').includes('ref=') || DD.buildSharePack('raid').includes('webflow.io/dasha'), 'raid desk');
+assert.ok(DD.buildMiniPack().includes('ref=') || DD.buildMiniPack().includes('webflow.io'), 'mini has desk loop');
+
 console.log('dasha-share.test.mjs: PASS');

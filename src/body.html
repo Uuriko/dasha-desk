@@ -11,6 +11,7 @@
       <span class="dd-pill">Solana</span>
       <span class="dd-pill" id="dd-px">—</span>
       <span class="dd-pill dd-pill-ok dd-pill-live" id="dd-live">live</span>
+      <span class="dd-pill dd-ref-chip" id="dd-ref-chip" hidden>via friend</span>
     </div>
   </header>
 
@@ -82,7 +83,8 @@
     </div>
 
     <div class="dd-actions dd-actions-primary">
-      <a class="dd-btn dd-btn-primary dd-btn-lg dd-pulse-buy" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now on Jupiter</a>
+      <a class="dd-btn dd-btn-primary dd-btn-lg dd-pulse-buy" id="dd-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now on Jupiter</a>
+      <a class="dd-btn dd-btn-lg dd-wallet-buy" id="dd-buy-wallet" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Open in wallet</a>
       <button type="button" class="dd-btn dd-btn-lg" id="dd-copy-buy">Copy buy link</button>
       <a class="dd-btn dd-btn-lg" id="dd-chart" target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Open chart</a>
       <button type="button" class="dd-btn" id="dd-copy-live">Copy live pack</button>
@@ -120,7 +122,7 @@
     </article>
     <article class="dd-card" id="dd-share-room">
       <h2>Share = oxygen</h2>
-      <p class="dd-meta">Copy a pack. Post it. Buy + chart + desk always included. Raid has A/B lines — pick what hits.</p>
+      <p class="dd-meta">Copy a pack. Desk links include your ref so friends open your trail. Raid A/B · Invite loops.</p>
       <div class="dd-ab" role="group" aria-label="Raid pack A or B">
         <button type="button" class="dd-ab-btn is-on" data-raid-ab="a" id="dd-raid-a">Raid A</button>
         <button type="button" class="dd-ab-btn" data-raid-ab="b" id="dd-raid-b">Raid B</button>
@@ -131,6 +133,7 @@
         <button type="button" class="dd-pack-tab" data-pack="boost" role="tab" aria-selected="false">Boost</button>
         <button type="button" class="dd-pack-tab" data-pack="hold" role="tab" aria-selected="false">Hold</button>
         <button type="button" class="dd-pack-tab" data-pack="verify" role="tab" aria-selected="false">Verify</button>
+        <button type="button" class="dd-pack-tab" data-pack="invite" role="tab" aria-selected="false">Invite</button>
         <button type="button" class="dd-pack-tab" data-pack="meme" role="tab" aria-selected="false">Line</button>
       </div>
       <textarea id="dd-share" class="dd-textarea" rows="4" readonly aria-label="Share pack"></textarea>
@@ -146,7 +149,7 @@
   <section class="dd-card dd-section dd-reveal" id="dd-memes">
     <h2>Lines that travel</h2>
     <p class="dd-meta">Tap to copy a post-ready line. Public posts · not merch · not endorsement.</p>
-    <div class="dd-meme-grid" id="dd-meme-grid">
+    <div class="dd-meme-grid dd-meme-compact" id="dd-meme-grid">
       <button type="button" class="dd-meme dd-meme-a" data-share-quote="How u crying at the casino and u can’t even get in"><p>How u crying at the casino and u can’t even get in</p><small>@dash_eats</small></button>
       <button type="button" class="dd-meme dd-meme-e" data-share-quote="Go ahead and doubt me see what happens"><p>Go ahead and doubt me see what happens</p><small>@dash_eats</small></button>
       <button type="button" class="dd-meme dd-meme-c" data-share-quote="The pain of my entire life lifted at Erewhon Pasadena"><p>The pain of my entire life lifted at Erewhon Pasadena</p><small>@dash_eats</small></button>
@@ -197,7 +200,7 @@
     <article class="dd-card">
       <h2>Links</h2>
       <div class="dd-tools">
-        <a target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Jupiter</a>
+        <a target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Jupiter</a>
         <a target="_blank" rel="noopener noreferrer" href="https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7">Dexscreener</a>
         <a target="_blank" rel="noopener noreferrer" href="https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Solscan</a>
         <a target="_blank" rel="noopener noreferrer" href="https://rugcheck.xyz/tokens/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Rugcheck</a>
@@ -221,7 +224,7 @@
       <p class="dd-exit-copy" id="dd-exit-copy">Copy a hold pack or buy on Jupiter. Culture coin · NFA · can go to zero.</p>
       <div class="dd-exit-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-exit-hold">Copy hold pack</button>
-        <a class="dd-btn dd-btn-primary dd-buy-now" id="dd-exit-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+        <a class="dd-btn dd-btn-primary dd-buy-now" id="dd-exit-buy" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
       </div>
     </div>
   </div>
@@ -232,7 +235,7 @@
       <code class="dd-sticky-ca" title="Associated mint" id="dd-sticky-ca">53uxQt…nCpump</code>
     </div>
     <div class="dd-sticky-actions">
-      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
+      <a class="dd-btn dd-btn-primary dd-btn-lg dd-buy-now dd-pulse-buy" id="dd-buy-sticky" target="_blank" rel="noopener noreferrer" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Buy now</a>
       <button type="button" class="dd-btn" id="dd-sticky-live" title="Copy live mcap pack">Live</button>
       <button type="button" class="dd-btn" id="dd-sticky-copy">CA</button>
       <a class="dd-btn dd-btn-raid" id="dd-sticky-tweet" target="_blank" rel="noopener noreferrer" href="#">Raid X</a>

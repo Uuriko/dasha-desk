@@ -3,10 +3,38 @@
   var PAIR = 'https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7';
   var CASINO = 'How u crying at the casino and u can’t even get in';
 
-  var DESK =
+  var DESK_BASE =
     'https://johns-awesome-project-39b1b5.webflow.io/dasha';
-  var BUY =
-    'https://jup.ag/swap/SOL-53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
+  // Explicit Jupiter deep-link (SOL → $dasha mint)
+  var BUY_BASE =
+    'https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=' + CA;
+
+  function getRef() {
+    try {
+      var r = localStorage.getItem('dd_ref');
+      if (r && /^[a-z0-9]{4,8}$/i.test(r)) return r;
+      r = Math.random().toString(36).slice(2, 8);
+      localStorage.setItem('dd_ref', r);
+      return r;
+    } catch (e) {
+      return 'desk';
+    }
+  }
+
+  function deskUrl() {
+    var base = DESK_BASE;
+    var ref = getRef();
+    return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'ref=' + encodeURIComponent(ref);
+  }
+
+  function buyUrl() {
+    // Keep one-tap Jupiter swap; optional from-ref for desk analytics only
+    return BUY_BASE;
+  }
+
+  // Compat aliases used throughout
+  var DESK = DESK_BASE;
+  var BUY = BUY_BASE;
 
   /** Pure share-pack builders — unit-tested via global.DDShare */
   function buildSharePack(kind) {
@@ -20,13 +48,13 @@
         CASINO +
         '\n' +
         'Buy: ' +
-        BUY +
+        buyUrl() +
         '\n' +
         'Chart: ' +
         PAIR +
         '\n' +
         'Desk: ' +
-        DESK +
+        deskUrl() +
         '\n' +
         'NFA · can go to zero · association ≠ endorsement'
       );
@@ -51,16 +79,28 @@
         CA +
         '\n' +
         'Buy → ' +
-        BUY +
+        buyUrl() +
         '\n' +
         'Desk → ' +
-        DESK +
+        deskUrl() +
         '\n' +
         'NFA · can go to zero · association ≠ endorsement'
       );
     }
+    if (kind === 'invite') {
+      return (
+        'Open $dasha desk → ' +
+        deskUrl() +
+        '\n' +
+        'Buy → ' +
+        buyUrl() +
+        '\n' +
+        CASINO +
+        '\nNFA · can go to zero'
+      );
+    }
     if (kind === 'meme') {
-      return CASINO + '\n$dasha\n' + CA + '\n@dash_eats · still optimistic · NFA';
+      return CASINO + '\n$dasha\n' + CA + '\n' + deskUrl() + '\n@dash_eats · still optimistic · NFA';
     }
     if (kind === 'boost') {
       return (
@@ -74,10 +114,10 @@
         PAIR +
         '\n' +
         'Buy: ' +
-        BUY +
+        buyUrl() +
         '\n' +
         'Desk: ' +
-        DESK +
+        deskUrl() +
         '\n' +
         'NFA · can go to zero'
       );
@@ -89,10 +129,10 @@
         CA +
         '\n' +
         'Buy → ' +
-        BUY +
+        buyUrl() +
         '\n' +
         'Desk → ' +
-        DESK +
+        deskUrl() +
         '\n' +
         'NFA · can go to zero'
       );
@@ -105,13 +145,13 @@
       CA +
       '\n' +
       'Buy → ' +
-      BUY +
+      buyUrl() +
       '\n' +
       'Chart → ' +
       PAIR +
       '\n' +
       'Desk → ' +
-      DESK +
+      deskUrl() +
       '\n' +
       'Get in · NFA · can go to zero'
     );
@@ -127,10 +167,10 @@
       (c ? ' · 24h ' + c : '') +
       '\n' +
       'Buy → ' +
-      BUY +
+      buyUrl() +
       '\n' +
       'Desk → ' +
-      DESK +
+      deskUrl() +
       '\n' +
       CA +
       '\nNFA · can go to zero'
@@ -140,11 +180,11 @@
   function buildQuoteShare(quote) {
     var q = String(quote || '').trim();
     if (!q) return '';
-    return q + '\n$dasha · ' + CA + '\nBuy ' + BUY + ' · NFA';
+    return q + '\n$dasha · ' + CA + '\nBuy ' + buyUrl() + '\n' + deskUrl() + ' · NFA';
   }
 
   function buildMiniPack() {
-    return 'Buy $dasha → ' + BUY + '\n' + CA + '\n' + CASINO;
+    return 'Buy $dasha → ' + buyUrl() + '\n' + CA + '\n' + deskUrl() + '\n' + CASINO;
   }
 
   function intentTweet(text) {
@@ -165,6 +205,9 @@
     PAIR: PAIR,
     DESK: DESK,
     BUY: BUY,
+    deskUrl: deskUrl,
+    buyUrl: buyUrl,
+    getRef: getRef,
     buildSharePack: buildSharePack,
     buildQuoteShare: buildQuoteShare,
     buildMiniPack: buildMiniPack,
@@ -554,7 +597,7 @@
     });
   if ($('dd-copy-buy'))
     $('dd-copy-buy').addEventListener('click', function () {
-      copy(BUY, $('dd-copy-buy'));
+      copy(buyUrl(), $('dd-copy-buy'));
     });
   if ($('dd-copy-live'))
     $('dd-copy-live').addEventListener('click', function () {
@@ -583,7 +626,7 @@
       var text = ($('dd-share') && $('dd-share').value) || buildSharePack('boost');
       if (navigator.share) {
         navigator
-          .share({ title: '$dasha', text: text, url: DESK })
+          .share({ title: '$dasha', text: text, url: deskUrl() })
           .catch(function () {
             copy(text, $('dd-native-share'));
           });
@@ -705,6 +748,36 @@
       } catch (e3) {}
     }
   });
+
+
+  // Referral capture: inbound ?ref= and live href wiring
+  try {
+    var _u = new URL(location.href);
+    var _from = _u.searchParams.get('ref');
+    if (_from && /^[a-z0-9]{4,8}$/i.test(_from) && _from !== getRef()) {
+      localStorage.setItem('dd_from', _from);
+      if ($('dd-ref-chip')) {
+        $('dd-ref-chip').hidden = false;
+        $('dd-ref-chip').textContent = 'via ' + _from;
+      }
+    }
+  } catch (eRef) {}
+  function wireBuyHrefs() {
+    var href = buyUrl();
+    ['dd-buy', 'dd-buy-sticky', 'dd-exit-buy', 'dd-buy-wallet'].forEach(function (id) {
+      if ($(id)) $(id).href = href;
+    });
+    // Phantom universal-link browse for mobile wallet one-tap
+    if ($('dd-buy-wallet')) {
+      try {
+        $('dd-buy-wallet').href =
+          'https://phantom.app/ul/browse/' + encodeURIComponent(href) + '?ref=https://phantom.app';
+      } catch (eW) {
+        $('dd-buy-wallet').href = href;
+      }
+    }
+  }
+  wireBuyHrefs();
 
   setShare('raid');
   bindQuoteTaps();

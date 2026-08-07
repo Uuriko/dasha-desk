@@ -554,3 +554,11 @@ button.dd-meme:focus{outline:2px solid #fff;outline-offset:2px}
 .dd-exit-copy{margin:0 0 14px;font-size:13px;color:var(--muted);line-height:1.45}
 .dd-exit-actions{display:flex;flex-wrap:wrap;gap:8px}
 .dd-exit-actions .dd-btn{flex:1;min-width:120px}
+
+.dd-ref-chip{border-color:rgba(125,255,163,.35);color:#b8ffd0}
+.dd-wallet-buy{border-color:rgba(196,165,255,.4)}
+@media(max-width:560px){
+  .dd-actions-primary #dd-buy-wallet{grid-column:1/-1}
+  .dd-meme-compact{grid-template-columns:1fr}
+  .dd-meme-compact .dd-meme:nth-child(n+4){display:none}
+}
