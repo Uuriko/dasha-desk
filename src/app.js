@@ -287,6 +287,19 @@
   }
 
   /**
+   * Buy-first hard/deep dip or dump CTA lead — pure V52.
+   * Dump → dumpBuyLead; hard/deep dip → "Buy · Hard dip" / "Buy · Deep dip".
+   * Soft dips stay null (keep CA-first / Dip buy).
+   */
+  function dipBuyLead(dip) {
+    if (!dip) return null;
+    if (dip.kind === 'dump') return dumpBuyLead(dip);
+    var depth = dipDepth(dip);
+    if (!depth || depth.tier === 'soft') return null;
+    return 'Buy · ' + depth.tag + ' dip';
+  }
+
+  /**
    * Dump/deep size autofocus — pure V48.
    * While dump watch is active (and user has not manually overridden),
    * snap buy size to dump-safe SOL (1). Deep dip still uses depth nudge.
@@ -1154,28 +1167,32 @@
         ? solLiqImpact(sol, solUsd, liq)
         : null;
     var label;
-    // V50: dump dual is buy-first (not CA-first) so CTA reads as purchase
+    // V50/V52: dump + hard/deep dip dual is buy-first (not CA-first)
+    var buyLead = dipBuyLead(dip);
     if (r === 'dump' || isDump) {
-      label =
-        depth && depth.tier !== 'soft'
-          ? 'Buy · ' + depth.tag + ' dump'
-          : 'Buy · Dump';
+      label = buyLead || 'Buy · Dump';
     } else if (r === 'dip') {
       label =
-        depth && depth.tier !== 'soft'
+        buyLead ||
+        (depth && depth.tier !== 'soft'
           ? 'CA · ' + depth.tag + ' dip'
-          : 'CA · Dip';
+          : 'CA · Dip');
     } else if (r === 'hot') label = 'CA · Ride';
     else label = 'CA';
+    var isBuyFirst = !!(buyLead || r === 'dump' || isDump);
     // Size proof (SOL + rough USD) when known; else wallet/buy verb
     if (size && size.label) label = label + ' · ' + size.label;
-    else if (!(r === 'dump' || isDump)) {
+    else if (!isBuyFirst) {
       label = label + (mobile ? ' · Wallet' : ' · Buy');
     } else {
       label = label + (mobile ? ' · Wallet' : '');
     }
-    // V42: liq impact near size on dump/deep dual (de-risks bag size)
-    if (impact && impact.short && (isDump || (depth && depth.tier === 'deep'))) {
+    // V42/V52: liq impact on dump/hard/deep dual (de-risk bag size)
+    if (
+      impact &&
+      impact.short &&
+      (isDump || (depth && depth.tier !== 'soft'))
+    ) {
       label = label + ' · ' + impact.short;
     }
     // V31: 24h still green during dip (honest recovery anchor near buy)
@@ -1253,16 +1270,17 @@
         header,
       );
     }
-    // V50: dump toast buy-first
+    // V50/V52: dump or hard/deep dip toast buy-first
     var toast =
-      r === 'dump' || isDump
-        ? 'Buy dump copied · open'
+      isBuyFirst
+        ? isDump || r === 'dump'
+          ? 'Buy dump copied · open'
+          : 'Buy dip copied · open'
         : 'CA+buy copied · open';
     if (size && size.label) {
-      toast =
-        r === 'dump' || isDump
-          ? 'Buy dump · ' + size.label
-          : 'CA+buy · ' + size.label;
+      toast = isBuyFirst
+        ? (isDump || r === 'dump' ? 'Buy dump · ' : 'Buy dip · ') + size.label
+        : 'CA+buy · ' + size.label;
     }
     if (still && still.short) toast = toast + ' · ' + still.short;
     if (reclaim && reclaim.short) toast = toast + ' · ' + reclaim.short;
@@ -1406,6 +1424,7 @@
     buildLiveProof: buildLiveProof,
     sizeChipHint: sizeChipHint,
     dumpBuyLead: dumpBuyLead,
+    dipBuyLead: dipBuyLead,
     dumpSizeAutofocus: dumpSizeAutofocus,
     buildBuyPack: buildBuyPack,
     buildDipPack: buildDipPack,
@@ -2953,15 +2972,13 @@
               : lastProof.m5n.toFixed(1)) +
             '%';
         }
-        // V51: dump sticky buy-first; dip keeps depth dip lead
-        var dumpVerb = isDumpSticky
-          ? dumpBuyLead(lastProof.dip) || 'Buy · Dump'
-          : sd && sd.tier !== 'soft'
-            ? sd.tag + ' dip'
-            : 'Dip';
-        // V44: %liq impact on sticky dump/deep (matches dual/FOMO de-risk)
+        // V51/V52: dump + hard/deep dip sticky buy-first
+        var dumpVerb =
+          dipBuyLead(lastProof.dip) ||
+          (sd && sd.tier !== 'soft' ? sd.tag + ' dip' : 'Dip');
+        // V44/V52: %liq on sticky dump/hard/deep
         var impactSticky =
-          isDumpSticky || (sd && sd.tier === 'deep')
+          isDumpSticky || (sd && sd.tier !== 'soft')
             ? solLiqImpact(buySol, lastProof.solUsd, lastProof.liq)
             : null;
         $('dd-buy-sticky').textContent =
@@ -3012,17 +3029,22 @@
           // V51: buy-first FOMO buy lead (parity with dual V50)
           fomoBits.push(dumpBuyLead(lastProof.dip) || 'Buy · Dump');
         } else if (regime === 'dip') {
-          var fd = dipDepth(lastProof.dip);
-          fomoBits.push(
-            fd && fd.tier !== 'soft'
-              ? fd.tag + ' dip'
-              : mobile
-                ? 'Dip'
-                : 'Dip buy',
-          );
+          // V52: hard/deep dip buy-first; soft keeps Dip buy
+          var leadDip = dipBuyLead(lastProof.dip);
+          if (leadDip) fomoBits.push(leadDip);
+          else {
+            var fd = dipDepth(lastProof.dip);
+            fomoBits.push(
+              fd && fd.tier !== 'soft'
+                ? fd.tag + ' dip'
+                : mobile
+                  ? 'Dip'
+                  : 'Dip buy',
+            );
+          }
         } else fomoBits.push('Ride');
         fomoBits.push(buySol + ' SOL' + (usd1 ? ' · ' + usd1 : ''));
-        // V42: liq impact on FOMO buy during dump/deep dip (de-risks size)
+        // V42/V52: liq impact on FOMO buy during dump/hard/deep dip
         var impactBuy =
           regime === 'dump' || regime === 'dip'
             ? solLiqImpact(buySol, lastProof.solUsd, lastProof.liq)
@@ -3033,7 +3055,7 @@
           (regime === 'dump' ||
             (lastProof.dip &&
               dipDepth(lastProof.dip) &&
-              dipDepth(lastProof.dip).tier === 'deep'))
+              dipDepth(lastProof.dip).tier !== 'soft'))
         ) {
           fomoBits.push(impactBuy.short);
         }

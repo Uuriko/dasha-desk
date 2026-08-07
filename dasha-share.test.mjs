@@ -881,4 +881,18 @@ assert.ok(
   'v51 sticky/fomo use dumpBuyLead',
 );
 
+// V52: buy-first hard/deep dip CTAs when 24h still green (dip-buy regime)
+assert.ok(typeof DD.dipBuyLead === 'function', 'dipBuyLead exported');
+assert.equal(DD.dipBuyLead(hardDip), 'Buy · Hard dip', 'hard dip buy lead');
+assert.equal(DD.dipBuyLead(deepReclaim), 'Buy · Deep dip', 'deep dip buy lead');
+assert.equal(DD.dipBuyLead(softDip), null, 'soft dip null lead');
+assert.equal(DD.dipBuyLead(dump), 'Buy · Deep dump', 'dump via dipBuyLead');
+const dualHardBuy = DD.dualGoPlan(1, true, 'dip', null, 74, '+43', 211, hardDip, 23600);
+assert.ok(/^Buy · Hard dip/i.test(dualHardBuy.label), 'dual hard dip buy-first');
+assert.ok(/% liq/.test(dualHardBuy.label), 'hard dip dual has liq impact');
+assert.ok(/Buy dip/i.test(dualHardBuy.toast || ''), 'hard dip buy toast');
+const dualSoftCa = DD.dualGoPlan(1, true, 'dip', null, 74, '+10', 200, softDip);
+assert.ok(/^CA · /i.test(dualSoftCa.label), 'soft dip still CA-first');
+assert.ok(appJs.includes('dipBuyLead'), 'v52 wiring');
+
 console.log('dasha-share.test.mjs: PASS');
