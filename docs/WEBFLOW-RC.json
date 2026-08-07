@@ -1,19 +1,19 @@
 {
   "schema": "dasha.webflow-rc/1",
-  "capturedAt": "2026-08-07T08:32:15Z",
+  "capturedAt": "2026-08-07T08:38:47Z",
   "source": {
-    "commit": "2c40b737fb6581f4ad4d859be922791eddbde0ad",
+    "commit": "1af4d7126d4dcfdebaa928651a6b6cb9272dfc36",
     "clean": true,
     "files": {
-      "src/app.html": { "bytes": 55048, "sha256": "1bc570135f1680f602654748917d686cb77cc1b7b8b32791f6f48d3fafb46e98" },
+      "src/app.html": { "bytes": 55440, "sha256": "e07a33e9991da059964cb860a417b0aa0331dd0b75f44968184b473c8aff73a0" },
       "src/body.html": { "bytes": 14315, "sha256": "d9d8ff4f955d03f7136010518492c00ce79e006867a1a6e54837c25340b1d12d" },
-      "src/app.js": { "bytes": 19877, "sha256": "23b8ffa6a831bdb6181067c153da73b07704098c4ce8d444e41b40cff05f2ece" },
+      "src/app.js": { "bytes": 20269, "sha256": "0d57482ff3994e1a3f5c5d222212523199299157b896d49fb1a6170ed4cce63d" },
       "src/styles.css": { "bytes": 20820, "sha256": "801e25d4c517940f53e1baad2dc69b58408d9d2d9f22edb789cadf38d0d37890" }
     }
   },
   "webflow": {
     "siteId": "5f1458122ba25e70a3ff2bd0",
-    "lastPublished": "2026-08-07T08:29:26.856Z",
+    "lastPublished": "2026-08-07T08:37:51.013Z",
     "customDomains": [],
     "homePageId": "5f1458136c15aa41639b8538",
     "legacyDeskPageId": "6a74b59530c70741b1c574c4",
@@ -30,7 +30,7 @@
   },
   "candidatePayload": {
     "markup": { "bytes": 35218, "sha256": "03d43d3c044ad0fed61722fb711ba9bd9e090814424277de364ad162061c20d7" },
-    "runtime": { "bytes": 21323, "sha256": "3a4d041caa0d9c7f860eff625c29c7b4e2a044cedd4c33f81e321cb46ac5cf4f" },
+    "runtime": { "bytes": 21711, "sha256": "6ae272377104dddc679cac153fb60203b0bb2d385dd399f37bc69e21344e3ad6" },
     "legacyNavigationVisible": false
   },
   "intendedRoutes": {
