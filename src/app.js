@@ -206,6 +206,38 @@
     }
   }
 
+  function buildObservationReceipt(evidence, pair, fetchedAt) {
+    if (!evidence || evidence.schema !== 'dasha.mint-evidence/1' || evidence.mint !== CA ||
+        !evidence.account || !/^[0-9a-f]{64}$/.test(evidence.account.accountDataSha256 || ''))
+      throw new Error('Mint evidence unavailable');
+    var selected = pair && selectMarketPair([pair], PAIR, CA);
+    var observedAt = new Date(fetchedAt || NaN);
+    return {
+      schema: 'dasha.observation-receipt/1',
+      mintEvidence: evidence,
+      marketObservation: selected && !isNaN(observedAt.getTime()) ? {
+        provider: 'Dexscreener',
+        fetchedAt: observedAt.toISOString(),
+        pairUrl: PAIR,
+        pairAddress: selected.pairAddress,
+        mint: CA,
+        priceUsd: selected.priceUsd,
+        marketCap: selected.marketCap == null ? null : selected.marketCap,
+        liquidityUsd: selected.liquidity && selected.liquidity.usd != null ? selected.liquidity.usd : null,
+        volume24h: selected.volume && selected.volume.h24 != null ? selected.volume.h24 : null,
+        change: Object.fromEntries(['m5', 'h1', 'h6', 'h24'].map(function (key) {
+          var value = selected.priceChange && selected.priceChange[key];
+          return [key, value == null ? null : value];
+        })),
+      } : null,
+      limitations: [
+        'The RPC snapshot is not a cryptographic inclusion proof or token assessment.',
+        'Market values are provider-reported observations, not independent corroboration.',
+        'Association evidence is not an endorsement.',
+      ],
+    };
+  }
+
   var DDShare = {
     CA: CA,
     PAIR: PAIR,
@@ -219,6 +251,7 @@
     intentTweet: intentTweet,
     safeProviderUrl: safeProviderUrl,
     selectMarketPair: selectMarketPair,
+    buildObservationReceipt: buildObservationReceipt,
   };
   if (typeof globalThis !== 'undefined') globalThis.DDShare = DDShare;
   if (typeof window !== 'undefined') window.DDShare = DDShare;
@@ -312,6 +345,7 @@
 
   var currentPack = 'raid';
   var lastProof = { mcap: '—', ch24: '—', at: '' };
+  var lastPair = null;
   function setShare(kind) {
     if (kind) currentPack = kind;
     var line = buildSharePack(currentPack);
@@ -395,6 +429,7 @@
         lastProof.mcap = fmtUsd(mcap);
         lastProof.ch24 = fmtPct(ch.h24);
         var fetchedAt = new Date();
+        lastPair = p;
         lastProof.at = fetchedAt.toISOString();
         if ($('dd-social-proof-text')) {
           $('dd-social-proof-text').textContent =
@@ -450,6 +485,7 @@
           }
         });
         lastProof = { mcap: '—', ch24: '—', at: '' };
+        lastPair = null;
         if ($('dd-social-proof-text')) $('dd-social-proof-text').textContent = 'Market data unavailable · NFA';
         if ($('dd-live')) $('dd-live').textContent = 'unavailable';
         if ($('dd-px')) $('dd-px').textContent = 'unavailable';
@@ -546,7 +582,12 @@
   }
   if ($('dd-copy-evidence') && $('dd-evidence-json'))
     $('dd-copy-evidence').addEventListener('click', function () {
-      copy($('dd-evidence-json').textContent, $('dd-copy-evidence'));
+      try {
+        var evidence = JSON.parse($('dd-evidence-json').textContent);
+        copy(JSON.stringify(buildObservationReceipt(evidence, lastPair, lastProof.at), null, 2), $('dd-copy-evidence'));
+      } catch (_) {
+        $('dd-copy-evidence').textContent = 'Evidence unavailable';
+      }
     });
   if ($('dd-native-share'))
     $('dd-native-share').addEventListener('click', function () {

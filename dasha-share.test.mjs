@@ -177,6 +177,24 @@ assert.equal(evidence.cluster, 'mainnet-beta');
 assert.equal(evidence.account.type, 'mint');
 assert.equal(evidence.account.mintAuthority, null);
 assert.equal(evidence.account.freezeAuthority, null);
+const receipt = DD.buildObservationReceipt(evidence, {
+  ...configuredPair,
+  marketCap: 1234,
+  liquidity: { usd: 567 },
+  volume: { h24: 89 },
+  priceChange: { m5: 1, h1: 2, h6: 3, h24: 4 },
+}, '2026-08-07T06:00:00.000Z');
+assert.equal(receipt.schema, 'dasha.observation-receipt/1');
+assert.equal(receipt.mintEvidence.account.accountDataSha256, evidence.account.accountDataSha256);
+assert.deepEqual(JSON.parse(JSON.stringify(receipt.marketObservation)), {
+  provider: 'Dexscreener', fetchedAt: '2026-08-07T06:00:00.000Z', pairUrl: DD.PAIR,
+  pairAddress: configuredPair.pairAddress, mint: DD.CA, priceUsd: '0.001', marketCap: 1234,
+  liquidityUsd: 567, volume24h: 89, change: { m5: 1, h1: 2, h6: 3, h24: 4 },
+});
+assert.equal(DD.buildObservationReceipt(evidence, null, '').marketObservation, null);
+assert.deepEqual(DD.buildObservationReceipt(evidence, configuredPair, '2026-08-07T06:00:00Z'), DD.buildObservationReceipt(evidence, configuredPair, '2026-08-07T06:00:00Z'));
+assert.throws(() => DD.buildObservationReceipt(null, configuredPair, '2026-08-07T06:00:00Z'), /evidence/i);
+assert.ok(!JSON.stringify(receipt).includes(DD.BUY) && !JSON.stringify(receipt).includes(DD.DESK));
 const accountData = Buffer.from(evidence.account.accountDataBase64, 'base64');
 assert.equal(accountData.length, 82);
 assert.equal(createHash('sha256').update(accountData).digest('hex'), evidence.account.accountDataSha256);
@@ -220,6 +238,7 @@ assert.ok(!/dd-fomo|smartPackPicked|dd_raid_ab|data-raid-ab/.test(body + src), '
 assert.ok(body.includes('dd-buy-sticky'), 'sticky buy control');
 assert.ok(body.includes('Tap · copy share-ready live pack'), 'live-pack action is explicit');
 assert.ok(!/dd-exit|dd-pulse-buy|dd-sticky-live|dd-sp-strip/.test(body + src), 'no exit interception, urgency pulse, or duplicate live strip');
+assert.ok(!/localStorage|dd-hold|dd-copy-burst|dd-ticker|telegram\.me|t\.me\//i.test(body + src), 'no fake holding, copy-count, ticker, or Telegram channel state');
 assert.ok(!src.includes('p.marketCap || p.fdv'), 'FDV is never mislabeled as market cap');
 assert.ok(src.includes("lastProof = { mcap: '—', ch24: '—', at: '' }"), 'offline path clears shareable market state');
 
