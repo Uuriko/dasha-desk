@@ -46,7 +46,12 @@ async function get(url, tries = 3) {
   return { ok: false, status: 0, error: last, text: async () => '', arrayBuffer: async () => new ArrayBuffer(0) };
 }
 
-for (const route of ['/', '/studio', '/dasha']) {
+/* /how-to-buy is served by a Cloudflare edge worker (it answers with x-dasha-edge: howto), not by
+   Webflow — it is absent from the Webflow page list entirely, and staging 404s it. That is why every
+   sweep missed it: it is a live public page that no publish path here touches and no gate knew
+   about. It was still serving copy the operator removed hours after every other surface was clean.
+   A surface nobody watches is a surface that drifts, so it is watched here now. */
+for (const route of ['/', '/studio', '/dasha', '/how-to-buy']) {
   const res = await get(ORIGIN + route);
   fail(res.ok, `${route}: unreachable — ${res.error || 'HTTP ' + res.status}`);
   if (!res.ok) continue;
@@ -64,8 +69,17 @@ for (const route of ['/', '/studio', '/dasha']) {
   for (const found of html.match(/[1-9A-HJ-NP-Za-km-z]{32,44}pump/g) || []) {
     fail(found.endsWith(MINT), `${route}: shows an address that is not our mint — ${found}`);
   }
-  if (route === '/' || route === '/dasha') {
+  if (route === '/' || route === '/dasha' || route === '/how-to-buy') {
     fail(html.includes(MINT), `${route}: the mint is not shown at all`);
+  }
+
+  /* A page that answers 404 to HEAD and 200 to GET is a page many crawlers and link unfurlers treat
+     as missing — they ask HEAD first. /how-to-buy does exactly this today. */
+  if (route === '/how-to-buy') {
+    try {
+      const head = await fetch(ORIGIN + route, { method: 'HEAD', redirect: 'follow' });
+      warn(head.ok, `${route}: HEAD says ${head.status} while GET says 200 — crawlers that HEAD first will treat it as missing`);
+    } catch { /* a failed HEAD is not worth waking anyone for */ }
   }
 
   fail(!RETIRED.test(html), `${route}: a retired product is live again`);
