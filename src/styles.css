@@ -94,7 +94,7 @@
   transition:border-color .15s,transform .15s,background .15s;
 }
 .dd-btn:hover,.dd-linkish:hover{border-color:rgba(196,165,255,.55);transform:translateY(-1px)}
-.dd-btn:focus-visible,.dd-linkish:focus-visible,.dd-input:focus-visible{
+#dd-app a:focus-visible,#dd-app button:focus-visible,#dd-app input:focus-visible,#dd-app textarea:focus-visible{
   outline:3px solid var(--accent);outline-offset:3px;
 }
 .dd-btn-primary{

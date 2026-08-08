@@ -81,6 +81,11 @@ assert.ok(body.includes('rugcheck') && body.includes('solscan'), 'source links p
 // Styles stay light and free of pressure chrome
 assert.ok(styles.includes('.dd-btn') && styles.includes('.dd-verify'), 'core styles present');
 assert.ok(!/\.dd-fomo|\.dd-sticky|\.dd-raid/i.test(styles), 'no FOMO/sticky/raid styles');
+for (const selector of ['#dd-app a:focus-visible', '#dd-app button:focus-visible', '#dd-app input:focus-visible', '#dd-app textarea:focus-visible']) {
+  assert.ok(styles.includes(selector), `visible focus rule missing ${selector}`);
+}
+assert.ok(body.includes('id="dd-asof" role="status" aria-live="polite"'), 'market status is not announced');
+assert.ok(body.includes('id="dd-toast" role="status" aria-live="polite"'), 'copy status is not announced');
 
 // Standalone previews use the verified, no-likeness Dasha card rather than the retired casino image.
 assert.ok(build.includes('<link rel="canonical" href="https://www.getdasha.com/dasha"/>'), 'Desk canonical missing');

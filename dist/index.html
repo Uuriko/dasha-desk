@@ -118,7 +118,7 @@
   transition:border-color .15s,transform .15s,background .15s;
 }
 .dd-btn:hover,.dd-linkish:hover{border-color:rgba(196,165,255,.55);transform:translateY(-1px)}
-.dd-btn:focus-visible,.dd-linkish:focus-visible,.dd-input:focus-visible{
+#dd-app a:focus-visible,#dd-app button:focus-visible,#dd-app input:focus-visible,#dd-app textarea:focus-visible{
   outline:3px solid var(--accent);outline-offset:3px;
 }
 .dd-btn-primary{
@@ -236,7 +236,7 @@
       <code id="dd-ca" class="dd-ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
       <div class="dd-mint-actions">
         <button type="button" class="dd-btn dd-btn-primary" id="dd-copy">Copy CA</button>
-        <span class="dd-toast" id="dd-toast" hidden>Copied</span>
+        <span class="dd-toast" id="dd-toast" role="status" aria-live="polite" hidden>Copied</span>
       </div>
     </div>
 
@@ -255,7 +255,7 @@
         <h2>Live</h2>
         <button type="button" class="dd-linkish" id="dd-refresh">Refresh</button>
       </div>
-      <p class="dd-meta" id="dd-asof">Loading Dex…</p>
+      <p class="dd-meta" id="dd-asof" role="status" aria-live="polite">Loading Dex…</p>
       <div class="dd-stats" id="dd-stats">
         <div class="dd-stat"><span>Price</span><strong id="s-price">—</strong></div>
         <div class="dd-stat"><span>Mcap</span><strong id="s-mcap">—</strong></div>
