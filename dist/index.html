@@ -498,7 +498,16 @@
   function refresh() {
     if ($('dd-asof')) $('dd-asof').textContent = 'Refreshing…';
     if ($('dd-live')) $('dd-live').textContent = '…';
-    fetch(DEX, { cache: 'no-store' })
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var tid = null;
+    if (ctrl) {
+      tid = setTimeout(function () {
+        try {
+          ctrl.abort();
+        } catch (e) {}
+      }, 12000);
+    }
+    fetch(DEX, { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
       .then(function (r) {
         return r.json();
       })
@@ -520,6 +529,9 @@
       .catch(function () {
         if ($('dd-asof')) $('dd-asof').textContent = 'Dex unreachable · try Refresh';
         if ($('dd-live')) $('dd-live').textContent = 'offline';
+      })
+      .then(function () {
+        if (tid) clearTimeout(tid);
       });
   }
 
