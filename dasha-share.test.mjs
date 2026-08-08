@@ -101,4 +101,45 @@ assert.ok(!/href="\/(?:studio|dasha)?"/.test(standalone), 'standalone navigation
 assert.ok(!/fomoDipHeadline|dipRaidLabel|buildSharePack\('raid'|dd-fomo-raid|invite loop|ref=/i.test(src), 'app.js free of FOMO/raid/ref builders');
 assert.ok(src.includes('DDShare') && src.includes('buildSharePack'), 'DDShare export kept');
 
+// A later Dex failure must clear previously painted numbers instead of presenting stale data.
+{
+  const elements = new Proxy({}, {
+    get(store, id) {
+      if (!store[id]) store[id] = {
+        textContent: '',
+        value: '',
+        hidden: false,
+        style: { removeProperty(name) { delete this[name]; } },
+        listeners: {},
+        addEventListener(type, fn) { this.listeners[type] = fn; },
+      };
+      return store[id];
+    },
+  });
+  let requests = 0;
+  const dom = {
+    globalThis: null,
+    document: { getElementById: id => elements[id], addEventListener() {}, visibilityState: 'visible' },
+    navigator: {},
+    URL,
+    console,
+    isFinite,
+    AbortController,
+    clearTimeout() {},
+    setTimeout() { return 1; },
+    setInterval() { return 1; },
+    fetch: async () => ++requests === 1
+      ? { ok: true, json: async () => ({ pairs: [{ priceUsd: '1', marketCap: 2000, liquidity: { usd: 3000 }, priceChange: { h24: 4 }, dexId: 'test' }] }) }
+      : { ok: false, status: 503 },
+  };
+  dom.globalThis = dom;
+  vm.runInNewContext(src, dom, { filename: 'src/app.js' });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(elements['s-price'].textContent, '$1.00', 'successful Dex response did not paint');
+  elements['dd-refresh'].listeners.click();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(['s-price', 's-mcap', 's-liq', 's-24h', 'dd-px'].map(id => elements[id].textContent), ['—', '—', '—', '—', '—'], 'failed Dex refresh left stale data');
+  assert.match(elements['dd-asof'].textContent, /unavailable · use sources below/i);
+}
+
 console.log('dasha-share.test.mjs: PASS (trust-reset)');

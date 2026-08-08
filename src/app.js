@@ -188,6 +188,15 @@
     if ($('dd-live')) $('dd-live').textContent = 'live';
   }
 
+  function clearPair(message, status) {
+    ['s-price', 's-mcap', 's-liq', 's-24h', 'dd-px'].forEach(function (id) {
+      if ($(id)) $(id).textContent = '—';
+    });
+    if ($('s-24h')) $('s-24h').style.removeProperty('color');
+    if ($('dd-asof')) $('dd-asof').textContent = message;
+    if ($('dd-live')) $('dd-live').textContent = status;
+  }
+
   function refresh() {
     if ($('dd-asof')) $('dd-asof').textContent = 'Refreshing…';
     if ($('dd-live')) $('dd-live').textContent = '…';
@@ -202,13 +211,13 @@
     }
     fetch(DEX, { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined })
       .then(function (r) {
+        if (!r.ok) throw new Error('Dex HTTP ' + r.status);
         return r.json();
       })
       .then(function (data) {
         var pairs = (data && data.pairs) || [];
         if (!pairs.length) {
-          if ($('dd-asof')) $('dd-asof').textContent = 'Dex: no pools returned';
-          if ($('dd-live')) $('dd-live').textContent = 'no pool';
+          clearPair('Dex returned no pools · use sources below', 'no pool');
           return;
         }
         var best = pairs[0];
@@ -220,8 +229,7 @@
         paintPair(best);
       })
       .catch(function () {
-        if ($('dd-asof')) $('dd-asof').textContent = 'Dex unreachable · try Refresh';
-        if ($('dd-live')) $('dd-live').textContent = 'offline';
+        clearPair('Dex unavailable · use sources below', 'offline');
       })
       .then(function () {
         if (tid) clearTimeout(tid);
