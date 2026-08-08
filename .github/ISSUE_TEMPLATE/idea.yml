@@ -18,22 +18,18 @@ body:
   - type: textarea
     id: why
     attributes:
-      label: Why it matters
+      label: Why it matters (optional)
       description: Who is it for, and what becomes easier or safer?
-    validations:
-      required: true
   - type: dropdown
     id: vibe
     attributes:
-      label: Rough category (pick closest)
+      label: Rough category (optional)
       options:
+        - Not sure
         - Verification / data
         - Accessibility / UX
         - Performance / reliability
         - Docs / contributor experience
-        - Other / not sure
-    validations:
-      required: true
   - type: textarea
     id: next
     attributes:

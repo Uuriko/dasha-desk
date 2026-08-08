@@ -1,6 +1,17 @@
 # Contributing
 
-Small, clear pull requests are easiest to review.
+There is nothing to join. Open a pull request and you are a contributor — no invite, no org access,
+no application.
+
+## No setup needed
+
+For a typo, wording, a dead link, or any doc change, you never have to leave the browser:
+
+1. Open the file on GitHub, click the **pencil**.
+2. Edit it — GitHub forks the repo for you.
+3. **Propose changes** → **Create pull request**.
+
+No clone, no Node, no build.
 
 ## Make a change
 
