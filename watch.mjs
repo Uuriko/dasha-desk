@@ -70,6 +70,15 @@ for (const route of ['/', '/studio', '/dasha']) {
 
   fail(!RETIRED.test(html), `${route}: a retired product is live again`);
 
+  /* Copy the operator removed. On 2026-08-08 the instruction was "no disclaimers anywhere"; it was
+     taken out of every source, gated, and published verified on all nine surfaces — and by the
+     evening it was back on two live pages, because a publish landed from a tree that still had it.
+     A decision is only as durable as the thing watching for its reversal, so this watches. */
+  for (const gone of [/can go to zero/i, /not financial advice/i, /association is not endorsement/i,
+                      /not affiliated with dasha/i]) {
+    fail(!gone.test(html), `${route}: copy the operator removed is live again — ${gone.source}`);
+  }
+
   /* The promises. Losing these silently is the specific failure this file was written for. */
   if (route === '/studio') {
     fail(/CC0/.test(html), '/studio: the public-domain dedication is gone — makers have no statement of their rights');
