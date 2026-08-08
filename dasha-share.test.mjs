@@ -82,10 +82,14 @@ assert.ok(body.includes('rugcheck') && body.includes('solscan'), 'source links p
 assert.ok(styles.includes('.dd-btn') && styles.includes('.dd-verify'), 'core styles present');
 assert.ok(!/\.dd-fomo|\.dd-sticky|\.dd-raid/i.test(styles), 'no FOMO/sticky/raid styles');
 
-// Standalone previews must not retain the retired casino card or invent an unhosted replacement.
+// Standalone previews use the verified, no-likeness Dasha card rather than the retired casino image.
 assert.ok(build.includes('<link rel="canonical" href="https://www.getdasha.com/dasha"/>'), 'Desk canonical missing');
 assert.ok(build.includes('<meta property="og:url" content="https://www.getdasha.com/dasha"/>'), 'Desk og:url missing');
-assert.ok(!/gpjyb0|og:image|twitter:image/i.test(build), 'standalone Desk retained or invented a social image URL');
+const socialCard = 'https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a769a95c4b741dec227190f_dasha-social-card-v2.png';
+assert.ok(build.includes(`<meta property="og:image" content="${socialCard}"/>`), 'standalone Desk social card missing');
+assert.ok(build.includes(`<meta name="twitter:image" content="${socialCard}"/>`), 'standalone Desk Twitter card missing');
+assert.ok(build.includes('<meta property="og:image:width" content="1200"/>') && build.includes('<meta property="og:image:height" content="630"/>'), 'standalone Desk social dimensions missing');
+assert.ok(!/gpjyb0|casino-open-card/i.test(build), 'standalone Desk retained the retired casino card');
 for (const url of ['https://www.getdasha.com/', 'https://www.getdasha.com/studio', 'https://www.getdasha.com/dasha']) {
   assert.ok(standalone.includes(`href="${url}"`), `standalone navigation lost ${url}`);
 }
