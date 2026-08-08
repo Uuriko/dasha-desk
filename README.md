@@ -46,13 +46,13 @@ Anyone can contribute. Start small or go ambitious.
 
 - [Good first issues](https://github.com/Uuriko/dasha-desk/labels/good%20first%20issue)
 - [Open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose)
-- [CONTRIBUTING.md](CONTRIBUTING.md) · [ROADMAP.md](docs/ROADMAP.md) · [X voice dump](docs/X-RESEARCH-DASHA-2026-08-08.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md) · [ARCHITECTURE.md](docs/ARCHITECTURE.md) · [ROADMAP.md](docs/ROADMAP.md) · [X voice dump](docs/X-RESEARCH-DASHA-2026-08-08.md)
 - [The archive](docs/ARCHIVE.md) — what happened and who made it. Needs no code: edit it in the browser and open a pull request.
 
 CI runs build drift, share tests, and OSS doc checks on every PR.
 
 ## Trust
 
-No wallet, no custody, no price promises. Third-party data can fail; mint and source paths stay usable. Association with public culture is **not endorsement**.
+No wallet, no custody, no transaction construction. Third-party data can fail; the mint and source paths stay usable when it does, and no number is ever invented to fill a gap.
 
 [MIT](LICENSE) for code · [asset attribution](assets/ATTRIBUTION.md) for media
