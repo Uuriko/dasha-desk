@@ -1,0 +1,28 @@
+{
+  "schema": "dasha.studio-media/1",
+  "policy": {
+    "projectUse": "project-authorized",
+    "redistribution": "source-rights-retained",
+    "exportNotice": "Editing or exporting an image does not transfer rights in the source photograph or a person's name or likeness."
+  },
+  "assets": [
+    ["hero", "https://pbs.twimg.com/media/Gkoqvc4WIAAYPJM.jpg", "public-x-media"],
+    ["portrait", "https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg", "public-x-profile"],
+    ["pink", "https://pbs.twimg.com/media/HMGsRZ8XgAEEPrS.jpg", "public-x-media"],
+    ["flash", "https://pbs.twimg.com/media/HOpfTEyaIAAOVPy.jpg", "public-x-media"],
+    ["night", "https://pbs.twimg.com/media/HN37QhRXkAALZR4.jpg", "public-x-media"],
+    ["close", "https://pbs.twimg.com/media/HLbdLcXX0AEwa2X.jpg", "public-x-media"],
+    ["glam", "https://pbs.twimg.com/media/HLDbupNXkAAzfhI.jpg", "public-x-media"],
+    ["film", "https://pbs.twimg.com/media/HJvwn-6XAAAORhZ.jpg", "public-x-media"],
+    ["bull", "https://pbs.twimg.com/media/HPKga_6bUAAkkLJ.jpg", "public-x-media"],
+    ["weekend", "https://pbs.twimg.com/media/Gud7XuWWoAA2SvH.jpg", "public-x-media"],
+    ["weekend2", "https://pbs.twimg.com/media/HOCXlXcXcAAEsqk.jpg", "public-x-media"],
+    ["weekend3", "https://pbs.twimg.com/media/HNdncD_X0AAEjJ0.jpg", "public-x-media"],
+    ["weekend4", "https://pbs.twimg.com/media/HKqBIKVW0AAdVOc.jpg", "public-x-media"],
+    ["chart", "https://pbs.twimg.com/media/HPFHt5FXQAAlwld.jpg", "public-x-media"],
+    ["art", "https://pbs.twimg.com/media/HPFhAH-XcAAWxp5.jpg", "public-x-media"],
+    ["elon", "https://pbs.twimg.com/media/HPJBzjWXUAAvYjz.jpg", "public-x-media"],
+    ["set2", "https://pbs.twimg.com/media/HN37QhTXkAAn-mr.jpg", "public-x-media"],
+    ["commons", "https://upload.wikimedia.org/wikipedia/commons/c/c2/Dasha_Nekrasova.jpg", "wikimedia-commons-file"]
+  ]
+}

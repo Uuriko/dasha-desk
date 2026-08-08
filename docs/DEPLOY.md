@@ -8,9 +8,12 @@ Edit only `src/body.html`, `src/styles.css`, `src/app.js`, or `config/dasha.json
 
 ```bash
 node build.mjs --write
-node build.mjs --check
-node dasha-share.test.mjs
+npm ci
+npm test
 ```
+
+`npm test` checks generated-file drift, sharing, public documentation, mint consistency and browser
+resilience. Do not publish a partial test sequence as equivalent to this gate.
 
 Generated surfaces:
 

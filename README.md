@@ -2,14 +2,15 @@
 
 Open-source tools for `$dasha` on Solana — static, honest, remixable. Two of them live here.
 
-**[studio/](studio/)** — the Meme Studio. Make an image in your browser: six looks, three formats,
-PNG and animated GIF out. One self-contained HTML file, no account, no upload, works offline.
+**[studio/](studio/)** — the Meme Studio: procedural looks, local uploads, a registered Dasha image
+gallery, three formats, PNG and animated GIF out. No account or wallet.
 [Use it ↗](https://www.getdasha.com/studio)
 
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
 Jupiter route. [Use it ↗](https://www.getdasha.com/dasha)
 
-Neither connects a wallet or moves anything. Everything the Studio exports is public domain.
+Neither connects a wallet or moves anything. Original drawings are public domain. Uploaded or
+externally sourced images keep their own rights.
 
 [GitHub Pages demo](https://uuriko.github.io/dasha-desk/) · [Website](https://www.getdasha.com) · [Site: open source](https://www.getdasha.com/#oss)
 

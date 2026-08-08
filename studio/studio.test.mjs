@@ -17,15 +17,27 @@ const here = (f) => new URL(`./${f}`, import.meta.url);
 const studio = await readFile(here('index.html'), 'utf8');
 const embed = await readFile(here('embed.html'), 'utf8');
 
-/* 1. Self-contained. The whole point of this tool is that you can save the file, open it offline,
-      and it works — no CDN, no font host, no analytics, nothing that can be taken away from you.
-      One well-meaning <script src> would end that, and nothing about the page would look wrong. */
-const external = [...studio.matchAll(/(?:src|href)="(https?:\/\/[^"]+)"/g)].map((m) => m[1]);
-const links = /^https:\/\/(creativecommons\.org|github\.com\/Uuriko|jup\.ag|x\.com)/;
-assert.deepEqual(external.filter((u) => !links.test(u)), [],
-  'the Studio must load nothing over the network — inline it or drop it');
+/* 1. Nothing loads that nobody approved.
+      The tool's code, styles and drawn art are all in this one file, so the drawn looks work with
+      the wifi off. The photo gallery is the one exception and it is a deliberate one — every host it
+      reaches is listed here, and a new one fails this test rather than appearing quietly.
+      Note the pattern: it matches any absolute URL, not just src=/href=. An earlier version only
+      checked attributes and waved through fifteen photographs, because they are URLs in a
+      JavaScript array loaded with new Image(). Markup-shaped checks do not check a canvas app. */
+const LINKS = /^https:\/\/(creativecommons\.org|github\.com\/Uuriko|jup\.ag|x\.com)/;
+const PHOTO_HOSTS = /^https:\/\/(pbs\.twimg\.com|static1\.squarespace\.com|www\.moviemaker\.com|m\.media-amazon\.com|br\.web\.img2\.acsta\.net|avatars\.mds\.yandex\.net|upload\.wikimedia\.org)\//;
+const external = [...studio.matchAll(/https?:\/\/[^\s"'`)<>]+/g)].map((m) => m[0]);
+assert.deepEqual([...new Set(external.filter((u) => !LINKS.test(u) && !PHOTO_HOSTS.test(u)))], [],
+  'the Studio reaches a host nobody approved — add it above on purpose, or drop it');
 assert.ok(!/<link[^>]+stylesheet/i.test(studio), 'external stylesheet: the Studio must carry its own CSS');
 assert.ok(!/<script[^>]+\bsrc=/i.test(studio), 'external script: the Studio must carry its own JS');
+
+/* 2. The licence claim must match what an export can actually contain.
+      With a photo gallery in the tool, "assets and exports are CC0" hands someone else's photograph
+      to the public domain. The dedication covers what the Studio DRAWS; the photos are not ours. */
+const hasGallery = external.some((u) => PHOTO_HOSTS.test(u));
+assert.ok(!(hasGallery && /exports are\s*<a[^>]*>CC0/i.test(studio)),
+  'the footer dedicates EXPORTS to the public domain while a photo gallery exists — narrow it to what the Studio draws');
 
 /* 2. Everything the remix URLs can name still exists. A remix link is a promise: someone posted
       ?look=ticket months ago and it has to still open a ticket. Renaming a look silently breaks

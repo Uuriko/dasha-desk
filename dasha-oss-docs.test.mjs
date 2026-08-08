@@ -18,6 +18,9 @@ assert.ok(existsSync(join(root, 'LICENSE')), 'LICENSE missing');
 const readme = read('README.md');
 const contrib = read('CONTRIBUTING.md');
 const roadmap = read('docs/ROADMAP.md');
+const deploy = read('docs/DEPLOY.md');
+const archive = read('docs/ARCHIVE.md');
+const studio = read('studio/README.md');
 const issueConfig = read('.github/ISSUE_TEMPLATE/config.yml');
 
 assert.match(readme, /contribute|community|pull request/i, 'README must invite contribution');
@@ -28,6 +31,7 @@ assert.match(readme, /src\/body\.html|src\/app\.js|generated/i, 'README should p
 assert.match(readme, /getdasha\.com\/dasha/, 'README must link live desk');
 assert.match(readme, /getdasha\.com\/#oss/, 'README must link site open-source section');
 assert.match(readme, /desk-demo\.(gif|png)/, 'README must embed demo visual');
+assert.match(readme, /Uploaded or\s+externally sourced images keep their own rights/i, 'README must bound Studio image rights');
 
 assert.match(contrib, /issue|PR|pull request|fork/i, 'CONTRIBUTING must describe how to help');
 assert.match(contrib, /open-source project contributor|not a payment/i, 'CONTRIBUTING must disambiguate from payment/bag');
@@ -36,6 +40,11 @@ assert.match(contrib, /getdasha\.com\/#oss/, 'CONTRIBUTING must link live #oss')
 
 assert.match(roadmap, /## Resolved/i, 'ROADMAP must have honest Resolved section');
 assert.ok(!/shipped from community|external contributors shipped/i.test(roadmap), 'ROADMAP must not invent community PR traction');
+assert.match(deploy, /npm ci[\s\S]*npm test/, 'DEPLOY must run the complete public gate');
+assert.doesNotMatch(archive, /\.\.\/\.\.\//, 'public docs must not link outside the repository');
+assert.match(studio, /gallery fetches registered public images/i, 'Studio docs must disclose gallery networking');
+assert.match(studio, /Uploaded and externally sourced photographs keep their own rights/i, 'Studio docs must bound CC0 for sourced images');
+assert.ok(existsSync(join(root, 'studio/media.json')), 'Studio media manifest missing');
 
 assert.match(issueConfig, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'issue chooser must link /contribute');
 assert.match(issueConfig, /Start contributing/, 'issue chooser Start contributing contact');

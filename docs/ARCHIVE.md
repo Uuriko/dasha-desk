@@ -55,8 +55,9 @@ only you can write.*
   verification and independent sources.
 - **2026-08-07** — The Meme Studio ships: one line of text becomes an X-ready image, with remix
   links that carry the exact editable state to the next person.
-- **2026-08-07** — The kit is dedicated to the public domain under CC0 1.0 — the mark, the looks,
-  and every image the Studio exports. *Source:* [`DASHA-KIT-LICENSE.md`](../../DASHA-KIT-LICENSE.md).
+- **2026-08-07** — The repository Studio kit is dedicated to the public domain under CC0 1.0 — the
+  mark, looks and its procedural exports. Uploaded or externally sourced images keep their own
+  rights. *Source:* [`studio/LICENSE`](../studio/LICENSE).
 - **2026-08-07** — The mark: slot-machine cherries, drawn to stay legible at 16px. The character is
   one of those cherries with a face, so the logo and the character are the same object.
 - **2026-08-08** — Animated GIF export ships. The encoder is written from scratch because the
