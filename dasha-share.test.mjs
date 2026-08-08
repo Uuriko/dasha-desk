@@ -85,6 +85,8 @@ assert.ok(!/\.dd-fomo|\.dd-sticky|\.dd-raid/i.test(styles), 'no FOMO/sticky/raid
 // Standalone previews use the verified, no-likeness Dasha card rather than the retired casino image.
 assert.ok(build.includes('<link rel="canonical" href="https://www.getdasha.com/dasha"/>'), 'Desk canonical missing');
 assert.ok(build.includes('<meta property="og:url" content="https://www.getdasha.com/dasha"/>'), 'Desk og:url missing');
+assert.ok(build.includes('<title>$dasha desk — verify, chart, buy</title>'), 'Desk title drifted from production');
+assert.ok(build.includes('dasha-icon-32.png') && build.includes('dasha-icon-180.png'), 'standalone Desk icons missing');
 const socialCard = 'https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a769a95c4b741dec227190f_dasha-social-card-v2.png';
 assert.ok(build.includes(`<meta property="og:image" content="${socialCard}"/>`), 'standalone Desk social card missing');
 assert.ok(build.includes(`<meta name="twitter:image" content="${socialCard}"/>`), 'standalone Desk Twitter card missing');
