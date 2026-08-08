@@ -15,13 +15,13 @@ const meta = `<!DOCTYPE html>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>$dasha desk — verify, chart, buy</title>
-<meta name="description" content="Verify the associated $dasha mint, inspect independent sources and open the single Jupiter buy route. High risk."/>
+<meta name="description" content="Verify the associated $dasha mint, inspect independent sources and open the single Jupiter buy route."/>
 <link rel="canonical" href="https://www.getdasha.com/dasha"/>
 <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48e1dd29d210f01235_dasha-icon-32.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48cdcf3c87b29fc830_dasha-icon-180.png"/>
 <meta name="theme-color" content="#07060a"/>
 <meta property="og:title" content="$dasha desk — verify, chart, buy"/>
-<meta property="og:description" content="Check the mint. Inspect sources. High risk."/>
+<meta property="og:description" content="Check the mint. Inspect sources."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://www.getdasha.com/dasha"/>
 <meta property="og:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a769a95c4b741dec227190f_dasha-social-card-v2.png"/>
@@ -30,7 +30,7 @@ const meta = `<!DOCTYPE html>
 <meta property="og:image:alt" content="Dasha remix Studio card with three colorful editable artifact previews."/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="$dasha desk — verify, chart, buy"/>
-<meta name="twitter:description" content="Check the mint. Inspect sources. High risk."/>
+<meta name="twitter:description" content="Check the mint. Inspect sources."/>
 <meta name="twitter:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a769a95c4b741dec227190f_dasha-social-card-v2.png"/>`;
 
 const pageEnd = '</body>\n</html>\n';

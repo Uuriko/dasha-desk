@@ -36,7 +36,6 @@ const share = DD.buildSharePack('share');
 assert.ok(share.includes(DD.CA), 'share pack includes mint');
 assert.ok(!share.includes('jup.ag'), 'share pack does not disguise a second buy route');
 assert.ok(share.includes('dexscreener') || share.includes(DD.PAIR), 'share pack includes chart');
-assert.ok(/can go to zero|NFA|not financial advice/i.test(share), 'share pack includes risk');
 assert.ok(!/raid|fomo|invite|referral|telegram|t\.me/i.test(share), 'share pack stays neutral');
 
 const verify = DD.buildSharePack('verify');
@@ -96,7 +95,6 @@ assert.equal((body.match(/jup\.ag\/swap/g) || []).length, 1, 'exactly one Jupite
 assert.ok(!/t\.me|telegram/i.test(body), 'no Telegram');
 assert.ok(!/id="dd-fomo"|dd-fomo-|Raid this|raid kit|invite loop|dd-ref-chip|dd-sticky|dd-kit-raid/i.test(body), 'no FOMO/raid/referral/sticky chrome');
 assert.ok(!/data-raid|data-pack="raid"|Copy raid|Buy the dip/i.test(body), 'no raid/dip CTAs');
-assert.ok(/can go to zero/i.test(body) && /not financial advice|NFA/i.test(body), 'risk visible');
 assert.ok(body.includes('rugcheck') && body.includes('solscan'), 'source links present');
 
 // Styles stay light and free of pressure chrome

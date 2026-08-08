@@ -23,8 +23,7 @@
         '\n' +
         SOLSCAN +
         '\n' +
-        RUG +
-        '\nCulture coin. Can go to zero. NFA.'
+        RUG
       );
     }
     // Neutral fact pack for every other kind (share/default). No FOMO, raid, or referral.
@@ -36,8 +35,7 @@
       '\n\nChart:\n' +
       PAIR +
       '\n\nDesk:\n' +
-      DESK +
-      '\n\nCulture coin. Can go to zero. Not financial advice. Association is not endorsement.'
+      DESK
     );
   }
 
