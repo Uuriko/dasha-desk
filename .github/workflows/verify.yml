@@ -12,18 +12,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Build drift
-        run: node build.mjs --check
-      - name: Share unit
-        run: node dasha-share.test.mjs
-      - name: OSS docs
-        run: node dasha-oss-docs.test.mjs
-      - name: Mint consistency
-        run: node dasha-mint-consistency.test.mjs
+          cache: npm
+      - run: npm ci
+      - run: npm test
       - name: Studio
         working-directory: studio
         run: node studio.test.mjs
       - name: Studio embed drift
         working-directory: studio
         run: node embed-build.mjs --check
-

@@ -15,10 +15,11 @@
  *   - the independent source links still present;
  *   - no fabricated number standing in for missing data.
  *
- *   node dasha-desk-resilience.test.mjs        # needs CDP Chrome on :9223
+ *   node dasha-desk-resilience.test.mjs        # uses CDP :9223 or launches installed Chrome
  */
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import puppeteer from 'puppeteer-core';
 
@@ -59,7 +60,26 @@ const MODES = {
   }),
 };
 
-const browser = await puppeteer.connect({ browserURL: 'http://127.0.0.1:9223' });
+let ownsBrowser = false;
+let browser;
+try {
+  browser = await puppeteer.connect({ browserURL: 'http://127.0.0.1:9223' });
+} catch {
+  const executablePath = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+  ].find((path) => path && existsSync(path));
+  assert(executablePath, 'Chrome or Chromium is required (or expose CDP on http://127.0.0.1:9223)');
+  browser = await puppeteer.launch({
+    executablePath,
+    headless: true,
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  });
+  ownsBrowser = true;
+}
 const failures = [];
 
 for (const [mode, handler] of Object.entries(MODES)) {
@@ -104,7 +124,8 @@ for (const [mode, handler] of Object.entries(MODES)) {
   await page.close();
 }
 
-await browser.disconnect();
+if (ownsBrowser) await browser.close();
+else await browser.disconnect();
 server.closeAllConnections();
 server.close();
 

@@ -75,5 +75,6 @@ node build.mjs --write          # after changing anything in src/
 node build.mjs --check          # what CI runs
 ```
 
-No install step. No `node_modules`. That is deliberate: the moment this needs a toolchain, the number
-of people who can fix a typo drops by an order of magnitude.
+The site and build have no runtime dependencies or install step. The full test suite uses one
+development-only browser driver so the data-failure promise is checked in a real page. Documentation
+and source edits remain possible without installing it.

@@ -36,10 +36,8 @@ If you get stuck, comment on the issue with what you tried. If you drop it, leav
 
    ```bash
    node build.mjs --write
-   node build.mjs --check
-   node dasha-share.test.mjs
-   node dasha-oss-docs.test.mjs
-   node dasha-mint-consistency.test.mjs
+   npm ci
+   npm test
    ```
 
 4. Open a pull request that says what changed and how it was checked.

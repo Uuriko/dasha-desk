@@ -8,8 +8,7 @@ What does this unlock for users or contributors?
 
 ## How checked
 
-- [ ] `node build.mjs --write && node build.mjs --check` (if sources changed)
-- [ ] `node dasha-share.test.mjs`
+- [ ] `node build.mjs --write` (if sources changed), then `npm ci && npm test`
 - [ ] Spot-checked in a browser / local server
 
 ## Community

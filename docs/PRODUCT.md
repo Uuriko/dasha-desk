@@ -8,9 +8,9 @@
 
 1. Show the associated mint — hard to fake, easy to copy
 2. One neutral Jupiter buy route (no multi-CTA pressure)
-3. Visible source links and risk disclosure
+3. Visible independent source links
 4. Catch reply-guy CAs — paste checker
-5. Optional neutral fact pack for X (mint + source + risk)
+5. Optional neutral fact pack for X (mint + source)
 
 ## Non-goals
 

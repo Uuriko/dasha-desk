@@ -1,0 +1,10 @@
+{
+  "name": "dasha-desk",
+  "private": true,
+  "scripts": {
+    "test": "node build.mjs --check && node dasha-share.test.mjs && node dasha-oss-docs.test.mjs && node dasha-mint-consistency.test.mjs && node dasha-desk-resilience.test.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "25.1.0"
+  }
+}

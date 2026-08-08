@@ -27,7 +27,7 @@ This is **code and docs contribution** to the public MIT repo — not a payment,
 
 Also: [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
 
-CI runs build drift, share tests, and OSS doc checks on every PR.
+CI runs the complete build, mint, share, docs, and browser-resilience gate on every PR.
 
 ## What it does
 
@@ -53,11 +53,12 @@ After changing sources:
 
 ```bash
 node build.mjs --write
-node build.mjs --check
-node dasha-share.test.mjs
-node dasha-oss-docs.test.mjs
-node dasha-mint-consistency.test.mjs
+npm ci
+npm test
 ```
+
+The site itself has no install step or runtime dependencies. Tests use one development-only package
+and an installed Chrome/Chromium browser so the failure paths run in a real page.
 
 Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json)
 
