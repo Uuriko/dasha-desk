@@ -58,6 +58,8 @@ Good first moves: polish UX, accessibility, i18n, better public-data hooks, docs
 
 We care about **community signal on what to build** more than a fixed feature list.
 
+Longer brainstorm (pick anything up): [`docs/ROADMAP.md`](docs/ROADMAP.md) · how we work: [`docs/COMMUNITY.md`](docs/COMMUNITY.md)
+
 ## License & honesty
 
 - Code: [MIT](LICENSE)
