@@ -75,8 +75,7 @@ export function buildStudioEmbed(studio) {
 "description":"Make a $dasha image in the browser. Six looks, three formats, PNG and animated GIF export. No account, no wallet, no upload — everything is drawn locally.",
 "url":"https://www.getdasha.com/studio","isAccessibleForFree":true,
 "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
-"license":"https://creativecommons.org/publicdomain/zero/1.0/",
-"author":{"@type":"Person","name":"John Potter","url":"https://x.com/potterlab"}}
+"license":"https://creativecommons.org/publicdomain/zero/1.0/"}
 </script>
 <div class="dasha-studio-embed"></div>
 <script>

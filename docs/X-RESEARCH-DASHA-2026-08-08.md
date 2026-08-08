@@ -1,4 +1,5 @@
 # X research dump — $dasha / @dash_eats / @PerryALPHA / community
+> Handles below are a record of who posted what publicly, used as sourcing evidence. They are not product credits: the operator's attribution was removed from the site on 2026-08-08.
 
 **Captured:** 2026-08-08  
 **Method:** X advanced search (keyword/latest), not a full Twitter firehose.  
