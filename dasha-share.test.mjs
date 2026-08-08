@@ -13,6 +13,7 @@ const src = readFileSync(join(__dirname, 'src/app.js'), 'utf8');
 const body = readFileSync(join(__dirname, 'src/body.html'), 'utf8');
 const styles = readFileSync(join(__dirname, 'src/styles.css'), 'utf8');
 const build = readFileSync(join(__dirname, 'build.mjs'), 'utf8');
+const standalone = readFileSync(join(__dirname, 'index.html'), 'utf8');
 
 const sandbox = {
   globalThis: {},
@@ -85,6 +86,10 @@ assert.ok(!/\.dd-fomo|\.dd-sticky|\.dd-raid/i.test(styles), 'no FOMO/sticky/raid
 assert.ok(build.includes('<link rel="canonical" href="https://www.getdasha.com/dasha"/>'), 'Desk canonical missing');
 assert.ok(build.includes('<meta property="og:url" content="https://www.getdasha.com/dasha"/>'), 'Desk og:url missing');
 assert.ok(!/gpjyb0|og:image|twitter:image/i.test(build), 'standalone Desk retained or invented a social image URL');
+for (const url of ['https://www.getdasha.com/', 'https://www.getdasha.com/studio', 'https://www.getdasha.com/dasha']) {
+  assert.ok(standalone.includes(`href="${url}"`), `standalone navigation lost ${url}`);
+}
+assert.ok(!/href="\/(?:studio|dasha)?"/.test(standalone), 'standalone navigation breaks on a subpath host');
 
 // App must not reintroduce pressure builders
 assert.ok(!/fomoDipHeadline|dipRaidLabel|buildSharePack\('raid'|dd-fomo-raid|invite loop|ref=/i.test(src), 'app.js free of FOMO/raid/ref builders');

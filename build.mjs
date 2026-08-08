@@ -4,6 +4,10 @@ const read = async (path) => (await readFile(new URL(path, import.meta.url), 'ut
 const body = await read('./src/body.html');
 const css = await read('./src/styles.css');
 const js = await read('./src/app.js');
+const standaloneBody = body
+  .replaceAll('href="/studio"', 'href="https://www.getdasha.com/studio"')
+  .replaceAll('href="/dasha"', 'href="https://www.getdasha.com/dasha"')
+  .replaceAll('href="/"', 'href="https://www.getdasha.com/"');
 
 const meta = `<!DOCTYPE html>
 <html lang="en">
@@ -31,7 +35,7 @@ const files = {
 <style>html,body{margin:0;padding:0;background:#07060a;min-height:100%}</style>
 </head>
 <body>
-${body}
+${standaloneBody}
 <script src="src/app.js"></script>
 ${pageEnd}`,
   './dist/index.html': `${meta}
@@ -40,7 +44,7 @@ ${css}
 </style>
 </head>
 <body>
-${body}
+${standaloneBody}
 <script>
 ${js}
 </script>
