@@ -1,39 +1,32 @@
 # Contributing
 
-Thanks for showing up. This project grows with **your** ideas.
+Small, clear pull requests are easiest to review.
 
-## Ways in
+## Make a change
 
-| Path | How |
-|------|-----|
-| **Propose** | Open an issue — problem, dream feature, experiment, or “what should we build?” |
-| **Ship** | PR against `main` with a short *why* and how you checked it |
-| **Discuss** | Comment on issues; upvote what you’d use; link demos and references |
+1. Branch from `main`.
+2. Edit `src/` or `config/dasha.json`.
+3. Regenerate and check the builds:
 
-No need to ask permission for ambitious ideas. Open the issue. The community and maintainers will sort priority together.
+   ```bash
+   node build.mjs --write
+   node build.mjs --check
+   node dasha-share.test.mjs
+   ```
 
-## Code path (when you’re ready)
+4. Open a pull request that says what changed and how it was checked.
 
-1. Fork + branch from `main`
-2. Prefer `src/` + `config/dasha.json`
-3. `node build.mjs --write && node build.mjs --check`
-4. Run any relevant tests (`node dasha-share.test.mjs`, etc.)
-5. PR with user-visible impact and verification notes
+Good first contributions include keyboard and screen-reader fixes, clearer loading or error states, dead-link fixes, performance work, and documentation corrections.
 
-Static HTML/CSS/JS is the happy path. New modules, packages, and experiments are welcome when they earn their keep — propose in an issue if you’re unsure where they live.
+For a larger idea, [open an issue](https://github.com/Uuriko/dasha-desk/issues/new/choose) with the smallest useful first slice.
 
-## Ideas we love (non-exhaustive)
+## Guardrails
 
-- Crypto **infra** utilities people actually open twice
-- **Consumer** flows that feel fun and clear
-- **Creative** tools (remix, share, culture)
-- Docs, examples, themes, i18n, a11y, performance
-- Anything that makes this a **series** of great tools, not one frozen page
+- No price predictions, targets, returns, or urgency.
+- No fabricated holders, volume, endorsements, or quotes.
+- No implied endorsement by a real person or use of their likeness to promote the token.
+- No custody of funds or keys.
+- Record rights before adding third-party media.
+- Report security-sensitive findings privately through [SECURITY.md](SECURITY.md).
 
-If the community wants it and it can ship safely, it’s on the table.
-
-## Tone
-
-Be kind. Assume good intent. Attribute public sources. Don’t put secrets in the repo.
-
-Questions? Open an issue — that’s the product conversation.
+Be kind, attribute sources, and never commit secrets.

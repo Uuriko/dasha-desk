@@ -10,7 +10,7 @@
 2. One neutral Jupiter buy route (no multi-CTA pressure)
 3. Visible source links and risk disclosure
 4. Catch reply-guy CAs — paste checker
-5. Optional neutral fact pack for X (mint + buy + chart + risk)
+5. Optional neutral fact pack for X (mint + source + risk)
 
 ## Non-goals
 

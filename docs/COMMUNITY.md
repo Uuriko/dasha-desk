@@ -1,32 +1,11 @@
-# Community & roadmap
+# Community
 
-There is no closed product committee.
+The repository is the workshop.
 
-**You** open issues. **You** propose the series. Maintainers help ship, merge, and keep the lights on.
+- [Issues](https://github.com/Uuriko/dasha-desk/issues) hold bugs and small proposals.
+- Pull requests ship reviewed changes.
+- [`ROADMAP.md`](ROADMAP.md) records the current boundary, not a promise.
 
-## What we’re aiming for
+Start with the smallest useful change. A clear bug report, accessibility fix, or deleted stale line is a real contribution.
 
-A growing set of open tools around `$dasha` culture and, more broadly, **useful crypto infra**, **great consumer surfaces**, and **creative experiments** — whatever earns love in the wild.
-
-## How roadmap works
-
-1. Someone opens an **Idea** issue (or a Discussion).
-2. People react, refine, fork off experiments.
-3. PRs land when something is useful enough to share.
-4. Repeat.
-
-If you only have energy for one comment — “I’d use X” — that still counts.
-
-## Good contribution shapes
-
-- Modules and pages others can remix
-- Better data rails and clarity for normal humans
-- Design systems and meme tools
-- Docs, examples, tutorials
-- Cross-repo glue (desk ↔ studio ↔ home) when it helps
-
-## Start here
-
-- Issues: https://github.com/Uuriko/dasha-desk/issues  
-- Live desk: https://www.getdasha.com/dasha  
-- Contributing: [../CONTRIBUTING.md](../CONTRIBUTING.md)
+See [CONTRIBUTING.md](../CONTRIBUTING.md) and the [live Desk](https://www.getdasha.com/dasha).

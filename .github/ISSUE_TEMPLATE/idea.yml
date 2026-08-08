@@ -1,26 +1,25 @@
 name: Idea / feature
-description: Propose something to build — ambitious is welcome. Community input shapes the roadmap.
+description: Propose a focused improvement to the Desk.
 title: "[Idea]: "
 labels: [idea, community]
 body:
   - type: markdown
     attributes:
       value: |
-        **What should exist next?** Infra, consumer product, creative tool, docs, experiment — open field.
-        The roadmap is community signal. Sketch freely; we refine in the thread.
+        What small change would make the Desk clearer, safer, or more reliable?
   - type: textarea
     id: dream
     attributes:
       label: The idea
-      description: What would you love to use or contribute?
-      placeholder: A module that… / A tool for… / What if we…
+      description: Describe the smallest useful version.
+      placeholder: The Desk should…
     validations:
       required: true
   - type: textarea
     id: why
     attributes:
       label: Why it matters
-      description: Who is it for? What becomes easier, cooler, or safer?
+      description: Who is it for, and what becomes easier or safer?
     validations:
       required: true
   - type: dropdown
@@ -28,10 +27,10 @@ body:
     attributes:
       label: Rough category (pick closest)
       options:
-        - Crypto infra / tooling
-        - Consumer experience
-        - Creative / culture
-        - Docs / DX / examples
+        - Verification / data
+        - Accessibility / UX
+        - Performance / reliability
+        - Docs / contributor experience
         - Other / not sure
     validations:
       required: true
@@ -39,7 +38,7 @@ body:
     id: next
     attributes:
       label: First slice (optional)
-      description: Smallest demo or PR that would prove it. Or leave blank and we’ll jam in comments.
+      description: Smallest demo or pull request that would prove it.
   - type: textarea
     id: refs
     attributes:

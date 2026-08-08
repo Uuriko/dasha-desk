@@ -9,6 +9,8 @@
   --warn:#ffe08a;
   --glow:rgba(167,139,250,.45);
   font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:16px;
+  line-height:1.5;
   color:var(--text);
   max-width:960px;
   margin:0 auto;
@@ -39,10 +41,10 @@
   border:1px solid rgba(196,165,255,.45);background:#1a1224;
 }
 .dd-name{font-size:19px;letter-spacing:-.03em;font-weight:800}
-.dd-tag{margin:3px 0 0;font-size:12px;color:var(--muted)}
+.dd-tag{margin:3px 0 0;font-size:14px;color:var(--muted)}
 .dd-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .dd-pill{
-  font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  font-size:13px;font-weight:700;letter-spacing:.05em;
   padding:7px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);
   background:rgba(0,0,0,.2);
 }
@@ -51,7 +53,7 @@
 .dd-risk{
   margin:0 0 18px;padding:12px 14px;border-radius:14px;
   border:1px solid rgba(255,224,138,.28);background:rgba(255,224,138,.08);
-  color:var(--warn);font-size:13px;line-height:1.45;font-weight:600;
+  color:var(--warn);font-size:15px;line-height:1.5;font-weight:650;
 }
 
 .dd-hero-card,.dd-card{
@@ -60,29 +62,29 @@
 }
 .dd-token-hero{display:flex;gap:16px;align-items:center;margin-bottom:16px}
 .dd-token-hero img{width:88px;height:88px;border-radius:22px;object-fit:cover;border:1px solid var(--line);background:#12091c}
-.dd-kicker{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.dd-kicker{margin:0 0 4px;font-size:14px;letter-spacing:.05em;color:var(--muted);font-weight:700}
 .dd-h1{margin:0;font-size:clamp(32px,6vw,44px);letter-spacing:-.04em;line-height:1}
-.dd-lede{margin:8px 0 0;color:var(--muted);font-size:15px;line-height:1.45;max-width:42ch}
+.dd-lede{margin:8px 0 0;color:var(--muted);font-size:16px;line-height:1.5;max-width:38ch}
 
 .dd-quote{
   margin:0 0 16px;padding:14px 16px;border-radius:14px;
   border-left:3px solid var(--accent);background:rgba(0,0,0,.22);
 }
 .dd-quote p{margin:0;font-size:16px;line-height:1.4;font-weight:650}
-.dd-quote cite{display:block;margin-top:8px;font-size:12px;color:var(--muted);font-style:normal}
+.dd-quote cite{display:block;margin-top:8px;font-size:14px;color:var(--muted);font-style:normal}
 
 .dd-mint-box{
   padding:14px;border-radius:16px;border:1px solid rgba(196,165,255,.35);
   background:rgba(139,92,246,.08);margin-bottom:14px;
 }
-.dd-ca-label{margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.dd-ca-label{margin:0 0 8px;font-size:14px;font-weight:800;letter-spacing:.04em;color:var(--accent)}
 .dd-ca{
-  display:block;word-break:break-all;font-size:13px;line-height:1.45;
+  display:block;word-break:break-all;font-size:14px;line-height:1.5;
   padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid var(--line);
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 .dd-mint-actions,.dd-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
-.dd-toast{font-size:12px;font-weight:800;color:var(--ok)}
+.dd-toast{font-size:14px;font-weight:800;color:var(--ok)}
 
 .dd-btn,.dd-linkish{
   appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.04);
@@ -103,29 +105,25 @@
 .dd-btn-lg{min-height:48px;padding:12px 20px;font-size:15px}
 .dd-linkish{background:transparent;border:0;color:var(--accent);min-height:42px;padding:6px 8px;text-decoration:underline;text-underline-offset:3px}
 
-.dd-why{margin:16px 0 0;padding:0 0 0 18px;color:var(--muted);font-size:14px;line-height:1.55}
-.dd-why strong{color:var(--text)}
-.dd-why a{color:#f0e7ff;font-weight:700;text-underline-offset:3px}
-
 .dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px}
 .dd-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
 .dd-card h2{margin:0 0 6px;font-size:18px;letter-spacing:-.02em}
-.dd-meta{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.4}
+.dd-meta{margin:0 0 12px;color:var(--muted);font-size:15px;line-height:1.5}
 .dd-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .dd-stat{
   padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.2);
 }
-.dd-stat span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-bottom:4px}
+.dd-stat span{display:block;font-size:13px;letter-spacing:.04em;color:var(--muted);font-weight:700;margin-bottom:4px}
 .dd-stat strong{font-size:18px;font-variant-numeric:tabular-nums}
 
 .dd-textarea,.dd-input{
   width:100%;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28);
-  color:var(--text);padding:12px 14px;font:inherit;font-size:13px;line-height:1.45;
+  color:var(--text);padding:12px 14px;font:inherit;font-size:15px;line-height:1.5;
 }
 .dd-textarea{resize:vertical;min-height:120px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.dd-label{display:block;margin:0 0 6px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dd-label{display:block;margin:0 0 6px;font-size:14px;font-weight:800;letter-spacing:.04em;color:var(--muted)}
 .dd-verify{
-  margin-top:10px;padding:12px;border-radius:12px;font-size:13px;font-weight:700;
+  margin-top:10px;padding:12px;border-radius:12px;font-size:15px;font-weight:700;
   border:1px solid var(--line);background:rgba(0,0,0,.22);
 }
 .dd-verify.ok{color:var(--ok);border-color:rgba(125,255,163,.4)}
@@ -135,12 +133,12 @@
 .dd-tools{display:flex;flex-wrap:wrap;gap:8px}
 .dd-tools a{
   display:inline-flex;align-items:center;min-height:42px;padding:8px 14px;border-radius:999px;
-  border:1px solid var(--line);color:var(--text);text-decoration:none;font-size:13px;font-weight:700;
+  border:1px solid var(--line);color:var(--text);text-decoration:none;font-size:14px;font-weight:700;
   background:rgba(0,0,0,.2);
 }
 .dd-tools a:hover{border-color:rgba(196,165,255,.5)}
 
-.dd-foot{margin-top:24px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.5}
+.dd-foot{margin-top:24px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;line-height:1.55}
 .dd-foot a{color:#f0e7ff}
 
 @media(max-width:720px){
