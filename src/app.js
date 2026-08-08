@@ -250,5 +250,13 @@
 
   setShare();
   refresh();
-  setInterval(refresh, 60000);
+  var poll = setInterval(function () {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+    refresh();
+  }, 60000);
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') refresh();
+    });
+  }
 })();
