@@ -10,6 +10,7 @@ Open-source mint desk for `$dasha` on Solana — static, honest, remixable.
 
 - keeps the associated mint visible and easy to copy
 - checks pasted addresses against that mint
+- remembers **last check on this device** (local only) and warns if the mint string changes
 - shows public market data with clear offline fallbacks
 - links explorers, chart, and one neutral Jupiter route
 - ships as static HTML, CSS, and JavaScript (no wallet connect)

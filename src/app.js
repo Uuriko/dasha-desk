@@ -57,6 +57,39 @@
     return s;
   }
 
+  /**
+   * Local last-visit stamp (this browser only). Helps spot mint drift without a server.
+   * storage: { getItem, setItem }; now: ms epoch; mint: expected CA string.
+   */
+  function visitStamp(storage, now, mint) {
+    var key = 'dasha-desk-visit-v1';
+    var prev = null;
+    try {
+      prev = JSON.parse(storage.getItem(key) || 'null');
+    } catch (e) {
+      prev = null;
+    }
+    if (prev && typeof prev !== 'object') prev = null;
+    var next = { mint: String(mint || ''), at: Number(now) || 0 };
+    try {
+      storage.setItem(key, JSON.stringify(next));
+    } catch (e) {}
+    var mintChanged = !!(prev && prev.mint && prev.mint !== next.mint);
+    var label = '';
+    if (mintChanged) {
+      label = 'Mint differs from your last visit on this device — re-verify the full address.';
+    } else if (prev && prev.at) {
+      try {
+        label = 'Last check on this device: ' + new Date(prev.at).toLocaleString();
+      } catch (e) {
+        label = 'Last check on this device recorded.';
+      }
+    } else {
+      label = 'First check on this device — full mint stored only locally.';
+    }
+    return { prev: prev, current: next, mintChanged: mintChanged, label: label };
+  }
+
   // Pure export for unit tests / reuse (no FOMO builders).
   globalThis.DDShare = {
     CA: CA,
@@ -65,6 +98,7 @@
     DESK: DESK,
     buildSharePack: buildSharePack,
     normalizeMint: normalizeMint,
+    visitStamp: visitStamp,
   };
 
   if (typeof document === 'undefined') return;
@@ -258,6 +292,16 @@
 
   setShare();
   refresh();
+  /* last-visit honesty — local only, no server */
+  (function paintVisit() {
+    var el = $('dd-visit');
+    if (!el || typeof localStorage === 'undefined') return;
+    try {
+      var stamp = visitStamp(localStorage, Date.now(), CA);
+      el.textContent = stamp.label;
+      el.className = 'dd-visit' + (stamp.mintChanged ? ' dd-visit-warn' : '');
+    } catch (e) {}
+  })();
   var poll = setInterval(function () {
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
     refresh();

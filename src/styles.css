@@ -85,6 +85,8 @@
 }
 .dd-mint-actions,.dd-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
 .dd-toast{font-size:14px;font-weight:800;color:var(--ok)}
+.dd-visit{margin:10px 0 0;font-size:13px;line-height:1.4;color:var(--muted)}
+.dd-visit-warn{color:var(--bad);font-weight:700}
 
 .dd-btn,.dd-linkish{
   appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.04);
