@@ -35,4 +35,4 @@ Paste `src/app.html` into the `/dasha` HTML embed. Webflow owns production metad
 
 ## GitHub Pages
 
-`.github/workflows/pages.yml` is ready to deploy the repository root from `main` when Pages is enabled. The repository currently has no Pages site; production does not depend on it.
+`.github/workflows/pages.yml` deploys the repository root from `main` to [uuriko.github.io/dasha-desk](https://uuriko.github.io/dasha-desk/). The custom production URL remains canonical.
