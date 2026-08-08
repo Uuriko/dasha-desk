@@ -8,10 +8,7 @@
   "images": {
     "avatar": "https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg",
     "token": "https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666",
-    "header": "https://cdn.dexscreener.com/cms/images/12deeeb94f75d332a3795390604d849aae5a2441a451dad49332bdfd17ded9e0",
-    "shareCasino": "https://files.catbox.moe/gpjyb0.jpg",
-    "shareVerify": "https://files.catbox.moe/nid4qy.jpg",
-    "auroraBanner": "https://files.catbox.moe/qnvc7b.jpg"
+    "header": "https://cdn.dexscreener.com/cms/images/12deeeb94f75d332a3795390604d849aae5a2441a451dad49332bdfd17ded9e0"
   },
   "links": {
     "x": "https://x.com/dash_eats",
@@ -29,8 +26,14 @@
     "perryHolding": "https://x.com/PerryALPHA/status/2085370284400328784",
     "perrySpainBit": "https://x.com/PerryALPHA/status/2074960912805486623",
     "repo": "https://github.com/Uuriko/dasha-desk",
-    "webflow": "https://johns-awesome-project-39b1b5.webflow.io/dasha",
-    "standalone": "https://files.catbox.moe/sm5mo0.html"
+    "webflow": "https://www.getdasha.com/dasha",
+    "standalone": "https://www.getdasha.com/dasha",
+    "site": "https://www.getdasha.com/",
+    "studio": "https://www.getdasha.com/studio",
+    "howToBuy": "https://www.getdasha.com/how-to-buy",
+    "itsTime": "https://x.com/dash_eats/status/2085544531739754651",
+    "notTheDev": "https://x.com/dash_eats/status/2085532923063853316",
+    "perryWorkOfArt": "https://x.com/PerryALPHA/status/2085554781599244350"
   },
   "quotes": [
     {
@@ -82,12 +85,31 @@
       "source": "@PerryALPHA",
       "url": "https://x.com/PerryALPHA/status/2074960912805486623",
       "thirdParty": true
+    },
+    {
+      "text": "It's time $dasha",
+      "source": "@dash_eats",
+      "url": "https://x.com/dash_eats/status/2085544531739754651"
+    },
+    {
+      "text": "It's an old coin and Im not the dev",
+      "source": "@dash_eats",
+      "url": "https://x.com/dash_eats/status/2085532923063853316"
+    },
+    {
+      "text": "The $dasha coin is a work of art",
+      "source": "@PerryALPHA",
+      "url": "https://x.com/PerryALPHA/status/2085554781599244350",
+      "thirdParty": true
+    },
+    {
+      "text": "I own 1% of $dasha",
+      "source": "@PerryALPHA",
+      "url": "https://x.com/PerryALPHA/status/2085562712050774200",
+      "thirdParty": true
     }
   ],
   "gallery": [
-    "https://files.catbox.moe/qnvc7b.jpg",
-    "https://files.catbox.moe/nid4qy.jpg",
-    "https://files.catbox.moe/gpjyb0.jpg",
     "https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg",
     "https://cdn.dexscreener.com/cms/images/82d97a65a147fe37065d440fa936db594f1fbcbbf2a71a5b8a7d8a1a5a8bc666",
     "https://pbs.twimg.com/media/HMGsRZ8XgAEEPrS.jpg",
@@ -99,7 +121,11 @@
     "https://pbs.twimg.com/media/HJ-whecWoAEildo.jpg",
     "https://pbs.twimg.com/media/HMu99HxXkAENYKI.jpg",
     "https://pbs.twimg.com/media/Gkoqvc4WIAAYPJM.jpg",
-    "https://pbs.twimg.com/media/HHTIOCcXUAAcsUF.jpg"
+    "https://pbs.twimg.com/media/HHTIOCcXUAAcsUF.jpg",
+    "https://pbs.twimg.com/media/HPFhAH-XcAAWxp5.jpg",
+    "https://pbs.twimg.com/media/HPFHt5FXQAAlwld.jpg",
+    "https://pbs.twimg.com/media/HPFHucqXwAATLUr.jpg",
+    "https://pbs.twimg.com/media/HPJBzjWXUAAvYjz.jpg"
   ],
   "theme": {
     "accent": "#a78bfa",

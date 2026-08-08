@@ -5,7 +5,7 @@
 | Surface | URL |
 |---------|-----|
 | **Repo** | https://github.com/Uuriko/dasha-desk |
-| **GitHub Pages** | https://uuriko.github.io/dasha-desk/ (after Actions/Pages enable) |
+| **GitHub Pages** | Not live; the repository has not enabled Pages |
 | **Standalone single-file** | https://files.catbox.moe/sm5mo0.html |
 | **Webflow shell** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
 
@@ -28,13 +28,15 @@ node build.mjs --check
 
 Do not hand-edit `src/app.html`, `index.html`, or `dist/index.html`; they are generated deployment surfaces.
 
+The standalone builds intentionally omit `og:image` and `twitter:image` until the current Dasha social card has a verified public HTTPS asset URL. They canonicalize to `https://www.getdasha.com/dasha`. Webflow owns the production social image metadata after its asset upload; never restore the retired Catbox casino image or invent a future URL.
+
 ## GitHub Pages
 
-Workflow: `.github/workflows/pages.yml` deploys the repo root on every push to `main`.
+Workflow: `.github/workflows/pages.yml` verifies the generated files and browser behavior, then deploys the repo root on every push to `main`.
 
 **Status:** Actions workflow is live on the repo; `configure-pages` fails until Pages is first enabled for the repo (Settings → Pages → Source: **GitHub Actions**). After that one enable, subsequent pushes publish to https://uuriko.github.io/dasha-desk/.
 
-Until then, use **Webflow** (primary product surface) or **catbox** single-file.
+Until then, the public product surface is **Webflow**. `dist/index.html` remains available for a future static host.
 
 ## Single-file / zero-build host
 

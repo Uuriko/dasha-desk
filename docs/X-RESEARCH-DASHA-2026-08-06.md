@@ -90,3 +90,20 @@ Desk JS re-pulls these from Dex when available.
 - https://x.com/dash_eats/status/2085405228078432279  
 - https://x.com/PerryALPHA/status/2085406351937703996  
 - Dex / pair for numbers (desk already pulls live)
+
+
+## 2026-08-07 refresh (keyword scrape)
+
+### @dash_eats
+- “It’s time $dasha” — [2085544531739754651](https://x.com/dash_eats/status/2085544531739754651)
+- “It’s an old coin and Im not the dev” — [2085532923063853316](https://x.com/dash_eats/status/2085532923063853316)
+- CA still primary: [2085405228078432279](https://x.com/dash_eats/status/2085405228078432279)
+- Profile avatar (stable): `https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg`
+
+### @PerryALPHA media
+- Work of art photo: `https://pbs.twimg.com/media/HPFhAH-XcAAWxp5.jpg` · [2085554781599244350](https://x.com/PerryALPHA/status/2085554781599244350)
+- Chart-watch: `https://pbs.twimg.com/media/HPFHt5FXQAAlwld.jpg` + `HPFHucqXwAATLUr.jpg` · [2085526970838749374](https://x.com/PerryALPHA/status/2085526970838749374)
+- Elon bit: `https://pbs.twimg.com/media/HPJBzjWXUAAvYjz.jpg` · [2085801939330007144](https://x.com/PerryALPHA/status/2085801939330007144)
+- “I own 1% of $dasha” — [2085562712050774200](https://x.com/PerryALPHA/status/2085562712050774200)
+
+Label all Perry media **third-party** on product surfaces.

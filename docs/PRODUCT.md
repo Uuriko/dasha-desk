@@ -6,18 +6,20 @@
 
 ## Jobs
 
-1. Show the mint she posted — hard to fake, easy to copy  
-2. Sound like the internet room around her — short quotes, not a whitepaper  
-3. Open trade rails — Jupiter / chart / explorers  
-4. Catch reply-guy CAs — paste checker  
-5. Share the right string — one pack for X  
+1. Show the associated mint — hard to fake, easy to copy
+2. One neutral Jupiter buy route (no multi-CTA pressure)
+3. Visible source links and risk disclosure
+4. Catch reply-guy CAs — paste checker
+5. Optional neutral fact pack for X (mint + buy + chart + risk)
 
 ## Non-goals
 
-- Wallet connect / claims  
-- Price predictions  
-- Backend / accounts  
-- Demigod / other products  
+- Wallet connect / claims
+- Price predictions, FOMO, raid kits, referrals, Telegram
+- Backend / accounts
+- Demigod / other products
+- Thesis Card, receipts, forecasting (permanently scrapped)
+
 
 ## Name
 
@@ -33,4 +35,4 @@
 
 ## Product boundary
 
-Dasha Desk is the live coin/source/community landing product. The separate Dasha Thesis Card is an optional experiment and is not required to understand or use the Desk.
+Dasha Desk is the live coin/source/community landing product. Thesis, receipt and forecasting products are permanently retired and are not part of Dasha.

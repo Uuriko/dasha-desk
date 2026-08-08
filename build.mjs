@@ -5,24 +5,22 @@ const body = await read('./src/body.html');
 const css = await read('./src/styles.css');
 const js = await read('./src/app.js');
 
-const TOKEN_IMG = 'https://files.catbox.moe/gpjyb0.jpg';
-
 const meta = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>$dasha desk — buy, chart, share · Solana</title>
-<meta name="description" content="$dasha mint desk: copy CA, buy on Jupiter, chart on Dexscreener, share raid packs. Culture coin on Solana. Can go to zero. NFA. Association ≠ endorsement."/>
+<title>$dasha desk — mint, sources, risk · Solana</title>
+<meta name="description" content="$dasha mint desk: verify the CA, buy on Jupiter, open chart and source links. Culture coin on Solana. Can go to zero. NFA. Association is not endorsement."/>
+<link rel="canonical" href="https://www.getdasha.com/dasha"/>
 <meta name="theme-color" content="#07060a"/>
-<meta property="og:title" content="$dasha — casino open"/>
-<meta property="og:description" content="How u crying at the casino and u can’t even get in. Copy the mint. Buy · chart · share. NFA."/>
-<meta property="og:image" content="${TOKEN_IMG}"/>
+<meta property="og:title" content="$dasha desk — mint · sources · risk"/>
+<meta property="og:description" content="Verify the mint. One Jupiter buy route. Chart and source links. Culture coin. Can go to zero. NFA."/>
 <meta property="og:type" content="website"/>
+<meta property="og:url" content="https://www.getdasha.com/dasha"/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="$dasha — casino open"/>
-<meta name="twitter:description" content="Copy CA · Buy Jupiter · Chart Dex · Share pack. NFA."/>
-<meta name="twitter:image" content="${TOKEN_IMG}"/>`;
+<meta name="twitter:title" content="$dasha desk — mint · sources · risk"/>
+<meta name="twitter:description" content="Copy CA · Buy Jupiter · Chart Dex · Source links. NFA."/>`;
 
 const pageEnd = '</body>\n</html>\n';
 

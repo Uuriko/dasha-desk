@@ -1,90 +1,63 @@
 # dasha desk
 
-**Unofficial, open-source mint desk for `$dasha` on Solana.**
+**Unofficial, open-source mint verification desk for `$dasha` on Solana.**
 
-Static webapp: candidate mint evidence · @dash_eats quotes · live Dex numbers · CA comparison · share pack · buy/chart links.
+Verify the associated mint, inspect independent sources and risk, and use one neutral Jupiter buy route. No backend, wallet connection, referral links, or price promises.
 
-No backend. No wallet connect. No fake roadmap.
-
-> **Status:** early alpha. The Webflow page is the working demo; GitHub Pages is configured but currently returns 404 until Pages is enabled for the repository.
-
-![Dasha Desk landing page](receipts/concise-landing.png)
+> **Status:** early alpha. The source in this repository is current; the public Webflow embed may lag it.
 
 | | |
 |--|--|
+| **Live desk** | https://www.getdasha.com/dasha |
 | **Repo** | https://github.com/Uuriko/dasha-desk |
-| **Working demo** | https://johns-awesome-project-39b1b5.webflow.io/dasha |
-| **Pages (pending)** | https://uuriko.github.io/dasha-desk/ — currently unavailable |
-| **Standalone** | https://files.catbox.moe/sm5mo0.html |
-| **Mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
+| **Associated mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
 
-## Quick start
+## What it does
+
+- displays the associated mint with copy and paste-to-check tools;
+- links the public source post and independent Solana explorers;
+- provides one Jupiter buy route and a separate chart link;
+- creates a neutral fact pack with mint, source, chart, and risk context;
+- keeps the risk disclosure visible: culture coins can go to zero.
+
+The public association is not an endorsement by Dasha Nekrasova, Red Scare, or `@dash_eats`.
+
+## Run locally
 
 ```bash
 git clone https://github.com/Uuriko/dasha-desk.git
 cd dasha-desk
+node build.mjs --check
 python3 -m http.server 8766
-# → http://127.0.0.1:8766/
+# open http://127.0.0.1:8766/
 ```
 
-## Features
+There is no install step. The app is static HTML, CSS, and JavaScript.
 
-| Feature | Description |
-|---------|-------------|
-| **Mint** | Associated CA, one-click copy, QR |
-| **Quotes** | Short @dash_eats lines (public posts) |
-| **Numbers** | Price / mcap / liq / vol from Dexscreener public API |
-| **Checker** | Paste any mint → match / no match |
-| **Share** | Copy pack + draft on X |
-| **Rails** | Jupiter, Dex, Solscan, Birdeye, Rugcheck, Phantom |
+## Source and verification
 
-## Source and build
-
-Canonical sources: [`src/body.html`](src/body.html), [`src/styles.css`](src/styles.css), [`src/app.js`](src/app.js), and [`config/dasha.json`](config/dasha.json).
+Edit [`src/body.html`](src/body.html), [`src/styles.css`](src/styles.css), [`src/app.js`](src/app.js), or [`config/dasha.json`](config/dasha.json), then regenerate and verify:
 
 ```bash
-node build.mjs --write  # regenerate Webflow embed, standalone and single-file build
-node build.mjs --check  # fail if generated files drift
+node build.mjs --write
+node build.mjs --check
 node dasha-share.test.mjs
 ```
 
-Generated surfaces: [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for normal hosting, and [`dist/index.html`](dist/index.html) for single-file hosting.
+Generated files are [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for static hosting, and [`dist/index.html`](dist/index.html) for a self-contained build. Do not edit them by hand.
 
-The CI workflow runs the same build-drift and behavior checks on every pull request before deployment can run.
+## Product boundaries
 
-## Runtime boundaries
+This project deliberately does not include wallet custody, claims, forecasts, FOMO copy, raid kits, referrals, Telegram, a backend, or accounts. The Thesis Card, receipts, and forecasting concepts are permanently retired and are not part of Dasha.
 
-| Provider | Used for | Failure behavior |
-|---|---|---|
-| Dexscreener API | price, liquidity, volume and chart URL | page stays usable and labels market data offline |
-| qrserver.com | mint QR image | canvas falls back to readable mint text |
-| X, Dexscreener CDN and Catbox | attributed media | broken images collapse to an unavailable placeholder |
+See [`docs/PRODUCT.md`](docs/PRODUCT.md) for the product contract, [`CONTRIBUTING.md`](CONTRIBUTING.md) before proposing a change, and [`docs/DEPLOY.md`](docs/DEPLOY.md) for deployment surfaces.
 
-Third-party data and media are not endorsements. **Known alpha gap:** provider-supplied URLs still need HTTPS and host allowlisting before the first release.
+## Security and trust
 
-## Research
+Wrong mints, substituted buy links, hostile external data, and impersonation are security issues. Follow [`SECURITY.md`](SECURITY.md) and do not publish exploit details in an issue.
 
-X scrape for landing voice/media: [`docs/X-RESEARCH-DASHA-2026-08-06.md`](docs/X-RESEARCH-DASHA-2026-08-06.md).
-
-## Deploy
-
-See [`docs/DEPLOY.md`](docs/DEPLOY.md).
-
-**GitHub Pages** is enabled from `main` (root).  
-**Webflow:** embed `src/app.html` inline — do not iframe third-party hosts that send `X-Frame-Options: DENY`.
+Always verify the mint independently before swapping. This software is not financial, legal, or tax advice.
 
 ## License
 
-[MIT](LICENSE) for project code and original documentation. Bundled media is **not automatically MIT-licensed**; see [`assets/ATTRIBUTION.md`](assets/ATTRIBUTION.md) for per-source terms and unresolved redistribution boundaries.
-
-**Not included:** claiming official endorsement by Dasha Nekrasova, Red Scare, or @dash_eats. Quotes are public posts for the `$dasha` instance.
-
-## Disclaimer
-
-Culture coins can go to zero. This software is not financial, legal, or tax advice. Always verify mints independently.
-
-## Product
-
-**dasha desk** — open-source mint desk product. `$dasha` is the flagship config.
-
-Security-sensitive mistakes—wrong mint, substituted links, hostile provider data, or impersonation—belong in the private reporting path described in [`SECURITY.md`](SECURITY.md), not a public issue with exploit details.
+[MIT](LICENSE) covers project code and original documentation. Third-party media is not automatically MIT-licensed; see [`assets/ATTRIBUTION.md`](assets/ATTRIBUTION.md).
