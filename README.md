@@ -47,6 +47,7 @@ Anyone can contribute. Start small or go ambitious.
 - [Good first issues](https://github.com/Uuriko/dasha-desk/labels/good%20first%20issue)
 - [Open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose)
 - [CONTRIBUTING.md](CONTRIBUTING.md) · [ROADMAP.md](docs/ROADMAP.md) · [X voice dump](docs/X-RESEARCH-DASHA-2026-08-08.md)
+- [The archive](docs/ARCHIVE.md) — what happened and who made it. Needs no code: edit it in the browser and open a pull request.
 
 CI runs build drift, share tests, and OSS doc checks on every PR.
 
