@@ -25,3 +25,7 @@ Each starts as an issue with a small testable slice. None is promised.
 - unrelated Studio or website features in this repository
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) to propose or ship a change.
+
+## Research
+
+- Public X line dump for seeds: [X-RESEARCH-DASHA-2026-08-08.md](X-RESEARCH-DASHA-2026-08-08.md)
