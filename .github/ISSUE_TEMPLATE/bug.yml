@@ -1,0 +1,35 @@
+name: Bug report
+description: Report a reproducible problem that is safe to discuss publicly.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: For wrong mints, hostile buy links, injection, impersonation or anything that could put users or funds at risk, stop and use Security → Report a vulnerability instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include the page, control and observed result.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Give the smallest repeatable sequence, browser and viewport.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: This report contains no seed phrase, private key, secret or unsafe exploit detail.
+          required: true

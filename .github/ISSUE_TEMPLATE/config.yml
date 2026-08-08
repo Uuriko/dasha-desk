@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/Uuriko/dasha-desk/security/advisories/new
+    about: Report wrong mints, hostile buy links, injection, impersonation or another sensitive vulnerability privately.

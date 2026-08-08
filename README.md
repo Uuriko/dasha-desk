@@ -12,6 +12,17 @@ Verify the associated mint, inspect independent sources and risk, and use one ne
 | **Repo** | https://github.com/Uuriko/dasha-desk |
 | **Associated mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
 
+## Contribute
+
+Issues, focused pull requests, documentation, tests, accessibility fixes and trust improvements are welcome.
+
+- Read [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+- Browse [open issues](https://github.com/Uuriko/dasha-desk/issues) or propose a bounded improvement.
+- Every pull request runs the build and trust checks automatically.
+- Merged, reviewed, maintainer-labeled pull requests can earn open-source Simp Points under the public rubric. Points are recognition only—not money, an airdrop or token utility.
+
+Sensitive security reports belong in [GitHub's private reporting flow](https://github.com/Uuriko/dasha-desk/security/advisories/new), never a public issue.
+
 ## What it does
 
 - displays the associated mint with copy and paste-to-check tools;

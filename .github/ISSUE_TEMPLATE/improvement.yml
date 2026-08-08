@@ -1,0 +1,35 @@
+name: Improvement proposal
+description: Propose a focused product, accessibility, documentation or trust improvement.
+title: "[Idea]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Describe the observed problem before proposing a feature.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Link public examples, user feedback or a reproducible failure. A guess is okay if labeled as one.
+    validations:
+      required: true
+  - type: textarea
+    id: smallest
+    attributes:
+      label: Smallest useful change
+      description: What is the narrowest change that could test the idea?
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Product boundaries
+      options:
+        - label: This does not revive Thesis Cards, receipts or forecasting.
+          required: true
+        - label: This does not require wallet custody, referrals, raids, FOMO or endorsement claims.
+          required: true
