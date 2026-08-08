@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 72" role="img" aria-label="The Dasha cherry, four expressions">
+  <title>Dasha cherry — deadpan, wide, smug, zeroed</title>
+  <!--
+    The character is one of the cherries from the mark, given a face.
+
+    That is the whole idea: the mark and the character are the same object, so the vocabulary never
+    grows. Anyone who can draw the logo can draw the character, and anyone who has seen the character
+    already recognises the logo. Nouns got this for free with noggles — one device that works as
+    identity and as a meme.
+
+    Built on the same 64 grid as dasha-mark.svg, same 7-unit minimum stroke, same no-leaf rule: at
+    small sizes a leaf merges into the stem and the silhouette turns to mush.
+
+    Four expressions, drawn by hand in coordinates rather than generated. Deadpan is the default —
+    it is the one that reads at 32px and the one that suits the voice. "Zeroed" exists because the
+    brand says out loud that the coin can go to zero, and a character that can only be happy would
+    be lying.
+
+    currentColor throughout, so one file serves acid-on-ink and ink-on-paper.
+  -->
+  <g fill="currentColor" stroke="currentColor">
+
+    <!-- deadpan -->
+    <g transform="translate(4 4)">
+      <path d="M32 18 C33 12 38 7 45 5" fill="none" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="32" cy="40" r="22" stroke="none"/>
+      <g fill="var(--face, #070608)" stroke="none">
+        <circle cx="24" cy="37" r="3.6"/>
+        <circle cx="40" cy="37" r="3.6"/>
+      </g>
+      <path d="M26 50 H38" fill="none" stroke="var(--face, #070608)" stroke-width="3.4" stroke-linecap="round"/>
+    </g>
+
+    <!-- wide -->
+    <g transform="translate(74 4)">
+      <path d="M32 18 C33 12 38 7 45 5" fill="none" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="32" cy="40" r="22" stroke="none"/>
+      <g fill="var(--face, #070608)" stroke="none">
+        <circle cx="24" cy="36" r="5.4"/>
+        <circle cx="40" cy="36" r="5.4"/>
+        <ellipse cx="32" cy="50" rx="4.6" ry="5.4"/>
+      </g>
+    </g>
+
+    <!-- smug -->
+    <g transform="translate(144 4)">
+      <path d="M32 18 C33 12 38 7 45 5" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="32" cy="40" r="22" stroke="none"/>
+      <g fill="none" stroke="var(--face, #070608)" stroke-width="3.4" stroke-linecap="round">
+        <path d="M20 37 H28"/>
+        <path d="M36 37 H44"/>
+        <path d="M25 49 C29 53 35 53 39 48"/>
+      </g>
+    </g>
+
+    <!-- zeroed -->
+    <g transform="translate(214 4)">
+      <path d="M32 18 C33 12 38 7 45 5" fill="none" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="32" cy="40" r="22" stroke="none"/>
+      <g fill="none" stroke="var(--face, #070608)" stroke-width="3.4" stroke-linecap="round">
+        <path d="M20 33 L28 41 M28 33 L20 41"/>
+        <path d="M36 33 L44 41 M44 33 L36 41"/>
+        <path d="M26 51 H38"/>
+      </g>
+    </g>
+
+  </g>
+</svg>

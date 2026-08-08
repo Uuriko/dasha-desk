@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dasha cherries mark">
+  <title>Dasha</title>
+  <!--
+    The Dasha mark: slot-machine cherries.
+
+    Drawn on a 64 grid with ~4 units of optical padding. Two rules keep it alive at 16px, which is
+    the size that decides whether a mark works: nothing is thinner than 7 units (≈1.75px at favicon
+    size, so it survives rounding), and there is no detail that needs more than two shapes to read.
+    No leaf — at 16px a leaf merges into the stem and turns the silhouette to mush.
+
+    Fill is currentColor so one file serves acid-on-ink, ink-on-paper and any single-colour use.
+    For the favicon use dasha-favicon.svg instead: it carries its own tile so the mark stays legible
+    against light and dark browser chrome.
+  -->
+  <g fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round">
+    <path d="M18 31 C19 19 26 10 36 6"/>
+    <path d="M46 37 C48 26 42 14 36 6"/>
+  </g>
+  <circle cx="17" cy="45" r="14" fill="currentColor"/>
+  <circle cx="46" cy="47" r="12" fill="currentColor"/>
+</svg>

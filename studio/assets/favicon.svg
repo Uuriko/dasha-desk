@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dasha">
+  <title>Dasha</title>
+  <!--
+    Favicon build of the Dasha mark. Identical geometry to dasha-mark.svg, but on its own ink tile.
+
+    The tile is not decoration. Acid (#dfff00) on transparent is unreadable against a light tab
+    strip, and browser chrome is light for most people; painting the tile means the mark holds its
+    contrast in every chrome, light or dark, and in bookmark bars and history lists.
+
+    Self-contained: no external references, no fonts, no scripts. Also usable as a data: URI, which
+    is how the site's other pages already carry their icon.
+  -->
+  <rect width="64" height="64" rx="14" fill="#070608"/>
+  <!-- Inset so the mark clears the rounded corners; at full size it collides with them. -->
+  <g transform="translate(32 33) scale(0.82) translate(-32 -32)">
+    <g fill="none" stroke="#dfff00" stroke-width="7" stroke-linecap="round">
+      <path d="M18 31 C19 19 26 10 36 6"/>
+      <path d="M46 37 C48 26 42 14 36 6"/>
+    </g>
+    <circle cx="17" cy="45" r="14" fill="#dfff00"/>
+    <circle cx="46" cy="47" r="12" fill="#dfff00"/>
+  </g>
+</svg>
