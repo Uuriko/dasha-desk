@@ -292,7 +292,7 @@
         <a target="_blank" rel="noopener noreferrer" href="https://birdeye.so/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump?chain=solana">Birdeye</a>
         <a target="_blank" rel="noopener noreferrer" href="https://phantom.com/tokens/solana/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">Phantom</a>
         <a target="_blank" rel="noopener noreferrer" href="https://x.com/dash_eats">@dash_eats</a>
-        <a target="_blank" rel="noopener noreferrer" href="https://github.com/Uuriko/dasha-desk">OSS</a>
+        <a target="_blank" rel="noopener noreferrer" href="https://github.com/Uuriko/dasha-desk">Source ↗</a>
         <a href="/">Home</a>
         <a href="/studio">Studio</a>
       </div>
@@ -301,7 +301,7 @@
 
   <footer class="dd-foot dd-reveal">
     <p>Not affiliated with Dasha, Red Scare, or @dash_eats beyond public posts cited here. Culture coin. Can go to zero. NFA.</p>
-    <p><a href="/studio">Studio</a> · <a href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer">@dash_eats</a> · <a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">dasha desk</a> · <a id="dd-desk-url" href="/dasha">live desk</a></p>
+    <p><a href="/studio">Studio</a> · <a href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer">@dash_eats</a> · <a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">Source ↗</a> · <a id="dd-desk-url" href="/dasha">live desk</a></p>
   </footer>
 </div>
 <script>
@@ -348,6 +348,22 @@
     );
   }
 
+  function normalizeMint(raw) {
+    var s = String(raw || '')
+      .trim()
+      /* zero-width / BOM that break exact match when pasting */
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\s+/g, '');
+    /* paste of explorer / jupiter / phantom URL → extract base58 mint */
+    var m = s.match(/[1-9A-HJ-NP-Za-km-z]{32,50}/);
+    if (m) {
+      /* prefer segment after /token/ or buy= when present */
+      var u = s.match(/(?:token\/|buy=|mint=)([1-9A-HJ-NP-Za-km-z]{32,50})/i);
+      return (u && u[1]) || m[0];
+    }
+    return s;
+  }
+
   // Pure export for unit tests / reuse (no FOMO builders).
   globalThis.DDShare = {
     CA: CA,
@@ -355,6 +371,7 @@
     BUY: BUY,
     DESK: DESK,
     buildSharePack: buildSharePack,
+    normalizeMint: normalizeMint,
   };
 
   if (typeof document === 'undefined') return;
@@ -404,11 +421,6 @@
     document.body.removeChild(ta);
   }
 
-  function normalizeMint(raw) {
-    return String(raw || '')
-      .trim()
-      .replace(/\s+/g, '');
-  }
 
   function verify() {
     var box = $('dd-verify');
@@ -454,7 +466,7 @@
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) {
       $('dd-tweet').href =
-        'https://x.com/intent/tweet?text=' + encodeURIComponent(line);
+        'https://x.com/intent/post?text=' + encodeURIComponent(line);
     }
   }
 
@@ -492,6 +504,11 @@
       })
       .then(function (data) {
         var pairs = (data && data.pairs) || [];
+        if (!pairs.length) {
+          if ($('dd-asof')) $('dd-asof').textContent = 'Dex: no pools returned';
+          if ($('dd-live')) $('dd-live').textContent = 'no pool';
+          return;
+        }
         var best = pairs[0];
         for (var i = 1; i < pairs.length; i++) {
           var a = pairs[i].liquidity && pairs[i].liquidity.usd;

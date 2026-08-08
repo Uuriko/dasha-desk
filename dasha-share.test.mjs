@@ -44,6 +44,15 @@ assert.ok(verify.includes('rugcheck.xyz/tokens/' + DD.CA));
 assert.ok(verify.includes(DD.CA));
 assert.ok(!verify.includes('jup.ag'), 'verify pack stays informational');
 
+// Mint paste: explorer URLs and zero-width junk
+assert.equal(DD.normalizeMint(DD.CA), DD.CA);
+assert.equal(DD.normalizeMint('  ' + DD.CA + '  '), DD.CA);
+assert.equal(DD.normalizeMint('https://solscan.io/token/' + DD.CA), DD.CA);
+assert.equal(DD.normalizeMint('https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=' + DD.CA), DD.CA);
+assert.equal(DD.normalizeMint('\u200b' + DD.CA), DD.CA);
+assert.notEqual(DD.normalizeMint('11111111111111111111111111111111'), DD.CA);
+
+
 // Body contract: core IDs present, pressure surfaces gone
 for (const id of [
   'dd-ca',

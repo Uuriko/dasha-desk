@@ -41,6 +41,22 @@
     );
   }
 
+  function normalizeMint(raw) {
+    var s = String(raw || '')
+      .trim()
+      /* zero-width / BOM that break exact match when pasting */
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\s+/g, '');
+    /* paste of explorer / jupiter / phantom URL → extract base58 mint */
+    var m = s.match(/[1-9A-HJ-NP-Za-km-z]{32,50}/);
+    if (m) {
+      /* prefer segment after /token/ or buy= when present */
+      var u = s.match(/(?:token\/|buy=|mint=)([1-9A-HJ-NP-Za-km-z]{32,50})/i);
+      return (u && u[1]) || m[0];
+    }
+    return s;
+  }
+
   // Pure export for unit tests / reuse (no FOMO builders).
   globalThis.DDShare = {
     CA: CA,
@@ -48,6 +64,7 @@
     BUY: BUY,
     DESK: DESK,
     buildSharePack: buildSharePack,
+    normalizeMint: normalizeMint,
   };
 
   if (typeof document === 'undefined') return;
@@ -97,11 +114,6 @@
     document.body.removeChild(ta);
   }
 
-  function normalizeMint(raw) {
-    return String(raw || '')
-      .trim()
-      .replace(/\s+/g, '');
-  }
 
   function verify() {
     var box = $('dd-verify');
@@ -147,7 +159,7 @@
     if ($('dd-share')) $('dd-share').value = line;
     if ($('dd-tweet')) {
       $('dd-tweet').href =
-        'https://x.com/intent/tweet?text=' + encodeURIComponent(line);
+        'https://x.com/intent/post?text=' + encodeURIComponent(line);
     }
   }
 
@@ -185,6 +197,11 @@
       })
       .then(function (data) {
         var pairs = (data && data.pairs) || [];
+        if (!pairs.length) {
+          if ($('dd-asof')) $('dd-asof').textContent = 'Dex: no pools returned';
+          if ($('dd-live')) $('dd-live').textContent = 'no pool';
+          return;
+        }
         var best = pairs[0];
         for (var i = 1; i < pairs.length; i++) {
           var a = pairs[i].liquidity && pairs[i].liquidity.usd;
