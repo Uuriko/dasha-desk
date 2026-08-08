@@ -1,7 +1,7 @@
 name: Idea / feature
 description: Propose a focused improvement to the Desk.
 title: "[Idea]: "
-labels: [idea, community]
+labels: [enhancement]
 body:
   - type: markdown
     attributes:
