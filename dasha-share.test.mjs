@@ -111,7 +111,7 @@ assert.ok(build.includes('<link rel="canonical" href="https://www.getdasha.com/d
 assert.ok(build.includes('<meta property="og:url" content="https://www.getdasha.com/dasha"/>'), 'Desk og:url missing');
 assert.ok(build.includes('<title>$dasha desk — verify, chart, buy</title>'), 'Desk title drifted from production');
 assert.ok(build.includes('dasha-icon-32.png') && build.includes('dasha-icon-180.png'), 'standalone Desk icons missing');
-const socialCard = 'https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a769a95c4b741dec227190f_dasha-social-card-v2.png';
+const socialCard = 'https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a773b5a0a2303b170ea67c0_dasha-social-card-v3.png';
 assert.ok(build.includes(`<meta property="og:image" content="${socialCard}"/>`), 'standalone Desk social card missing');
 assert.ok(build.includes(`<meta name="twitter:image" content="${socialCard}"/>`), 'standalone Desk Twitter card missing');
 assert.ok(build.includes('<meta property="og:image:width" content="1200"/>') && build.includes('<meta property="og:image:height" content="630"/>'), 'standalone Desk social dimensions missing');

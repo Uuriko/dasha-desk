@@ -24,14 +24,14 @@ const meta = `<!DOCTYPE html>
 <meta property="og:description" content="Check the mint. Inspect sources."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://www.getdasha.com/dasha"/>
-<meta property="og:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a769a95c4b741dec227190f_dasha-social-card-v2.png"/>
+<meta property="og:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a773b5a0a2303b170ea67c0_dasha-social-card-v3.png"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
 <meta property="og:image:alt" content="Dasha remix Studio card with three colorful editable artifact previews."/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="$dasha desk — verify, chart, buy"/>
 <meta name="twitter:description" content="Check the mint. Inspect sources."/>
-<meta name="twitter:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a769a95c4b741dec227190f_dasha-social-card-v2.png"/>`;
+<meta name="twitter:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a773b5a0a2303b170ea67c0_dasha-social-card-v3.png"/>`;
 
 const pageEnd = '</body>\n</html>\n';
 
