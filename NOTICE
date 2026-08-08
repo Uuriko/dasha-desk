@@ -1,25 +1,8 @@
 dasha desk — rights notice
 ==========================
 
-Code and original project documentation in this repository are under the MIT
-License (see LICENSE).
+Code and original documentation are available under the [MIT License](LICENSE).
 
-Explicitly NOT covered by MIT unless separately stated:
+Third-party media, token art, market data, posts, names, and services retain their original rights and terms. Their appearance or citation does not imply endorsement, authorization, or affiliation.
 
-1. Third-party portraits and social media (see assets/ATTRIBUTION.md).
-2. Hotlinked remote media (X/pbs, Dex CMS, etc.) — rights remain with their
-   publishers; hotlinking is not a redistribution grant.
-3. The $dasha mint, Jupiter, explorers, and other third-party services — their
-   terms apply.
-4. Any reference to Dasha Nekrasova, Red Scare, or @dash_eats — public culture
-   context only; association is not endorsement, authorization, or brand use.
-
-Permanently out of scope for this product and not part of the open-source
-offering:
-
-- Thesis Card / conviction receipts / forecasting / Pair
-- FOMO, raid, referral, or Telegram “community” features
-- Wallet custody or non-custodial claim products
-
-If you find retired product files or evidence dumps in a fork or old commit,
-treat them as historical scrap — do not revive them as product surface.
+See [assets/ATTRIBUTION.md](assets/ATTRIBUTION.md) before adding or redistributing media.
