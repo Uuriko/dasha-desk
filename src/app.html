@@ -220,7 +220,9 @@
   outline:3px solid var(--accent);outline-offset:3px;
 }
 .dd-btn-primary{
-  background:linear-gradient(135deg,#a78bfa,#7c3aed);
+  /* Deeper than it looks: white on #a78bfa is 2.9:1, so the old light end failed AA on the one
+     button that matters. #7c3aed is the lightest stop that still clears 4.5:1 against white. */
+  background:linear-gradient(135deg,#7c3aed,#5b21b6);
   border-color:transparent;color:#fff;
   box-shadow:0 8px 24px rgba(124,58,237,.28);
 }
