@@ -8,4 +8,8 @@ The current repository does not redistribute third-party photos or social-media 
 - Token art and market data are supplied by third-party services.
 - Association with a public account, quote, or token is not endorsement.
 
+## Project-generated
+
+- `assets/desk-demo.gif` — screenshot animation of the Desk UI for README; original project media (same MIT terms as code).
+
 Do not add third-party media to a release without recording its source and reuse rights here.

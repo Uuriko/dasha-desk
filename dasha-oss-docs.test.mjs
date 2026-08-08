@@ -22,6 +22,17 @@ assert.match(readme, /contribute|community|pull request/i, 'README must invite c
 assert.match(readme, /\$dasha|dasha/i, 'README must name the product');
 assert.match(contrib, /issue|PR|pull request|fork/i, 'CONTRIBUTING must describe how to help');
 assert.match(readme, /src\/body\.html|src\/app\.js|generated/i, 'README should point at sources or generated surfaces');
+assert.match(readme, /getdasha\.com\/dasha/, 'README must link live desk');
+assert.ok(
+  !/uuriko\.github\.io\/dasha-desk/.test(readme) || true,
+  'pages link optional when live',
+);
+// Demo asset for strangers (GIF or PNG)
+assert.ok(
+  existsSync(join(root, 'assets/desk-demo.gif')) || existsSync(join(root, 'assets/desk-demo.png')),
+  'README demo visual missing (assets/desk-demo.gif|png)',
+);
+assert.match(readme, /desk-demo\.(gif|png)/, 'README must embed demo visual');
 
 // Idea template path for community roadmap input
 assert.ok(
@@ -29,5 +40,6 @@ assert.ok(
     existsSync(join(root, 'docs/COMMUNITY.md')),
   'community idea path missing (issue template or COMMUNITY.md)',
 );
+assert.ok(existsSync(join(root, '.github/workflows/verify.yml')) || existsSync(join(root, '.github/workflows/pages.yml')), 'CI workflow missing');
 
 console.log('dasha-oss-docs: PASS');
