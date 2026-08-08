@@ -53,6 +53,27 @@ assert.equal(DD.normalizeMint('https://jup.ag/swap?sell=So1111111111111111111111
 assert.equal(DD.normalizeMint('\u200b' + DD.CA), DD.CA);
 assert.notEqual(DD.normalizeMint('11111111111111111111111111111111'), DD.CA);
 
+// Last-visit stamp (localStorage-shaped mock)
+assert.equal(typeof DD.visitStamp, 'function', 'visitStamp exported');
+const mem = (() => {
+  const m = new Map();
+  return {
+    getItem: (k) => (m.has(k) ? m.get(k) : null),
+    setItem: (k, v) => m.set(k, String(v)),
+  };
+})();
+const first = DD.visitStamp(mem, 1_700_000_000_000, DD.CA);
+assert.equal(first.mintChanged, false);
+assert.match(first.label, /first check/i);
+const second = DD.visitStamp(mem, 1_700_000_100_000, DD.CA);
+assert.equal(second.mintChanged, false);
+assert.match(second.label, /last check/i);
+const drift = DD.visitStamp(mem, 1_700_000_200_000, '11111111111111111111111111111111');
+assert.equal(drift.mintChanged, true);
+assert.match(drift.label, /differs|re-verify/i);
+
+assert.ok(body.includes('id="dd-visit"'), 'body has #dd-visit');
+
 
 // Body contract: core IDs present, pressure surfaces gone
 for (const id of [
