@@ -18,3 +18,5 @@ jobs:
         run: node dasha-share.test.mjs
       - name: OSS docs
         run: node dasha-oss-docs.test.mjs
+      - name: Mint consistency
+        run: node dasha-mint-consistency.test.mjs

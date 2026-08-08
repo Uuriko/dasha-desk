@@ -32,6 +32,7 @@ node build.mjs --write
 node build.mjs --check
 node dasha-share.test.mjs
 node dasha-oss-docs.test.mjs
+node dasha-mint-consistency.test.mjs
 ```
 
 Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json)
