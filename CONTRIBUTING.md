@@ -16,7 +16,7 @@ No clone, no Node, no build.
 ## Make a change
 
 1. Branch from `main`.
-2. Edit `src/` or `config/dasha.json`.
+2. Edit `src/` (or the relevant document).
 3. Regenerate and check the builds:
 
    ```bash

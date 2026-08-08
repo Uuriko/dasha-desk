@@ -31,14 +31,15 @@ node build.mjs --check
 node dasha-share.test.mjs
 ```
 
-Canonical sources:
+Runtime sources:
 
 - [`src/body.html`](src/body.html)
 - [`src/styles.css`](src/styles.css)
 - [`src/app.js`](src/app.js)
-- [`config/dasha.json`](config/dasha.json)
 
 `src/app.html`, `index.html`, and `dist/index.html` are generated. Do not edit them by hand.
+
+[`config/dasha.json`](config/dasha.json) is a small machine-readable reference, not a build input.
 
 ## Contribute
 
