@@ -162,3 +162,23 @@
 .dd-tape{display:flex;gap:8px;overflow-x:auto;padding:0 0 14px;margin:0 0 4px;-webkit-overflow-scrolling:touch}
 .dd-tape a{flex:0 0 auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#12091c}
 .dd-tape img{display:block;width:88px;height:88px;object-fit:cover}
+#scrollTopBtn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 12px 16px;
+    border-radius: 50%;
+    font-size: 18px;
+    background: #333;
+    color: white;
+    transition: 0.3s;
+}
+
+#scrollTopBtn:hover {
+    background: #555;
+}
