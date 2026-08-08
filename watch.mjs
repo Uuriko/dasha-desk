@@ -129,17 +129,30 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy']) {
   }
 }
 
-// The second public copy of the Desk. A visitor cannot tell which deployment they landed on.
-{
-  const res = await get(PAGES);
-  fail(res.ok, `pages: unreachable — ${res.error || 'HTTP ' + res.status}`);
-  if (res.ok) {
-    const html = await res.text();
-    fail(html.includes(MINT), 'pages: the mint is not shown');
-    fail(!RETIRED.test(html), 'pages: a retired product is live again');
+/* The second public deployment. A visitor cannot tell which one they landed on, so it gets the same
+   standard rather than a shallower one — Codex's review pointed out that this was checking the mint
+   and then merely confirming the Studio answered at all, which left the alternate public copy
+   materially less watched than the primary. Same invariants, both copies. */
+for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio/']]) {
+  const res = await get(url);
+  fail(res.ok, `${label}: unreachable — ${res.error || 'HTTP ' + res.status}`);
+  if (!res.ok) continue;
+  const html = await res.text();
+
+  for (const found of html.match(/[1-9A-HJ-NP-Za-km-z]{32,44}pump/g) || []) {
+    fail(found.endsWith(MINT), `${label}: shows an address that is not our mint — ${found}`);
   }
-  const studio = await get(PAGES + 'studio/');
-  fail(studio.ok, `pages /studio/: unreachable — ${studio.error || 'HTTP ' + studio.status}`);
+  fail(!RETIRED.test(html), `${label}: a retired product is live again`);
+  for (const gone of [/can go to zero/i, /not financial advice/i, /association is not endorsement/i,
+                      /not affiliated with dasha/i]) {
+    fail(!gone.test(html), `${label}: copy the operator removed is live again — ${gone.source}`);
+  }
+  if (label.includes('studio')) {
+    fail(/CC0/.test(html), `${label}: the public-domain dedication is gone`);
+    fail(/name or likeness/i.test(html), `${label}: the likeness carve-out is gone`);
+  } else {
+    fail(html.includes(MINT), `${label}: the mint is not shown`);
+  }
 }
 
 const robots = await get(`${ORIGIN}/robots.txt`);
