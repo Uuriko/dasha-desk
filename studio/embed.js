@@ -122,14 +122,9 @@ const canvas = $('canvas'), ctx = canvas.getContext('2d');
 const INK = '#070608', PAPER = '#f4eddb', ACID = '#dfff00', HOT = '#ff3b81', VIOLET = '#7c4dff';
 const MARK = 'getdasha.com';
 
-/* Every look is drawn here from the site's own palette and type. Nothing is loaded from disk or
-   the network: no photograph, no likeness, no third-party asset, so there is no image whose reuse
-   rights would have to be established before this can ship. */
+
 const LOOKS = [
-  /* Every default line is a real public @dash_eats post (docs/X-RESEARCH-DASHA-2026-08-08.md). Two
-     had been replaced with invented slogans — "Stay weird. Verify the mint." and "Nobody is coming
-     to save the timeline." — which read like any crypto account and are the one thing this tool
-     cannot afford to sound like. The voice is borrowed, not written; that is the whole point. */
+
   { id: 'photo', name: 'Photo',     line: 'How u crying at the casino and u can’t even get in' },
   { id: 'poster', name: 'Poster',   line: 'It’s time $dasha' },
   { id: 'ticket', name: 'Ticket',   line: 'You’re not gonna believe this' },
@@ -239,7 +234,7 @@ function syncURL() {
 
 if (!fragmentHasState && (queryParams.has('look') || queryParams.has('line') || queryParams.has('format'))) syncURL();
 
-/** Largest size at or below `start` where the wrapped text fits `maxH`. */
+
 function fit(text, font, start, maxW, maxH, lineRatio) {
   for (let size = start; size > 12; size -= 2) {
     ctx.font = font(size);
@@ -250,7 +245,7 @@ function fit(text, font, start, maxW, maxH, lineRatio) {
   return { size: 14, lines: wrap(text, maxW) };
 }
 
-/** Split a word with no break opportunity into chunks that each fit. */
+
 function breakWord(word, maxW) {
   const chunks = [];
   let chunk = '';
@@ -261,9 +256,7 @@ function breakWord(word, maxW) {
   return chunk ? [...chunks, chunk] : chunks;
 }
 
-/* Greedy word wrap against the CURRENT ctx.font. Over-wide words are broken by character, so
-   every line returned fits maxW — otherwise one long unspaced word (a URL, a name, a held-down
-   key) runs off the canvas and the image is unpostable, which shrinking the font never fixes. */
+
 function wrap(text, maxW) {
   const lines = [];
   for (const paragraph of text.split('\n')) {
@@ -280,17 +273,11 @@ function wrap(text, maxW) {
   return lines;
 }
 
-/* First baseline that leaves a block of `count` lines optically centred between top and bottom.
-   Anchoring the block at a fixed y instead leaves a large void under short text — which is most
-   text — and a void is what makes an image look unfinished rather than designed. */
+
 const blockStart = (top, bottom, count, size, ratio, cap = 0.72) =>
   top + ((bottom - top) - ((count - 1) * size * ratio + cap * size)) / 2 + cap * size;
 
-/* The cherries, drawn from the same 64-unit geometry as dasha-favicon.svg so the exported image
-   carries the actual mark and not just the wordmark. One function, called by every look — five
-   hand-placed copies would drift apart within a week, which is exactly how a system stops being
-   one. Recognition comes from the same shape appearing everywhere, so it is never recoloured:
-   `colour` picks the ink or paper version for the surface it sits on, nothing else. */
+
 function drawMark(x, y, size, colour) {
   const u = size / 64;
   ctx.save();
@@ -307,9 +294,7 @@ function drawMark(x, y, size, colour) {
   ctx.restore();
 }
 
-/* The character is one of the mark's cherries with a face on it. Same 64-unit grid, same stroke
-   minimum, same no-leaf rule — so the vocabulary never grows: anyone who can draw the logo can draw
-   the character, and the character teaches the logo. Drawn in coordinates, not generated. */
+
 function drawFace(x, y, size, mood, body, face) {
   const u = size / 64;
   ctx.save();
@@ -418,8 +403,7 @@ const draw = {
     drawMark(116, 150, 62, INK);
   },
 
-  /* The site's own scrolling ticker, turned into the whole picture. Short lines read best, which
-     is why its default is two words — the band count adapts so a long line still lands. */
+
   marquee(text, t = 0) {
     ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
     const phrase = `${text.toUpperCase().replace(/\s+/g, ' ').trim()} · `;
@@ -448,9 +432,7 @@ const draw = {
   signal(text, t = 0) {
     ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
     ctx.lineWidth = 3;
-    /* Rings travel outward by exactly one ring-spacing per loop, so at t = 1 the field is
-       identical to t = 0 with each ring one slot further out. Colour keys off the ring's slot
-       rather than its index, or the alternation would flip when the loop wrapped. */
+
     for (let radius = 120 + t * 96; radius < 1500; radius += 96) {
       ctx.strokeStyle = Math.round((radius - 120) / 96) % 2 ? `rgba(223,255,0,.30)` : `rgba(124,77,255,.34)`;
       ctx.beginPath(); ctx.arc(1010, 150, radius, 0, Math.PI * 2); ctx.stroke();
@@ -474,9 +456,7 @@ const draw = {
     drawMark(936, 968, 66, ACID);
   },
 
-  /* Character look: the cherry is the hero, the line is the caption. The blink is a short window of
-     the loop rather than a smooth tween — an eye is either open or shut, and a fading eyelid reads
-     as a bug. */
+
   face(text, t = 0) {
     ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
     const glow = ctx.createRadialGradient(540, 330, 0, 540, 330, 470);
@@ -529,10 +509,7 @@ const draw = {
   },
 };
 
-/* phase runs 0 -> 1 over one loop of the animation. Every look is drawn as a pure function of it,
-   so frame N of a GIF is just render(N / frames) — there is no timer, no state, and the still
-   export is simply phase 0. Each look's motion is periodic over exactly one phase so the GIF
-   loops without a seam. */
+
 function render(phase = 0) {
   canvas.width = 1080;
   canvas.height = 1080;
@@ -575,16 +552,7 @@ function render(phase = 0) {
   }
 }
 
-/* ---- GIF export ------------------------------------------------------------------------
-   Written here rather than pulled in, because the Studio ships as one file with no dependencies
-   and no network. canvas.captureStream + MediaRecorder would give animation for free, but it
-   produces WebM, which X will not accept on upload — GIF is what actually loops in a timeline,
-   so the encoder is the price of animated output.
 
-   Palette: these looks are flat brand colour plus a couple of gradients. When a clip uses 256 or
-   fewer distinct colours the table is exact and the GIF is lossless. Past that it keeps the 256
-   most common colours and maps the rest to the nearest, memoised per 5-bit RGB bucket so the
-   256-way search runs about 32k times instead of once per pixel. */
 
 function buildPalette(frames) {
   const counts = new Map();
@@ -617,7 +585,7 @@ function paletteIndex(palette, r, g, b) {
   return best;
 }
 
-/** GIF's variable-code-width LZW. Codes widen as the dictionary fills and reset at 4095. */
+
 function lzwEncode(indices, minCodeSize) {
   const bytes = [];
   let bitBuffer = 0, bitCount = 0;
@@ -635,10 +603,7 @@ function lzwEncode(indices, minCodeSize) {
     const found = dictionary.get(key);
     if (found !== undefined) { prefix = found; continue; }
     put(prefix, width);
-    /* Widen BEFORE assigning the code that needs the extra bit, not after. Assigning first and
-       widening after switches one code too early, and the decoder — which builds its table one
-       entry behind — then reads every subsequent code at the wrong width. It only goes wrong past
-       511 entries, so small images encode fine and large ones come out as garbage. */
+
     if (next === 4096) {
       put(clearCode, width);
       dictionary = new Map(); next = endCode + 1; width = minCodeSize + 1;
@@ -689,8 +654,7 @@ function encodeGIF(frames, width, height, delayCentiseconds) {
   return new Blob([new Uint8Array(out)], { type: 'image/gif' });
 }
 
-/* 480px on the long edge and 16 frames. Full 1080 would produce a file too large for X to accept
-   on mobile, and GIF is a palette format, so the size costs far less than it would on a photo. */
+
 const GIF_FRAMES = 16, GIF_LONG_EDGE = 480, GIF_DELAY_CS = 7;
 
 async function captureGIF() {
@@ -725,10 +689,7 @@ function save(blob, name = fileName()) {
   URL.revokeObjectURL(link.href);
 }
 
-/* X's intent URL cannot carry an image, so a download followed by "now go find that file and
-   attach it" is where sharing dies. Where the browser can hand the actual PNG to the share sheet
-   we do that instead, and the post is one gesture. Everywhere else we fall back to the two-step
-   and say so, rather than pretending the image travelled. */
+
 $('share').addEventListener('click', async () => {
   const blob = await png();
   const file = new File([blob], fileName(), { type: 'image/png' });
@@ -763,7 +724,7 @@ $('copy').addEventListener('click', async () => {
       $('status').textContent = 'Image copied.';
       return;
     }
-  } catch { /* fall through to save */ }
+  } catch {  }
   save(blob);
   $('status').textContent = 'Couldn’t copy — PNG saved instead.';
 });
@@ -850,7 +811,7 @@ $('edit').addEventListener('click', () => {
   render();
 });
 
-/* Public @dash_eats lines (culture-seeds gate). One tap kills blank-line friction. */
+
 const CAPTIONS = [
   'How u crying at the casino and u can’t even get in',
   'It’s time $dasha',
