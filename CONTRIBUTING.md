@@ -1,42 +1,39 @@
-# Contributing to dasha desk
+# Contributing
 
-## Boundaries
+Thanks for showing up. This project grows with **your** ideas.
 
-- Keep the product static and dependency-free unless current evidence requires otherwise.
-- Preserve the exact associated mint, one neutral Jupiter route, independent sources, and visible risk disclosure.
-- Do not add wallet claims, forecasts, FOMO, raids, referrals, Telegram, invented quotes, or endorsement claims.
-- Do not revive the permanently retired Thesis Card, receipts, or forecasting concepts.
-- Report security-sensitive mistakes through [`SECURITY.md`](SECURITY.md), not a public issue with details.
+## Ways in
 
-## Make a change
+| Path | How |
+|------|-----|
+| **Propose** | Open an issue — problem, dream feature, experiment, or “what should we build?” |
+| **Ship** | PR against `main` with a short *why* and how you checked it |
+| **Discuss** | Comment on issues; upvote what you’d use; link demos and references |
 
-1. Edit `src/body.html`, `src/styles.css`, `src/app.js`, and/or `config/dasha.json`.
-2. Run the complete local gate:
+No need to ask permission for ambitious ideas. Open the issue. The community and maintainers will sort priority together.
 
-```bash
-node build.mjs --write
-node build.mjs --check
-node dasha-share.test.mjs
-```
+## Code path (when you’re ready)
 
-3. Open a focused pull request explaining the user-visible reason and verification result.
+1. Fork + branch from `main`
+2. Prefer `src/` + `config/dasha.json`
+3. `node build.mjs --write && node build.mjs --check`
+4. Run any relevant tests (`node dasha-share.test.mjs`, etc.)
+5. PR with user-visible impact and verification notes
 
-Do not hand-edit `src/app.html`, `index.html`, or `dist/index.html`; the build generates them.
+Static HTML/CSS/JS is the happy path. New modules, packages, and experiments are welcome when they earn their keep — propose in an issue if you’re unsure where they live.
 
-Small fixes to accessibility, mobile behavior, source accuracy, mint/link validation, and clear risk communication are welcome. Product expansion needs observed user demand rather than speculative infrastructure.
+## Ideas we love (non-exhaustive)
 
-## Open-source Simp Points
+- Crypto **infra** utilities people actually open twice
+- **Consumer** flows that feel fun and clear
+- **Creative** tools (remix, share, culture)
+- Docs, examples, themes, i18n, a11y, performance
+- Anything that makes this a **series** of great tools, not one frozen page
 
-The prepared `oss-s0` season recognizes merged work without rewarding activity spam. Simp Points are public recognition only—not money, an airdrop, token utility or a claim on `$dasha`.
+If the community wants it and it can ship safely, it’s on the table.
 
-| Maintainer-applied label | Points | Typical scope |
-|---|---:|---|
-| `impact:tiny` | 5 | Typo, dead link or trivial accessibility correction |
-| `impact:small` | 15 | Focused fix, useful documentation or test correction |
-| `impact:medium` | 40 | Meaningful feature, UX or trust improvement with tests |
-| `impact:large` | 100 | Substantial cross-surface, accessibility, security or CI improvement |
-| `impact:critical` | 200 | Safely disclosed fix for an active trust or security failure |
+## Tone
 
-A scored contribution must be a non-draft pull request merged into `main`, carry exactly one impact label, and have at least one approval from a human other than its author. Operators, bots, direct pushes, unmerged work, self-approval, line counts, commit counts, stars and issues alone score zero. The caps are 300 points, eight merges per 28-day season and three merges in any rolling seven days. Spam or hostile trust changes receive `simp:no-score`.
+Be kind. Assume good intent. Attribute public sources. Don’t put secrets in the repo.
 
-Security-sensitive reports still begin privately through [`SECURITY.md`](SECURITY.md); points never justify public disclosure of an exploit.
+Questions? Open an issue — that’s the product conversation.

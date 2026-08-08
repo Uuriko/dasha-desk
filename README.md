@@ -1,74 +1,70 @@
 # dasha desk
 
-**Unofficial, open-source mint verification desk for `$dasha` on Solana.**
+**Open tools for `$dasha` — and whatever the community wants to build next.**
 
-Verify the associated mint, inspect independent sources and risk, and use one neutral Jupiter buy route. No backend, wallet connection, referral links, or price promises.
+Unofficial. MIT. Static by default. Live today: [getdasha.com/dasha](https://www.getdasha.com/dasha) · source of truth for mint verification, public culture, and buy rails.
 
-> **Status:** early alpha. The source in this repository is current; the public Webflow embed may lag it.
+The mint desk is the first useful thing. It is not the ceiling.
+
+## North star
+
+Build a **shared workshop** for crypto culture products:
+
+- **Infra that helps people** — verify addresses, clear buy paths, honest market data, shareable tools, better defaults
+- **Consumer experiences** that feel alive — memes, remix, social loops, design systems worth stealing
+- **Creative experiments** — if it’s cool, useful, or weird in a good way, open an issue and let’s talk
+
+**Roadmap is community input.** We don’t pretend to know every product from the maintainer seat. Propose. Ship small. Compose.
+
+## What’s here now
 
 | | |
 |--|--|
-| **Live desk** | https://www.getdasha.com/dasha |
 | **Repo** | https://github.com/Uuriko/dasha-desk |
-| **Associated mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
+| **Live desk** | https://www.getdasha.com/dasha |
+| **Home / Studio** | https://www.getdasha.com · https://www.getdasha.com/studio |
+| **Mint** | `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump` |
 
-## Contribute
+**Today’s desk:** associated mint · copy / check · public quotes · Dex numbers · share pack · Jupiter / chart / explorers.
 
-Issues, focused pull requests, documentation, tests, accessibility fixes and trust improvements are welcome.
+**Nearby (same brand surface, more repos welcome):** Meme Studio remix · culture landing · more tools as they earn a home.
 
-- Read [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
-- Browse [open issues](https://github.com/Uuriko/dasha-desk/issues) or propose a bounded improvement.
-- Every pull request runs the build and trust checks automatically.
-- Merged, reviewed, maintainer-labeled pull requests can earn open-source Simp Points under the public rubric. Points are recognition only—not money, an airdrop or token utility.
-
-Sensitive security reports belong in [GitHub's private reporting flow](https://github.com/Uuriko/dasha-desk/security/advisories/new), never a public issue.
-
-## What it does
-
-- displays the associated mint with copy and paste-to-check tools;
-- links the public source post and independent Solana explorers;
-- provides one Jupiter buy route and a separate chart link;
-- creates a neutral fact pack with mint, source, chart, and risk context;
-- keeps the risk disclosure visible: culture coins can go to zero.
-
-The public association is not an endorsement by Dasha Nekrasova, Red Scare, or `@dash_eats`.
-
-## Run locally
+## Quick start
 
 ```bash
 git clone https://github.com/Uuriko/dasha-desk.git
 cd dasha-desk
-node build.mjs --check
 python3 -m http.server 8766
-# open http://127.0.0.1:8766/
+# → http://127.0.0.1:8766/
 ```
 
-There is no install step. The app is static HTML, CSS, and JavaScript.
-
-## Source and verification
-
-Edit [`src/body.html`](src/body.html), [`src/styles.css`](src/styles.css), [`src/app.js`](src/app.js), or [`config/dasha.json`](config/dasha.json), then regenerate and verify:
-
 ```bash
-node build.mjs --write
-node build.mjs --check
+node build.mjs --write   # regenerate embeds / standalone
+node build.mjs --check   # fail on drift
 node dasha-share.test.mjs
 ```
 
-Generated files are [`src/app.html`](src/app.html) for Webflow, [`index.html`](index.html) for static hosting, and [`dist/index.html`](dist/index.html) for a self-contained build. Do not edit them by hand.
+Canonical sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json).
 
-## Product boundaries
+## Contribute
 
-This project deliberately does not include wallet custody, claims, forecasts, FOMO copy, raid kits, referrals, Telegram, a backend, or accounts. The Thesis Card, receipts, and forecasting concepts are permanently retired and are not part of Dasha.
+**Anyone can contribute.** Designers, engineers, meme lords, infra people, writers.
 
-See [`docs/PRODUCT.md`](docs/PRODUCT.md) for the product contract, [`CONTRIBUTING.md`](CONTRIBUTING.md) before proposing a change, and [`docs/DEPLOY.md`](docs/DEPLOY.md) for deployment surfaces.
+1. **Idea** → [open an issue](https://github.com/Uuriko/dasha-desk/issues/new/choose) (feature, experiment, docs, or “what if…”)
+2. **Code** → fork, branch, PR — see [CONTRIBUTING.md](CONTRIBUTING.md)
+3. **Shape the series** → comment on what should exist next (desk modules, studio, APIs, kits, research tools — open field)
 
-## Security and trust
+Good first moves: polish UX, accessibility, i18n, better public-data hooks, docs, examples, new static modules, creative surfaces that plug into the same mint honesty.
 
-Wrong mints, substituted buy links, hostile external data, and impersonation are security issues. Follow [`SECURITY.md`](SECURITY.md) and do not publish exploit details in an issue.
+We care about **community signal on what to build** more than a fixed feature list.
 
-Always verify the mint independently before swapping. This software is not financial, legal, or tax advice.
+## License & honesty
 
-## License
+- Code: [MIT](LICENSE)
+- Media: see [`assets/ATTRIBUTION.md`](assets/ATTRIBUTION.md) (not all assets are MIT)
+- Association with public culture is **not endorsement**
+- Third-party data can fail; the page should still be usable
 
-[MIT](LICENSE) covers project code and original documentation. Third-party media is not automatically MIT-licensed; see [`assets/ATTRIBUTION.md`](assets/ATTRIBUTION.md).
+## Deploy
+
+See [`docs/DEPLOY.md`](docs/DEPLOY.md). Webflow embeds use `src/app.html`. GitHub Pages optional from `main`.

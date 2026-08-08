@@ -1,19 +1,16 @@
 ## Why
 
-What user-visible problem does this solve?
+What does this unlock for users or contributors?
 
 ## What changed
 
-- 
+-
 
-## Verification
+## How checked
 
-- [ ] `node build.mjs --write`
-- [ ] `node build.mjs --check`
-- [ ] `node dasha-share.test.mjs`
-- [ ] I did not change the associated mint, buy route, risk language or attribution without public evidence.
-- [ ] I did not add secrets, wallet custody, referrals, price promises, endorsement claims or retired Thesis Card/receipt concepts.
+- [ ] `node build.mjs --write && node build.mjs --check` (if sources changed)
+- [ ] Spot-checked in a browser / local server
 
-## Simp Points
+## Community
 
-Maintainers apply at most one `impact:*` label after review. A label is recognition, not payment or promised token value.
+Does this relate to an issue? Link it. New idea? A short note is enough.

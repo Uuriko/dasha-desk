@@ -1,5 +1,8 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
-  - name: Private security report
+  - name: Security (private)
     url: https://github.com/Uuriko/dasha-desk/security/advisories/new
-    about: Report wrong mints, hostile buy links, injection, impersonation or another sensitive vulnerability privately.
+    about: Sensitive vulns, wrong mint concerns, or anything that shouldn’t be public yet.
+  - name: Live product
+    url: https://www.getdasha.com/dasha
+    about: Try the desk before proposing changes.

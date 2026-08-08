@@ -1,35 +1,29 @@
-name: Bug report
-description: Report a reproducible problem that is safe to discuss publicly.
+name: Bug
+description: Something broken or confusing on the desk or docs.
 title: "[Bug]: "
 labels: [bug]
 body:
-  - type: markdown
-    attributes:
-      value: For wrong mints, hostile buy links, injection, impersonation or anything that could put users or funds at risk, stop and use Security → Report a vulnerability instead.
   - type: textarea
-    id: problem
+    id: happened
     attributes:
       label: What happened?
-      description: Include the page, control and observed result.
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: What should have happened?
+      label: What did you expect?
     validations:
       required: true
   - type: textarea
-    id: reproduce
+    id: repro
     attributes:
-      label: Reproduction
-      description: Give the smallest repeatable sequence, browser and viewport.
-    validations:
-      required: true
+      label: How to reproduce
+      description: Steps, browser, URL if useful.
   - type: checkboxes
     id: safety
     attributes:
-      label: Safety check
+      label: Safety
       options:
-        - label: This report contains no seed phrase, private key, secret or unsafe exploit detail.
+        - label: No private keys, seeds, or secrets in this report
           required: true

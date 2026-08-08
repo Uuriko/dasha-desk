@@ -1,0 +1,47 @@
+name: Idea / feature
+description: Propose something to build — ambitious is welcome. Community input shapes the roadmap.
+title: "[Idea]: "
+labels: [idea, community]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **What should exist next?** Infra, consumer product, creative tool, docs, experiment — open field.
+        The roadmap is community signal. Sketch freely; we refine in the thread.
+  - type: textarea
+    id: dream
+    attributes:
+      label: The idea
+      description: What would you love to use or contribute?
+      placeholder: A module that… / A tool for… / What if we…
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters
+      description: Who is it for? What becomes easier, cooler, or safer?
+    validations:
+      required: true
+  - type: dropdown
+    id: vibe
+    attributes:
+      label: Rough category (pick closest)
+      options:
+        - Crypto infra / tooling
+        - Consumer experience
+        - Creative / culture
+        - Docs / DX / examples
+        - Other / not sure
+    validations:
+      required: true
+  - type: textarea
+    id: next
+    attributes:
+      label: First slice (optional)
+      description: Smallest demo or PR that would prove it. Or leave blank and we’ll jam in comments.
+  - type: textarea
+    id: refs
+    attributes:
+      label: Links (optional)
+      description: Mockups, prior art, tweets, related repos.
