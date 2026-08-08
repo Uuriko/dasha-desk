@@ -17,6 +17,16 @@ The Desk stays small. Work earns a place by making verification clearer, safer, 
 
 Each starts as an issue with a small testable slice. None is promised.
 
+## Resolved (maintainer work)
+
+Tracked on GitHub so newcomers see the project moves. These are **not** external community PRs yet — when an outside PR merges, it will be listed here with credit.
+
+- Demo GIF + README first-hour path
+- CI verify + mint consistency gates
+- Good first issues and Ideas template (#4, #7, #8 open or done as labeled)
+- Neutral desk copy (no FOMO/raid framing)
+- Contribute entry points via GitHub `/contribute` + site `#oss`
+
 ## Not now
 
 - wallets, accounts, custody, or trading-terminal features

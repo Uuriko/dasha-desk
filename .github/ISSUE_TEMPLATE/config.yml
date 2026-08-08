@@ -1,8 +1,14 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Start contributing
+    url: https://github.com/Uuriko/dasha-desk/contribute
+    about: Good first issues and beginner-friendly tasks (open-source project contribution).
   - name: Security (private)
     url: https://github.com/Uuriko/dasha-desk/security/advisories/new
     about: Sensitive vulns, wrong mint concerns, or anything that shouldn’t be public yet.
   - name: Live product
     url: https://www.getdasha.com/dasha
     about: Try the desk before proposing changes.
+  - name: Site open-source section
+    url: https://www.getdasha.com/#oss
+    about: How Contribute on GitHub is framed on the public site.

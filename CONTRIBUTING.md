@@ -1,9 +1,14 @@
 # Contributing
 
+This guide is for **open-source project contributors** (code, docs, ideas on GitHub).
+It is not a payment, airdrop, bag check, or paid program.
+
 There is nothing to join. Open a pull request and you are a contributor — no invite, no org access,
 no application.
 
-**Roadmap is community input.** Browse [good first issues](https://github.com/Uuriko/dasha-desk/labels/good%20first%20issue) or the pinned [Ideas welcome](https://github.com/Uuriko/dasha-desk/issues/7) thread.
+**Product context:** [getdasha.com open source](https://www.getdasha.com/#oss) · live desk [getdasha.com/dasha](https://www.getdasha.com/dasha)
+
+**Start here:** [good first issues](https://github.com/Uuriko/dasha-desk/contribute) · pinned [Ideas welcome](https://github.com/Uuriko/dasha-desk/issues/7)
 
 ## No setup needed
 
@@ -17,7 +22,7 @@ No clone, no Node, no build.
 
 ## Claim a good first issue
 
-1. Find an open issue with the `good first issue` label.
+1. Open [github.com/Uuriko/dasha-desk/contribute](https://github.com/Uuriko/dasha-desk/contribute).
 2. Comment that you want it (e.g. “I’d like to take this”).
 3. Open a PR that references the issue (`Closes #N`).
 

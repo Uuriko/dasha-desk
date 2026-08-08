@@ -2,9 +2,23 @@
 
 Open-source mint desk for `$dasha` on Solana — static, honest, remixable.
 
-[Live desk](https://www.getdasha.com/dasha) · [GitHub Pages demo](https://uuriko.github.io/dasha-desk/) · [Website](https://www.getdasha.com) · [Studio](https://www.getdasha.com/studio)
+[Live desk](https://www.getdasha.com/dasha) · [GitHub Pages demo](https://uuriko.github.io/dasha-desk/) · [Website](https://www.getdasha.com) · [Studio](https://www.getdasha.com/studio) · [Site: open source](https://www.getdasha.com/#oss)
 
 ![Dasha desk — mint, sources, buy rails](assets/desk-demo.gif)
+
+## Start contributing (open-source project)
+
+This is **code and docs contribution** to the public MIT repo — not a payment, bag check, or paid program. Open a pull request and you are a project contributor. No invite.
+
+**Fastest path (no clone):**
+
+1. Open **[good first issues](https://github.com/Uuriko/dasha-desk/contribute)** (GitHub’s `/contribute` page).
+2. Or fix a typo in the browser: open a file → pencil → **Propose changes** → PR.
+3. Full guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+Also: [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
+
+CI runs build drift, share tests, and OSS doc checks on every PR.
 
 ## What it does
 
@@ -40,19 +54,8 @@ Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styl
 
 `src/app.html`, `index.html`, and `dist/index.html` are **generated** — do not edit by hand.
 
-## Contribute
-
-Anyone can contribute. Start small or go ambitious.
-
-- [Good first issues](https://github.com/Uuriko/dasha-desk/labels/good%20first%20issue)
-- [Open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose)
-- [CONTRIBUTING.md](CONTRIBUTING.md) · [ARCHITECTURE.md](docs/ARCHITECTURE.md) · [ROADMAP.md](docs/ROADMAP.md) · [X voice dump](docs/X-RESEARCH-DASHA-2026-08-08.md)
-- [The archive](docs/ARCHIVE.md) — what happened and who made it. Needs no code: edit it in the browser and open a pull request.
-
-CI runs build drift, share tests, and OSS doc checks on every PR.
-
 ## Trust
 
-No wallet, no custody, no transaction construction. Third-party data can fail; the mint and source paths stay usable when it does, and no number is ever invented to fill a gap.
+No wallet, no custody, no price promises. Third-party data can fail; mint and source paths stay usable. Association with public culture is **not endorsement**.
 
-[MIT](LICENSE) for code · [asset attribution](assets/ATTRIBUTION.md) for media
+[MIT](LICENSE) for code · [asset attribution](assets/ATTRIBUTION.md) for media · [Code of conduct](CODE_OF_CONDUCT.md)
