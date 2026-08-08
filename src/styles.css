@@ -107,7 +107,7 @@
   box-shadow:0 8px 24px rgba(124,58,237,.28);
 }
 .dd-btn-lg{min-height:48px;padding:12px 20px;font-size:15px}
-.dd-linkish{background:transparent;border:0;color:var(--accent);min-height:42px;padding:6px 8px;text-decoration:underline;text-underline-offset:3px}
+.dd-linkish{background:transparent;border:0;color:var(--accent);min-height:44px;padding:6px 8px;text-decoration:underline;text-underline-offset:3px}
 
 .dd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:8px}
 .dd-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
@@ -136,7 +136,7 @@
 
 .dd-tools{display:flex;flex-wrap:wrap;gap:8px}
 .dd-tools a{
-  display:inline-flex;align-items:center;min-height:42px;padding:8px 14px;border-radius:999px;
+  display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border-radius:999px;
   border:1px solid var(--line);color:var(--text);text-decoration:none;font-size:14px;font-weight:700;
   background:rgba(0,0,0,.2);
 }
@@ -154,11 +154,11 @@
   .dd-btn,.dd-linkish{transition:none}
 }
 
-.dd-avatar-link{display:block;line-height:0;border-radius:16px}
+.dd-avatar-link{display:block;min-width:52px;min-height:52px;line-height:0;border-radius:16px}
 .dd-tag a,.dd-quote cite a,.dd-foot a{
-  color:#f0e7ff;font-weight:700;text-decoration:underline;text-underline-offset:3px;
+  display:inline-flex;align-items:center;min-height:44px;color:#f0e7ff;font-weight:700;text-decoration:underline;text-underline-offset:3px;
 }
 .dd-tag a:hover,.dd-quote cite a:hover,.dd-foot a:hover{color:#fff}
 .dd-tape{display:flex;gap:8px;overflow-x:auto;padding:0 0 14px;margin:0 0 4px;-webkit-overflow-scrolling:touch}
 .dd-tape a{flex:0 0 auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#12091c}
-.dd-tape img{display:block;width:72px;height:72px;object-fit:cover}
+.dd-tape img{display:block;width:88px;height:88px;object-fit:cover}
