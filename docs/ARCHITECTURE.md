@@ -53,6 +53,16 @@ Each of these exists because of a specific failure, not as ceremony.
 | `dasha-share.test.mjs` | Share text carries the mint and no invented claim. |
 | `dasha-desk-resilience.test.mjs` | The mint and source links survive every way the data API can fail — 500, connection drop, truncated JSON, empty results, nulls in every field — and no number is ever fabricated to fill a gap. |
 | `dasha-oss-docs.test.mjs` | The docs in this repo do not contradict each other. |
+| `studio/studio.test.mjs` | The Studio stays self-contained, every look id a remix URL can name still exists, and the embed is generated rather than hand-edited. |
+| `watch.mjs` | What the **live site** actually serves. Runs on a schedule, not just on a push. |
+
+`watch.mjs` is the odd one out and the most important. Every other gate reads files in this repo, and
+the failures that reach visitors happen *between* the repo and the site: the Studio's public-domain
+dedication has vanished from production five times, each time for hours, each time found by accident,
+with every file-reading gate passing throughout. It splits findings into failures (things that
+mislead someone or cost them money) and warnings (things merely worse than they should be), because a
+monitor that is permanently amber gets muted, and a muted monitor is worse than none — it looks like
+coverage.
 
 The resilience gate is the one worth reading if you only read one. It injects each failure mode and
 asserts the page still does its actual job. It also counts intercepted requests, so it cannot pass by
