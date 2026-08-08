@@ -36,6 +36,32 @@ page cannot restyle the Studio. That is why the code inside looks up elements th
 instead of `document` — an unscoped `getElementById` would reach into somebody else's page, and the
 test fails if one appears.
 
+## Put it on your site
+
+Two lines. It works on any page, including ones you do not control.
+
+```html
+<div class="dasha-studio-embed"></div>
+<script src="https://uuriko.github.io/dasha-desk/studio/embed.js"></script>
+```
+
+That is the whole thing. No build step, no key, no account, nothing to sign up for, and no request
+back to us — the script is the tool, and everything it draws happens in your visitor's browser.
+
+It cannot break your page and your page cannot break it. Everything lives in a shadow root, so your
+CSS does not reach in and its CSS does not reach out; the ids it uses cannot collide with yours.
+That is tested by rendering it inside a deliberately hostile page whose stylesheet tries to hide
+canvases, shrink headings and claim the same ids.
+
+Keep the `<div>` immediately before the `<script>` — the script finds its host by looking at the
+element right before itself, so `async` and `defer` will stop it working.
+
+Prefer to self-host? [`embed.html`](embed.html) is the same thing inline, one paste, no external
+request at all. It is bigger, and it will not pick up fixes automatically.
+
+Images made through your copy are yours and your visitors', on the same terms as everything else
+here — see the licence below.
+
 ## Add a look
 
 A "look" is a layout: poster, ticket, print, marquee, signal, face. Adding one is the most useful
