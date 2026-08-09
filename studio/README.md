@@ -42,11 +42,15 @@ Two lines. It works on any page, including ones you do not control.
 
 ```html
 <div class="dasha-studio-embed"></div>
-<script src="https://uuriko.github.io/dasha-desk/studio/embed.js"></script>
+<script src="https://uuriko.github.io/dasha-desk/studio/embed.js"
+        integrity="sha384-2oMrqr4kchUeevSYOdRHLl2cscFt12GTvqEtq4qynPgQWEspZzhCOEvGH5BnsLsC"
+        crossorigin="anonymous"></script>
 ```
 
 That is the whole thing. No build step, no key, no account, nothing to sign up for, and no request
 back to us — the script is the tool, and everything it draws happens in your visitor's browser.
+The integrity value pins the reviewed script: if the hosted file changes unexpectedly, the browser
+refuses to execute it. Copy both attributes with the script tag.
 
 It cannot break your page and your page cannot break it. Everything lives in a shadow root, so your
 CSS does not reach in and its CSS does not reach out; the ids it uses cannot collide with yours.
@@ -57,7 +61,7 @@ Keep the `<div>` immediately before the `<script>` — the script finds its host
 element right before itself, so `async` and `defer` will stop it working.
 
 Prefer to self-host? [`embed.html`](embed.html) is the same thing inline, one paste, no external
-request at all. It is bigger, and it will not pick up fixes automatically.
+request at all. It is bigger; refresh it deliberately when adopting a reviewed update.
 
 Images made through your copy are yours and your visitors', on the same terms as everything else
 here — see the licence below.

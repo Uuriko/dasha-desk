@@ -19,9 +19,6 @@
   .topbar{width:min(1080px,calc(100% - 32px));min-height:64px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;border-bottom:1px solid var(--line);padding:8px 0}
   .topbar .brand{margin-right:auto;min-height:44px;display:inline-flex;align-items:center;color:var(--paper);font-size:18px;font-weight:900;letter-spacing:-.03em;text-decoration:none;text-transform:uppercase}.topbar .brand span{color:var(--acid)}
   .topbar>a:not(.brand){color:var(--paper);font-size:12px;font-weight:900;letter-spacing:.06em;text-decoration:none;text-transform:uppercase;min-width:44px;min-height:44px;padding-inline:6px;display:inline-flex;align-items:center;justify-content:center}
-  .topbar .buy{padding:11px 14px;background:var(--acid);color:var(--ink)!important}
-  .eyebrow{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin:0}
-  .dot{width:9px;height:9px;background:var(--acid);border-radius:50%;box-shadow:0 0 18px var(--acid)}
   h1{margin:14px 0 10px;font-size:clamp(40px,8vw,76px);line-height:.82;letter-spacing:-.055em;text-transform:uppercase;font-weight:900}
   .stroke{color:var(--acid);-webkit-text-stroke:0}
   .lede{margin:0 0 28px;max-width:56ch;font-size:clamp(15px,2vw,18px);line-height:1.5;color:var(--muted)}
@@ -62,14 +59,13 @@
   footer a{color:var(--paper);font-weight:800}
   :focus-visible{outline:3px solid var(--acid);outline-offset:3px}
   @media(max-width:860px){.studio{grid-template-columns:minmax(0,1fr)}}
-  @media(max-width:520px){.topbar{gap:10px}.topbar .brand{font-size:15px}.topbar>a:not(.brand){font-size:11px}.topbar>a[href*="dash_eats"]{display:none}.topbar .buy{padding:10px 12px;min-height:44px}.wrap{padding-top:26px}}
-  @media(prefers-reduced-motion:reduce){.btn{transition:none}}@media(forced-colors:active){.btn.primary,.topbar .buy{border:2px solid ButtonText}}@media(prefers-contrast:more){.stroke{color:var(--paper);-webkit-text-stroke:0}.micro,.lede,.lineage,footer p{color:var(--paper)}}
+  @media(max-width:520px){.topbar{gap:10px}.topbar .brand{font-size:15px}.topbar>a:not(.brand){font-size:11px}.wrap{padding-top:26px}}
+  @media(prefers-reduced-motion:reduce){.btn{transition:none}}@media(forced-colors:active){.btn.primary{border:2px solid ButtonText}}@media(prefers-contrast:more){.stroke{color:var(--paper);-webkit-text-stroke:0}.micro,.lineage,footer p{color:var(--paper)}}
 </style>
 </head>
 <body>
-<nav class="topbar" aria-label="Dasha"><a class="brand" href="/">$<span>DASHA</span></a><a href="/#token" aria-label="Verify contract address">CA 53ux…pump</a><a href="/dasha#dd-mint" aria-label="Verify mint">Desk</a><a class="buy" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&amp;buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump" target="_blank" rel="noopener noreferrer">Buy $dasha ↗</a></nav>
+<nav class="topbar" aria-label="Dasha"><a class="brand" href="/">$<span>DASHA</span></a><a href="/#token" aria-label="Contract address 53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">CA 53ux…pump</a></nav>
 <main class="wrap">
-  <p class="eyebrow"><span class="dot"></span> Dasha Meme Studio · free · no wallet</p>
   <h1>$dasha <span class="stroke">Studio.</span></h1>
   <p class="remix-note" id="remix-note" hidden>Your turn.</p>
   <p class="lineage" id="lineage" hidden>From <a id="parent" href="/studio"></a></p>
@@ -96,7 +92,6 @@
       <div class="go">
         <button class="btn primary" id="share" type="button">Share</button>
         <button class="btn" id="download" type="button">Save PNG</button>
-        <button class="btn" id="copy" type="button">Copy image</button>
       </div>
       <details>
         <summary>More options</summary>
@@ -107,6 +102,7 @@
           <label for="zoom">Zoom<input id="zoom" type="range" min="1" max="2.5" step="0.05" value="1"></label>
           <label for="tilt">Tilt<input id="tilt" type="range" min="-15" max="15" step="1" value="0"></label>
           <div class="go">
+            <button class="btn" id="copy" type="button">Copy image</button>
             <button class="btn" id="gif" type="button">Save GIF</button>
             <button class="btn" id="kit" type="button">Prepare 3 sizes</button>
           </div>
@@ -114,13 +110,12 @@
       </details>
       <div class="kit-links" id="kit-links" hidden></div>
       <p class="status" id="status" role="status"></p>
-      <p class="micro">Your image carries a small getdasha.com mark—no price, target, or promise.</p>
     </div>
   </div>
 
   <footer>
-    <p>🍒 Everything the Studio <em>draws</em> — the looks, the mark, the type — is <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0 1.0</a>: copy, change, sell. Photos in the gallery are not ours and are not covered by that dedication. None of this is permission to pass work off as official, or to use Dasha Nekrasova’s name or likeness.</p>
-    <p><a href="/#token">CA 53uxQt…pump</a> · <a href="/">Home</a> · <a href="/dasha#dd-mint">Desk</a> · <a href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer">@dash_eats ↗</a> · <a href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&amp;buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump" target="_blank" rel="noopener noreferrer">Buy $dasha ↗</a> · <a href="https://github.com/Uuriko/dasha-desk/contribute" target="_blank" rel="noopener noreferrer" aria-label="Become an open-source project contributor — start with a good first issue on GitHub">Contribute on GitHub ↗</a></p>
+    <p>Graphics are <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0 1.0</a> — copy, change, sell. Gallery photos are not. Not permission to pass work off as official, or to use Dasha Nekrasova’s name or likeness.</p>
+    <p><a href="https://github.com/Uuriko/dasha-desk/contribute" target="_blank" rel="noopener noreferrer" aria-label="Contribute to Dasha on GitHub">Source ↗</a></p>
   </footer>
   <button class="undo" id="undo" type="button" hidden>Undo</button>
 </main>
@@ -863,7 +858,7 @@ $('edit').addEventListener('click', () => {
 const CAPTIONS = [
   'How u crying at the casino and u can’t even get in',
   'It’s time $dasha',
-  'It’s an old coin and Im not the dev',
+  'Well im still alive',
   'Friday in the 4HL you can really feel the pull of the weekend',
 ];
 $('chips').append(...CAPTIONS.map((text) => {

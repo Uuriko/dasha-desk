@@ -10,12 +10,15 @@
  *   node studio.test.mjs
  */
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { buildStudioEmbed } from './embed-build.mjs';
 
 const here = (f) => new URL(`./${f}`, import.meta.url);
 const studio = await readFile(here('index.html'), 'utf8');
 const embed = await readFile(here('embed.html'), 'utf8');
+const embedScript = await readFile(here('embed.js'), 'utf8');
+const readme = await readFile(here('README.md'), 'utf8');
 
 /* 1. Nothing loads that nobody approved.
       The tool's code, styles and drawn art are all in this one file, so the drawn looks work with
@@ -67,6 +70,14 @@ for (const [name, html] of [['index.html', studio], ['embed.html', embed]]) {
       a hand edit here is a fork that nobody knows exists. */
 assert.equal(embed, buildStudioEmbed(studio),
   'embed.html is stale or was hand-edited — run: node embed-build.mjs');
+
+/* The copy-paste script runs with the host page's authority. Pin the reviewed bytes so a changed
+   Pages asset fails closed instead of silently executing on every adopter's site. */
+const sri = `sha384-${createHash('sha384').update(embedScript).digest('base64')}`;
+assert.match(readme, new RegExp(`integrity=["']${sri.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`),
+  'README integrity does not match embed.js — update the copy-paste snippet with the reviewed SHA-384');
+assert.match(readme, /crossorigin=["']anonymous["']/,
+  'cross-origin SRI requires crossorigin="anonymous"');
 
 /* 6. The embed cannot fight its host page. It goes into sites we do not control, where a bare
       `#canvas` or a `body { }` rule would collide with whatever is already there. */
