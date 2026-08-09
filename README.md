@@ -28,6 +28,10 @@ This is **code and docs contribution** to the public MIT repo — not a payment,
 
 Also: [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
 
+Merged pull requests score points on the public [Simp Board](https://www.getdasha.com/#simp), sized by
+the issue's `impact:` label — [how that works](CONTRIBUTING.md#what-the-impact-labels-mean). Points are
+recognition on a page, not a payment or a token allocation.
+
 CI runs the complete build, mint, share, docs, and browser-resilience gate on every PR.
 
 ## What it does

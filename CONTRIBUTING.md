@@ -46,6 +46,32 @@ Good first contributions include keyboard and screen-reader fixes, clearer loadi
 
 For a larger idea, [open an issue](https://github.com/Uuriko/dasha-desk/issues/new/choose) with the smallest useful first slice — crypto infra, consumer UX, or creative tools are all fair game.
 
+## What the `impact:` labels mean
+
+Issues carry an `impact:` label, and it is not decoration. A merged pull request scores points on the
+public [Simp Board](https://www.getdasha.com/#simp):
+
+| Label | Points |
+|---|---:|
+| `impact:tiny` | 5 |
+| `impact:small` | 15 |
+| `impact:medium` | 40 |
+| `impact:large` | 100 |
+| `impact:critical` | 200 |
+
+A PR scores when it is merged, is not a draft, targets an allowed base branch, and has an approving
+review from **someone other than its author**. Bot accounts are rejected. There are caps — per
+season, per rolling seven days, and on total points per season — so the board measures contribution
+rather than volume, and so nobody can farm it by splitting one change into twenty.
+
+**Points are recognition and nothing else.** They are not a payment, not a token allocation, not an
+airdrop, not a claim on anything, and not a statement about anyone's worth. They are a number next to
+a name on a public page. If you want the change more than the number, you have understood it
+correctly.
+
+The scoring rules live in `dasha-simp-oss-scorer.mjs` in the operator's repo and are covered by
+tests. If a merged PR of yours is not scored and you think it should have been, say so on the issue.
+
 ## Guardrails
 
 - No price predictions, targets, returns, or urgency.
