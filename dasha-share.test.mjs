@@ -1,6 +1,6 @@
 /**
  * Trust-reset contract for dasha desk.
- * Neutral mint/source/risk surface — no FOMO, raid, referral, or Telegram.
+ * Neutral mint/source surface — no FOMO, raid, referral, or Telegram.
  */
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
@@ -30,17 +30,18 @@ const DD = sandbox.globalThis.DDShare;
 assert.ok(DD, 'DDShare must export from app.js');
 assert.equal(DD.CA, '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump');
 assert.ok(DD.BUY.includes('jup.ag') && DD.BUY.includes(DD.CA), 'BUY is Jupiter + mint');
-assert.ok(DD.PAIR.includes('dexscreener'), 'PAIR is Dexscreener');
+assert.equal(DD.PAIR, 'https://www.geckoterminal.com/solana/pools/9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7');
 
 const share = DD.buildSharePack('share');
 assert.ok(share.includes(DD.CA), 'share pack includes mint');
 assert.ok(!share.includes('jup.ag'), 'share pack does not disguise a second buy route');
-assert.ok(share.includes('dexscreener') || share.includes(DD.PAIR), 'share pack includes chart');
+assert.ok(share.includes(DD.PAIR), 'share pack includes the canonical GeckoTerminal pool');
+assert.ok(!share.includes('dexscreener.com'), 'share pack must not restore the editable Dexscreener profile');
 assert.ok(!/raid|fomo|invite|referral|telegram|t\.me/i.test(share), 'share pack stays neutral');
+assert.ok(!/culture coin|rugcheck|risk/i.test(share), 'retired coin framing returned');
 
 const verify = DD.buildSharePack('verify');
 assert.ok(verify.includes('solscan.io/token/' + DD.CA));
-assert.ok(verify.includes('rugcheck.xyz/tokens/' + DD.CA));
 assert.ok(verify.includes(DD.CA));
 assert.ok(!verify.includes('jup.ag'), 'verify pack stays informational');
 
@@ -95,7 +96,11 @@ assert.equal((body.match(/jup\.ag\/swap/g) || []).length, 1, 'exactly one Jupite
 assert.ok(!/t\.me|telegram/i.test(body), 'no Telegram');
 assert.ok(!/id="dd-fomo"|dd-fomo-|Raid this|raid kit|invite loop|dd-ref-chip|dd-sticky|dd-kit-raid/i.test(body), 'no FOMO/raid/referral/sticky chrome');
 assert.ok(!/data-raid|data-pack="raid"|Copy raid|Buy the dip/i.test(body), 'no raid/dip CTAs');
-assert.ok(body.includes('rugcheck') && body.includes('solscan'), 'source links present');
+assert.ok(body.includes('solscan'), 'source link present');
+assert.ok(!/rugcheck|source, risk/i.test(body), 'negative risk framing returned');
+const decodedBody = body.replace(/%([0-9a-f]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+assert.ok(!/can go to zero|not financial advice|association is not endorsement|\bNFA\b/i.test(decodedBody),
+  'URL-encoded share copy must not hide retired coin disclaimers');
 
 // Styles stay light and free of pressure chrome
 assert.ok(styles.includes('.dd-btn') && styles.includes('.dd-verify'), 'core styles present');

@@ -56,6 +56,10 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy']) {
   fail(res.ok, `${route}: unreachable — ${res.error || 'HTTP ' + res.status}`);
   if (!res.ok) continue;
   const html = await res.text();
+  const searchable = html + '\n' + html.replace(
+    /%([0-9a-f]{2})/gi,
+    (_, hex) => String.fromCharCode(parseInt(hex, 16)),
+  );
 
   /* The mint. Any pump-suffixed address on our own pages must be ours; this is the single string
      where being wrong takes money from someone who trusted the page. */
@@ -90,8 +94,9 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy']) {
      A decision is only as durable as the thing watching for its reversal, so this watches. */
   for (const gone of [/can go to zero/i, /not financial advice/i, /association is not endorsement/i,
                       /not affiliated with dasha/i]) {
-    fail(!gone.test(html), `${route}: copy the operator removed is live again — ${gone.source}`);
+    fail(!gone.test(searchable), `${route}: copy the operator removed is live again — ${gone.source}`);
   }
+  fail(!/\bNFA\b/i.test(searchable), `${route}: copy the operator removed is live again — NFA`);
 
   /* The promises. Losing these silently is the specific failure this file was written for. */
   if (route === '/studio') {
@@ -123,7 +128,7 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy']) {
   warn(canonical?.startsWith(ORIGIN), `${route}: canonical is ${canonical || 'missing'}`);
 
   const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
-  warn(ld.length > 0, `${route}: no structured data — machines get no description of this page`);
+  if (route === '/') warn(ld.length > 0, `${route}: no identity structured data`);
   for (const [, raw] of ld) {
     try { JSON.parse(raw); } catch { fail(false, `${route}: structured data is malformed JSON`); }
   }

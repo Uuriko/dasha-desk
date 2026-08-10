@@ -105,7 +105,6 @@ for (const [mode, handler] of Object.entries(MODES)) {
     return {
       mintShown: text.includes(mint) || [...document.querySelectorAll('*')].some((el) => el.textContent.trim() === mint),
       solscan: links.some((h) => h.includes('solscan.io')),
-      rugcheck: links.some((h) => h.includes('rugcheck.xyz')),
       jupiter: links.some((h) => h.includes('jup.ag')),
       // a number standing in for missing data is the failure we care about
       fabricated: /\bNaN\b|\$0\.00\b|\$NaN|undefined/.test(text),
@@ -116,11 +115,11 @@ for (const [mode, handler] of Object.entries(MODES)) {
   const say = (ok, what) => { if (!ok) failures.push(`${mode}: ${what}`); };
   say(intercepted > 0, 'the app never requested market data — this mode tested nothing');
   say(state.mintShown, 'the mint disappeared — the one thing the page exists to show');
-  say(state.solscan && state.rugcheck && state.jupiter, 'independent source links went missing');
+  say(state.solscan && state.jupiter, 'source links went missing');
   say(!state.fabricated, 'rendered NaN/undefined/$0.00 in place of missing data — that reads as a fact');
   say(pageErrors.length === 0, `uncaught page error: ${pageErrors[0] || ''}`);
 
-  console.log(`${mode.padEnd(22)} fetches:${intercepted} mint:${state.mintShown ? 'ok ' : 'GONE'} links:${state.solscan && state.rugcheck && state.jupiter ? 'ok ' : 'GONE'} fabricated:${state.fabricated ? 'YES' : 'no '} errors:${pageErrors.length}`);
+  console.log(`${mode.padEnd(22)} fetches:${intercepted} mint:${state.mintShown ? 'ok ' : 'GONE'} links:${state.solscan && state.jupiter ? 'ok ' : 'GONE'} fabricated:${state.fabricated ? 'YES' : 'no '} errors:${pageErrors.length}`);
   await page.close();
 }
 

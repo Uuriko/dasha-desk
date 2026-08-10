@@ -22,6 +22,9 @@ const deploy = read('docs/DEPLOY.md');
 const archive = read('docs/ARCHIVE.md');
 const studio = read('studio/README.md');
 const issueConfig = read('.github/ISSUE_TEMPLATE/config.yml');
+const watch = read('watch.mjs');
+const workflows = ['watch.yml', 'verify.yml', 'pages.yml'].map((name) => read(`.github/workflows/${name}`));
+const dependabot = read('.github/dependabot.yml');
 
 assert.match(readme, /contribute|community|pull request/i, 'README must invite contribution');
 assert.match(readme, /open-source project|project contributor|open a pull request/i, 'README must frame OSS project contribution');
@@ -62,5 +65,20 @@ assert.ok(
   'community idea path missing (issue template or COMMUNITY.md)',
 );
 assert.ok(existsSync(join(root, '.github/workflows/verify.yml')) || existsSync(join(root, '.github/workflows/pages.yml')), 'CI workflow missing');
+assert.match(watch, /if \(route === '\/'\) warn\(ld\.length > 0/, 'watcher must require identity schema only on Home');
+
+for (const workflow of workflows) {
+  for (const line of workflow.match(/^\s*-?\s*uses:\s*.+$/gm) || []) {
+    assert.match(line, /@[0-9a-f]{40}\s+#\s+v\d/, `workflow action must use a full commit SHA with a version comment: ${line.trim()}`);
+  }
+  assert.match(workflow, /actions\/checkout@[0-9a-f]{40}[^]*?persist-credentials: false/, 'checkout must not retain credentials');
+}
+for (const name of ['watch.yml', 'verify.yml']) {
+  assert.match(read(`.github/workflows/${name}`), /^permissions:\n  contents: read$/m, `${name} must use a read-only token`);
+}
+assert.match(workflows[2], /^permissions:\n  contents: read\n  pages: write\n  id-token: write$/m, 'Pages must declare only its required deploy permissions');
+for (const workflow of workflows.slice(1)) assert.match(workflow, /npm ci --ignore-scripts/, 'dependency install must disable lifecycle scripts');
+assert.match(dependabot, /package-ecosystem: github-actions[\s\S]*interval: monthly/, 'Dependabot must maintain GitHub Actions monthly');
+assert.match(dependabot, /package-ecosystem: npm[\s\S]*interval: monthly/, 'Dependabot must maintain npm monthly');
 
 console.log('dasha-oss-docs: PASS');

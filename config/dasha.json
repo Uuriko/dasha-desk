@@ -4,12 +4,11 @@
   "symbol": "$dasha",
   "chain": "solana",
   "mint": "53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
-  "pairUrl": "https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7",
+  "pairUrl": "https://www.geckoterminal.com/solana/pools/9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7",
   "links": {
     "x": "https://x.com/dash_eats",
     "jupiter": "https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
     "solscan": "https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
-    "rugcheck": "https://rugcheck.xyz/tokens/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
     "repo": "https://github.com/Uuriko/dasha-desk",
     "desk": "https://www.getdasha.com/dasha"
   }

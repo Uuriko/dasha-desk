@@ -1,10 +1,9 @@
 (function () {
   var CA = '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
-  var PAIR = 'https://dexscreener.com/solana/9kkdpvuqrqxjiuymfcy1cwqrxlwdcggur2cap2qt7bu7';
+  var PAIR = 'https://www.geckoterminal.com/solana/pools/9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7';
   var BUY =
     'https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=' + CA;
   var SOLSCAN = 'https://solscan.io/token/' + CA;
-  var RUG = 'https://rugcheck.xyz/tokens/' + CA;
   var DESK = 'https://www.getdasha.com/dasha';
   var CASINO = 'How u crying at the casino and u can’t even get in';
   var DEX =
@@ -21,14 +20,12 @@
         '$dasha mint (verify before buy)\n' +
         CA +
         '\n' +
-        SOLSCAN +
-        '\n' +
-        RUG
+        SOLSCAN
       );
     }
     // Neutral fact pack for every other kind (share/default). No FOMO, raid, or referral.
     return (
-      '$dasha · Solana culture coin\n' +
+      '$dasha\n' +
       CASINO +
       '\n\nMint:\n' +
       CA +

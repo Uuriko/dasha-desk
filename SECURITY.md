@@ -13,3 +13,10 @@ Reports are reviewed on a best-effort basis. This early-alpha project does not p
 The supported version is the current `main` branch. Third-party wallets, exchanges, explorers, social networks, and token contracts are outside this repository's control; report their vulnerabilities to their operators.
 
 Never send seed phrases, private keys, or funds to test or report an issue.
+
+## Build trust
+
+CI uses read-only tokens unless a Pages deployment needs narrowly scoped write access. Third-party
+workflow actions are pinned to full commit SHAs, with monthly Dependabot updates preserving the
+reviewable version comments. Checkout credentials are not retained. The lockfile is committed and CI
+installs it with `npm ci --ignore-scripts`; this repository has no required dependency lifecycle scripts.
