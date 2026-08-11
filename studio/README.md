@@ -1,6 +1,12 @@
 # Dasha Meme Studio
 
 Make a `$dasha` image in your browser. Six looks, three formats, PNG and animated GIF out.
+Editable handoff links live in the URL fragment so look/format/line can be opened and changed later.
+**Copy editable link**, share with image, and **Prepare 3 sizes** cover the daily content path.
+A first-export checklist (line → share/save → copy link) dismisses itself once finished on this device.
+
+Product ambition (factory + growth + social, Phase A+): operator doc
+`DASHA-CULTURE-STUDIO-PRODUCT.md` on the main Dasha tree — not required to use the Studio.
 
 **[Use it →](https://www.getdasha.com/studio)** ·
 [GitHub Pages edition](https://uuriko.github.io/dasha-desk/studio/)
@@ -43,7 +49,7 @@ Two lines. It works on any page, including ones you do not control.
 ```html
 <div class="dasha-studio-embed"></div>
 <script src="https://uuriko.github.io/dasha-desk/studio/embed.js"
-        integrity="sha384-2oMrqr4kchUeevSYOdRHLl2cscFt12GTvqEtq4qynPgQWEspZzhCOEvGH5BnsLsC"
+        integrity="sha384-JOQkT0GJFC0SOVlIPLITiNYMe2geRa9kZZeOVXLLZLI5kE/a48+WqhTZFYeNDWMb"
         crossorigin="anonymous"></script>
 ```
 

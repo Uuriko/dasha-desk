@@ -1,6 +1,7 @@
 (() => {
   const host = document.currentScript.previousElementSibling;
   if (!host || !host.classList.contains('dasha-studio-embed')) return;
+  while (host.firstChild) host.removeChild(host.firstChild);
   const root = host.attachShadow({ mode: 'open' });
   root.innerHTML = `<style>:host{--ink:#070608;--paper:#f4eddb;--acid:#dfff00;--hot:#ff3b81;--violet:#7c4dff;--line:rgba(244,237,219,.32);--muted:#e6dcc4}
   *{box-sizing:border-box}:host{margin:0;background:var(--ink);color:var(--paper);font-family:Arial,Helvetica,sans-serif;
@@ -15,8 +16,16 @@
   .lede{margin:0 0 28px;max-width:56ch;font-size:clamp(15px,2vw,18px);line-height:1.5;color:var(--muted)}
   .remix-note{margin:0 0 20px;padding:12px 14px;border-left:4px solid var(--acid);background:rgba(223,255,0,.1);font-size:14px;font-weight:800;color:var(--paper)}
   .lineage{margin:-8px 0 20px;font-size:13px;color:var(--muted)}.lineage a{color:var(--paper);font-weight:900;text-underline-offset:3px}
+  .diff-note{margin:-12px 0 20px;font-size:13px;font-weight:800;color:var(--acid)}
+  .first-export{margin:0 0 20px;padding:12px 14px;border:1px solid rgba(244,237,219,.25);list-style:none;display:grid;gap:8px}
+  .first-export[hidden]{display:none}
+  .first-export li{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:var(--muted)}
+  .first-export li::before{content:"";width:14px;height:14px;border:2px solid var(--muted);flex:0 0 auto}
+  .first-export li.done{color:var(--paper)}
+  .first-export li.done::before{border-color:var(--acid);background:var(--acid)}
+  .first-export .fe-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 4px;font-weight:900}
   .studio{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:26px;align-items:start}
-  canvas{width:100%;max-width:100%;height:auto;display:block;border:1px solid var(--line);background:var(--ink);touch-action:none;cursor:grab}
+  canvas{width:100%;max-width:100%;height:auto;display:block;border:1px solid var(--line);background:var(--ink);touch-action:pan-y;cursor:grab}
   .panel{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;min-width:0}
   .gallery{display:grid;grid-auto-flow:column;grid-auto-columns:74px;gap:8px;overflow-x:auto;padding:2px 2px 9px;scroll-snap-type:x proximity}
   .gallery label{position:relative;display:block;aspect-ratio:1;cursor:pointer;scroll-snap-align:start;border:2px solid transparent;background:rgba(255,255,255,.06);overflow:hidden}
@@ -34,7 +43,7 @@
   .chip{min-height:44px;max-width:100%;padding:8px 12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--paper);font:inherit;font-size:12px;font-weight:800;line-height:1.25;text-align:left;cursor:pointer}
   .chip:hover{border-color:var(--acid);color:var(--acid)}
   details{border-top:1px solid var(--line);padding-top:14px}summary{min-height:44px;cursor:pointer;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}summary::after{content:'+';font-size:20px}details[open] summary::after{content:'−'}
-  .advanced{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;padding-top:14px}.advanced .btn{min-height:44px;font-size:12px;box-shadow:none}
+  .advanced{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;padding-top:14px}.advanced .btn{min-height:44px;font-size:12px;box-shadow:none}.advanced input[type=range]{min-height:44px}
   .kit-links{display:flex;gap:10px;flex-wrap:wrap}.kit-links a{color:var(--paper);font-size:12px;font-weight:900;text-transform:uppercase;text-underline-offset:4px}
   .btn{flex:1 1 auto;min-height:52px;padding:0 20px;cursor:pointer;font:inherit;font-weight:900;font-size:14px;letter-spacing:.06em;
     text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
@@ -60,6 +69,15 @@
   <h1>$dasha <span class="stroke">Studio.</span></h1>
   <p class="remix-note" id="remix-note" hidden>Your turn.</p>
   <p class="lineage" id="lineage" hidden>From <a id="parent" href="/studio"></a></p>
+  <p class="diff-note" id="diff-note" hidden></p>
+  <div class="first-export" id="first-export" aria-label="First export">
+    <p class="fe-label">First export</p>
+    <ol class="first-export-steps" style="list-style:none;margin:0;padding:0;display:grid;gap:8px">
+      <li id="fe-line" data-step="line">Write a line</li>
+      <li id="fe-export" data-step="export">Share or save</li>
+      <li id="fe-link" data-step="link">Copy editable link</li>
+    </ol>
+  </div>
 
   <div class="studio">
     <canvas id="canvas" width="1080" height="1080" role="img" aria-label="Preview of the image you are making"></canvas>
@@ -83,6 +101,7 @@
       <div class="go">
         <button class="btn primary" id="share" type="button">Share</button>
         <button class="btn" id="download" type="button">Save PNG</button>
+        <button class="btn" id="copy-link" type="button">Copy editable link</button>
       </div>
       <details>
         <summary>More options</summary>
@@ -116,10 +135,23 @@ const $ = (id) => root.querySelector('#'+id);
 const canvas = $('canvas'), ctx = canvas.getContext('2d');
 const INK = '#070608', PAPER = '#f4eddb', ACID = '#dfff00', HOT = '#ff3b81', VIOLET = '#7c4dff';
 const MARK = 'getdasha.com';
+const trackedStudioEvents = new Set();
+function trackStudio(event) {
+  if (trackedStudioEvents.has(event)) return;
+  trackedStudioEvents.add(event);
+  fetch('https://lobby.getdasha.com/studio/event', { method: 'POST', mode: 'cors', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event, source: metricSource }) })
+    .then((response) => { if (!response.ok) trackedStudioEvents.delete(event); })
+    .catch(() => trackedStudioEvents.delete(event));
+}
 
-
+/* Every look is drawn here from the site's own palette and type. Nothing is loaded from disk or
+   the network: no photograph, no likeness, no third-party asset, so there is no image whose reuse
+   rights would have to be established before this can ship. */
 const LOOKS = [
-
+  /* Every default line is a real public @dash_eats post (docs/X-RESEARCH-DASHA-2026-08-08.md). Two
+     had been replaced with invented slogans — "Stay weird. Verify the mint." and "Nobody is coming
+     to save the timeline." — which read like any crypto account and are the one thing this tool
+     cannot afford to sound like. The voice is borrowed, not written; that is the whole point. */
   { id: 'photo', name: 'Photo',     line: 'How u crying at the casino and u can’t even get in' },
   { id: 'poster', name: 'Poster',   line: 'It’s time $dasha' },
   { id: 'ticket', name: 'Ticket',   line: 'You’re not gonna believe this' },
@@ -170,6 +202,11 @@ const fragmentParams = new URLSearchParams(location.hash.slice(1));
 const queryParams = new URLSearchParams(location.search);
 const fragmentHasState = fragmentParams.has('look') || fragmentParams.has('line') || fragmentParams.has('format') || fragmentParams.has('photo');
 const params = fragmentHasState ? fragmentParams : queryParams;
+/* Campaign src may arrive in the query (ads, home CTA) while look/line live in the fragment.
+   Read allowlisted src from both; fragment wins when both are present. */
+const pickSrc = (raw) => (['home', 'quiz', 'transmission-001'].includes(raw) ? raw : null);
+const campaignSource = pickSrc(fragmentParams.get('src')) || pickSrc(queryParams.get('src'));
+const metricSource = campaignSource || (document.referrer && new URL(document.referrer).origin === location.origin ? 'home' : 'direct');
 const imageOnly = params.get('arm') === 'flat';
 const requestedLook = LOOKS.find((option) => option.id === params.get('look'));
 const requestedFormat = FORMATS.find((option) => option.id === params.get('format'));
@@ -178,7 +215,7 @@ if (requestedLook) look = requestedLook;
 if (requestedFormat) format = requestedFormat;
 if (requestedPhoto) photoId = requestedPhoto[0];
 if (params.has('line')) $('line').value = params.get('line').slice(0, 120);
-const inbound = Boolean(requestedLook || requestedFormat || params.has('line'));
+const inbound = Boolean(requestedLook || requestedFormat || params.has('line') || requestedPhoto);
 if (inbound) $('remix-note').hidden = false;
 if (imageOnly) { $('remix-note').hidden = false; $('remix-note').textContent = 'Image only.'; }
 
@@ -203,11 +240,55 @@ if (parentState) {
   $('lineage').hidden = false;
 }
 
+/* First-export checklist: hide forever once all three steps done (local only). */
+const FE_KEY = 'dasha-studio-first-export-v1';
+const feDone = (() => {
+  try { return JSON.parse(localStorage.getItem(FE_KEY) || '{}'); } catch { return {}; }
+})();
+function feSave() {
+  try { localStorage.setItem(FE_KEY, JSON.stringify(feDone)); } catch { /* private mode */ }
+}
+function feMark(step) {
+  if (feDone[step]) return;
+  feDone[step] = true;
+  feSave();
+  refreshFirstExport();
+}
+function refreshFirstExport() {
+  const box = $('first-export');
+  if (!box) return;
+  for (const step of ['line', 'export', 'link']) {
+    const el = $(`fe-${step}`);
+    if (el) el.classList.toggle('done', !!feDone[step]);
+  }
+  if (feDone.line && feDone.export && feDone.link) box.hidden = true;
+}
+function materialChangedKeys(base) {
+  if (!base) return [];
+  const cur = currentState();
+  return ['look', 'format', 'line'].filter((key) => base[key] !== cur[key]);
+}
+function refreshDiffNote() {
+  const note = $('diff-note');
+  if (!note) return;
+  const base = sourceState && ['look', 'format', 'line'].some((k) => sourceState[k] !== currentState()[k])
+    ? sourceState
+    : parentState;
+  const keys = materialChangedKeys(base);
+  if (!keys.length) { note.hidden = true; note.textContent = ''; return; }
+  note.hidden = false;
+  note.textContent = `Changed: ${keys.join(', ')}.`;
+}
+refreshFirstExport();
+if (feDone.line && feDone.export && feDone.link) { /* already hidden */ }
+else if (($('line').value || '').trim()) feMark('line');
+
 function remixURL() {
   const url = new URL(location.href);
   url.search = '';
   const current = currentState();
   const state = new URLSearchParams({ look: current.look, format: current.format });
+  if (campaignSource) state.set('src', campaignSource);
   const line = $('line').value.trim();
   if (line) state.set('line', line);
   if (photoId) state.set('photo', photoId);
@@ -225,11 +306,14 @@ function remixURL() {
 
 function syncURL() {
   if (location.protocol.startsWith('http')) history.replaceState(null, '', remixURL());
+  if (($('line').value || '').trim()) feMark('line');
+  refreshDiffNote();
 }
 
 if (!fragmentHasState && (queryParams.has('look') || queryParams.has('line') || queryParams.has('format'))) syncURL();
+refreshDiffNote();
 
-
+/** Largest size at or below `start` where the wrapped text fits `maxH`. */
 function fit(text, font, start, maxW, maxH, lineRatio) {
   for (let size = start; size > 12; size -= 2) {
     ctx.font = font(size);
@@ -240,7 +324,7 @@ function fit(text, font, start, maxW, maxH, lineRatio) {
   return { size: 14, lines: wrap(text, maxW) };
 }
 
-
+/** Split a word with no break opportunity into chunks that each fit. */
 function breakWord(word, maxW) {
   const chunks = [];
   let chunk = '';
@@ -251,7 +335,9 @@ function breakWord(word, maxW) {
   return chunk ? [...chunks, chunk] : chunks;
 }
 
-
+/* Greedy word wrap against the CURRENT ctx.font. Over-wide words are broken by character, so
+   every line returned fits maxW — otherwise one long unspaced word (a URL, a name, a held-down
+   key) runs off the canvas and the image is unpostable, which shrinking the font never fixes. */
 function wrap(text, maxW) {
   const lines = [];
   for (const paragraph of text.split('\n')) {
@@ -268,11 +354,17 @@ function wrap(text, maxW) {
   return lines;
 }
 
-
+/* First baseline that leaves a block of `count` lines optically centred between top and bottom.
+   Anchoring the block at a fixed y instead leaves a large void under short text — which is most
+   text — and a void is what makes an image look unfinished rather than designed. */
 const blockStart = (top, bottom, count, size, ratio, cap = 0.72) =>
   top + ((bottom - top) - ((count - 1) * size * ratio + cap * size)) / 2 + cap * size;
 
-
+/* The cherries, drawn from the same 64-unit geometry as dasha-favicon.svg so the exported image
+   carries the actual mark and not just the wordmark. One function, called by every look — five
+   hand-placed copies would drift apart within a week, which is exactly how a system stops being
+   one. Recognition comes from the same shape appearing everywhere, so it is never recoloured:
+   `colour` picks the ink or paper version for the surface it sits on, nothing else. */
 function drawMark(x, y, size, colour) {
   const u = size / 64;
   ctx.save();
@@ -289,7 +381,9 @@ function drawMark(x, y, size, colour) {
   ctx.restore();
 }
 
-
+/* The character is one of the mark's cherries with a face on it. Same 64-unit grid, same stroke
+   minimum, same no-leaf rule — so the vocabulary never grows: anyone who can draw the logo can draw
+   the character, and the character teaches the logo. Drawn in coordinates, not generated. */
 function drawFace(x, y, size, mood, body, face) {
   const u = size / 64;
   ctx.save();
@@ -398,7 +492,8 @@ const draw = {
     drawMark(116, 150, 62, INK);
   },
 
-
+  /* The site's own scrolling ticker, turned into the whole picture. Short lines read best, which
+     is why its default is two words — the band count adapts so a long line still lands. */
   marquee(text, t = 0) {
     ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
     const phrase = `${text.toUpperCase().replace(/\s+/g, ' ').trim()} · `;
@@ -427,7 +522,9 @@ const draw = {
   signal(text, t = 0) {
     ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
     ctx.lineWidth = 3;
-
+    /* Rings travel outward by exactly one ring-spacing per loop, so at t = 1 the field is
+       identical to t = 0 with each ring one slot further out. Colour keys off the ring's slot
+       rather than its index, or the alternation would flip when the loop wrapped. */
     for (let radius = 120 + t * 96; radius < 1500; radius += 96) {
       ctx.strokeStyle = Math.round((radius - 120) / 96) % 2 ? `rgba(223,255,0,.30)` : `rgba(124,77,255,.34)`;
       ctx.beginPath(); ctx.arc(1010, 150, radius, 0, Math.PI * 2); ctx.stroke();
@@ -451,7 +548,9 @@ const draw = {
     drawMark(936, 968, 66, ACID);
   },
 
-
+  /* Character look: the cherry is the hero, the line is the caption. The blink is a short window of
+     the loop rather than a smooth tween — an eye is either open or shut, and a fading eyelid reads
+     as a bug. */
   face(text, t = 0) {
     ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
     const glow = ctx.createRadialGradient(540, 330, 0, 540, 330, 470);
@@ -504,7 +603,10 @@ const draw = {
   },
 };
 
-
+/* phase runs 0 -> 1 over one loop of the animation. Every look is drawn as a pure function of it,
+   so frame N of a GIF is just render(N / frames) — there is no timer, no state, and the still
+   export is simply phase 0. Each look's motion is periodic over exactly one phase so the GIF
+   loops without a seam. */
 function render(phase = 0) {
   canvas.width = 1080;
   canvas.height = 1080;
@@ -547,7 +649,16 @@ function render(phase = 0) {
   }
 }
 
+/* ---- GIF export ------------------------------------------------------------------------
+   Written here rather than pulled in, because the Studio ships as one file with no dependencies
+   and no network. canvas.captureStream + MediaRecorder would give animation for free, but it
+   produces WebM, which X will not accept on upload — GIF is what actually loops in a timeline,
+   so the encoder is the price of animated output.
 
+   Palette: these looks are flat brand colour plus a couple of gradients. When a clip uses 256 or
+   fewer distinct colours the table is exact and the GIF is lossless. Past that it keeps the 256
+   most common colours and maps the rest to the nearest, memoised per 5-bit RGB bucket so the
+   256-way search runs about 32k times instead of once per pixel. */
 
 function buildPalette(frames) {
   const counts = new Map();
@@ -580,7 +691,7 @@ function paletteIndex(palette, r, g, b) {
   return best;
 }
 
-
+/** GIF's variable-code-width LZW. Codes widen as the dictionary fills and reset at 4095. */
 function lzwEncode(indices, minCodeSize) {
   const bytes = [];
   let bitBuffer = 0, bitCount = 0;
@@ -598,7 +709,10 @@ function lzwEncode(indices, minCodeSize) {
     const found = dictionary.get(key);
     if (found !== undefined) { prefix = found; continue; }
     put(prefix, width);
-
+    /* Widen BEFORE assigning the code that needs the extra bit, not after. Assigning first and
+       widening after switches one code too early, and the decoder — which builds its table one
+       entry behind — then reads every subsequent code at the wrong width. It only goes wrong past
+       511 entries, so small images encode fine and large ones come out as garbage. */
     if (next === 4096) {
       put(clearCode, width);
       dictionary = new Map(); next = endCode + 1; width = minCodeSize + 1;
@@ -649,7 +763,8 @@ function encodeGIF(frames, width, height, delayCentiseconds) {
   return new Blob([new Uint8Array(out)], { type: 'image/gif' });
 }
 
-
+/* 480px on the long edge and 16 frames. Full 1080 would produce a file too large for X to accept
+   on mobile, and GIF is a palette format, so the size costs far less than it would on a photo. */
 const GIF_FRAMES = 16, GIF_LONG_EDGE = 480, GIF_DELAY_CS = 7;
 
 async function captureGIF() {
@@ -670,7 +785,16 @@ async function captureGIF() {
   return encodeGIF(frames, width, height, GIF_DELAY_CS);
 }
 
-const png = () => new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+const blobFromCanvas = (type, quality) => new Promise((resolve, reject) => {
+  canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Image unavailable')), type, quality);
+});
+const png = () => blobFromCanvas('image/png');
+const shareImage = async () => {
+  const blob = await png();
+  if (blob.size <= 5_000_000) return { blob, type: 'image/png', ext: 'png' };
+  const jpeg = await blobFromCanvas('image/jpeg', 0.9);
+  return { blob: jpeg, type: 'image/jpeg', ext: 'jpg' };
+};
 const fileName = () => `dasha-${look.id}-${format.id}.png`;
 // The cherry travels with the share text. It is the one piece of the mark that survives a platform
 // stripping images, and it is why the gate checks for it rather than for the word.
@@ -684,31 +808,71 @@ function save(blob, name = fileName()) {
   URL.revokeObjectURL(link.href);
 }
 
-
+/* X's intent URL cannot carry an image, so a download followed by "now go find that file and
+   attach it" is where sharing dies. Where the browser can hand the actual PNG to the share sheet
+   we do that instead, and the post is one gesture. Everywhere else we fall back to the two-step
+   and say so, rather than pretending the image travelled. */
+let shareBusy = false;
 $('share').addEventListener('click', async () => {
-  const blob = await png();
-  const file = new File([blob], fileName(), { type: 'image/png' });
-  const shareData = { files: [file], text: shareText(), ...(imageOnly ? {} : { url: remixURL() }) };
-  if (navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share(shareData);
-      $('status').textContent = imageOnly ? 'Shared image.' : 'Shared.';
-      return;
-    } catch (error) {
-      if (error.name === 'AbortError') { $('status').textContent = ''; return; }
+  if (shareBusy) return;
+  shareBusy = true; $('share').disabled = true; trackStudio('share_intent');
+  try {
+    const image = await shareImage();
+    const file = new File([image.blob], fileName().replace(/png$/, image.ext), { type: image.type });
+    const shareData = { files: [file], text: shareText(), ...(imageOnly ? {} : { url: remixURL() }) };
+    /* canShare({files}) does not guarantee share({files,url}) works. Abort stays silent;
+       any other share failure falls through to download + X intent (the path that always works). */
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share(shareData);
+        trackStudio('share_success'); trackStudio('completion');
+        feMark('export');
+        $('status').textContent = imageOnly ? 'Shared image.' : 'Shared.';
+        return;
+      } catch (error) {
+        if (error.name === 'AbortError') { $('status').textContent = ''; return; }
+      }
     }
+    save(image.blob, file.name);
+    const intent = new URL('https://x.com/intent/post');
+    intent.searchParams.set('text', shareText());
+    if (!imageOnly) intent.searchParams.set('url', remixURL());
+    window.open(intent, '_blank', 'noopener');
+    trackStudio('completion');
+    feMark('export');
+    $('status').textContent = imageOnly
+      ? 'Image saved — attach it in the X tab that just opened.'
+      : 'Image saved — attach it in the X tab that just opened. The editable link is already there.';
+  } catch {
+    $('status').textContent = 'Could not export this image. Try another.';
+  } finally {
+    shareBusy = false; $('share').disabled = false;
   }
-  save(blob);
-  const intent = new URL('https://x.com/intent/post');
-  intent.searchParams.set('text', shareText());
-  if (!imageOnly) intent.searchParams.set('url', remixURL());
-  window.open(intent, '_blank', 'noopener');
-  $('status').textContent = 'Image saved — attach it in the X tab that just opened. The editable link is already there.';
 });
 
 $('download').addEventListener('click', async () => {
   save(await png());
+  trackStudio('export'); trackStudio('completion');
+  feMark('export');
   $('status').textContent = `Saved ${fileName()}.`;
+});
+
+$('copy-link').addEventListener('click', async () => {
+  const url = remixURL();
+  try {
+    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
+    else {
+      const ta = Object.assign(document.createElement('textarea'), { value: url });
+      document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    }
+    trackStudio('copy_editable_link');
+    feMark('link');
+    $('status').textContent = imageOnly
+      ? 'Link copied (image-only arm — parent lineage off).'
+      : 'Editable link copied — anyone can open and change it.';
+  } catch {
+    $('status').textContent = 'Could not copy the link. Select the address bar after Share.';
+  }
 });
 
 $('copy').addEventListener('click', async () => {
@@ -717,10 +881,14 @@ $('copy').addEventListener('click', async () => {
     if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': Promise.resolve(blob) })]);
       $('status').textContent = 'Image copied.';
+      trackStudio('export'); trackStudio('completion');
+      feMark('export');
       return;
     }
-  } catch {  }
+  } catch { /* fall through to save */ }
   save(blob);
+  trackStudio('export'); trackStudio('completion');
+  feMark('export');
   $('status').textContent = 'Couldn’t copy — PNG saved instead.';
 });
 
@@ -732,6 +900,8 @@ $('gif').addEventListener('click', async () => {
     const blob = await captureGIF();
     const name = `dasha-${look.id}-${format.id}.gif`;
     save(blob, name);
+    trackStudio('export'); trackStudio('completion');
+    feMark('export');
     // X caps GIF uploads well below its image limit, and the cap is lower on mobile than desktop,
     // so the size is stated rather than left for the upload to reject.
     $('status').textContent = `Saved ${name} — ${(blob.size / 1e6).toFixed(1)} MB. Attach it on X like any image.`;
@@ -758,6 +928,8 @@ $('kit').addEventListener('click', async () => {
     return link;
   }));
   $('kit-links').hidden = false;
+  trackStudio('export'); trackStudio('completion');
+  feMark('export');
   $('status').textContent = 'Three sizes ready.';
 });
 
@@ -789,6 +961,8 @@ function restore(state) {
   if (photoId) {
     const radio = $('gallery').querySelector(`input[value="${CSS.escape(photoId)}"]`);
     if (radio) radio.checked = true;
+  } else {
+    for (const radio of $('gallery').querySelectorAll('input[type=radio]')) radio.checked = false;
   }
   $('effects').value = effect[0]; $('stickers').value = sticker;
   $('zoom').value = zoom; $('tilt').value = tilt;
@@ -800,13 +974,14 @@ let editIndex = 0;
 $('edit').addEventListener('click', () => {
   if (!photo) { $('status').textContent = 'Choose an image first.'; return; }
   remember(); editIndex = editIndex % (EFFECTS.length - 1) + 1;
+  trackStudio('first_edit');
   effect = EFFECTS[editIndex]; sticker = STICKERS[(editIndex % (STICKERS.length - 1)) + 1][0];
   zoom = 1.05 + (editIndex % 3) * .12; tilt = [-6, 4, -2][editIndex % 3];
   $('effects').value = effect[0]; $('stickers').value = sticker; $('zoom').value = zoom; $('tilt').value = tilt;
   render();
 });
 
-
+/* Public @dash_eats lines (culture-seeds gate). One tap kills blank-line friction. */
 const CAPTIONS = [
   'How u crying at the casino and u can’t even get in',
   'It’s time $dasha',
@@ -820,6 +995,7 @@ $('chips').append(...CAPTIONS.map((text) => {
   chip.textContent = text.length > 42 ? text.slice(0, 41) + '…' : text;
   chip.title = text;
   chip.addEventListener('click', () => {
+    trackStudio('first_edit');
     $('line').value = text;
     $('status').textContent = '';
     syncURL();
@@ -828,17 +1004,20 @@ $('chips').append(...CAPTIONS.map((text) => {
   return chip;
 }));
 
+let photoLoadVersion = 0;
 function loadPhoto(id, src, local = false, opts = {}) {
+  const version = ++photoLoadVersion;
   const image = new Image();
   if (!local) image.crossOrigin = 'anonymous';
   image.onload = () => {
+    if (version !== photoLoadVersion) { if (local) URL.revokeObjectURL(src); return; }
     photo = image; photoId = local ? '' : id;
     if (!opts.keepLook) { look = LOOKS[0]; $('looks').value = look.id; }
     if (local) URL.revokeObjectURL(src);
     $('status').textContent = opts.note || '';
     syncURL(); render();
   };
-  image.onerror = () => { $('status').textContent = 'That image could not be opened.'; };
+  image.onerror = () => { if (version === photoLoadVersion) $('status').textContent = 'That image could not be opened.'; };
   image.src = src;
 }
 
@@ -846,7 +1025,7 @@ $('gallery').append(...PHOTOS.map(([id, src], index) => {
   const label = document.createElement('label');
   const input = Object.assign(document.createElement('input'), { type: 'radio', name: 'photo', value: id, checked: id === photoId });
   const image = Object.assign(document.createElement('img'), { src, alt: `Dasha image ${index + 1}`, loading: 'lazy', crossOrigin: 'anonymous' });
-  input.addEventListener('change', () => loadPhoto(id, src));
+  input.addEventListener('change', () => { trackStudio('first_edit'); loadPhoto(id, src); });
   label.append(input, image); return label;
 }));
 const uploadLabel = document.createElement('label'); uploadLabel.className = 'upload'; uploadLabel.textContent = 'ADD YOURS';
@@ -856,13 +1035,13 @@ upload.addEventListener('change', () => {
   if (!file) return;
   if (!file.type.startsWith('image/')) { $('status').textContent = 'Choose an image file.'; return; }
   if (file.size > 20_000_000) { $('status').textContent = 'Choose an image under 20 MB.'; return; }
-  const url = URL.createObjectURL(file); loadPhoto('local', url, true);
+  trackStudio('first_edit'); const url = URL.createObjectURL(file); loadPhoto('local', url, true);
 });
 uploadLabel.append(upload); $('gallery').append(uploadLabel);
 if (requestedPhoto) loadPhoto(...requestedPhoto);
 
-$('effects').addEventListener('change', () => { remember(); effect = EFFECTS.find(([id]) => id === $('effects').value); render(); });
-$('stickers').addEventListener('change', () => { remember(); sticker = $('stickers').value; render(); });
+$('effects').addEventListener('change', () => { trackStudio('first_edit'); remember(); effect = EFFECTS.find(([id]) => id === $('effects').value); render(); });
+$('stickers').addEventListener('change', () => { trackStudio('first_edit'); remember(); sticker = $('stickers').value; render(); });
 $('zoom').addEventListener('focus', remember);
 $('zoom').addEventListener('input', () => { zoom = Number($('zoom').value); render(); });
 $('tilt').addEventListener('focus', remember);
@@ -872,6 +1051,7 @@ const pointers = new Map();
 let gesture = null;
 canvas.addEventListener('pointerdown', (event) => {
   if (!photo || look.id !== 'photo') return;
+  trackStudio('first_edit');
   canvas.setPointerCapture(event.pointerId); pointers.set(event.pointerId, event); remember();
   gesture = { state: snapshot(), points: [...pointers.values()] };
 });
@@ -895,6 +1075,7 @@ const endPointer = (event) => { pointers.delete(event.pointerId); gesture = poin
 canvas.addEventListener('pointerup', endPointer); canvas.addEventListener('pointercancel', endPointer);
 canvas.addEventListener('dblclick', () => { if (photo) { remember(); zoom = 1; tilt = offsetX = offsetY = 0; restore(snapshot()); } });
 $('looks').addEventListener('change', () => {
+  trackStudio('first_edit');
   look = LOOKS.find((option) => option.id === $('looks').value);
   $('line').placeholder = look.line;
   $('status').textContent = '';
@@ -902,6 +1083,7 @@ $('looks').addEventListener('change', () => {
   render();
 });
 $('formats').addEventListener('change', () => {
+  trackStudio('first_edit');
   format = FORMATS.find((option) => option.id === $('formats').value);
   $('status').textContent = '';
   syncURL();
@@ -909,6 +1091,6 @@ $('formats').addEventListener('change', () => {
 });
 
 $('line').placeholder = look.line;
-$('line').addEventListener('input', () => { syncURL(); render(); });
-render();
+$('line').addEventListener('input', () => { trackStudio('first_edit'); syncURL(); render(); });
+render(); trackStudio('open');
 })();

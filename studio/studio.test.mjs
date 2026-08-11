@@ -8,6 +8,13 @@
  * handed to, and those are the failures that actually happen:
  *
  *   node studio.test.mjs
+ *
+ * Run it from `dasha-desk/studio/`, not from here. This file is the SOURCE that
+ * dasha-studio-publish.mjs:97 copies out as `dasha-desk/studio/studio.test.mjs`, and every path in
+ * it — the `./embed-build.mjs` import, `index.html`, `embed.html`, `embed.js` — resolves only at
+ * that destination. Running it from the repo root gets ERR_MODULE_NOT_FOUND, which looks like a
+ * broken test and is not one. `npm run dasha:test:all` covers it via `dasha-studio-publish.mjs
+ * --check`, which is why nothing invokes this path directly.
  */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -27,7 +34,7 @@ const readme = await readFile(here('README.md'), 'utf8');
       Note the pattern: it matches any absolute URL, not just src=/href=. An earlier version only
       checked attributes and waved through fifteen photographs, because they are URLs in a
       JavaScript array loaded with new Image(). Markup-shaped checks do not check a canvas app. */
-const LINKS = /^https:\/\/(creativecommons\.org|github\.com\/Uuriko|jup\.ag|x\.com)/;
+const LINKS = /^https:\/\/(creativecommons\.org|github\.com\/Uuriko|jup\.ag|x\.com|lobby\.getdasha\.com)/;
 const PHOTO_HOSTS = /^https:\/\/(pbs\.twimg\.com|static1\.squarespace\.com|www\.moviemaker\.com|m\.media-amazon\.com|br\.web\.img2\.acsta\.net|avatars\.mds\.yandex\.net|upload\.wikimedia\.org)\//;
 const external = [...studio.matchAll(/https?:\/\/[^\s"'`)<>]+/g)].map((m) => m[0]);
 assert.deepEqual([...new Set(external.filter((u) => !LINKS.test(u) && !PHOTO_HOSTS.test(u)))], [],
