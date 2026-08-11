@@ -6,7 +6,7 @@ Use this repository's **Security → Report a vulnerability** flow for wrong or 
 
 If GitHub does not show that private-reporting option, open a public issue containing **no exploit details or sensitive data** and ask the maintainer to establish a private channel. Do not include a proof of concept until that channel exists.
 
-Reports are reviewed on a best-effort basis. This early-alpha project does not promise a response deadline. A report should identify the affected file or URL, impact, reproduction conditions, and a safe way to confirm the fix.
+Reports are reviewed on a best-effort basis. We aim to **acknowledge security reports within 7 days** and to keep status updates until a fix or a clear “won’t fix / out of scope” decision. A report should identify the affected file or URL, impact, reproduction conditions, and a safe way to confirm the fix. Thank you for responsible disclosure.
 
 ## Scope
 

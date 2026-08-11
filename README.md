@@ -18,19 +18,21 @@ externally sourced images keep their own rights.
 
 ## Start contributing (open-source project)
 
-This is **code and docs contribution** to the public MIT repo — not a payment, bag check, or paid program. Open a pull request and you are a project contributor. No invite.
+This is **code and docs contribution** to the public MIT repo — not a payment, bag check, or paid program. Open a pull request and you are a project contributor. No invite. **Maintainer:** [@Uuriko](https://github.com/Uuriko).
+
+**From getdasha.com:** the homepage **Work on open source ↗** / **Open source ↗** buttons land on [good first issues](https://github.com/Uuriko/dasha-desk/contribute).
 
 **Fastest path (no clone):**
 
 1. Open **[good first issues](https://github.com/Uuriko/dasha-desk/contribute)** (GitHub’s `/contribute` page).
 2. Or fix a typo in the browser: open a file → pencil → **Propose changes** → PR.
-3. Full guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+3. Full guide: [CONTRIBUTING.md](CONTRIBUTING.md) (we aim to first-reply within **7 days**).
 
-Also: [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
+Also: [Ideas welcome (#7)](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions) · [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
 
 Merged pull requests score points on the public [Simp Board](https://www.getdasha.com/#simp), sized by
 the issue's `impact:` label — [how that works](CONTRIBUTING.md#what-the-impact-labels-mean). Points are
-recognition on a page, not a payment or a token allocation.
+recognition on a page, not a payment or a token allocation. You never need points to open a PR.
 
 CI runs the complete build, mint, share, docs, and browser-resilience gate on every PR.
 

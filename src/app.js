@@ -98,6 +98,19 @@
 
   if (typeof document === 'undefined') return;
 
+  (function setupScrollTop() {
+    var btn = document.getElementById('scrollTopBtn');
+    if (!btn || typeof window === 'undefined') return;
+    var sync = function () {
+      btn.hidden = window.scrollY < 280;
+    };
+    window.addEventListener('scroll', sync, { passive: true });
+    btn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    sync();
+  })();
+
   function toast(el, label) {
     if (!el) return;
     var prev = el.textContent;
