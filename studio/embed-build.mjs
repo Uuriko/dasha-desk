@@ -159,7 +159,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const embed = buildStudioEmbed(await readFile(here('index.html'), 'utf8'));
   const script = embedScript(embed);
   const loader = studioLoaderHtml();
-  const outputs = [['embed.html', loader], ['embed.js', script]];
+  const outputs = [['embed.html', embed], ['embed.js', script]];
 
   if (process.argv.includes('--check')) {
     let stale = false;
@@ -176,6 +176,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       await writeFile(here(name), text);
       console.log(`wrote ${name} (${text.length} chars)`);
     }
-    console.log('studio loader + Worker client generated');
+    console.log('studio embed + script generated');
   }
 }
