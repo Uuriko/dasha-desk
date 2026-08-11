@@ -23,7 +23,10 @@
   .lede{margin:0 0 28px;max-width:56ch;font-size:clamp(15px,2vw,18px);line-height:1.5;color:var(--muted)}
   .remix-note{margin:0 0 20px;padding:12px 14px;border-left:4px solid var(--acid);background:rgba(223,255,0,.1);font-size:14px;font-weight:800;color:var(--paper)}
   .lineage{margin:-8px 0 20px;font-size:13px;color:var(--muted)}.lineage a{color:var(--paper);font-weight:900;text-underline-offset:3px}
-  .diff-note{margin:-12px 0 20px;font-size:13px;font-weight:800;color:var(--acid)}
+  .diff-note{margin:-12px 0 20px;padding:10px 12px;border-left:4px solid var(--acid);background:rgba(223,255,0,.08);font-size:13px;font-weight:800;color:var(--paper);line-height:1.45}
+  .diff-note[hidden]{display:none}
+  .diff-note .relay{color:var(--acid);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+  .diff-note .was{display:block;margin-top:4px;color:var(--muted);font-weight:700}
   .first-export{margin:0 0 20px;padding:12px 14px;border:1px solid rgba(244,237,219,.25);list-style:none;display:grid;gap:8px}
   .first-export[hidden]{display:none}
   .first-export li{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:var(--muted)}
@@ -123,6 +126,11 @@
             <button class="btn" id="gif" type="button">Save GIF</button>
             <button class="btn" id="kit" type="button">Prepare 3 sizes</button>
           </div>
+          <div class="go">
+            <button class="btn" id="oco-export" type="button">Save object</button>
+            <button class="btn" id="oco-import" type="button">Open object</button>
+          </div>
+          <input id="oco-file" type="file" accept="application/json,.json" hidden>
         </div>
       </details>
       <div class="kit-links" id="kit-links" hidden></div>
@@ -207,7 +215,8 @@ let undoState = null, undoTimer;
 
 const fragmentParams = new URLSearchParams(location.hash.slice(1));
 const queryParams = new URLSearchParams(location.search);
-const fragmentHasState = fragmentParams.has('look') || fragmentParams.has('line') || fragmentParams.has('format') || fragmentParams.has('photo');
+const fragmentHasState = fragmentParams.has('look') || fragmentParams.has('line') || fragmentParams.has('format')
+  || fragmentParams.has('photo') || fragmentParams.has('effect') || fragmentParams.has('sticker');
 const params = fragmentHasState ? fragmentParams : queryParams;
 /* Campaign src may arrive in the query (ads, home CTA) while look/line live in the fragment.
    Read allowlisted src from both; fragment wins when both are present. */
@@ -218,39 +227,71 @@ const imageOnly = params.get('arm') === 'flat';
 const requestedLook = LOOKS.find((option) => option.id === params.get('look'));
 const requestedFormat = FORMATS.find((option) => option.id === params.get('format'));
 const requestedPhoto = PHOTOS.find(([id]) => id === params.get('photo'));
+const requestedEffect = EFFECTS.find(([id]) => id === params.get('effect'));
 if (requestedLook) look = requestedLook;
 if (requestedFormat) format = requestedFormat;
 if (requestedPhoto) photoId = requestedPhoto[0];
+if (requestedEffect) effect = requestedEffect;
+if (params.has('sticker')) {
+  const hit = STICKERS.find(([id]) => id === params.get('sticker'));
+  if (hit) sticker = hit[0];
+}
 if (params.has('line')) $('line').value = params.get('line').slice(0, 120);
-const inbound = Boolean(requestedLook || requestedFormat || params.has('line') || requestedPhoto);
+const inbound = Boolean(requestedLook || requestedFormat || params.has('line') || requestedPhoto
+  || requestedEffect || params.has('sticker'));
 if (inbound) $('remix-note').hidden = false;
 if (imageOnly) { $('remix-note').hidden = false; $('remix-note').textContent = 'Image only.'; }
 
-const currentState = () => ({ look: look.id, format: format.id, line: $('line').value.trim() || look.line });
+/* Material handoff fields. Zoom/tilt stay session-local — too noisy for short remix URLs. */
+const STATE_KEYS = ['look', 'format', 'line', 'photo', 'effect', 'sticker'];
+const currentState = () => ({
+  look: look.id,
+  format: format.id,
+  line: $('line').value.trim() || look.line,
+  photo: photoId || '',
+  effect: effect[0],
+  sticker: sticker || '',
+});
 const sourceState = inbound ? currentState() : null;
 const parentLook = LOOKS.find((option) => option.id === params.get('pLook'));
 const parentFormat = FORMATS.find((option) => option.id === params.get('pFormat'));
 const parentLine = (params.get('pLine') || '').trim();
+const parentPhotoRaw = params.get('pPhoto');
+const parentPhoto = parentPhotoRaw && PHOTOS.some(([id]) => id === parentPhotoRaw) ? parentPhotoRaw : '';
+const parentEffectRaw = params.get('pEffect');
+const parentEffect = parentEffectRaw && EFFECTS.some(([id]) => id === parentEffectRaw) ? parentEffectRaw : 'clean';
+const parentStickerRaw = params.get('pSticker');
+const parentSticker = parentStickerRaw != null && STICKERS.some(([id]) => id === parentStickerRaw) ? parentStickerRaw : '';
 const parentState = parentLook && parentFormat && parentLine && parentLine.length <= 120
-  ? { look: parentLook.id, format: parentFormat.id, line: parentLine } : null;
+  ? { look: parentLook.id, format: parentFormat.id, line: parentLine, photo: parentPhoto, effect: parentEffect, sticker: parentSticker }
+  : null;
+/* Mutable parent for OCO import (URL parent stays in parentState). */
+let liveParent = parentState;
+
+function encodeStateParams(state) {
+  const next = new URLSearchParams({ look: state.look, format: state.format, line: state.line });
+  if (state.photo) next.set('photo', state.photo);
+  if (state.effect && state.effect !== 'clean') next.set('effect', state.effect);
+  if (state.sticker) next.set('sticker', state.sticker);
+  return next;
+}
 
 function stateURL(state) {
   const url = new URL(location.href);
   url.search = '';
-  url.hash = new URLSearchParams(state).toString();
+  url.hash = encodeStateParams(state).toString();
   return url.href;
 }
 
-if (parentState) {
-  $('parent').href = stateURL(parentState);
-  $('parent').textContent = `“${parentState.line.length > 54 ? parentState.line.slice(0, 53) + '…' : parentState.line}”`;
-  $('lineage').hidden = false;
-}
+if (parentState) showParentLineage(parentState);
 
 /* First-export checklist: hide forever once all three steps done (local only). */
 const FE_KEY = 'dasha-studio-first-export-v1';
 const feDone = (() => {
-  try { return JSON.parse(localStorage.getItem(FE_KEY) || '{}'); } catch { return {}; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(FE_KEY) || '{}');
+    return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  } catch { return {}; }
 })();
 function feSave() {
   try { localStorage.setItem(FE_KEY, JSON.stringify(feDone)); } catch { /* private mode */ }
@@ -273,18 +314,52 @@ function refreshFirstExport() {
 function materialChangedKeys(base) {
   if (!base) return [];
   const cur = currentState();
-  return ['look', 'format', 'line'].filter((key) => base[key] !== cur[key]);
+  return STATE_KEYS.filter((key) => base[key] !== cur[key]);
+}
+/** Immediate comparison base: inbound source if edited, else parent / OCO parent. */
+function relayBase() {
+  if (sourceState && materialChangedKeys(sourceState).length) return sourceState;
+  return liveParent || parentState;
+}
+function showParentLineage(parent) {
+  if (!parent) return;
+  $('parent').href = stateURL(parent);
+  $('parent').textContent = `“${parent.line.length > 54 ? parent.line.slice(0, 53) + '…' : parent.line}”`;
+  $('lineage').hidden = false;
+}
+/** Relay: material change vs same (for seasons / honest handoff). */
+function relayCheck() {
+  const base = relayBase();
+  const keys = materialChangedKeys(base);
+  return { material: keys.length > 0, keys, base };
 }
 function refreshDiffNote() {
   const note = $('diff-note');
   if (!note) return;
-  const base = sourceState && ['look', 'format', 'line'].some((k) => sourceState[k] !== currentState()[k])
-    ? sourceState
-    : parentState;
-  const keys = materialChangedKeys(base);
-  if (!keys.length) { note.hidden = true; note.textContent = ''; return; }
+  const { material, keys, base } = relayCheck();
+  if (!base) { note.hidden = true; note.replaceChildren(); return; }
   note.hidden = false;
-  note.textContent = `Changed: ${keys.join(', ')}.`;
+  note.replaceChildren();
+  const relay = document.createElement('span');
+  relay.className = 'relay';
+  if (material) {
+    relay.textContent = `Relay: material · ${keys.join(', ')}`;
+    note.append(relay);
+    if (keys.includes('line') && base.line) {
+      const was = document.createElement('span');
+      was.className = 'was';
+      const short = base.line.length > 72 ? `${base.line.slice(0, 71)}…` : base.line;
+      was.textContent = `Was “${short}”`;
+      note.append(was);
+    }
+  } else {
+    relay.textContent = 'Relay: same';
+    note.append(relay);
+    const was = document.createElement('span');
+    was.className = 'was';
+    was.textContent = 'Change look, line, format, photo, effect, or sticker for a material edit.';
+    note.append(was);
+  }
 }
 refreshFirstExport();
 if (feDone.line && feDone.export && feDone.link) { /* already hidden */ }
@@ -294,18 +369,21 @@ function remixURL() {
   const url = new URL(location.href);
   url.search = '';
   const current = currentState();
-  const state = new URLSearchParams({ look: current.look, format: current.format });
+  const state = encodeStateParams(current);
   if (campaignSource) state.set('src', campaignSource);
-  const line = $('line').value.trim();
-  if (line) state.set('line', line);
-  if (photoId) state.set('photo', photoId);
   if (imageOnly) state.set('arm', 'flat');
-  const changed = sourceState && ['look', 'format', 'line'].some((key) => sourceState[key] !== current[key]);
-  const parent = changed ? sourceState : parentState;
+  /* encodeStateParams always sets line; drop empty-default only when user left the field blank
+     so legacy short links stay short when using the look default. */
+  if (!$('line').value.trim()) state.delete('line');
+  const changed = sourceState && materialChangedKeys(sourceState).length > 0;
+  const parent = changed ? sourceState : (liveParent || parentState);
   if (parent && !imageOnly) {
     state.set('pLook', parent.look);
     state.set('pFormat', parent.format);
     state.set('pLine', parent.line);
+    if (parent.photo) state.set('pPhoto', parent.photo);
+    if (parent.effect && parent.effect !== 'clean') state.set('pEffect', parent.effect);
+    if (parent.sticker) state.set('pSticker', parent.sticker);
   }
   url.hash = state.toString();
   return url.href;
@@ -317,7 +395,8 @@ function syncURL() {
   refreshDiffNote();
 }
 
-if (!fragmentHasState && (queryParams.has('look') || queryParams.has('line') || queryParams.has('format'))) syncURL();
+if (!fragmentHasState && (queryParams.has('look') || queryParams.has('line') || queryParams.has('format')
+  || queryParams.has('photo') || queryParams.has('effect') || queryParams.has('sticker'))) syncURL();
 refreshDiffNote();
 
 /** Largest size at or below `start` where the wrapped text fits `maxH`. */
@@ -858,10 +937,14 @@ $('share').addEventListener('click', async () => {
 });
 
 $('download').addEventListener('click', async () => {
-  save(await png());
-  trackStudio('export'); trackStudio('completion');
-  feMark('export');
-  $('status').textContent = `Saved ${fileName()}.`;
+  try {
+    save(await png());
+    trackStudio('export'); trackStudio('completion');
+    feMark('export');
+    $('status').textContent = `Saved ${fileName()}.`;
+  } catch {
+    $('status').textContent = 'Could not save this image. Try another look or photo.';
+  }
 });
 
 $('copy-link').addEventListener('click', async () => {
@@ -883,20 +966,24 @@ $('copy-link').addEventListener('click', async () => {
 });
 
 $('copy').addEventListener('click', async () => {
-  const blob = await png();
   try {
-    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': Promise.resolve(blob) })]);
-      $('status').textContent = 'Image copied.';
-      trackStudio('export'); trackStudio('completion');
-      feMark('export');
-      return;
-    }
-  } catch { /* fall through to save */ }
-  save(blob);
-  trackStudio('export'); trackStudio('completion');
-  feMark('export');
-  $('status').textContent = 'Couldn’t copy — PNG saved instead.';
+    const blob = await png();
+    try {
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': Promise.resolve(blob) })]);
+        $('status').textContent = 'Image copied.';
+        trackStudio('export'); trackStudio('completion');
+        feMark('export');
+        return;
+      }
+    } catch { /* fall through to save */ }
+    save(blob);
+    trackStudio('export'); trackStudio('completion');
+    feMark('export');
+    $('status').textContent = 'Couldn’t copy — PNG saved instead.';
+  } catch {
+    $('status').textContent = 'Could not copy this image. Try another look or photo.';
+  }
 });
 
 $('gif').addEventListener('click', async () => {
@@ -912,6 +999,8 @@ $('gif').addEventListener('click', async () => {
     // X caps GIF uploads well below its image limit, and the cap is lower on mobile than desktop,
     // so the size is stated rather than left for the upload to reject.
     $('status').textContent = `Saved ${name} — ${(blob.size / 1e6).toFixed(1)} MB. Attach it on X like any image.`;
+  } catch {
+    $('status').textContent = 'Could not render the GIF. Try a simpler look or shorter line.';
   } finally {
     button.disabled = false;
   }
@@ -919,25 +1008,137 @@ $('gif').addEventListener('click', async () => {
 
 $('kit').addEventListener('click', async () => {
   const original = format, files = [];
-  for (const option of FORMATS) {
-    format = option;
+  try {
+    for (const option of FORMATS) {
+      format = option;
+      render();
+      files.push([fileName(), await png()]);
+    }
+    format = original;
     render();
-    files.push([fileName(), await png()]);
+    for (const link of $('kit-links').children) URL.revokeObjectURL(link.href);
+    $('kit-links').replaceChildren(...files.map(([name, blob]) => {
+      const link = document.createElement('a');
+      link.download = name;
+      link.href = URL.createObjectURL(blob);
+      link.textContent = name.match(/-(square|story|banner)\.png$/)[1].replace('square', 'post') + ' ↓';
+      return link;
+    }));
+    $('kit-links').hidden = false;
+    trackStudio('export'); trackStudio('completion');
+    feMark('export');
+    $('status').textContent = 'Three sizes ready.';
+  } catch {
+    format = original;
+    render();
+    $('status').textContent = 'Could not prepare all sizes. Try again.';
   }
-  format = original;
+});
+
+/* Open Culture Object (lite): portable JSON for the same DNA the remix URL carries.
+   Not a network protocol — a downloadable handoff when URLs get long or offline. */
+const OCO_SCHEMA = 'dasha-oco/v0';
+function toOco() {
+  const state = currentState();
+  const { material, keys, base } = relayCheck();
+  return {
+    schema: OCO_SCHEMA,
+    tool: { name: 'dasha-studio', version: 1 },
+    state,
+    parent: base || null,
+    relay: { material, keys },
+    rights: {
+      drawn: 'CC0-1.0',
+      likeness: 'not-granted',
+      photos: 'third-party-not-cc0',
+    },
+    mark: MARK,
+  };
+}
+function applyCultureState(next) {
+  if (!next || typeof next !== 'object') throw new Error('invalid state');
+  const nextLook = LOOKS.find((option) => option.id === next.look);
+  const nextFormat = FORMATS.find((option) => option.id === next.format);
+  if (!nextLook || !nextFormat) throw new Error('unknown look or format');
+  const line = String(next.line || '').slice(0, 120);
+  if (!line) throw new Error('missing line');
+  const nextEffect = EFFECTS.find(([id]) => id === (next.effect || 'clean')) || EFFECTS[0];
+  const nextSticker = STICKERS.some(([id]) => id === (next.sticker || '')) ? (next.sticker || '') : '';
+  const nextPhoto = next.photo && PHOTOS.some(([id]) => id === next.photo) ? next.photo : '';
+  look = nextLook;
+  format = nextFormat;
+  effect = nextEffect;
+  sticker = nextSticker;
+  photoId = nextPhoto;
+  $('looks').value = look.id;
+  $('formats').value = format.id;
+  $('line').value = line;
+  $('line').placeholder = look.line;
+  $('effects').value = effect[0];
+  $('stickers').value = sticker;
+  if (photoId) {
+    const radio = $('gallery').querySelector(`input[value="${CSS.escape(photoId)}"]`);
+    if (radio) radio.checked = true;
+    const entry = PHOTOS.find(([id]) => id === photoId);
+    if (entry) loadPhoto(...entry, false, { keepLook: true, note: '' });
+  } else {
+    for (const radio of $('gallery').querySelectorAll('input[type=radio]')) radio.checked = false;
+    photo = null;
+  }
+  syncURL();
   render();
-  for (const link of $('kit-links').children) URL.revokeObjectURL(link.href);
-  $('kit-links').replaceChildren(...files.map(([name, blob]) => {
-    const link = document.createElement('a');
-    link.download = name;
-    link.href = URL.createObjectURL(blob);
-    link.textContent = name.match(/-(square|story|banner)\.png$/)[1].replace('square', 'post') + ' ↓';
-    return link;
-  }));
-  $('kit-links').hidden = false;
-  trackStudio('export'); trackStudio('completion');
-  feMark('export');
-  $('status').textContent = 'Three sizes ready.';
+}
+function readOco(raw) {
+  const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  if (!data || data.schema !== OCO_SCHEMA || !data.state) throw new Error('not a Dasha culture object');
+  return data;
+}
+function normalizeParent(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const nextLook = LOOKS.find((option) => option.id === raw.look);
+  const nextFormat = FORMATS.find((option) => option.id === raw.format);
+  const line = String(raw.line || '').trim();
+  if (!nextLook || !nextFormat || !line || line.length > 120) return null;
+  const photo = raw.photo && PHOTOS.some(([id]) => id === raw.photo) ? raw.photo : '';
+  const nextEffect = EFFECTS.some(([id]) => id === (raw.effect || 'clean')) ? (raw.effect || 'clean') : 'clean';
+  const nextSticker = STICKERS.some(([id]) => id === (raw.sticker || '')) ? (raw.sticker || '') : '';
+  return { look: nextLook.id, format: nextFormat.id, line, photo, effect: nextEffect, sticker: nextSticker };
+}
+$('oco-export').addEventListener('click', () => {
+  try {
+    const blob = new Blob([`${JSON.stringify(toOco(), null, 2)}\n`], { type: 'application/json' });
+    const name = `dasha-${look.id}-${format.id}.oco.json`;
+    save(blob, name);
+    trackStudio('export');
+    $('status').textContent = `Saved ${name} — open it later with Open object.`;
+  } catch {
+    $('status').textContent = 'Could not save the object.';
+  }
+});
+$('oco-import').addEventListener('click', () => $('oco-file').click());
+$('oco-file').addEventListener('change', async () => {
+  const file = $('oco-file').files?.[0];
+  $('oco-file').value = '';
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = readOco(text);
+    applyCultureState(data.state);
+    const importedParent = normalizeParent(data.parent);
+    if (importedParent) {
+      liveParent = importedParent;
+      showParentLineage(importedParent);
+    }
+    trackStudio('first_edit');
+    $('remix-note').hidden = false;
+    $('remix-note').textContent = 'Opened object.';
+    refreshDiffNote();
+    $('status').textContent = data.relay?.material
+      ? 'Object loaded — Relay was material when saved.'
+      : 'Object loaded.';
+  } catch {
+    $('status').textContent = 'Could not open that file. Need a dasha-oco/v0 JSON object.';
+  }
 });
 
 
@@ -948,6 +1149,8 @@ fillSelect('looks', LOOKS, look);
 fillSelect('formats', FORMATS, format);
 for (const option of EFFECTS) $('effects').add(new Option(option[1], option[0]));
 for (const option of STICKERS) $('stickers').add(new Option(option[1], option[0]));
+$('effects').value = effect[0];
+$('stickers').value = sticker;
 
 const snapshot = () => ({
   effect, sticker, zoom, tilt, offsetX, offsetY,
@@ -1047,8 +1250,16 @@ upload.addEventListener('change', () => {
 uploadLabel.append(upload); $('gallery').append(uploadLabel);
 if (requestedPhoto) loadPhoto(...requestedPhoto);
 
-$('effects').addEventListener('change', () => { trackStudio('first_edit'); remember(); effect = EFFECTS.find(([id]) => id === $('effects').value); render(); });
-$('stickers').addEventListener('change', () => { trackStudio('first_edit'); remember(); sticker = $('stickers').value; render(); });
+$('effects').addEventListener('change', () => {
+  trackStudio('first_edit'); remember();
+  effect = EFFECTS.find(([id]) => id === $('effects').value) || EFFECTS[0];
+  syncURL(); render();
+});
+$('stickers').addEventListener('change', () => {
+  trackStudio('first_edit'); remember();
+  sticker = STICKERS.some(([id]) => id === $('stickers').value) ? $('stickers').value : '';
+  syncURL(); render();
+});
 $('zoom').addEventListener('focus', remember);
 $('zoom').addEventListener('input', () => { zoom = Number($('zoom').value); render(); });
 $('tilt').addEventListener('focus', remember);
@@ -1083,7 +1294,7 @@ canvas.addEventListener('pointerup', endPointer); canvas.addEventListener('point
 canvas.addEventListener('dblclick', () => { if (photo) { remember(); zoom = 1; tilt = offsetX = offsetY = 0; restore(snapshot()); } });
 $('looks').addEventListener('change', () => {
   trackStudio('first_edit');
-  look = LOOKS.find((option) => option.id === $('looks').value);
+  look = LOOKS.find((option) => option.id === $('looks').value) || look;
   $('line').placeholder = look.line;
   $('status').textContent = '';
   syncURL();
@@ -1091,7 +1302,7 @@ $('looks').addEventListener('change', () => {
 });
 $('formats').addEventListener('change', () => {
   trackStudio('first_edit');
-  format = FORMATS.find((option) => option.id === $('formats').value);
+  format = FORMATS.find((option) => option.id === $('formats').value) || format;
   $('status').textContent = '';
   syncURL();
   render();

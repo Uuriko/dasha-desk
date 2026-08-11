@@ -36,14 +36,17 @@ export function buildStudioEmbed(studio) {
   const markup = between(studio, '<main class="wrap">', '</main>', '<main class="wrap">');
   const script = between(studio, '<script>', '</script>', '<script>');
   if (!markup.includes('<summary>More options</summary>')) throw new Error('advanced Studio controls are no longer progressively disclosed');
-  // Core actions: Edit, Share, Save PNG, Copy editable link, Copy image, GIF, kit, Undo.
-  // Looks/formats/effects/stickers are compact native selects.
+  // Core actions: Edit, Share, Save PNG, Copy editable link, Copy image, GIF, kit,
+  // Save/Open object, Undo. Looks/formats/effects/stickers are compact native selects.
   const buttons = (markup.match(/<button\b/g) || []).length;
-  if (buttons !== 8) {
+  if (buttons !== 10) {
     throw new Error(`the Studio action set is no longer intentionally bounded (buttons=${buttons})`);
   }
   if (!markup.includes('id="edit"') || !markup.includes('id="share"') || !markup.includes('id="download"') || !markup.includes('id="copy-link"')) {
     throw new Error('primary Studio actions missing from markup');
+  }
+  if (!markup.includes('id="oco-export"') || !markup.includes('id="oco-import"')) {
+    throw new Error('Open Culture Object save/open controls missing from markup');
   }
   if (!markup.includes('id="looks"') || !markup.includes('id="formats"') || !markup.includes('id="effects"') || !markup.includes('id="stickers"')) {
     throw new Error('compact Studio controls missing from markup');
