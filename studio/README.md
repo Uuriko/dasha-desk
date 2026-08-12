@@ -49,7 +49,7 @@ Two lines. It works on any page, including ones you do not control.
 ```html
 <div class="dasha-studio-embed"></div>
 <script src="https://uuriko.github.io/dasha-desk/studio/embed.js"
-        integrity="sha384-MxKrogRl6vUVwdINkQexTSpdbmpM4jKYiKouopighldnqGO4WBKz6S8gFSpUPnD1"
+        integrity="sha384-d19rtsoeFZwcP9Tgr8YDVcWDuEXsu0dGk1rAUearYz6Yhjk5HL5zjQP29IGTW7zq"
         crossorigin="anonymous"></script>
 ```
 

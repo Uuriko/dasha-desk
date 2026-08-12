@@ -36,10 +36,10 @@ export function buildStudioEmbed(studio) {
   const markup = between(studio, '<main class="wrap">', '</main>', '<main class="wrap">');
   const script = between(studio, '<script>', '</script>', '<script>');
   if (!markup.includes('<summary>More options</summary>')) throw new Error('advanced Studio controls are no longer progressively disclosed');
-  // Core actions: Edit, Share, Save PNG, Copy editable link, Copy image, GIF, kit,
-  // Save/Open object, Undo. Looks/formats/effects/stickers are compact native selects.
+  // Primary ship path + progressive disclosure. Looks/formats use chip strips + hidden selects.
+  // Moods/history/variants are painted in script; markup buttons stay intentionally bounded.
   const buttons = (markup.match(/<button\b/g) || []).length;
-  if (buttons !== 10) {
+  if (buttons !== 19) {
     throw new Error(`the Studio action set is no longer intentionally bounded (buttons=${buttons})`);
   }
   if (!markup.includes('id="edit"') || !markup.includes('id="share"') || !markup.includes('id="download"') || !markup.includes('id="copy-link"')) {
@@ -48,13 +48,28 @@ export function buildStudioEmbed(studio) {
   if (!markup.includes('id="oco-export"') || !markup.includes('id="oco-import"')) {
     throw new Error('Open Culture Object save/open controls missing from markup');
   }
+  if (!markup.includes('id="surprise"') || !markup.includes('id="batch-looks"') || !markup.includes('id="after-share"')) {
+    throw new Error('Studio lost surprise, batch cook, or share aftermath tray');
+  }
   if (!markup.includes('id="looks"') || !markup.includes('id="formats"') || !markup.includes('id="effects"') || !markup.includes('id="stickers"')) {
     throw new Error('compact Studio controls missing from markup');
+  }
+  if (!markup.includes('id="look-strip"') || !markup.includes('id="format-strip"') || !markup.includes('ship-bar')) {
+    throw new Error('Studio lost look/format strips or sticky ship bar');
+  }
+  if (!markup.includes('id="effect-strip"') || !markup.includes('id="sticker-strip"')) {
+    throw new Error('Studio lost effect or sticker strip');
+  }
+  if (!markup.includes('id="after-text"')) {
+    throw new Error('Studio lost after-share post text copy');
+  }
+  if (!markup.includes('id="variants"') || !markup.includes('id="relay-seal"') || !markup.includes('id="stage-frame"')) {
+    throw new Error('Studio lost variants rail, relay seal, or stage frame');
   }
   if (!/canvas\s*\{[^}]*touch-action:pan-y/.test(style)) {
     throw new Error('Studio canvas must preserve vertical touch scrolling');
   }
-  if (!script.includes("type: 'file'") || !script.includes('accept: \'image/*\'')) {
+  if (!script.includes("type: 'file'") || !script.includes('LOCAL_IMAGE_TYPES')) {
     throw new Error('Studio upload input missing from script');
   }
   if (/claimRemixOnBoard|\/simp\/claims|Claim on Simp Board/.test(markup + script)) {
