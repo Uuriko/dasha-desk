@@ -962,6 +962,7 @@ function linePool() {
   const fromChips = typeof CAPTIONS !== 'undefined' ? CAPTIONS : [];
   return [...new Set([...fromChips, ...fromLooks])];
 }
+/* Day ritual DNA — keep arrays/formula aligned with dasha-today-ritual.mjs (enforced by tests). */
 function daySeed() {
   const d = new Date();
   return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
@@ -2324,8 +2325,7 @@ if ($('after-copy')) $('after-copy').addEventListener('click', () => $('copy-lin
 if ($('after-text')) $('after-text').addEventListener('click', () => { copyPostText(); });
 if ($('after-dismiss')) $('after-dismiss').addEventListener('click', () => {
   hideAfterShare();
-  setStatus('Make another — change the line or look.');
-  try { $('line').focus(); } catch { /* ignore */ }
+  surpriseMe();
 });
 if ($('batch-looks')) $('batch-looks').addEventListener('click', async () => {
   const original = look;
