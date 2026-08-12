@@ -160,6 +160,95 @@ for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio
   }
 }
 
+/* ---- freshness ------------------------------------------------------------------
+   Everything above asks "is it reachable and does it say the right things". None of it can see the
+   failure that actually happened: the GitHub Pages deploy workflow broke, Pages froze, and for
+   weeks it served a 65 KB embed against a 114 KB source. It was reachable throughout. It showed the
+   right mint throughout. This monitor ran green every six hours throughout, and nobody found it
+   until someone went looking for something else.
+
+   Staleness is invisible to a reachability check by construction, so it needs its own questions.
+   All three below are answerable from public URLs alone, which is what lets them run here. */
+
+/* 1. Every page pin must match the bytes the Worker serves.
+      An integrity attribute naming bytes that are no longer there does not degrade — the browser
+      refuses the script outright, so the surface is simply blank, with no console error anyone sees
+      and no failing gate. Checked live because that is the only place the two can disagree. */
+for (const [label, url] of [['home', ORIGIN + '/'], ['lobby', ORIGIN + '/lobby'], ['studio', ORIGIN + '/studio']]) {
+  const res = await get(url);
+  if (!res.ok) continue;
+  const html = await res.text();
+  for (const script of new Set(html.match(/https:\/\/lobby\.getdasha\.com\/[^"'\s)]+\.js/g) || [])) {
+    /* Nearest pin in either direction. The loaders spell it `integrity=` or bind it to a const, so
+       keying on a keyword picks up the wrong hash — and the pin sits AFTER its own URL, so scanning
+       only backwards finds nothing and reads as "no pin, nothing to check". */
+    const at = html.indexOf(script);
+    let pin = null, nearest = Infinity;
+    for (const m of html.matchAll(/sha384-[A-Za-z0-9+/=]+/g)) {
+      const d = Math.abs(m.index - at);
+      if (d < nearest) { nearest = d; pin = m[0]; }
+    }
+    if (!pin || nearest > 2000) continue;
+    const asset = await get(script);
+    if (!asset.ok) { fail(false, `${label}: ${script} is unreachable but the page pins it`); continue; }
+    const bytes = new Uint8Array(await asset.arrayBuffer());
+    const digest = await crypto.subtle.digest('SHA-384', bytes);
+    const served = 'sha384-' + Buffer.from(digest).toString('base64');
+    fail(served === pin,
+      `${label}: pins ${pin.slice(0, 20)}… but ${script} serves ${served.slice(0, 20)}… — the browser is refusing that script`);
+  }
+}
+
+/* 2. The pasteable embed must be the bytes its own snippet pins.
+      This is the check that would have caught Pages freezing. Both halves are public: the README
+      carries the snippet other people paste, and the file it names is served next to it. */
+{
+  const readme = await get(PAGES + 'studio/README.md');
+  if (readme.ok) {
+    const doc = await readme.text();
+    const src = (doc.match(/src="(https:\/\/uuriko\.github\.io\/dasha-desk\/studio\/embed-[a-f0-9]+\.js)"/) || [])[1];
+    const pin = (doc.match(/integrity="(sha384-[A-Za-z0-9+/=]+)"/) || [])[1];
+    if (src && pin) {
+      const hosted = await get(src);
+      if (!hosted.ok) fail(false, `pages: the snippet points at ${src}, which is unreachable — every site that pasted it is broken`);
+      else {
+        const digest = await crypto.subtle.digest('SHA-384', new Uint8Array(await hosted.arrayBuffer()));
+        fail('sha384-' + Buffer.from(digest).toString('base64') === pin,
+          `pages: ${src} does not match the integrity its own README publishes — adopters are loading a script their browser will refuse`);
+      }
+    } else {
+      warn(false, 'pages: the README snippet no longer carries a fingerprinted src and an integrity pin');
+    }
+  }
+}
+
+/* 3. The price must be current.
+      A 200 from /price says the endpoint answers, not that the number is real. It reports how long
+      it has been serving a last-good reading, so ask that instead. Thirty minutes is generous —
+      the TTL is thirty seconds — because the upstream rate-limits our egress and brief staleness is
+      normal; half an hour means it has genuinely stopped refreshing. */
+{
+  const res = await get('https://lobby.getdasha.com/price');
+  if (!res.ok) warn(false, 'price: /price is unreachable — the homepage chart will be missing');
+  else {
+    const price = await res.json().catch(() => null);
+    warn(price && price.priceUsd > 0, 'price: /price returned no usable number');
+    if (price) {
+      /* The age field has to exist for the age check to mean anything. If /price stops reporting it,
+         Number(undefined) is NaN, every comparison against it is false, and this check passes
+         forever while seeing nothing — the exact shape of the failure this whole section was added
+         to catch. So a stale reading with no age is itself a finding. */
+      const age = Number(price.staleForMs);
+      if (price.stale) {
+        fail(Number.isFinite(age),
+          'price: reports itself stale but gives no age — the freshness check cannot see how bad it is');
+        fail(!(age > 30 * 60_000),
+          `price: serving a reading ${Math.round(age / 60000)} minutes old — the chart is showing a stale number as current`);
+      }
+    }
+  }
+}
+
 const robots = await get(`${ORIGIN}/robots.txt`);
 warn(robots.ok && (await robots.text()).trim().length > 0, 'robots.txt is empty — no rules and no Sitemap line');
 warn((await get(`${ORIGIN}/sitemap.xml`)).ok, 'sitemap.xml is missing — search engines have no route list');
