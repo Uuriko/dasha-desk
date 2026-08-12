@@ -587,7 +587,7 @@ function setStatus(message, { craft = false } = {}) {
   el.textContent = craft ? craftStatus() : message;
 }
 function isBusyStatus(text) {
-  return /attach it|Rendering|Could not|Couldn’t|Saved |Shared|copied|sizes ready|Object loaded|editable link copied|Link copied|Image only|Choose |need a dasha|Surprise|mood ·|Restored|Long for Story|Cooked|Shipped|Pasted|Caps |Line shuffled|Showing before|Cooking|Keyboard list|Image copied|Post text|Make another|Change one thing|try Today|tap Surprise/i.test(text || '');
+  return /attach it|Rendering|Could not|Couldn’t|Saved |Shared|copied|sizes ready|Object loaded|editable link copied|Link copied|Image only|Choose |need a dasha|Surprise|mood ·|Restored|Long for Story|Cooked|Shipped|Pasted|Caps |Line shuffled|Showing before|Cooking|Keyboard list|Image copied|Post text|Make another|Change one thing|try Today|tap Surprise|Today’s /i.test(text || '');
 }
 function exportAlt() {
   const line = ($('line').value.trim() || look.line).replace(/\s+/g, ' ').trim();
@@ -2411,12 +2411,20 @@ document.addEventListener('keydown', (event) => {
 if ($('stage-frame')) $('stage-frame').dataset.format = format.id;
 refreshPhotoUi();
 
-/* Cold open: invite one material change before Share (open→edit lever). */
+/* Cold open: land on today’s ritual (postable, day-specific) without counting first_edit.
+   Strangers who only Share still ship something distinct; changing anything still fires first_edit. */
 if (!inbound && !fragmentHasState && !imageOnly) {
-  const el = $('status');
-  if (el && (!el.textContent || / · ready$/.test(el.textContent) || /try Today or Surprise/i.test(el.textContent))) {
-    el.textContent = 'Change one thing — tap Surprise or Today, or rewrite the line';
+  const ritual = todaysRitual();
+  applyLookFormatEffect(ritual.look, ritual.format, ritual.effect, ritual.sticker);
+  if ($('line')) {
+    $('line').value = capsOn ? ritual.line.toUpperCase() : ritual.line;
+    updateLineCount();
   }
+  syncURL();
+  render();
+  afterStatePaint({ pulseFormat: true });
+  const lookName = LOOKS.find((option) => option.id === ritual.look)?.name || ritual.look;
+  setStatus(`Today’s ${lookName} — change one thing, then Share`);
   for (const id of ['surprise', 'ritual-today']) {
     const chip = $(id);
     if (chip) {
@@ -2427,11 +2435,6 @@ if (!inbound && !fragmentHasState && !imageOnly) {
       };
       chip.addEventListener('click', clear, { once: true });
     }
-  }
-  /* Soft spotlight on the line field without forcing the mobile keyboard. */
-  const line = $('line');
-  if (line && !line.value.trim()) {
-    line.setAttribute('aria-description', 'Edit this line or use Surprise / Today above');
   }
 }
 
