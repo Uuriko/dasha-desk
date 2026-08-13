@@ -8,7 +8,7 @@
 <link rel="canonical" href="https://www.getdasha.com/dasha"/>
 <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48e1dd29d210f01235_dasha-icon-32.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48cdcf3c87b29fc830_dasha-icon-180.png"/>
-<meta name="theme-color" content="#07060a"/>
+<meta name="theme-color" content="#070608"/>
 <meta property="og:title" content="$dasha desk — verify, chart, buy"/>
 <meta property="og:description" content="Check the mint. Inspect sources."/>
 <meta property="og:type" content="website"/>
@@ -21,169 +21,236 @@
 <meta name="twitter:title" content="$dasha desk — verify, chart, buy"/>
 <meta name="twitter:description" content="Check the mint. Inspect sources."/>
 <meta name="twitter:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a773b5a0a2303b170ea67c0_dasha-social-card-v3.png"/>
-<style>html,body{margin:0;padding:0;background:#07060a;min-height:100%}
+<style>html,body{margin:0;padding:0;background:#070608;min-height:100%}
 #dd-app.dd{
-  --card:rgba(255,255,255,.05);
-  --line:rgba(255,255,255,.13);
-  --text:#f6f1ff;
-  --muted:#b8b0c9;
-  --accent:#c4a5ff;
-  --ok:#7dffa3;
-  --bad:#ff9b9b;
-  --warn:#ffe08a;
-  --glow:rgba(167,139,250,.45);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --ink:#070608;
+  --paper:#f4eddb;
+  --acid:#dfff00;
+  --hot:#ff3b81;
+  --violet:#7c4dff;
+  --line:rgba(244,237,219,.32);
+  --muted:#e6dcc4;
+  --text:var(--paper);
+  --ok:var(--acid);
+  --bad:var(--hot);
+  --warn:var(--acid);
+  font-family:Arial,Helvetica,sans-serif;
   font-size:16px;
-  line-height:1.5;
-  color:var(--text);
-  max-width:960px;
+  line-height:1.35;
+  color:var(--paper);
+  background:var(--ink);
+  background-image:
+    radial-gradient(circle at 82% 4%,rgba(124,77,255,.22),transparent 28rem),
+    radial-gradient(circle at 4% 70%,rgba(255,59,129,.12),transparent 24rem);
+  max-width:1120px;
   margin:0 auto;
-  padding:18px 16px 48px;
+  padding:6px 16px 48px;
   box-sizing:border-box;
   position:relative;
+  min-height:100vh;
 }
 #dd-app *{box-sizing:border-box}
-#dd-app::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
-  background:
-    radial-gradient(900px 420px at 12% -8%,rgba(167,139,250,.22),transparent 55%),
-    radial-gradient(700px 380px at 92% 8%,rgba(240,171,252,.12),transparent 50%),
-    radial-gradient(600px 400px at 50% 100%,rgba(125,255,163,.06),transparent 55%);
+
+.dd-skip{
+  position:absolute;left:-999px;top:8px;z-index:20;
+  background:var(--acid);color:var(--ink);font-weight:900;padding:8px 12px;
+  text-transform:uppercase;letter-spacing:.06em;text-decoration:none;
 }
-#dd-app > *{position:relative;z-index:1}
+.dd-skip:focus{left:8px}
+
+.dd-nav{
+  min-height:56px;margin:0 0 8px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+  border-bottom:1px solid var(--line);padding:6px 0;
+}
+.dd-brand{
+  margin-right:auto;min-height:44px;display:inline-flex;align-items:center;
+  color:var(--paper);font-size:17px;font-weight:900;letter-spacing:-.05em;
+  text-decoration:none;text-transform:uppercase;
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
+}
+.dd-brand span{color:var(--acid)}
+.dd-nav>a:not(.dd-brand){
+  color:var(--paper);font-size:12px;font-weight:900;letter-spacing:.06em;
+  text-decoration:none;text-transform:uppercase;min-width:44px;min-height:44px;
+  padding-inline:6px;display:inline-flex;align-items:center;justify-content:center;
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
+}
+.dd-nav>a[aria-current="page"]{color:var(--acid)}
 
 .dd-reveal{opacity:1;transform:none}
 
-.dd-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
-.dd-brand{display:flex;gap:12px;align-items:center}
-.dd-avatar{
-  width:52px;height:52px;border-radius:16px;object-fit:cover;
-  border:1px solid rgba(196,165,255,.45);background:#1a1224;
+.dd-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin:8px 0 18px;flex-wrap:wrap}
+.dd-page{
+  margin:0;font-size:12px;letter-spacing:.14em;font-weight:900;text-transform:uppercase;color:var(--paper);
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
 }
-.dd-name{font-size:19px;letter-spacing:-.03em;font-weight:800}
-.dd-tag{margin:3px 0 0;font-size:14px;color:var(--muted)}
 .dd-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .dd-pill{
-  font-size:13px;font-weight:700;letter-spacing:.05em;
-  padding:7px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);
-  background:rgba(0,0,0,.2);
+  font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+  padding:0 14px;min-height:44px;border:1px solid var(--line);color:var(--muted);
+  background:transparent;display:inline-flex;align-items:center;
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
 }
-.dd-pill-ok{color:var(--ok);border-color:rgba(125,255,163,.4)}
+.dd-pill-ok{color:var(--ink);background:var(--acid);border-color:var(--acid);box-shadow:4px 4px 0 var(--hot)}
 
 .dd-hero-card,.dd-card{
-  background:var(--card);border:1px solid var(--line);border-radius:20px;
-  padding:20px;margin-bottom:16px;backdrop-filter:blur(10px);
+  background:transparent;border:1px solid var(--line);
+  padding:20px;margin-bottom:16px;
 }
 .dd-token-hero{display:flex;gap:16px;align-items:center;margin-bottom:16px}
-.dd-token-hero img{width:88px;height:88px;border-radius:22px;object-fit:cover;border:1px solid var(--line);background:#12091c}
-.dd-kicker{margin:0 0 4px;font-size:14px;letter-spacing:.05em;color:var(--muted);font-weight:700}
-.dd-h1{margin:0;font-size:clamp(32px,6vw,44px);letter-spacing:-.04em;line-height:1}
+.dd-token-hero img{
+  width:88px;height:88px;object-fit:cover;border:1px solid var(--line);background:var(--ink);
+  box-shadow:4px 4px 0 var(--hot);
+}
+.dd-kicker{
+  margin:0 0 4px;font-size:11px;letter-spacing:.14em;color:var(--muted);font-weight:900;
+  text-transform:uppercase;
+}
+.dd-h1{
+  margin:0;font-size:clamp(42px,10vw,72px);letter-spacing:-.05em;line-height:.82;
+  font-weight:900;text-transform:uppercase;
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
+}
 
 .dd-quote{
-  margin:0 0 16px;padding:14px 16px;border-radius:14px;
-  border-left:3px solid var(--accent);background:rgba(0,0,0,.22);
+  margin:0 0 16px;padding:14px 16px;
+  border-left:4px solid var(--acid);background:rgba(223,255,0,.08);
 }
-.dd-quote p{margin:0;font-size:16px;line-height:1.4;font-weight:650}
+.dd-quote p{margin:0;font-size:16px;line-height:1.35;font-weight:800}
 .dd-quote cite{display:block;margin-top:8px;font-size:14px;color:var(--muted);font-style:normal}
 
 .dd-mint-box{
-  padding:14px;border-radius:16px;border:1px solid rgba(196,165,255,.35);
-  background:rgba(139,92,246,.08);margin-bottom:14px;
+  padding:14px;border:1px solid var(--line);
+  box-shadow:4px 4px 0 var(--hot);margin-bottom:14px;
 }
-.dd-ca-label{margin:0 0 8px;font-size:14px;font-weight:800;letter-spacing:.04em;color:var(--accent)}
+.dd-ca-label{
+  margin:0 0 8px;font-size:11px;font-weight:900;letter-spacing:.14em;
+  color:var(--acid);text-transform:uppercase;
+}
 .dd-ca{
   display:block;word-break:break-all;font-size:14px;line-height:1.5;
-  padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid var(--line);
+  padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid var(--line);
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color:var(--paper);
 }
 .dd-mint-actions,.dd-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
-.dd-toast{font-size:14px;font-weight:800;color:var(--ok)}
+.dd-toast{font-size:13px;font-weight:900;color:var(--acid);text-transform:uppercase;letter-spacing:.06em}
 .dd-visit{margin:10px 0 0;font-size:13px;line-height:1.4;color:var(--muted)}
-.dd-visit-warn{color:var(--bad);font-weight:700}
+.dd-visit-warn{color:var(--hot);font-weight:800}
 
 .dd-btn,.dd-linkish{
-  appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.04);
-  color:var(--text);border-radius:999px;padding:10px 16px;min-height:44px;
-  font-size:14px;font-weight:750;text-decoration:none;cursor:pointer;
+  appearance:none;border:1px solid var(--paper);background:transparent;
+  color:var(--paper);padding:0 16px;min-height:44px;
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
+  font-size:12px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+  text-decoration:none;cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  transition:border-color .15s,transform .15s,background .15s;
+  box-shadow:4px 4px 0 var(--hot);
+  transition:transform .18s,box-shadow .18s;
 }
-.dd-btn:hover,.dd-linkish:hover{border-color:rgba(196,165,255,.55);transform:translateY(-1px)}
+.dd-btn:hover,.dd-linkish:hover{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--hot)}
 #dd-app a:focus-visible,#dd-app button:focus-visible,#dd-app input:focus-visible,#dd-app textarea:focus-visible,#dd-app summary:focus-visible{
-  outline:3px solid var(--accent);outline-offset:3px;
+  outline:3px solid var(--acid);outline-offset:3px;
 }
 .dd-btn-primary{
-  /* Deeper than it looks: white on #a78bfa is 2.9:1, so the old light end failed AA on the one
-     button that matters. #7c3aed is the lightest stop that still clears 4.5:1 against white. */
-  background:linear-gradient(135deg,#7c3aed,#5b21b6);
-  border-color:transparent;color:#fff;
-  box-shadow:0 8px 24px rgba(124,58,237,.28);
+  background:var(--acid);border-color:var(--acid);color:var(--ink);
+  box-shadow:4px 4px 0 var(--hot);
 }
-.dd-btn-lg{min-height:48px;padding:12px 20px;font-size:15px}
-.dd-linkish{background:transparent;border:0;color:var(--accent);min-height:44px;padding:6px 8px;text-decoration:underline;text-underline-offset:3px}
+.dd-btn-primary:hover{box-shadow:1px 1px 0 var(--hot)}
+.dd-btn-lg{min-height:52px;padding:0 20px;font-size:14px}
+.dd-linkish{
+  background:transparent;border:0;box-shadow:none;color:var(--paper);
+  min-height:44px;padding:6px 8px;text-decoration:underline;text-underline-offset:3px;
+}
+.dd-linkish:hover{color:var(--acid);transform:none}
 
 .dd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:8px}
 .dd-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
-.dd-age{margin:0;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.01em;text-align:right;flex:1}
+.dd-age{margin:0;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.04em;text-align:right;flex:1;text-transform:uppercase}
 .dd-age:empty{display:none}
-.dd-card h2{margin:0 0 6px;font-size:18px;letter-spacing:-.02em}
-.dd-disclosure{padding:0;overflow:hidden}.dd-disclosure summary{min-height:58px;padding:16px 18px;display:flex;align-items:center;cursor:pointer;font-size:16px;font-weight:800}.dd-disclosure-body{padding:0 18px 18px}.dd-tools.dd-disclosure-body{padding-top:0}
+.dd-card h2,.dd-disclosure summary{
+  margin:0;font-size:18px;letter-spacing:-.05em;font-weight:900;text-transform:uppercase;
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
+}
+.dd-disclosure{padding:0;overflow:hidden}
+.dd-disclosure summary{min-height:58px;padding:16px 18px;display:flex;align-items:center;cursor:pointer;font-size:16px}
+.dd-disclosure-body{padding:0 18px 18px}
+.dd-tools.dd-disclosure-body{padding-top:0}
 .dd-meta{margin:0 0 12px;color:var(--muted);font-size:15px;line-height:1.5}
 .dd-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .dd-stat{
-  padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.2);
+  padding:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);
 }
-.dd-stat span{display:block;font-size:13px;letter-spacing:.04em;color:var(--muted);font-weight:700;margin-bottom:4px}
-.dd-stat strong{font-size:18px;font-variant-numeric:tabular-nums}
+.dd-stat span{
+  display:block;font-size:11px;letter-spacing:.12em;color:var(--muted);font-weight:900;
+  margin-bottom:4px;text-transform:uppercase;
+}
+.dd-stat strong{
+  font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:-.04em;font-weight:900;
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
+}
 
 .dd-textarea,.dd-input{
-  width:100%;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28);
-  color:var(--text);padding:12px 14px;font:inherit;font-size:15px;line-height:1.5;
+  width:100%;border:1px solid var(--line);background:rgba(255,255,255,.04);
+  color:var(--paper);padding:12px 14px;font:inherit;font-size:15px;line-height:1.5;
 }
 .dd-textarea{resize:vertical;min-height:120px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.dd-label{display:block;margin:0 0 6px;font-size:14px;font-weight:800;letter-spacing:.04em;color:var(--muted)}
-.dd-verify{
-  margin-top:10px;padding:12px;border-radius:12px;font-size:15px;font-weight:700;
-  border:1px solid var(--line);background:rgba(0,0,0,.22);
+.dd-label{
+  display:block;margin:0 0 6px;font-size:11px;font-weight:900;letter-spacing:.12em;
+  color:var(--muted);text-transform:uppercase;
 }
-.dd-verify.ok{color:var(--ok);border-color:rgba(125,255,163,.4)}
-.dd-verify.bad{color:var(--bad);border-color:rgba(255,155,155,.4)}
-.dd-verify.warn{color:var(--warn);border-color:rgba(255,224,138,.4)}
+.dd-verify{
+  margin-top:10px;padding:12px;font-size:15px;font-weight:800;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);
+}
+.dd-verify.ok{color:var(--acid);border-color:var(--acid)}
+.dd-verify.bad{color:var(--hot);border-color:var(--hot)}
+.dd-verify.warn{color:var(--acid);border-color:rgba(223,255,0,.45)}
 
 .dd-tools{display:flex;flex-wrap:wrap;gap:8px}
 .dd-tools a{
-  display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border-radius:999px;
-  border:1px solid var(--line);color:var(--text);text-decoration:none;font-size:14px;font-weight:700;
-  background:rgba(0,0,0,.2);
+  display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;
+  border:1px solid var(--line);color:var(--paper);text-decoration:none;
+  font-size:12px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;
+  background:transparent;box-shadow:4px 4px 0 var(--hot);
 }
-.dd-tools a:hover{border-color:rgba(196,165,255,.5)}
+.dd-tools a:hover{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--hot)}
 
+.dd-quote cite a{
+  display:inline-flex;align-items:center;min-height:44px;color:var(--paper);font-weight:800;
+  text-decoration:underline;text-underline-offset:3px;
+}
+.dd-quote cite a:hover{color:var(--acid)}
+.dd-tape{display:flex;gap:8px;overflow-x:auto;padding:0 0 14px;margin:0 0 4px;-webkit-overflow-scrolling:touch}
+.dd-tape a{flex:0 0 auto;border:1px solid var(--line);overflow:hidden;background:var(--ink);box-shadow:4px 4px 0 var(--hot)}
+.dd-tape img{display:block;width:88px;height:88px;object-fit:cover}
+.dd-scroll-top{
+  position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;
+  min-width:48px;min-height:48px;padding:0 14px;border:1px solid var(--acid);
+  background:var(--acid);color:var(--ink);
+  font-family:"Arial Black",Arial,Helvetica,sans-serif;
+  font-weight:900;font-size:18px;line-height:1;cursor:pointer;
+  box-shadow:4px 4px 0 var(--hot);
+}
+.dd-scroll-top:hover{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--hot)}
+.dd-scroll-top:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
 
 @media(max-width:720px){
   .dd-grid{grid-template-columns:minmax(0,1fr)}
   .dd-token-hero{flex-direction:column;align-items:flex-start}
-  #dd-app.dd{padding:14px 12px 40px}
+  #dd-app.dd{
+    padding:6px 12px 40px;
+    background-image:radial-gradient(circle at 80% 0%,rgba(124,77,255,.16),transparent 18rem);
+  }
+  .dd-h1{font-size:clamp(36px,16vw,64px)}
 }
 @media(prefers-reduced-motion:reduce){
-  .dd-btn,.dd-linkish{transition:none}
+  .dd-btn,.dd-linkish,.dd-tools a,.dd-scroll-top{transition:none}
 }
-
-.dd-avatar-link{display:block;min-width:52px;min-height:52px;line-height:0;border-radius:16px}
-.dd-tag a,.dd-quote cite a{
-  display:inline-flex;align-items:center;min-height:44px;color:#f0e7ff;font-weight:700;text-decoration:underline;text-underline-offset:3px;
+@media(forced-colors:active){
+  .dd-btn-primary,.dd-pill-ok{border:2px solid ButtonText}
 }
-.dd-tag a:hover,.dd-quote cite a:hover{color:#fff}
-.dd-tape{display:flex;gap:8px;overflow-x:auto;padding:0 0 14px;margin:0 0 4px;-webkit-overflow-scrolling:touch}
-.dd-tape a{flex:0 0 auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#12091c}
-.dd-tape img{display:block;width:88px;height:88px;object-fit:cover}
-.dd-scroll-top{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;min-width:48px;min-height:48px;padding:0 14px;border:1px solid var(--acid,#dfff00);border-radius:999px;background:var(--acid,#dfff00);color:var(--ink,#070608);font:inherit;font-weight:950;font-size:18px;line-height:1;cursor:pointer;box-shadow:4px 4px 0 var(--violet,#7c4dff)}
-.dd-scroll-top:hover{filter:brightness(1.05)}
-.dd-scroll-top:focus-visible{outline:3px solid var(--paper,#f4eddb);outline-offset:3px}
-@media(prefers-reduced-motion:reduce){.dd-scroll-top{transition:none}}
 </style>
 </head>
 <body>
@@ -195,16 +262,16 @@
 "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
 <div id="dd-app" class="dd">
+  <a class="dd-skip" href="#dd-mint">Skip to mint</a>
+  <nav class="dd-nav" aria-label="Dasha">
+    <a class="dd-brand" href="https://www.getdasha.com/">$<span>DASHA</span></a>
+    <a href="https://www.getdasha.com/">Home</a>
+    <a href="https://www.getdasha.com/studio">Studio</a>
+    <a href="https://www.getdasha.com/bounties">Bounties</a>
+    <a href="https://www.getdasha.com/dasha" aria-current="page">Desk</a>
+  </nav>
   <header class="dd-top dd-reveal">
-    <div class="dd-brand">
-      <a class="dd-avatar-link" href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer" aria-label="@dash_eats on X">
-        <img class="dd-avatar" src="https://pbs.twimg.com/profile_images/556455602331742208/KWkVe0TV.jpeg" alt="@dash_eats" width="48" height="48" referrerpolicy="no-referrer" loading="lazy"/>
-      </a>
-      <div>
-        <strong class="dd-name">dasha desk</strong>
-        <p class="dd-tag"><a href="https://www.getdasha.com/">Home</a> · <a href="https://www.getdasha.com/studio">Studio</a> · <a href="https://www.getdasha.com/bounties">Bounties</a></p>
-      </div>
-    </div>
+    <p class="dd-page">Desk</p>
     <div class="dd-pills">
       <span class="dd-pill">Solana</span>
       <span class="dd-pill" id="dd-px">—</span>
@@ -226,7 +293,7 @@
       <img id="dd-token-img" src="https://ipfs.io/ipfs/Qmb4fcJYbM1RSU43bvNPwUjhwGXK42L9xGvjEEijmWtAcg" alt="$dasha" width="88" height="88" referrerpolicy="no-referrer" loading="lazy"/>
       <div>
         <p class="dd-kicker">Public mint</p>
-        <h1 class="dd-h1">$dasha</h1>
+        <h1 class="dd-h1">$DASHA</h1>
       </div>
     </div>
 

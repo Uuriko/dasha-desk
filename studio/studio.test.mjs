@@ -19,7 +19,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { buildStudioEmbed } from './embed-build.mjs';
+import { buildStudioEmbed, pagesEmbedPin, studioLoaderHtml } from './embed-build.mjs';
 
 const here = (f) => new URL(`./${f}`, import.meta.url);
 const studio = await readFile(here('index.html'), 'utf8');
@@ -103,5 +103,28 @@ assert.ok(!/\bdocument\.getElementById\b/.test(embed),
 for (const banned of ['<!doctype', '<html', '<body', ':root']) {
   assert.ok(!embed.toLowerCase().includes(banned), `the embed is a fragment and must not contain ${banned}`);
 }
+
+/* Chrome is the five-token poster spine. Effect swatches may keep tool colours. */
+assert.match(studio, /--ink:#070608/);
+assert.match(studio, /--paper:#f4eddb/);
+assert.match(studio, /--acid:#dfff00/);
+assert.match(studio, /--hot:#ff3b81/);
+assert.match(studio, /--violet:#7c4dff/);
+assert.match(studio, /Arial,Helvetica,sans-serif/);
+assert.doesNotMatch(studio, /dgnav|\.dgnav|system-ui|\bExo\b|\bBangers\b|\bRaleway\b|#f6f1ff|#c4a5ff|#7c3aed|#7dffa3/);
+assert.doesNotMatch(studio, /backdrop-filter/);
+
+const pin = pagesEmbedPin(embedScript);
+const loader = studioLoaderHtml(pin);
+assert.match(loader, /color:#f4eddb!important/);
+assert.match(loader, /min-height:100vh/);
+assert.doesNotMatch(loader, /max-width:40rem/);
+assert.doesNotMatch(loader, /dgnav|#c4a5ff|#3b6bff|#7c3aed/);
+assert.ok(loader.includes(pin.src));
+assert.ok(loader.includes(`integrity="${pin.sri}"`));
+assert.match(loader, /Open studio/);
+assert.doesNotMatch(loader, /lobby\.getdasha\.com\/client\/studio\.js/);
+assert.equal(await readFile(here('loader.html'), 'utf8'), loader,
+  'loader.html is stale — run: node embed-build.mjs');
 
 console.log('Dasha Studio: PASS (self-contained, looks and formats intact, licence stated, mint correct, embed generated and scoped)');

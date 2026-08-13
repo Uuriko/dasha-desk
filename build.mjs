@@ -20,7 +20,7 @@ const meta = `<!DOCTYPE html>
 <link rel="canonical" href="https://www.getdasha.com/dasha"/>
 <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48e1dd29d210f01235_dasha-icon-32.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48cdcf3c87b29fc830_dasha-icon-180.png"/>
-<meta name="theme-color" content="#07060a"/>
+<meta name="theme-color" content="#070608"/>
 <meta property="og:title" content="$dasha desk — verify, chart, buy"/>
 <meta property="og:description" content="Check the mint. Inspect sources."/>
 <meta property="og:type" content="website"/>
@@ -40,14 +40,14 @@ const files = {
   './src/app.html': `${body}\n<style>\n${css}\n</style>\n<script>\n${js}\n</script>\n`,
   './index.html': `${meta}
 <link rel="stylesheet" href="src/styles.css"/>
-<style>html,body{margin:0;padding:0;background:#07060a;min-height:100%}</style>
+<style>html,body{margin:0;padding:0;background:#070608;min-height:100%}</style>
 </head>
 <body>
 ${standaloneBody}
 <script src="src/app.js"></script>
 ${pageEnd}`,
   './dist/index.html': `${meta}
-<style>html,body{margin:0;padding:0;background:#07060a;min-height:100%}
+<style>html,body{margin:0;padding:0;background:#070608;min-height:100%}
 ${css}
 </style>
 </head>
@@ -60,7 +60,7 @@ ${pageEnd}`,
 };
 
 const shell =
-  '<div style="min-height:100vh;background:radial-gradient(1200px 700px at 50% -10%,#2a1840 0%,#0b0a10 50%,#07060a 100%);padding:8px 0 28px">' +
+  '<div style="min-height:100vh;background:#070608;background-image:radial-gradient(circle at 82% 4%,rgba(124,77,255,.22),transparent 28rem),radial-gradient(circle at 4% 70%,rgba(255,59,129,.12),transparent 24rem);padding:8px 0 28px">' +
   files['./src/app.html'] +
   '</div>';
 

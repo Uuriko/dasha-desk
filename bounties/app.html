@@ -1,3 +1,278 @@
+<!-- dasha bounties — GENERATED. Paste into Webflow as an HTML embed. Do not iframe. -->
+<style>
+:root{
+  --ink:#070608;
+  --paper:#f4eddb;
+  --acid:#dfff00;
+  --hot:#ff3b81;
+  --hot-deep:#c21f5a;
+  --violet:#7c4dff;
+  --line:rgba(244,237,219,.32);
+  --muted:#e6dcc4;
+}
+html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);min-height:100%}
+#bb-app.bb{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:16px;
+  line-height:1.35;
+  color:var(--paper);
+  background:var(--ink);
+  background-image:
+    radial-gradient(circle at 82% 4%,rgba(124,77,255,.22),transparent 28rem),
+    radial-gradient(circle at 4% 70%,rgba(255,59,129,.12),transparent 24rem);
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+#bb-app *{box-sizing:border-box}
+
+.bb-skip{
+  position:absolute;left:-999px;top:8px;z-index:20;
+  background:var(--acid);color:var(--ink);font-weight:900;padding:8px 12px;
+}
+.bb-skip:focus{left:8px}
+
+.bb-nav{
+  width:min(1120px,calc(100% - 32px));min-height:56px;margin:0 auto;
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+  border-bottom:1px solid var(--line);padding:6px 0;
+}
+.bb-brand{
+  margin-right:auto;min-height:44px;display:inline-flex;align-items:center;
+  color:var(--paper);font-size:17px;font-weight:900;letter-spacing:-.03em;
+  text-decoration:none;text-transform:uppercase;
+}
+.bb-brand span{color:var(--acid)}
+.bb-nav>a:not(.bb-brand){
+  color:var(--paper);font-size:12px;font-weight:900;letter-spacing:.06em;
+  text-decoration:none;text-transform:uppercase;min-width:44px;min-height:44px;
+  padding-inline:6px;display:inline-flex;align-items:center;justify-content:center;
+}
+.bb-nav>a[aria-current="page"]{color:var(--acid)}
+
+.bb-shell{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:20px 0 28px}
+
+.bb-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:8px 0 18px;flex-wrap:wrap}
+.bb-head h1{
+  margin:0;font-size:clamp(42px,12vw,88px);line-height:.82;
+  letter-spacing:-.06em;font-weight:900;text-transform:uppercase;
+}
+.bb-id{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bb-id-btn{
+  appearance:none;cursor:pointer;font:inherit;font-weight:900;letter-spacing:.06em;
+  text-transform:uppercase;min-height:44px;min-width:88px;padding:0 16px;
+  border:1px solid var(--paper);background:transparent;color:var(--paper);
+  box-shadow:4px 4px 0 var(--hot);
+}
+#bb-app [hidden]{display:none!important}
+.bb-id-btn.bb-id-x,.bb-id-x{
+  background:var(--acid);border-color:var(--acid);color:var(--ink);
+  box-shadow:4px 4px 0 var(--hot);min-width:72px;padding:0 18px;
+}
+.bb-id-btn.bb-id-x:hover{box-shadow:1px 1px 0 var(--hot)}
+.bb-id-face{
+  appearance:none;cursor:pointer;font:inherit;font-weight:900;
+  display:inline-flex;align-items:center;gap:8px;
+  min-height:44px;padding:4px 14px 4px 4px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--paper);
+  text-decoration:none;letter-spacing:0;text-transform:none;
+  box-shadow:4px 4px 0 var(--violet);
+}
+.bb-id-face.bb-id-x{background:var(--acid);border-color:var(--acid);color:var(--ink);box-shadow:4px 4px 0 var(--hot)}
+.bb-id-face img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--ink)}
+.bb-claim{
+  appearance:none;cursor:pointer;font:inherit;font-weight:900;letter-spacing:.06em;
+  text-transform:uppercase;min-height:44px;min-width:88px;padding:0 16px;border-radius:999px;
+  border:1px solid var(--paper);background:transparent;color:var(--paper);
+  box-shadow:4px 4px 0 var(--violet);
+}
+.bb-claim:hover{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--violet)}
+.bb-row .bb-actions-inline{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.bb-cta,.bb-btn,.bb-chip,.bb-pay{
+  appearance:none;cursor:pointer;font:inherit;font-weight:900;letter-spacing:.06em;
+  text-transform:uppercase;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:44px;padding:0 16px;border-radius:999px;
+  border:1px solid var(--paper);background:transparent;color:var(--paper);
+  box-shadow:4px 4px 0 var(--violet);
+  transition:transform .18s,box-shadow .18s;
+}
+.bb-cta:hover,.bb-btn:hover,.bb-chip:hover,.bb-pay:hover{
+  transform:translate(3px,3px);box-shadow:1px 1px 0 var(--violet);
+}
+.bb-cta,.bb-btn-primary{
+  background:var(--acid);border-color:var(--acid);color:var(--ink);
+  box-shadow:4px 4px 0 var(--hot);
+}
+.bb-cta:hover,.bb-btn-primary:hover{box-shadow:1px 1px 0 var(--hot)}
+.bb-pay{
+  background:var(--hot);border-color:var(--hot);color:#fff;
+  box-shadow:4px 4px 0 var(--hot-deep);min-width:88px;
+}
+.bb-pay:hover{box-shadow:1px 1px 0 var(--hot-deep)}
+.bb-pay:disabled,.bb-pay-na{
+  background:transparent;border-color:var(--line);color:var(--muted);
+  box-shadow:none;cursor:default;transform:none;min-width:44px;
+}
+
+.bb-filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.bb-chip[aria-pressed="true"]{
+  background:var(--acid);border-color:var(--acid);color:var(--ink);
+  box-shadow:4px 4px 0 var(--hot);
+}
+
+.bb-banner{
+  margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);
+  font-weight:800;font-size:14px;
+}
+.bb-banner.bad{color:var(--hot);border-color:rgba(255,59,129,.45)}
+.bb-banner.warn{color:var(--acid)}
+.bb-banner a{color:inherit;font-weight:900}
+
+.bb-row{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+  gap:10px 16px;align-items:center;
+  min-height:72px;padding:14px 0;
+  border-bottom:1px solid var(--line);
+}
+.bb-row[aria-disabled="true"] .bb-pay,
+.bb-row[aria-disabled="true"] .bb-claim,
+.bb-btn[aria-disabled="true"]{
+  opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;
+}
+.bb-amt{
+  margin:0;color:var(--acid);font-size:clamp(28px,7vw,52px);
+  font-weight:900;letter-spacing:-.05em;line-height:.9;white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.bb-amt small{
+  display:block;margin-top:4px;font-size:11px;letter-spacing:.14em;
+  color:var(--acid);font-weight:900;
+}
+.bb-title{
+  color:var(--paper);font-weight:900;font-size:clamp(16px,2.4vw,22px);
+  letter-spacing:-.03em;text-decoration:none;line-height:1.15;
+  min-height:44px;display:inline-flex;align-items:center;
+}
+.bb-title:hover{color:var(--acid)}
+.bb-empty{margin:8px 0;color:var(--muted);font-weight:800}
+#bb-hunt:empty{display:none}
+
+.bb-list{margin:16px 0 0;padding-top:16px;border-top:1px solid var(--line)}
+.bb-list h2{
+  margin:0 0 14px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:900;
+}
+.bb-form{display:grid;gap:8px;max-width:36rem}
+.bb-label{
+  display:block;margin:8px 0 0;font-size:11px;font-weight:900;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+}
+.bb-input{
+  width:100%;min-height:44px;padding:12px 14px;border-radius:999px;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);
+  color:var(--paper);font:inherit;font-size:16px;
+}
+.bb-input::placeholder{color:rgba(230,220,196,.45)}
+.bb-error{margin:4px 0 0;color:var(--hot);font-weight:800}
+.bb-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.bb-toast{min-height:1.2em;margin:10px 0 0;color:var(--acid);font-weight:800;font-size:13px}
+
+.bb-table-wrap{overflow-x:auto}
+.bb-table{width:100%;border-collapse:collapse}
+.bb-table th,.bb-table td{text-align:left;padding:12px 8px;border-bottom:1px solid var(--line)}
+.bb-who{display:flex;align-items:center;gap:10px}
+.bb-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover}
+.bb-name{color:var(--paper);font-weight:900;text-decoration:none}
+.bb-sub{display:block;font-size:12px;font-weight:700;color:var(--muted)}
+.bb-proof{color:var(--hot);font-weight:900;text-decoration:none}
+.bb-na{color:var(--muted);font-weight:700}
+.bb-card,.bb-panel,.bb-origin,.bb-pill{color:inherit}
+.bb-pool-amount{color:var(--acid);font-size:clamp(28px,6vw,48px);font-weight:900;letter-spacing:-.05em}
+.bb-rules{white-space:pre-wrap}
+
+.bb-foot{
+  width:min(1120px,calc(100% - 32px));margin:0 auto;
+  padding:8px 0 20px;color:var(--muted);
+  font-size:12px;font-weight:800;letter-spacing:.04em;
+}
+
+#bb-app a:focus-visible,#bb-app button:focus-visible,#bb-app input:focus-visible{
+  outline:3px solid var(--acid);outline-offset:3px;
+}
+
+@media(max-width:720px){
+  .bb-shell,.bb-nav,.bb-foot{width:min(1120px,calc(100% - 24px))}
+  .bb-row{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
+  .bb-amt{grid-column:1;grid-row:1}
+  .bb-actions-inline{grid-column:2;grid-row:1}
+  .bb-title{grid-column:1/-1;grid-row:2}
+  .bb-head h1{font-size:clamp(36px,16vw,64px)}
+  body{background-image:radial-gradient(circle at 80% 0%,rgba(124,77,255,.16),transparent 18rem)}
+}
+@media(prefers-reduced-motion:reduce){
+  .bb-cta,.bb-btn,.bb-chip,.bb-pay{transition:none}
+}
+@media(forced-colors:active){
+  .bb-btn-primary,.bb-pay,.bb-chip[aria-pressed="true"]{border:2px solid ButtonText}
+}
+</style>
+<a class="bb-skip" href="#items">Skip to bounties</a>
+<div id="bb-app" class="bb">
+  <nav class="bb-nav" aria-label="Dasha">
+    <a class="bb-brand" href="https://www.getdasha.com/">$<span>DASHA</span></a>
+    <a href="https://www.getdasha.com/">Home</a>
+    <a href="https://www.getdasha.com/studio">Studio</a>
+    <a href="https://www.getdasha.com/bounties" aria-current="page">Bounties</a>
+  </nav>
+
+  <div class="bb-shell">
+    <div id="bb-banner" class="bb-banner bad" hidden></div>
+    <noscript><p class="bb-banner warn">Need JS. <a href="./feed.json">feed.json</a> still works.</p></noscript>
+
+    <header class="bb-head">
+      <h1>Bounties</h1>
+      <div class="bb-id" id="bb-id">
+        <button type="button" class="bb-id-btn" id="bb-github" aria-label="GitHub soon">GitHub soon</button>
+        <a hidden href="https://lobby.getdasha.com/oauth/github/start">GitHub</a>
+        <button type="button" class="bb-id-btn bb-id-x" id="bb-x" aria-label="X">X</button>
+        <a hidden href="https://lobby.getdasha.com/oauth/x/start">X</a>
+      </div>
+    </header>
+
+    <div class="bb-filters" id="bb-filters" hidden>
+      <button type="button" class="bb-chip" data-filter="open" aria-pressed="false">Open</button>
+      <button type="button" class="bb-chip" data-filter="paid" aria-pressed="false">Paid</button>
+    </div>
+
+    <section id="items" aria-label="Bounties">
+      <div id="bb-hunt"></div>
+    </section>
+
+    <p id="bb-toast" class="bb-toast" role="status" aria-live="polite"></p>
+
+    <section class="bb-list" id="list" aria-labelledby="bb-list-title">
+      <h2 id="bb-list-title">List a bounty</h2>
+      <form class="bb-form" id="bb-form" action="https://github.com/Uuriko/dasha-desk/issues/new" method="get">
+        <input type="hidden" name="template" value="bounty-project.yml"/>
+        <label class="bb-label" for="bb-item">GitHub URL</label>
+        <input class="bb-input" id="bb-item" name="itemUrl" type="url" spellcheck="false" autocomplete="off" placeholder="https://github.com/owner/name" inputmode="url"/>
+        <label class="bb-label" for="bb-amount">USDC</label>
+        <input class="bb-input" id="bb-amount" name="amount" type="number" inputmode="decimal" step="any" min="0" placeholder="25"/>
+        <label class="bb-label" for="bb-payto">Pay to</label>
+        <input class="bb-input" id="bb-payto" name="payTo" type="text" spellcheck="false" autocomplete="off" placeholder="Solana address"/>
+        <p class="bb-error" id="bb-form-error" role="alert" hidden></p>
+        <div class="bb-actions">
+          <button type="submit" class="bb-btn bb-btn-primary" id="bb-list">List</button>
+          <button type="button" class="bb-btn" id="bb-save-local">Save</button>
+          <a class="bb-btn" id="bb-issue-preview" hidden target="_blank" rel="noopener noreferrer">Preview GitHub issue</a>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <footer class="bb-foot">We don't hold it.</footer>
+</div>
+<script>
 'use strict';
 /**
  * dasha bounties — USDC on Solana. Declared, not escrow. GitHub required to list/claim/pay.
@@ -129,13 +404,15 @@
 
   function coerceCurrency(value) {
     var c = String(value || '').trim();
-    if (!c || /^usd$/i.test(c) || c === '$' || /^usdc$/i.test(c)) return CURRENCY;
+    if (!c || /^usd$/i.test(c) || c === '
+ || /^usdc$/i.test(c)) return CURRENCY;
     return c;
   }
 
   function isUsdc(currency) {
     var c = String(currency || '').trim();
-    return !c || /^usd$/i.test(c) || c === '$' || /^usdc$/i.test(c);
+    return !c || /^usd$/i.test(c) || c === '
+ || /^usdc$/i.test(c);
   }
 
   function isSolanaAddress(value) {
@@ -1522,3 +1799,4 @@
     else start();
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>

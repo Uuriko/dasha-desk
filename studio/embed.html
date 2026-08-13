@@ -16,10 +16,10 @@
   main.wrap h1,main.wrap .eyebrow,main.wrap label{color:var(--paper)!important}
   .wrap{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:20px 0 calc(28px + env(safe-area-inset-bottom,0px))}
   .topbar{width:min(1120px,calc(100% - 32px));min-height:56px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;border-bottom:1px solid var(--line);padding:6px 0}
-  .topbar .brand{margin-right:auto;min-height:44px;display:inline-flex;align-items:center;color:var(--paper);font-size:17px;font-weight:900;letter-spacing:-.03em;text-decoration:none;text-transform:uppercase}.topbar .brand span{color:var(--acid)}
+  .topbar .brand{margin-right:auto;min-height:44px;display:inline-flex;align-items:center;color:var(--paper);font-size:17px;font-weight:900;letter-spacing:-.05em;text-decoration:none;text-transform:uppercase;font-family:"Arial Black",Arial,Helvetica,sans-serif}.topbar .brand span{color:var(--acid)}
   .topbar>a:not(.brand){color:var(--paper);font-size:12px;font-weight:900;letter-spacing:.06em;text-decoration:none;text-transform:uppercase;min-width:44px;min-height:44px;padding-inline:6px;display:inline-flex;align-items:center;justify-content:center}
   .title-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:12px 0 8px}
-  h1{margin:0;font-size:clamp(28px,6vw,56px);line-height:.88;letter-spacing:-.05em;text-transform:uppercase;font-weight:900}
+  h1{margin:0;font-size:clamp(28px,6vw,56px);line-height:.88;letter-spacing:-.05em;text-transform:uppercase;font-weight:900;font-family:"Arial Black",Arial,Helvetica,sans-serif}
   .stroke{color:var(--acid);-webkit-text-stroke:0}
   .title-hint{margin:0;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
   .handoff{display:grid;gap:8px;margin:0 0 14px}
@@ -175,7 +175,7 @@
     h1{font-size:clamp(26px,8vw,40px)}
     .ship-bar{position:fixed;left:0;right:0;bottom:0;z-index:5;width:100%;max-width:100vw;box-sizing:border-box;
       padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
-      background:rgba(7,6,8,.94);border-top:1px solid var(--line);backdrop-filter:blur(10px)}
+      background:var(--ink);border-top:1px solid var(--line)}
     .ship-bar .btn.primary{width:100%;max-width:100%;box-shadow:none}
     .undo{bottom:calc(var(--ship-h) + 12px + env(safe-area-inset-bottom,0px))}:host{background-image:radial-gradient(circle at 80% 0%,rgba(124,77,255,.16),transparent 18rem)}
   }

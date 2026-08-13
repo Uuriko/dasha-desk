@@ -88,6 +88,19 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy', '/bounties']) {
 
   fail(!RETIRED.test(html), `${route}: a retired product is live again`);
 
+  if (route === '/') {
+    warn(!/simp-board|simp-row|Simp board/i.test(html), `${route}: Simp board is Lobby, not Home`);
+    warn(!/START QUIZ|LET'S GO/i.test(html), `${route}: quiz pills are Lobby, not Home`);
+    warn((html.match(/<h1[\s>]/gi) || []).length <= 1, `${route}: Home should have one H1`);
+  }
+  if (route === '/studio') {
+    warn(!/\bdgnav\b|\.dgnav\b/.test(html), `${route}: Demigod nav class is live — drop .dgnav`);
+    warn(!/#3b6bff|#3B6BFF|#c4a5ff/.test(html), `${route}: host chrome is recoloring type off the five tokens`);
+  }
+  if (route === '/bounties') {
+    warn(!/<iframe/i.test(html), `${route}: is an iframe — paste bounties/app.html, do not wrap the board`);
+  }
+
   /* Copy the operator removed. On 2026-08-08 the instruction was "no disclaimers anywhere"; it was
      taken out of every source, gated, and published verified on all nine surfaces — and by the
      evening it was back on two live pages, because a publish landed from a tree that still had it.
