@@ -51,8 +51,8 @@ in one file and wrong in another.
 **`bounties/`** — a sibling of Studio, not part of the Desk generate step. Vanilla HTML/CSS/JS.
 Anybody can list a GitHub issue/PR (`kind: item`) or a whole project (`kind: project`) with owner-written rules.
 Listings come from `bounties/feed.json` (also published as `/bounties.json`), open GitHub issues (`bounty-project` / `[bounty]`), this-device
-localStorage, `#l=` share JSON, and Demigod’s public feed (`bounties-feed.json` on GitHub raw / jsDelivr — fetched with CORS, cache-busted by minute, ~4s timeout; failure is non-fatal).
-Demigod-sourced rows are captioned; they are not Dasha mint or Studio work. Dedup is by `itemUrl`, else repo+name (case-insensitive).
+localStorage, `#l=` share JSON, and Demigod’s public feed (`options.extraSeedUrls`, defaulting to `bounties-feed.json` on GitHub raw / jsDelivr — not mixed into the local seed first-OK-wins list). Failure is non-fatal.
+Demigod-sourced rows are captioned; they are not Dasha mint or Studio work. `listingId` dedupes items by repo/type/number.
 Project-level pools are optional. Accepted outcomes need a GitHub PR, issue, or comment URL — no score without a link.
 Never invent ranks or dollar amounts. If a mint/CA appears here, it must come from `config/dasha.json`.
 
@@ -68,7 +68,7 @@ Each of these exists because of a specific failure, not as ceremony.
 | `dasha-desk-resilience.test.mjs` | The mint and source links survive every way the data API can fail — 500, connection drop, truncated JSON, empty results, nulls in every field — and no number is ever fabricated to fill a gap. |
 | `dasha-oss-docs.test.mjs` | The docs in this repo do not contradict each other. |
 | `studio/studio.test.mjs` | The Studio stays self-contained, every look id a remix URL can name still exists, and the embed is generated rather than hand-edited. |
-| `bounties/bounties.test.mjs` | Listing JSON parses (item + project), malformed issues are skipped, empty outcomes copy, proof URLs required, the form builds a GitHub `issues/new` URL, static feed matches root `/bounties.json`, seed has no fake leaderboard, Demigod feed merge/dedup is non-fatal. |
+| `bounties/bounties.test.mjs` | Listing JSON parses (item + project), malformed issues are skipped, empty outcomes copy, proof URLs required, the form builds a GitHub `issues/new` URL, static feed matches root `/bounties.json`, seed has no fake leaderboard, extra Demigod feed merge/dedup is non-fatal. |
 | `watch.mjs` | What the **live site** actually serves. Runs on a schedule, not just on a push. `/bounties/` is watched for the escrow disclaimer and must not show a foreign mint; it is not required to display the CA. |
 
 `watch.mjs` is the odd one out and the most important. Every other gate reads files in this repo, and

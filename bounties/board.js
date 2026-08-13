@@ -10,11 +10,10 @@
   var ISSUE_LABEL = 'bounty-project';
   var TITLE_PREFIX = '[bounty]';
   var STORAGE_KEY = 'dasha-bounties-listings-v1';
-  var DEMIGOD_FEED_URLS = [
+  var EXTRA_SEED_URLS = [
     'https://raw.githubusercontent.com/Uuriko/demigod-site-cdn/main/bounties-feed.json',
     'https://cdn.jsdelivr.net/gh/Uuriko/demigod-site-cdn@main/bounties-feed.json',
   ];
-  var REMOTE_FEED_TIMEOUT_MS = 4000;
   var DEMIGOD_BOARD_NOTE = 'also on trydemigod.com/bounties';
   var REPO_RE = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/;
   var GH_ACCEPT = 'application/vnd.github+json';
@@ -111,28 +110,6 @@
     }
     if (listing && listing.repo) return listing.repo.toLowerCase();
     return 'name:' + slugify(listing && listing.name);
-  }
-
-  function listingMergeKey(listing) {
-    if (!listing || typeof listing !== 'object') return '';
-    var itemUrl = String((listing.item && listing.item.url) || listing.itemUrl || '').trim();
-    if (itemUrl) {
-      var parsed = parseGithubItem(itemUrl);
-      return 'url:' + String((parsed && parsed.url) || itemUrl)
-        .trim()
-        .replace(/\/+$/, '')
-        .toLowerCase();
-    }
-    return (
-      'rn:' +
-      String(listing.repo || '')
-        .trim()
-        .toLowerCase() +
-      '\n' +
-      String(listing.name || '')
-        .trim()
-        .toLowerCase()
-    );
   }
 
   function normalizePool(raw) {
@@ -313,79 +290,23 @@
     });
   }
 
-  function mergeRemoteListings(base, remote) {
-    var seen = {};
-    var out = [];
-    function add(listing) {
-      if (!listing) return;
-      var key = listingMergeKey(listing);
-      if (key && seen[key]) return;
-      if (key) seen[key] = true;
-      out.push(listing);
+  async function listingsFromExtraUrls(fetchImpl, urls, origin) {
+    var extraUrls = Array.isArray(urls) ? urls : [];
+    var extraRes = null;
+    for (var x = 0; x < extraUrls.length; x++) {
+      try {
+        var extraOpts = { mode: 'cors', headers: { Accept: 'application/json' } };
+        if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+          extraOpts.signal = AbortSignal.timeout(4000);
+        }
+        extraRes = await fetchImpl(extraUrls[x], extraOpts);
+        if (extraRes && extraRes.ok) break;
+      } catch (err) {
+        extraRes = null;
+      }
     }
-    (base || []).forEach(add);
-    (remote || []).forEach(add);
-    return out;
-  }
-
-  function cacheBustByMinute(url, now) {
-    var src = String(url || '');
-    var sep = src.indexOf('?') >= 0 ? '&' : '?';
-    return src + sep + 't=' + Math.floor(Number(now != null ? now : Date.now()) / 60000);
-  }
-
-  async function fetchJsonWithTimeout(fetchImpl, url, ms) {
-    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var timer;
-    var timeoutPromise = new Promise(function (_, reject) {
-      timer = setTimeout(function () {
-        if (ctrl) ctrl.abort();
-        var err = new Error('timeout');
-        err.code = 'timeout';
-        reject(err);
-      }, ms);
-    });
-    try {
-      var opts = {
-        mode: 'cors',
-        cache: 'no-store',
-        credentials: 'omit',
-        headers: { Accept: 'application/json' },
-      };
-      if (ctrl) opts.signal = ctrl.signal;
-      var res = await Promise.race([fetchImpl(url, opts), timeoutPromise]);
-      if (!res || !res.ok) return null;
-      var data = await Promise.race([res.json(), timeoutPromise]);
-      if (!data || typeof data !== 'object') return null;
-      return data;
-    } catch (e) {
-      return null;
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  async function fetchRemoteFeed(ctx) {
-    ctx = ctx || {};
-    var fetchImpl = ctx.fetchImpl || fetch;
-    var urls = ctx.urls || ctx.demigodFeedUrls || DEMIGOD_FEED_URLS;
-    var ms = ctx.timeoutMs != null ? ctx.timeoutMs : REMOTE_FEED_TIMEOUT_MS;
-    var now = ctx.now;
-    for (var i = 0; i < urls.length; i++) {
-      var json = await fetchJsonWithTimeout(fetchImpl, cacheBustByMinute(urls[i], now), ms);
-      if (json) return json;
-    }
-    return null;
-  }
-
-  async function loadDemigodListings(ctx) {
-    try {
-      var json = await fetchRemoteFeed(ctx);
-      if (!json) return [];
-      return listingsFromSeed(json, 'demigod');
-    } catch (e) {
-      return [];
-    }
+    if (!extraRes || !extraRes.ok) return [];
+    return listingsFromSeed(await extraRes.json(), origin || 'demigod');
   }
 
   function formatPool(pool) {
@@ -1025,7 +946,7 @@
         var next = mergeListings(current, [saved]);
         if (!saveLocal(next)) return showErr('Could not write localStorage in this browser.');
         clearErr();
-        live.listings = mergeRemoteListings(mergeListings(live.seed, live.issues, live.shared, next), live.demigod);
+        live.listings = mergeListings(live.seed, live.demigod, live.issues, live.shared, next);
         paintListings();
         localBtn.textContent = 'Saved on this device';
       });
@@ -1170,28 +1091,18 @@
       if (!seedRes || !seedRes.ok) throw new Error('unavailable');
       seedListings = listingsFromSeed(await seedRes.json());
     } catch (e) {}
-    var issueTask = githubGet('https://api.github.com/repos/' + LISTING_REPO + '/issues?state=open&per_page=100', ctx)
-      .then(listingsFromIssues)
-      .catch(function (e) {
-        issuesError = e && e.code === 'rate-limited' ? 'rate-limited' : 'unavailable';
-        return [];
-      });
-    var demigodTask = loadDemigodListings({
-      fetchImpl: fetchImpl,
-      urls: options.demigodFeedUrls || DEMIGOD_FEED_URLS,
-      timeoutMs: options.timeoutMs != null ? options.timeoutMs : REMOTE_FEED_TIMEOUT_MS,
-      now: options.now,
-    });
     try {
-      issueListings = await issueTask;
-    } catch (e) {
-      issueListings = [];
-      issuesError = issuesError || 'unavailable';
-    }
-    try {
-      demigodListings = await demigodTask;
+      var extraUrls = Array.isArray(options.extraSeedUrls) ? options.extraSeedUrls : EXTRA_SEED_URLS;
+      demigodListings = await listingsFromExtraUrls(fetchImpl, extraUrls, 'demigod');
     } catch (e) {
       demigodListings = [];
+    }
+    try {
+      issueListings = listingsFromIssues(
+        await githubGet('https://api.github.com/repos/' + LISTING_REPO + '/issues?state=open&per_page=100', ctx),
+      );
+    } catch (e) {
+      issuesError = e && e.code === 'rate-limited' ? 'rate-limited' : 'unavailable';
     }
 
     var shared = [];
@@ -1206,7 +1117,7 @@
     live.issues = issueListings;
     live.shared = shared;
     live.demigod = demigodListings;
-    live.listings = mergeRemoteListings(mergeListings(seedListings, issueListings, shared, local), demigodListings);
+    live.listings = mergeListings(seedListings, demigodListings, issueListings, shared, local);
 
     var banner = $('bb-banner');
     if (banner) {
@@ -1239,8 +1150,7 @@
     ISSUE_LABEL: ISSUE_LABEL,
     TITLE_PREFIX: TITLE_PREFIX,
     STORAGE_KEY: STORAGE_KEY,
-    DEMIGOD_FEED_URLS: DEMIGOD_FEED_URLS,
-    REMOTE_FEED_TIMEOUT_MS: REMOTE_FEED_TIMEOUT_MS,
+    EXTRA_SEED_URLS: EXTRA_SEED_URLS,
     DEMIGOD_BOARD_NOTE: DEMIGOD_BOARD_NOTE,
     EMPTY_OUTCOMES: EMPTY_OUTCOMES,
     isValidRepo: isValidRepo,
@@ -1254,12 +1164,8 @@
     listingFromIssue: listingFromIssue,
     listingsFromIssues: listingsFromIssues,
     listingsFromSeed: listingsFromSeed,
-    listingMergeKey: listingMergeKey,
+    listingsFromExtraUrls: listingsFromExtraUrls,
     mergeListings: mergeListings,
-    mergeRemoteListings: mergeRemoteListings,
-    cacheBustByMinute: cacheBustByMinute,
-    fetchRemoteFeed: fetchRemoteFeed,
-    loadDemigodListings: loadDemigodListings,
     formatPool: formatPool,
     formatAmount: formatAmount,
     rulesText: rulesText,

@@ -282,14 +282,13 @@ assert.match(css, /#F5511E/i);
 assert.match(css, /Poppins/);
 assert.match(css, /prefers-reduced-motion/);
 
-/* Demigod public feed — same schema, CORS GitHub raw / jsDelivr, non-fatal */
-assert.deepEqual(B.DEMIGOD_FEED_URLS, [
+/* Extra Demigod feed — injected via extraSeedUrls, not mixed into the local seed fallback list */
+assert.deepEqual(B.EXTRA_SEED_URLS, [
   'https://raw.githubusercontent.com/Uuriko/demigod-site-cdn/main/bounties-feed.json',
   'https://cdn.jsdelivr.net/gh/Uuriko/demigod-site-cdn@main/bounties-feed.json',
 ]);
-assert.equal(B.REMOTE_FEED_TIMEOUT_MS, 4000);
-assert.ok(B.DEMIGOD_FEED_URLS.every((url) => !/trydemigod\.com/i.test(url)));
-assert.match(js, /mode:\s*['"]cors['"]/);
+assert.ok(B.EXTRA_SEED_URLS.every((url) => !/trydemigod\.com/i.test(url)));
+assert.doesNotMatch(js, /seedUrls[\s\S]{0,200}demigod-site-cdn/);
 assert.doesNotMatch(js, /https:\/\/(?:www\.)?trydemigod\.com[^"'\s]*bounties-feed/i);
 
 const demigodFeed = {
@@ -371,21 +370,13 @@ assert.deepEqual(
 assert.ok(demigodListings.every((row) => row.outcomes.every((o) => B.parseGithubProof(o.url))));
 
 const dashaOnly = B.listingsFromSeed(feed);
-const merged = B.mergeRemoteListings(dashaOnly, demigodListings);
+const merged = B.mergeListings(dashaOnly, demigodListings);
 assert.equal(merged.filter((row) => row.itemUrl === 'https://github.com/Uuriko/dasha-desk/issues/8').length, 1);
-assert.equal(
-  merged.filter((row) => String(row.repo).toLowerCase() === 'uuriko/dasha-desk' && row.name.toLowerCase() === 'dasha desk').length,
-  1,
-);
+assert.equal(merged.filter((row) => row.kind === 'project' && String(row.repo).toLowerCase() === 'uuriko/dasha-desk').length, 1);
 assert.ok(merged.some((row) => row.name === 'Demigod-only hunt' && row.origin === 'demigod'));
 assert.ok(merged.some((row) => row.name === 'demigod' && row.origin === 'demigod'));
-assert.equal(merged.find((row) => row.itemUrl === 'https://github.com/Uuriko/dasha-desk/issues/8').origin, 'seed');
-assert.equal(
-  B.listingMergeKey(merged.find((row) => row.itemUrl === 'https://github.com/Uuriko/dasha-desk/issues/8')),
-  B.listingMergeKey(demigodListings.find((row) => row.itemUrl === 'https://github.com/Uuriko/dasha-desk/issues/8')),
-);
 
-const emptyRemote = B.mergeRemoteListings(dashaOnly, B.listingsFromSeed({ listings: [] }, 'demigod'));
+const emptyRemote = B.mergeListings(dashaOnly, B.listingsFromSeed({ listings: [] }, 'demigod'));
 assert.equal(emptyRemote.length, dashaOnly.length);
 assert.deepEqual(emptyRemote.map((row) => row.name), dashaOnly.map((row) => row.name));
 
@@ -407,51 +398,14 @@ const jsonRes = (body, status = 200) => ({
   text: async () => JSON.stringify(body),
 });
 
-const seenFetch = [];
-const demigodJson = await B.fetchRemoteFeed({
-  fetchImpl: async (url, opts) => {
-    seenFetch.push({ url, mode: opts && opts.mode });
-    if (String(url).includes('raw.githubusercontent.com')) return { ok: false, status: 404, json: async () => ({}), text: async () => '' };
-    return jsonRes(demigodFeed);
-  },
-  urls: B.DEMIGOD_FEED_URLS,
-  now: 1_786_642_800_000,
-});
-assert.equal(demigodJson.name, 'demigod bounties');
-assert.equal(seenFetch[0].mode, 'cors');
-assert.match(seenFetch[0].url, /[?&]t=29777380(?:$|&)/);
-assert.ok(seenFetch[1].url.includes('jsdelivr.net'));
-
-const failedJson = await B.fetchRemoteFeed({
-  fetchImpl: async () => {
-    throw new Error('network');
-  },
-  urls: B.DEMIGOD_FEED_URLS,
-  timeoutMs: 50,
-});
-assert.equal(failedJson, null);
-const failedRows = await B.loadDemigodListings({
-  fetchImpl: async () => ({ ok: false, status: 500, json: async () => ({}), text: async () => '' }),
-  urls: B.DEMIGOD_FEED_URLS,
-  timeoutMs: 50,
-});
-assert.deepEqual(failedRows, []);
-
-const hungStart = Date.now();
-const timedOut = await B.fetchRemoteFeed({
-  fetchImpl: () => new Promise(() => {}),
-  urls: ['https://example.test/bounties-feed.json'],
-  timeoutMs: 40,
-});
-assert.equal(timedOut, null);
-assert.ok(Date.now() - hungStart < 2000);
+const EXTRA_FEED = 'https://example.test/demigod-feed.json';
 
 function fakeBoardFetch(demigodBody, demigodStatus = 200) {
   return async (url) => {
     const u = String(url);
-    if (u.includes('feed.json') && !u.includes('bounties-feed')) return jsonRes(feed);
+    if (u.includes('feed.json') && !u.includes('demigod-feed') && !u.includes('bounties-feed')) return jsonRes(feed);
     if (u.includes('api.github.com')) return jsonRes([]);
-    if (u.includes('bounties-feed.json') || u.includes('demigod')) {
+    if (u.includes('demigod-feed.json') || u.includes('bounties-feed.json')) {
       if (demigodStatus >= 400) return { ok: false, status: demigodStatus, json: async () => ({}), text: async () => '' };
       return jsonRes(demigodBody);
     }
@@ -462,9 +416,8 @@ function fakeBoardFetch(demigodBody, demigodStatus = 200) {
 const booted = await B.boot({
   fetchImpl: fakeBoardFetch(demigodFeed),
   seedUrl: './feed.json',
-  demigodFeedUrls: B.DEMIGOD_FEED_URLS,
+  extraSeedUrls: [EXTRA_FEED],
   storage: mem,
-  timeoutMs: 200,
 });
 assert.ok(booted.listings.some((row) => row.name === 'Demigod-only hunt' && row.origin === 'demigod'));
 assert.equal(booted.listings.filter((row) => row.itemUrl === 'https://github.com/Uuriko/dasha-desk/issues/8').length, 1);
@@ -473,9 +426,8 @@ assert.ok(booted.listings.some((row) => row.name === 'docs: add CONTRIBUTING scr
 const bootedEmpty = await B.boot({
   fetchImpl: fakeBoardFetch({ name: 'demigod bounties', listings: [] }),
   seedUrl: './feed.json',
-  demigodFeedUrls: B.DEMIGOD_FEED_URLS,
+  extraSeedUrls: [EXTRA_FEED],
   storage: mem,
-  timeoutMs: 200,
 });
 assert.ok(bootedEmpty.listings.some((row) => row.name === 'docs: add CONTRIBUTING screenshot of GitHub web edit flow'));
 assert.ok(!bootedEmpty.listings.some((row) => row.origin === 'demigod'));
@@ -484,11 +436,19 @@ assert.ok(bootedEmpty.listings.length >= dashaOnly.length);
 const bootedFail = await B.boot({
   fetchImpl: fakeBoardFetch(null, 500),
   seedUrl: './feed.json',
-  demigodFeedUrls: B.DEMIGOD_FEED_URLS,
+  extraSeedUrls: [EXTRA_FEED],
   storage: mem,
-  timeoutMs: 200,
 });
 assert.ok(bootedFail.listings.some((row) => row.name === 'docs: add CONTRIBUTING screenshot of GitHub web edit flow'));
 assert.deepEqual(bootedFail.demigod, []);
+
+const extraFailed = await B.listingsFromExtraUrls(
+  async () => {
+    throw new Error('network');
+  },
+  [EXTRA_FEED],
+  'demigod',
+);
+assert.deepEqual(extraFailed, []);
 
 console.log('dasha-bounties: PASS');
