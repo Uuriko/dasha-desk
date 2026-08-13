@@ -9,11 +9,11 @@ gallery, three formats, PNG and animated GIF out. No account or wallet.
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
 Jupiter route. [Use it ↗](https://www.getdasha.com/dasha)
 
-**[bounties/](bounties/)** — dasha bounties / the board: hunt a paid GitHub issue or list a
-project with your own rules. Machine-readable feed at
+**[bounties/](bounties/)** — USDC bounties on Solana. GitHub to list or claim; X is optional
+(same lobby session as Simp Board). Feed:
 [uuriko.github.io/dasha-desk/bounties/feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json)
-([raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)). The page may also
-show public Demigod listings, marked as such. Declared bounties, not escrow.
+([raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)).
+We don't hold it.
 [Use it ↗](https://www.getdasha.com/bounties)
 
 None of them connects a wallet or moves anything. Original drawings are public domain. Uploaded or

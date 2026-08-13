@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * dasha bounties — parse listings, skip junk, never invent ranks,
- * prove the form builds a GitHub issue URL, and that seed has no fake leaderboard.
+ * dasha bounties — USDC Solana Pay, GitHub identity required, X optional via lobby.
  */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -22,26 +21,103 @@ const html = readFileSync(join(here, 'index.html'), 'utf8');
 const css = readFileSync(join(here, 'board.css'), 'utf8');
 const js = readFileSync(join(here, 'board.js'), 'utf8');
 const template = read('.github/ISSUE_TEMPLATE/bounty-project.yml');
+const copy = html + css + js;
 
 assert.ok(existsSync(join(here, 'index.html')));
 assert.ok(existsSync(join(here, 'feed.json')));
 assert.ok(existsSync(join(root, 'bounties.json')));
 assert.ok(existsSync(join(root, 'config/bounties.seed.json')));
-assert.match(html, /declared bounties, not escrow/i);
 assert.match(html, /id="bb-form"/);
-assert.match(html, /id="bb-rules"/);
 assert.match(html, /id="bb-item"/);
-assert.match(html, /open bounties, you set the pool/i);
+assert.match(html, /id="bb-payto"/);
+assert.match(html, /id="bb-github"/);
+assert.match(html, /id="bb-x"/);
+assert.match(html, />X</);
+assert.match(html, /We don't hold it\./);
 assert.match(html, /rel="alternate"[^>]*feed\.json/);
-assert.doesNotMatch(html + css + js, /[1-9A-HJ-NP-Za-km-z]{32,44}pump/);
-assert.doesNotMatch(html, /1% platform fee|signed compute|14-day wallet/i);
+assert.doesNotMatch(copy, /[1-9A-HJ-NP-Za-km-z]{32,44}pump/);
+assert.doesNotMatch(html, /1% platform fee|signed compute|14-day wallet|potter@|hiring|10% fee/i);
 assert.doesNotMatch(js, /merge_cap|issue_close|DEFAULT_SCORING|contributors\?per_page/);
+assert.doesNotMatch(html, /first-timers welcome|simp board is different|payout policy|declared bounties, not escrow/i);
+assert.doesNotMatch(html, /eligibility|potter@|10% fee|hiring/i);
+assert.doesNotMatch(copy, /25 USD|50 USD|\$25|\$50/);
 assert.match(template, /name: Bounty listing/);
 assert.match(template, /bounty-project/);
 assert.match(template, /id: listing/);
 assert.match(template, /itemUrl/);
+assert.match(template, /"currency": "USDC"/);
+assert.match(template, /payTo/);
 
-/* JSON listing parse — freeform rules, repo optional */
+assert.match(css, /--ink:\s*#070608/i);
+assert.match(css, /--paper:\s*#f4eddb/i);
+assert.match(css, /--acid:\s*#dfff00/i);
+assert.match(css, /--hot:\s*#ff3b81/i);
+assert.match(css, /--hot-deep:\s*#c21f5a/i);
+assert.match(css, /--violet:\s*#7c4dff/i);
+assert.match(css, /Arial,Helvetica/);
+assert.match(css, /box-shadow:\s*4px 4px 0 var\(--hot\)/);
+assert.match(css, /prefers-reduced-motion/);
+assert.match(css, /min-height:\s*44px/);
+
+assert.equal(B.CURRENCY, 'USDC');
+assert.equal(B.CHAIN, 'solana');
+assert.equal(B.USDC_MINT, 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+assert.equal(B.LOBBY_URL, 'https://lobby.getdasha.com');
+assert.equal(B.X_OAUTH_START, 'https://lobby.getdasha.com/oauth/x/start');
+assert.equal(B.X_OAUTH_WINDOW, 'dasha_x');
+assert.equal(B.GITHUB_OAUTH_START, 'https://lobby.getdasha.com/oauth/github/start');
+assert.equal(B.SIMP_ME, 'https://lobby.getdasha.com/simp/me');
+assert.match(js, /dasha_x/);
+assert.match(js, /oauth\/x\/start/);
+assert.match(js, /simp\/me/);
+
+const SYS = '11111111111111111111111111111111';
+assert.equal(
+  B.solanaPayUrl(25, SYS, 'docs'),
+  'solana:' + SYS + '?amount=25&spl-token=' + B.USDC_MINT + '&label=docs',
+);
+assert.equal(B.solanaPayUrl(25, '', 'docs'), '');
+assert.equal(B.solanaPayUrl('nope', SYS, 'docs'), '');
+assert.equal(
+  B.phantomBrowseUrl(B.solanaPayUrl(25, SYS, 'docs')),
+  'https://phantom.app/ul/browse/' + encodeURIComponent(B.solanaPayUrl(25, SYS, 'docs')),
+);
+assert.equal(B.normalizePayTo('solana:' + SYS + '?amount=1'), SYS);
+assert.equal(B.payClipboardText({ amount: 25 }), '25 USDC Solana');
+
+const ident = B.identityFromLobbyMe({
+  linked: true,
+  x: { handle: 'dash_eats', display: '@dash_eats', href: 'https://x.com/dash_eats', avatar: 'https://pbs.twimg.com/x.jpg' },
+  github: { login: 'Uuriko' },
+});
+assert.equal(ident.x.handle, 'dash_eats');
+assert.equal(ident.github.login, 'Uuriko');
+assert.equal(B.hasGitHub(ident), true);
+assert.equal(B.canAct(ident), true);
+assert.equal(B.canAct({ github: null, x: ident.x }), false);
+assert.equal(B.hasGitHub(B.normalizeIdentity({})), false);
+assert.equal(B.normalizeIdentity({ github: 'Uuriko' }).github.login, 'Uuriko');
+
+const memId = { data: {}, getItem(k) { return this.data[k] || null; }, setItem(k, v) { this.data[k] = String(v); } };
+assert.equal(B.saveIdentity({ github: 'Uuriko', x: 'dash_eats' }, memId), true);
+assert.equal(B.loadIdentity(memId).github.login, 'Uuriko');
+assert.equal(B.loadIdentity(memId).x.handle, 'dash_eats');
+
+const gated = B.renderRow(
+  B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, currency: 'USDC' }),
+  { github: null, x: null },
+);
+assert.match(gated, /aria-disabled="true"/);
+assert.match(gated, />Pay</);
+assert.match(gated, />Claim</);
+const liveRow = B.renderRow(
+  B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, payTo: SYS }),
+  { github: { login: 'Uuriko' }, x: null },
+);
+assert.doesNotMatch(liveRow, /aria-disabled="true"/);
+assert.match(liveRow, /data-bb-pay="wallet"/);
+assert.match(liveRow, /solana:/);
+
 const fenced = B.listingFromIssue({
   number: 11,
   title: '[bounty] dasha desk',
@@ -53,9 +129,8 @@ const fenced = B.listingFromIssue({
   "name": "dasha desk",
   "repo": "Uuriko/dasha-desk",
   "pool": { "amount": 50, "currency": "USD" },
-  "pays": "Merged PRs",
-  "eligibility": "Anyone",
-  "payout": "SOL to the address on the PR"
+  "github": "Uuriko",
+  "payTo": ""
 }
 \`\`\`
 `,
@@ -64,7 +139,8 @@ assert.equal(fenced.name, 'dasha desk');
 assert.equal(fenced.repo, 'Uuriko/dasha-desk');
 assert.equal(fenced.kind, 'project');
 assert.equal(fenced.pool.amount, 50);
-assert.equal(fenced.pays, 'Merged PRs');
+assert.equal(fenced.currency, 'USDC');
+assert.equal(fenced.github, 'Uuriko');
 assert.equal(fenced.origin, 'issue');
 assert.ok(fenced.createdAt);
 assert.ok(!('scoring' in fenced) || fenced.scoring == null);
@@ -77,7 +153,6 @@ assert.equal(namedOnly.pool, null);
 assert.equal(B.formatPool(namedOnly.pool), 'undeclared');
 assert.match(B.renderRules(namedOnly), /A printed page/);
 assert.equal(B.normalizeListing({ title: 'Poster' }).name, 'Poster');
-assert.match(B.renderRules(B.normalizeListing({ name: 'X', rules: 'Pay in stickers' })), /Pay in stickers/);
 
 const fromUrl = B.normalizeListing({ name: 'desk', repo: 'https://github.com/Uuriko/dasha-desk.git' });
 assert.equal(fromUrl.repo, 'Uuriko/dasha-desk');
@@ -87,15 +162,17 @@ const item = B.normalizeListing({
   itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8',
   amount: 25,
   currency: 'USD',
-  pays: 'A merged PR',
-  payout: 'example',
   createdAt: '2026-08-13T00:00:00.000Z',
 });
 assert.equal(item.kind, 'item');
 assert.equal(item.repo, 'Uuriko/dasha-desk');
 assert.equal(item.itemUrl, 'https://github.com/Uuriko/dasha-desk/issues/8');
 assert.equal(item.amount, 25);
+assert.equal(item.currency, 'USDC');
+assert.equal(item.chain, 'solana');
+assert.equal(item.tokenMint, B.USDC_MINT);
 assert.match(item.name, /#8/);
+assert.equal(B.formatAmount(item), '25 USDC');
 assert.equal(B.parseGithubItem('Uuriko/dasha-desk#8').url, 'https://github.com/Uuriko/dasha-desk/issues/8');
 
 assert.equal(B.normalizeListing({}), null);
@@ -104,7 +181,6 @@ assert.equal(B.normalizeListing({ kind: 'item', itemUrl: 'https://example.com/no
 assert.equal(B.extractJsonObject('no json here'), null);
 assert.equal(B.extractJsonObject('```json\n{not json}\n```'), null);
 
-/* skip malformed issues */
 const parsed = B.listingsFromIssues([
   { number: 1, title: '[bounty] good', html_url: 'https://x/1', body: '```json\n{"name":"Alpha","repo":"a/b","pool":{"amount":10,"currency":"SOL"}}\n```' },
   { number: 2, title: '[bounty] junk', html_url: 'https://x/2', body: 'I forgot the json' },
@@ -121,8 +197,8 @@ assert.deepEqual(
 assert.equal(B.formatPool(parsed[0].pool), '10 SOL');
 assert.equal(parsed[2].kind, 'item');
 assert.equal(parsed[2].itemUrl, 'https://github.com/a/b/issues/9');
+assert.equal(parsed[2].currency, 'USDC');
 
-/* no fabricated numbers when outcomes are empty / fetch is unused */
 const failedBoard = B.renderGlobalBoard({
   boardError: 'GitHub contributor fetch failed.',
   outcomes: [],
@@ -153,31 +229,25 @@ const project = seedListings.find((row) => row.kind === 'project');
 const itemSeed = seedListings.find((row) => row.kind === 'item');
 const failCard = B.renderProjectCard(project);
 assert.match(failCard, /Uuriko\/dasha-desk/);
-assert.match(failCard, /seed listing/i);
 assert.doesNotMatch(failCard, /#1/);
-assert.match(failCard, /\$50/);
-assert.match(failCard, /Merged pull requests/i);
-
-const failPage = B.renderProjectPage(project, seedListings);
-assert.match(failPage, /No accepted outcomes in this cycle yet\./);
-assert.doesNotMatch(failPage, />#1</);
+assert.match(failCard, /50/);
+assert.match(failCard, /USDC/);
+assert.doesNotMatch(failCard, /\$50|Merged pull requests|first-timers/i);
 
 const hunt = B.renderHunt(seedListings);
-assert.match(hunt, /\$25/);
+assert.match(hunt, /25/);
+assert.match(hunt, /USDC/);
 assert.match(hunt, /issues\/8/);
-assert.match(hunt, /Open on GitHub/);
+assert.match(hunt, />Pay</);
+assert.match(hunt, />Claim</);
 
-/* form builds a GitHub new-issue URL — name is enough for a project */
 const built = B.buildIssueUrl({
   kind: 'project',
   name: 'dasha desk',
   repo: 'Uuriko/dasha-desk',
   amount: '50',
-  currency: 'USD',
-  pays: 'Merged PRs',
-  eligibility: 'Anyone',
-  payout: 'https://github.com/Uuriko/dasha-desk',
-});
+  payTo: SYS,
+}, { github: { login: 'Uuriko' }, x: { handle: 'dash_eats' } });
 assert.equal(built.ok, true);
 const issueUrl = new URL(built.url);
 assert.equal(issueUrl.pathname, '/Uuriko/dasha-desk/issues/new');
@@ -188,17 +258,13 @@ assert.equal(listing.name, 'dasha desk');
 assert.equal(listing.repo, 'Uuriko/dasha-desk');
 assert.equal(listing.kind, 'project');
 assert.equal(listing.pool.amount, 50);
-assert.equal(listing.pays, 'Merged PRs');
+assert.equal(listing.currency, 'USDC');
+assert.equal(listing.payTo, SYS);
+assert.equal(listing.github, 'Uuriko');
+assert.equal(listing.x, 'dash_eats');
 assert.ok(!listing.scoring);
 
-const noRepo = B.buildIssueUrl({ kind: 'project', name: 'Zine', pays: 'A spread' });
-assert.equal(noRepo.ok, true);
-assert.equal(JSON.parse(new URL(noRepo.url).searchParams.get('listing')).name, 'Zine');
-
-const blankPool = B.buildIssueUrl({ kind: 'project', name: 'X', amount: '' });
-assert.equal(blankPool.ok, true);
-assert.equal(JSON.parse(new URL(blankPool.url).searchParams.get('listing')).pool, undefined);
-
+assert.equal(B.buildIssueUrl({ kind: 'project', name: 'Zine' }).ok, false);
 assert.equal(B.buildIssueUrl({ kind: 'item', itemUrl: 'https://example.com/nope' }).ok, false);
 assert.equal(B.buildIssueUrl({ repo: 'nope' }).ok, false);
 assert.equal(B.buildIssueUrl({}).ok, false);
@@ -207,21 +273,20 @@ const itemForm = B.buildIssueUrl({
   kind: 'item',
   itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8',
   amount: '25',
-  currency: 'USD',
-  pays: 'A merged PR',
 });
 assert.equal(itemForm.ok, true);
 const itemListing = JSON.parse(new URL(itemForm.url).searchParams.get('listing'));
 assert.equal(itemListing.kind, 'item');
 assert.equal(itemListing.itemUrl, 'https://github.com/Uuriko/dasha-desk/issues/8');
 assert.equal(itemListing.amount, 25);
+assert.equal(itemListing.currency, 'USDC');
 assert.ok(!itemListing.pool);
 
-/* seed listing renders without a fake leaderboard */
 assert.equal(seedListings.length, 2);
 assert.equal(project.repo, 'Uuriko/dasha-desk');
 assert.equal(project.origin, 'seed');
 assert.equal(itemSeed.kind, 'item');
+assert.equal(itemSeed.payTo, '');
 assert.equal(itemSeed.itemUrl, 'https://github.com/Uuriko/dasha-desk/issues/8');
 assert.ok(!('contributors' in seed.listings[0]));
 assert.ok(!('score' in seed.listings[0]));
@@ -250,16 +315,17 @@ const serializedFeed = B.toFeed([]);
 assert.equal(serializedFeed.schema, 'dasha-bounties-feed/v1');
 assert.equal(serializedFeed.url, 'https://www.getdasha.com/bounties');
 assert.ok(Array.isArray(serializedFeed.listings));
-const seedCard = B.renderProjectCard(project);
-assert.match(seedCard, /data-origin="seed"/);
-assert.doesNotMatch(seedCard, /#1/);
 
 feed.listings.forEach((row) => {
   assert.ok('repo' in row);
   assert.ok('itemUrl' in row);
   assert.ok('amount' in row);
-  assert.ok('currency' in row);
-  assert.ok('payout' in row);
+  assert.equal(row.currency, 'USDC');
+  assert.equal(row.chain, 'solana');
+  assert.ok('payTo' in row);
+  assert.equal(row.tokenMint, B.USDC_MINT);
+  assert.ok('github' in row);
+  assert.ok('x' in row);
   assert.ok('createdAt' in row);
 });
 const serialized = B.toFeed(seedListings);
@@ -268,15 +334,17 @@ serialized.listings.forEach((row) => {
   assert.ok('itemUrl' in row);
   assert.ok('amount' in row);
   assert.ok('currency' in row);
-  assert.ok('rules' in row);
-  assert.ok('payout' in row);
+  assert.ok('chain' in row);
+  assert.ok('payTo' in row);
+  assert.ok('tokenMint' in row);
+  assert.ok('github' in row);
+  assert.ok('x' in row);
   assert.ok('createdAt' in row);
 });
 assert.equal(serialized.listings.find((row) => row.kind === 'item').itemUrl, 'https://github.com/Uuriko/dasha-desk/issues/8');
 assert.ok(serialized.listings.every((row) => Array.isArray(row.outcomes)));
 assert.ok(serialized.listings.every((row) => row.outcomes.every((o) => B.parseGithubProof(o.url))));
 
-/* localStorage + shareable JSON */
 const mem = {
   data: {},
   getItem(k) { return this.data[k] || null; },
@@ -295,16 +363,9 @@ assert.match(html, /Home/);
 assert.match(html, /Studio/);
 assert.match(html, /Bounties/);
 assert.match(html, /List a bounty/);
-assert.match(html, /Open bounties/);
-assert.match(html, /also on trydemigod\.com\/bounties/);
-assert.match(html, /declared, not escrow/i);
-assert.doesNotMatch(html, /1% platform fee|signed compute|14-day wallet/i);
-assert.match(css, /#F4F0E7/i);
-assert.match(css, /#F5511E/i);
-assert.match(css, /Poppins/);
-assert.match(css, /prefers-reduced-motion/);
+assert.doesNotMatch(html, /also on trydemigod\.com\/bounties/);
+assert.doesNotMatch(html, /1% platform fee|signed compute|14-day wallet|potter@/i);
 
-/* Extra Demigod feed — injected via extraSeedUrls, not mixed into the local seed fallback list */
 assert.deepEqual(B.EXTRA_SEED_URLS, [
   'https://raw.githubusercontent.com/Uuriko/demigod-site-cdn/main/bounties-feed.json',
   'https://cdn.jsdelivr.net/gh/Uuriko/demigod-site-cdn@main/bounties-feed.json',
@@ -316,7 +377,6 @@ assert.doesNotMatch(js, /https:\/\/(?:www\.)?trydemigod\.com[^"'\s]*bounties-fee
 const demigodFeed = {
   name: 'demigod bounties',
   schema: 'dasha-bounties-feed/v1',
-  note: 'Declared bounties, not escrow.',
   url: 'https://trydemigod.com/bounties',
   listings: [
     {
@@ -326,11 +386,6 @@ const demigodFeed = {
       itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8',
       amount: 25,
       currency: 'USD',
-      pays: 'A merged PR',
-      eligibility: 'Anyone',
-      payout: 'Owner-declared',
-      rules: '',
-      blurb: 'Same hunt as Dasha seed',
       createdAt: '2026-08-13T00:00:00.000Z',
       outcomes: [],
     },
@@ -341,11 +396,6 @@ const demigodFeed = {
       itemUrl: 'https://github.com/Uuriko/demigod/issues/3',
       amount: 40,
       currency: 'USD',
-      pays: 'A merged PR',
-      eligibility: 'Anyone',
-      payout: 'Owner-declared',
-      rules: '',
-      blurb: 'Only on Demigod',
       createdAt: '2026-08-13T00:00:00.000Z',
       outcomes: [],
     },
@@ -356,7 +406,6 @@ const demigodFeed = {
       itemUrl: null,
       amount: 50,
       currency: 'USD',
-      pays: 'Merged PRs',
       outcomes: [{ login: 'bot', url: 'https://example.com/not-github', amount: 9999 }],
     },
     {
@@ -364,13 +413,8 @@ const demigodFeed = {
       name: 'demigod',
       repo: 'Uuriko/demigod',
       itemUrl: null,
-      blurb: 'A Demigod project listing',
       amount: 10,
       currency: 'USD',
-      pays: 'Merged PRs',
-      eligibility: 'Anyone',
-      payout: 'Owner-declared',
-      rules: '',
       createdAt: '2026-08-13T00:00:00.000Z',
       outcomes: [],
     },
@@ -405,13 +449,10 @@ assert.deepEqual(emptyRemote.map((row) => row.name), dashaOnly.map((row) => row.
 
 const mergedHunt = B.renderHunt(merged);
 assert.match(mergedHunt, /Demigod-only hunt/);
-assert.match(mergedHunt, /also on trydemigod\.com\/bounties/);
-assert.doesNotMatch(mergedHunt, /hire|Studio work/i);
+assert.doesNotMatch(mergedHunt, /hire|Studio work|10% fee|potter@/i);
 
 const demigodCard = B.renderProjectCard(demigodListings.find((row) => row.name === 'demigod'));
 assert.match(demigodCard, /data-origin="demigod"/);
-assert.match(demigodCard, /also on trydemigod\.com\/bounties/);
-assert.match(demigodCard, /Not a Dasha mint or Studio listing/);
 assert.doesNotMatch(demigodCard, /hire/i);
 
 const jsonRes = (body, status = 200) => ({
@@ -428,6 +469,9 @@ function fakeBoardFetch(demigodBody, demigodStatus = 200) {
     const u = String(url);
     if (u.includes('feed.json') && !u.includes('demigod-feed') && !u.includes('bounties-feed')) return jsonRes(feed);
     if (u.includes('api.github.com')) return jsonRes([]);
+    if (u.includes('/simp/me') || u.includes('/oauth/x/status') || u.includes('/oauth/github/status')) {
+      return jsonRes({ linked: false, enrolled: false, x: null, configured: true });
+    }
     if (u.includes('demigod-feed.json') || u.includes('bounties-feed.json')) {
       if (demigodStatus >= 400) return { ok: false, status: demigodStatus, json: async () => ({}), text: async () => '' };
       return jsonRes(demigodBody);
@@ -445,6 +489,17 @@ const booted = await B.boot({
 assert.ok(booted.listings.some((row) => row.name === 'Demigod-only hunt' && row.origin === 'demigod'));
 assert.equal(booted.listings.filter((row) => row.itemUrl === 'https://github.com/Uuriko/dasha-desk/issues/8').length, 1);
 assert.ok(booted.listings.some((row) => row.name === 'docs: add CONTRIBUTING screenshot of GitHub web edit flow'));
+assert.equal(B.canAct(booted.identity), false);
+
+const bootedGh = await B.boot({
+  fetchImpl: fakeBoardFetch(demigodFeed),
+  seedUrl: './feed.json',
+  extraSeedUrls: [EXTRA_FEED],
+  storage: mem,
+  identity: { github: 'Uuriko' },
+});
+assert.equal(bootedGh.identity.github.login, 'Uuriko');
+assert.equal(B.canAct(bootedGh.identity), true);
 
 const bootedEmpty = await B.boot({
   fetchImpl: fakeBoardFetch({ name: 'demigod bounties', listings: [] }),
