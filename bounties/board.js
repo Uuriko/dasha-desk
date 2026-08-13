@@ -1,7 +1,7 @@
 'use strict';
 /**
  * dasha bounties — anybody lists a project or a GitHub issue/PR and writes their own rules.
- * Static feed: /bounties/feed.json (same file the page loads). Inbox: GitHub issues.
+ * Static feed: GitHub Pages /bounties/feed.json (same file the page loads). Inbox: GitHub issues.
  * This-device: localStorage. Share: #l= JSON. Also merges Demigod's public feed (GitHub raw / jsDelivr).
  * Outcomes need a GitHub proof URL. Nothing invents numbers. Declared, not escrow.
  */
@@ -10,6 +10,8 @@
   var ISSUE_LABEL = 'bounty-project';
   var TITLE_PREFIX = '[bounty]';
   var STORAGE_KEY = 'dasha-bounties-listings-v1';
+  var FEED_SCHEMA = 'dasha-bounties-feed/v1';
+  var BOARD_URL = 'https://www.getdasha.com/bounties';
   var EXTRA_SEED_URLS = [
     'https://raw.githubusercontent.com/Uuriko/demigod-site-cdn/main/bounties-feed.json',
     'https://cdn.jsdelivr.net/gh/Uuriko/demigod-site-cdn@main/bounties-feed.json',
@@ -382,8 +384,9 @@
     return Object.assign(
       {
         name: 'dasha bounties',
+        schema: FEED_SCHEMA,
         note: 'Declared bounties, not escrow. Static snapshot; the HTML page may also merge live GitHub issues and this-device saves.',
-        url: 'https://www.getdasha.com/bounties/',
+        url: BOARD_URL,
         listings: (listings || []).map(toFeedEntry),
       },
       extra || {},
@@ -1150,6 +1153,8 @@
     ISSUE_LABEL: ISSUE_LABEL,
     TITLE_PREFIX: TITLE_PREFIX,
     STORAGE_KEY: STORAGE_KEY,
+    FEED_SCHEMA: FEED_SCHEMA,
+    BOARD_URL: BOARD_URL,
     EXTRA_SEED_URLS: EXTRA_SEED_URLS,
     DEMIGOD_BOARD_NOTE: DEMIGOD_BOARD_NOTE,
     EMPTY_OUTCOMES: EMPTY_OUTCOMES,

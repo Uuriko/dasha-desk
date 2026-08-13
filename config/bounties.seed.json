@@ -1,4 +1,5 @@
 {
+  "schema": "dasha-bounties-feed/v1",
   "note": "Seed listings so the board is not empty. Same listings as bounties/feed.json. No fabricated outcomes or scores.",
   "listings": [
     {

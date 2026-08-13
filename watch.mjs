@@ -51,7 +51,7 @@ async function get(url, tries = 3) {
    sweep missed it: it is a live public page that no publish path here touches and no gate knew
    about. It was still serving copy the operator removed hours after every other surface was clean.
    A surface nobody watches is a surface that drifts, so it is watched here now. */
-for (const route of ['/', '/studio', '/dasha', '/how-to-buy', '/bounties/']) {
+for (const route of ['/', '/studio', '/dasha', '/how-to-buy', '/bounties']) {
   const res = await get(ORIGIN + route);
   fail(res.ok, `${route}: unreachable — ${res.error || 'HTTP ' + res.status}`);
   if (!res.ok) continue;
@@ -104,8 +104,8 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy', '/bounties/']) {
     fail(/name or likeness/i.test(html), '/studio: the likeness carve-out is gone; CC0 alone overstates what we can grant');
     fail(!/not affiliated with dasha/i.test(html), '/studio: claims no affiliation, which is false');
   }
-  if (route === '/bounties/') {
-    fail(/declared bounties, not escrow/i.test(html), '/bounties/: lost the escrow disclaimer');
+  if (route === '/bounties') {
+    fail(/declared bounties, not escrow/i.test(html), '/bounties: lost the escrow disclaimer');
   }
 
   /* The share card is a separate binary on a CDN. It can rot with nothing in any repo changing,

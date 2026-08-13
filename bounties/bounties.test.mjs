@@ -228,6 +228,28 @@ assert.ok(!('score' in seed.listings[0]));
 assert.ok(!('scoring' in seed.listings[0]));
 assert.deepEqual(seed.listings, feed.listings);
 assert.deepEqual(feed, rootFeed);
+assert.equal(feed.schema, 'dasha-bounties-feed/v1');
+assert.equal(rootFeed.schema, 'dasha-bounties-feed/v1');
+assert.equal(seed.schema, 'dasha-bounties-feed/v1');
+assert.equal(B.FEED_SCHEMA, 'dasha-bounties-feed/v1');
+assert.equal(feed.url, 'https://www.getdasha.com/bounties');
+assert.equal(B.BOARD_URL, 'https://www.getdasha.com/bounties');
+assert.doesNotMatch(feed.url, /\/$/);
+assert.ok(Array.isArray(feed.listings));
+assert.ok(!('items' in feed));
+assert.match(html, /rel="canonical" href="https:\/\/www\.getdasha\.com\/bounties"/);
+assert.doesNotMatch(html, /rel="canonical" href="https:\/\/www\.getdasha\.com\/bounties\/"/);
+assert.match(html, /property="og:url" content="https:\/\/www\.getdasha\.com\/bounties"/);
+assert.match(html, /https:\/\/uuriko\.github\.io\/dasha-desk\/bounties\/feed\.json/);
+assert.match(html, /https:\/\/raw\.githubusercontent\.com\/Uuriko\/dasha-desk\/main\/bounties\/feed\.json/);
+assert.doesNotMatch(html, /www\.getdasha\.com\/bounties\.json/);
+assert.doesNotMatch(html, /www\.getdasha\.com\/bounties\/feed\.json/);
+assert.doesNotMatch(html, /href="\/bounties\.json"/);
+assert.match(html, /schema: dasha-bounties-feed\/v1/);
+const serializedFeed = B.toFeed([]);
+assert.equal(serializedFeed.schema, 'dasha-bounties-feed/v1');
+assert.equal(serializedFeed.url, 'https://www.getdasha.com/bounties');
+assert.ok(Array.isArray(serializedFeed.listings));
 const seedCard = B.renderProjectCard(project);
 assert.match(seedCard, /data-origin="seed"/);
 assert.doesNotMatch(seedCard, /#1/);
@@ -293,6 +315,7 @@ assert.doesNotMatch(js, /https:\/\/(?:www\.)?trydemigod\.com[^"'\s]*bounties-fee
 
 const demigodFeed = {
   name: 'demigod bounties',
+  schema: 'dasha-bounties-feed/v1',
   note: 'Declared bounties, not escrow.',
   url: 'https://trydemigod.com/bounties',
   listings: [

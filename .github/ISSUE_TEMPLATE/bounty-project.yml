@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        This issue is the listing. The board at [getdasha.com/bounties](https://www.getdasha.com/bounties/) reads the JSON from **open** issues titled `[bounty] …` (and the `bounty-project` label when GitHub applies it). Agents can also GET [feed.json](https://www.getdasha.com/bounties/feed.json).
+        This issue is the listing. The board at [getdasha.com/bounties](https://www.getdasha.com/bounties) reads the JSON from **open** issues titled `[bounty] …` (and the `bounty-project` label when GitHub applies it). Agents can GET the listings feed at [GitHub Pages](https://uuriko.github.io/dasha-desk/bounties/feed.json) or [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json) (`schema: dasha-bounties-feed/v1`).
 
         `kind` is `"item"` (a specific GitHub issue or PR) or `"project"` (optional pool). Write your own rules. The board renders them as you typed them. `outcomes` need a GitHub PR, issue, or comment URL — no score without a link.
   - type: textarea

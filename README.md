@@ -11,9 +11,10 @@ Jupiter route. [Use it ↗](https://www.getdasha.com/dasha)
 
 **[bounties/](bounties/)** — dasha bounties / the board: hunt a paid GitHub issue or list a
 project with your own rules. Machine-readable feed at
-[getdasha.com/bounties/feed.json](https://www.getdasha.com/bounties/feed.json). The page may also
+[uuriko.github.io/dasha-desk/bounties/feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json)
+([raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)). The page may also
 show public Demigod listings, marked as such. Declared bounties, not escrow.
-[Use it ↗](https://www.getdasha.com/bounties/)
+[Use it ↗](https://www.getdasha.com/bounties)
 
 None of them connects a wallet or moves anything. Original drawings are public domain. Uploaded or
 externally sourced images keep their own rights.
