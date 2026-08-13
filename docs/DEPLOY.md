@@ -30,6 +30,8 @@ Do not hand-edit generated files.
 ```bash
 python3 -m http.server 8766
 # http://127.0.0.1:8766/
+# http://127.0.0.1:8766/bounties/
+# http://127.0.0.1:8766/studio/
 ```
 
 ## Webflow

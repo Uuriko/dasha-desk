@@ -1,0 +1,39 @@
+{
+  "note": "Seed listings so the board is not empty. Same listings as bounties/feed.json. No fabricated outcomes or scores.",
+  "listings": [
+    {
+      "kind": "item",
+      "name": "docs: add CONTRIBUTING screenshot of GitHub web edit flow",
+      "repo": "Uuriko/dasha-desk",
+      "itemUrl": "https://github.com/Uuriko/dasha-desk/issues/8",
+      "amount": 25,
+      "currency": "USD",
+      "pays": "A merged PR that adds the screenshot the issue asks for.",
+      "eligibility": "Anyone. First-timers welcome.",
+      "payout": "Owner-declared example. Pay however you announce. This board does not hold or send funds.",
+      "rules": "",
+      "blurb": "Hunt this issue. Declared, not escrowed.",
+      "createdAt": "2026-08-13T00:00:00.000Z",
+      "outcomes": []
+    },
+    {
+      "kind": "project",
+      "name": "dasha desk",
+      "repo": "Uuriko/dasha-desk",
+      "itemUrl": null,
+      "blurb": "The mint desk and Studio. Example project listing — a monthly pool is optional.",
+      "amount": 50,
+      "currency": "USD",
+      "pool": {
+        "amount": 50,
+        "currency": "USD"
+      },
+      "pays": "Merged pull requests and useful issues on the desk or Studio. You decide if a change counts.",
+      "eligibility": "Anyone who opens a PR. Simp Board points are a different page and are not this bounty.",
+      "payout": "Owner-declared example. Pay however you announce. This board does not hold or send funds.",
+      "rules": "",
+      "createdAt": "2026-08-13T00:00:00.000Z",
+      "outcomes": []
+    }
+  ]
+}

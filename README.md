@@ -1,6 +1,6 @@
 # dasha
 
-Open-source tools for `$dasha` on Solana — static, honest, remixable. Two of them live here.
+Open-source tools for `$dasha` on Solana — static, honest, remixable. Three of them live here.
 
 **[studio/](studio/)** — the Meme Studio: procedural looks, local uploads, a registered Dasha image
 gallery, three formats, PNG and animated GIF out. No account or wallet.
@@ -9,7 +9,12 @@ gallery, three formats, PNG and animated GIF out. No account or wallet.
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
 Jupiter route. [Use it ↗](https://www.getdasha.com/dasha)
 
-Neither connects a wallet or moves anything. Original drawings are public domain. Uploaded or
+**[bounties/](bounties/)** — dasha bounties / the board: hunt a paid GitHub issue or list a
+project with your own rules. Machine-readable feed at
+[getdasha.com/bounties/feed.json](https://www.getdasha.com/bounties/feed.json). Declared bounties, not escrow.
+[Use it ↗](https://www.getdasha.com/bounties/)
+
+None of them connects a wallet or moves anything. Original drawings are public domain. Uploaded or
 externally sourced images keep their own rights.
 
 [GitHub Pages demo](https://uuriko.github.io/dasha-desk/) · [Website](https://www.getdasha.com) · [Site: open source](https://www.getdasha.com/#oss)
@@ -54,6 +59,8 @@ git clone https://github.com/Uuriko/dasha-desk.git
 cd dasha-desk
 python3 -m http.server 8766
 # → http://127.0.0.1:8766/
+# → http://127.0.0.1:8766/bounties/
+# → http://127.0.0.1:8766/studio/
 ```
 
 After changing sources:
@@ -67,7 +74,7 @@ npm test
 The site itself has no install step or runtime dependencies. Tests use one development-only package
 and an installed Chrome/Chromium browser so the failure paths run in a real page.
 
-Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json)
+Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json) · [`bounties/`](bounties/) · [`studio/`](studio/)
 
 `src/app.html`, `index.html`, and `dist/index.html` are **generated** — do not edit by hand.
 
