@@ -33,8 +33,16 @@ assert.match(html, /id="bb-payto"/);
 assert.match(html, /id="bb-github"/);
 assert.match(html, /id="bb-x"/);
 assert.match(html, />X</);
+assert.match(html, />GitHub soon</);
 assert.match(html, /href="https:\/\/lobby\.getdasha\.com\/oauth\/github\/start"/);
 assert.match(html, /href="https:\/\/lobby\.getdasha\.com\/oauth\/x\/start"/);
+assert.match(html, /href="https:\/\/www\.getdasha\.com\/studio"/);
+assert.match(html, /href="https:\/\/www\.getdasha\.com\/bounties"/);
+assert.doesNotMatch(html, /href="\/studio"/);
+assert.doesNotMatch(html, /href="\/bounties\/"/);
+assert.equal(B.githubCtaLabel(false), 'GitHub soon');
+assert.equal(B.githubCtaLabel(true), 'GitHub');
+assert.equal(B.githubCtaLabel(false, { login: 'Uuriko' }), 'Uuriko');
 assert.match(html, /We don't hold it\./);
 assert.match(html, /rel="alternate"[^>]*feed\.json/);
 assert.doesNotMatch(copy, /[1-9A-HJ-NP-Za-km-z]{32,44}pump/);
@@ -472,7 +480,10 @@ function fakeBoardFetch(demigodBody, demigodStatus = 200) {
     const u = String(url);
     if (u.includes('feed.json') && !u.includes('demigod-feed') && !u.includes('bounties-feed')) return jsonRes(feed);
     if (u.includes('api.github.com')) return jsonRes([]);
-    if (u.includes('/simp/me') || u.includes('/oauth/x/status') || u.includes('/oauth/github/status')) {
+    if (u.includes('/oauth/github/status')) {
+      return jsonRes({ configured: false, linked: false, github: null });
+    }
+    if (u.includes('/simp/me') || u.includes('/oauth/x/status')) {
       return jsonRes({ linked: false, enrolled: false, x: null, configured: true });
     }
     if (u.includes('demigod-feed.json') || u.includes('bounties-feed.json')) {
@@ -493,6 +504,7 @@ assert.ok(booted.listings.some((row) => row.name === 'Demigod-only hunt' && row.
 assert.equal(booted.listings.filter((row) => row.itemUrl === 'https://github.com/Uuriko/dasha-desk/issues/8').length, 1);
 assert.ok(booted.listings.some((row) => row.name === 'docs: add CONTRIBUTING screenshot of GitHub web edit flow'));
 assert.equal(B.canAct(booted.identity), false);
+assert.equal(booted.githubConfigured, false);
 
 const bootedGh = await B.boot({
   fetchImpl: fakeBoardFetch(demigodFeed),
@@ -503,6 +515,20 @@ const bootedGh = await B.boot({
 });
 assert.equal(bootedGh.identity.github.login, 'Uuriko');
 assert.equal(B.canAct(bootedGh.identity), true);
+
+const fakeGhLive = async (url) => {
+  const u = String(url);
+  if (u.includes('/oauth/github/status')) return jsonRes({ configured: true, linked: false, github: null });
+  return fakeBoardFetch(demigodFeed)(url);
+};
+const bootedGhLive = await B.boot({
+  fetchImpl: fakeGhLive,
+  seedUrl: './feed.json',
+  extraSeedUrls: [EXTRA_FEED],
+  storage: mem,
+});
+assert.equal(bootedGhLive.githubConfigured, true);
+assert.equal(B.githubCtaLabel(bootedGhLive.githubConfigured), 'GitHub');
 
 const bootedEmpty = await B.boot({
   fetchImpl: fakeBoardFetch({ name: 'demigod bounties', listings: [] }),

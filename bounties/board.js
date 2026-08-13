@@ -815,6 +815,7 @@
     } catch (e) {}
     try {
       var ghStatus = await fetchJson(GITHUB_OAUTH_STATUS, impl, cred);
+      live.githubConfigured = !!(ghStatus.data && ghStatus.data.configured === true);
       if (ghStatus.data && (ghStatus.data.github || ghStatus.data.gh || ghStatus.data.user)) {
         ident = mergeIdentity(ident, {
           github: ghStatus.data.github || ghStatus.data.gh || ghStatus.data.user,
@@ -1161,12 +1162,20 @@
     }
   }
 
+  function githubCtaLabel(configured, profile) {
+    if (profile && (profile.login || profile.handle)) {
+      return String(profile.login || profile.handle);
+    }
+    return configured ? 'GitHub' : 'GitHub soon';
+  }
+
   function faceButton(el, profile, kind) {
     if (!el) return;
     if (!profile) {
       el.className = kind === 'x' ? 'bb-id-btn bb-id-x' : 'bb-id-btn';
-      el.innerHTML = kind === 'x' ? 'X' : 'GitHub';
-      el.setAttribute('aria-label', kind === 'x' ? 'X' : 'GitHub');
+      var label = kind === 'x' ? 'X' : githubCtaLabel(live.githubConfigured);
+      el.innerHTML = label;
+      el.setAttribute('aria-label', label);
       return;
     }
     var label = kind === 'x' ? profile.display || '@' + profile.handle : profile.login;
@@ -1321,6 +1330,7 @@
     shared: [],
     demigod: [],
     identity: emptyIdentity(),
+    githubConfigured: false,
     filter: 'all',
   };
 
@@ -1475,6 +1485,7 @@
     normalizeIdentity: normalizeIdentity,
     hasGitHub: hasGitHub,
     canAct: canAct,
+    githubCtaLabel: githubCtaLabel,
     loadIdentity: loadIdentity,
     saveIdentity: saveIdentity,
     loadLobbyIdentity: loadLobbyIdentity,
