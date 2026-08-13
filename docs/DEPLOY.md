@@ -38,7 +38,13 @@ python3 -m http.server 8766
 
 Paste `src/app.html` into the `/dasha` HTML embed. Webflow owns production metadata and publishing; the embed owns the Desk markup, styles, and behavior.
 
-`/bounties` on www.getdasha.com is also a Webflow page: an iframe of [uuriko.github.io/dasha-desk/bounties/](https://uuriko.github.io/dasha-desk/bounties/). Webflow occupies `https://www.getdasha.com/bounties.json` as that page’s JSON export (`pageId` matches `/bounties`, gzip body, not a listings feed). `https://www.getdasha.com/bounties/feed.json` 404s. This repo has no Cloudflare Worker, Pages Functions, or `_headers` that can override those paths without replacing the HTML page. Do not invent a worker here. Agents should GET [GitHub Pages feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json) or [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json).
+Paste `home/index.html` into `/` — band, one H1, one Studio CTA, mint + buy. Do not ship Simp board or quiz pills on Home (those are Lobby).
+
+Paste `studio/loader.html` into `/studio` (or the self-contained `studio/index.html`). Drop `.dgnav`. Do not leave the thin loader pointed at a lobby script the browser will refuse.
+
+Paste `bounties/app.html` into `/bounties` as an HTML embed. Do not iframe GitHub Pages. `node bounties/embed-build.mjs` regenerates the fragment.
+
+`/bounties` on www.getdasha.com is currently a Webflow iframe of [uuriko.github.io/dasha-desk/bounties/](https://uuriko.github.io/dasha-desk/bounties/) — replace that iframe with the paste. Webflow occupies `https://www.getdasha.com/bounties.json` as that page’s JSON export (`pageId` matches `/bounties`, gzip body, not a listings feed). `https://www.getdasha.com/bounties/feed.json` 404s. This repo has no Cloudflare Worker, Pages Functions, or `_headers` that can override those paths without replacing the HTML page. Do not invent a worker here. Agents should GET [GitHub Pages feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json) or [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json).
 
 Live `https://www.getdasha.com/sitemap.xml` is served by a Cloudflare edge worker (`x-dasha-edge: sitemap`), not by a file in this repository. Adding a sitemap here would not update www. The edge sitemap currently omits `/bounties`.
 

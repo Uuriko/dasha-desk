@@ -7,6 +7,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildBountiesEmbed } from './embed-build.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
@@ -68,6 +69,10 @@ assert.match(css, /Arial,Helvetica/);
 assert.match(css, /box-shadow:\s*4px 4px 0 var\(--hot\)/);
 assert.match(css, /prefers-reduced-motion/);
 assert.match(css, /min-height:\s*44px/);
+assert.match(css, /#bb-hunt:empty/);
+assert.match(css, /\.bb-id-btn\{/);
+assert.doesNotMatch(html, /<iframe/i);
+assert.doesNotMatch(html, /dgnav/);
 
 assert.equal(B.CURRENCY, 'USDC');
 assert.equal(B.CHAIN, 'solana');
@@ -557,5 +562,11 @@ const extraFailed = await B.listingsFromExtraUrls(
   'demigod',
 );
 assert.deepEqual(extraFailed, []);
+
+const app = await buildBountiesEmbed();
+assert.doesNotMatch(app, /<iframe/i);
+assert.match(app, /We don't hold it\./);
+assert.match(app, /--ink:#070608/);
+assert.equal(read('bounties/app.html'), app, 'bounties/app.html is stale — run: node bounties/embed-build.mjs');
 
 console.log('dasha-bounties: PASS');

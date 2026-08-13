@@ -27,3 +27,6 @@ jobs:
       - name: Studio embed drift
         working-directory: studio
         run: node embed-build.mjs --check
+      - name: Bounties embed drift
+        working-directory: bounties
+        run: node embed-build.mjs --check
