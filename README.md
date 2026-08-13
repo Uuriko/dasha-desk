@@ -9,8 +9,9 @@ gallery, three formats, PNG and animated GIF out. No account or wallet.
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
 Jupiter route. [Use it ↗](https://www.getdasha.com/dasha)
 
-**[bounties/](bounties/)** — USDC bounties on Solana. GitHub to list or claim; X is optional
-(same lobby session as Simp Board). Canonical feed:
+**[bounties/](bounties/)** — USDC bounties on Solana. GitHub connect is coming (lobby
+`/oauth/github/status` is `configured: false` until worker secrets exist); listings still
+open as GitHub issues. X is optional (same lobby session as Simp Board). Canonical feed:
 [uuriko.github.io/dasha-desk/bounties.json](https://uuriko.github.io/dasha-desk/bounties.json)
 ([feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json),
 [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)).
