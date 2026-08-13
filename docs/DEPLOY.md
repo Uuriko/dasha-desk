@@ -42,6 +42,9 @@ Paste `src/app.html` into the `/dasha` HTML embed. Webflow owns production metad
 
 Live `https://www.getdasha.com/sitemap.xml` is served by a Cloudflare edge worker (`x-dasha-edge: sitemap`), not by a file in this repository. Adding a sitemap here would not update www. The edge sitemap currently omits `/bounties`.
 
+
+`/desk` is not a published route. Live `https://www.getdasha.com/desk` is a true HTTP 404. Desk is `/dasha`. Do not add a `/desk` page or a client redirect unless Webflow publishes that path.
+
 ## GitHub Pages
 
 `.github/workflows/pages.yml` deploys the repository root from `main` to [uuriko.github.io/dasha-desk](https://uuriko.github.io/dasha-desk/). The custom production URL remains canonical.

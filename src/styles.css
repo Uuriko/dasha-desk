@@ -1,8 +1,9 @@
 #dd-app.dd{
+  --paper:#f4eddb;
   --card:rgba(255,255,255,.05);
   --line:rgba(255,255,255,.13);
-  --text:#f6f1ff;
-  --muted:#b8b0c9;
+  --text:#f4eddb;
+  --muted:#e6dcc4;
   --accent:#c4a5ff;
   --ok:#7dffa3;
   --bad:#ff9b9b;

@@ -7,7 +7,7 @@ gallery, three formats, PNG and animated GIF out. No account or wallet.
 [Use it ↗](https://www.getdasha.com/studio)
 
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
-Jupiter route. [Use it ↗](https://www.getdasha.com/dasha)
+Jupiter route. Live URL is `/dasha` — [Use it ↗](https://www.getdasha.com/dasha). `/desk` is not a route and returns a true HTTP 404 (Webflow 404 page). Do not link it; there is no redirect.
 
 **[bounties/](bounties/)** — USDC bounties on Solana. GitHub connect is coming (lobby
 `/oauth/github/status` is `configured: false` until worker secrets exist); listings still
@@ -67,6 +67,8 @@ python3 -m http.server 8766
 # → http://127.0.0.1:8766/bounties/
 # → http://127.0.0.1:8766/studio/
 ```
+
+Production desk is `/dasha`, not `/desk`. `https://www.getdasha.com/desk` 404s on purpose.
 
 After changing sources:
 

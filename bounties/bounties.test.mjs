@@ -114,12 +114,18 @@ assert.equal(B.loadIdentity(memId).github.login, 'Uuriko');
 assert.equal(B.loadIdentity(memId).x.handle, 'dash_eats');
 
 const gated = B.renderRow(
-  B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, currency: 'USDC' }),
+  B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, currency: 'USDC', payTo: SYS }),
   { github: null, x: null },
 );
 assert.match(gated, /aria-disabled="true"/);
 assert.match(gated, />Pay</);
 assert.match(gated, />Claim</);
+const emptyPayTo = B.renderRow(
+  B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, currency: 'USDC', payTo: '' }),
+  { github: { login: 'Uuriko' }, x: null },
+);
+assert.doesNotMatch(emptyPayTo, />Pay</);
+assert.match(emptyPayTo, /bb-pay-na/);
 const liveRow = B.renderRow(
   B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, payTo: SYS }),
   { github: { login: 'Uuriko' }, x: null },
@@ -248,7 +254,8 @@ const hunt = B.renderHunt(seedListings);
 assert.match(hunt, /25/);
 assert.match(hunt, /USDC/);
 assert.match(hunt, /issues\/8/);
-assert.match(hunt, />Pay</);
+assert.doesNotMatch(hunt, />Pay</);
+assert.match(hunt, /bb-pay-na/);
 assert.match(hunt, />Claim</);
 
 const built = B.buildIssueUrl({
