@@ -940,9 +940,11 @@
       : '<span class="bb-title">' + esc(listing.name) + '</span>';
     var payUrl = isUsdc(listing.currency) ? solanaPayUrl(listing.amount, listing.payTo, listing.name) : '';
     var copy = payClipboardText(listing);
-    var payDisabled = !ok || (!payUrl && !Number.isFinite(listing.amount));
+    var dest = normalizePayTo(listing.payTo);
     var pay =
-      payDisabled && !ok
+      !dest
+        ? '<span class="bb-pay-na" aria-hidden="true">—</span>'
+        : !ok
         ? '<button type="button" class="bb-pay" data-bb-pay="need-github"' + gatedAttr(false) + '>Pay</button>'
         : payUrl
           ? '<button type="button" class="bb-pay" data-bb-pay="wallet" data-solana="' +
