@@ -128,6 +128,8 @@
 
 .dd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:8px}
 .dd-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.dd-age{margin:0;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.01em;text-align:right;flex:1}
+.dd-age:empty{display:none}
 .dd-card h2{margin:0 0 6px;font-size:18px;letter-spacing:-.02em}
 .dd-disclosure{padding:0;overflow:hidden}.dd-disclosure summary{min-height:58px;padding:16px 18px;display:flex;align-items:center;cursor:pointer;font-size:16px;font-weight:800}.dd-disclosure-body{padding:0 18px 18px}.dd-tools.dd-disclosure-body{padding-top:0}
 .dd-meta{margin:0 0 12px;color:var(--muted);font-size:15px;line-height:1.5}
@@ -254,6 +256,7 @@
     <article class="dd-card">
       <div class="dd-card-head">
         <h2>Live</h2>
+        <p class="dd-age" id="dd-age"></p>
         <button type="button" class="dd-linkish" id="dd-refresh">Refresh</button>
       </div>
       <p class="dd-meta" id="dd-asof" role="status" aria-live="polite">Loading Dex…</p>
@@ -379,6 +382,27 @@
     return { prev: prev, current: next, mintChanged: mintChanged, label: label };
   }
 
+  /**
+   * Relative age of a successful fetch. Buckets, not tenths of a second.
+   * from/now: ms epoch. Empty string if there has not been a success yet.
+   */
+  function ageLabel(from, now) {
+    var t = Number(from) || 0;
+    var n = Number(now) || 0;
+    if (!t || !n || n < t) return '';
+    var s = Math.round((n - t) / 1000);
+    if (s < 10) return 'just now';
+    if (s < 50) return 'checked ' + s + ' seconds ago';
+    if (s < 90) return 'about a minute ago';
+    var m = Math.round(s / 60);
+    if (m < 45) return 'checked ' + m + ' minutes ago';
+    if (m < 90) return 'about an hour ago';
+    var h = Math.round(m / 60);
+    if (h < 36) return 'checked ' + h + ' hours ago';
+    var days = Math.round(h / 24);
+    return days === 1 ? 'about a day ago' : 'checked ' + days + ' days ago';
+  }
+
   // Pure export for unit tests / reuse (no FOMO builders).
   globalThis.DDShare = {
     CA: CA,
@@ -388,6 +412,7 @@
     buildSharePack: buildSharePack,
     normalizeMint: normalizeMint,
     visitStamp: visitStamp,
+    ageLabel: ageLabel,
   };
 
   if (typeof document === 'undefined') return;
@@ -515,11 +540,7 @@
     }
     if ($('dd-px')) $('dd-px').textContent = money(price);
     if ($('dd-asof')) {
-      $('dd-asof').textContent =
-        'Dexscreener · ' +
-        (pair.dexId || 'pool') +
-        ' · ' +
-        new Date().toLocaleTimeString();
+      $('dd-asof').textContent = 'Dexscreener · ' + (pair.dexId || 'pool');
     }
     if ($('dd-live')) $('dd-live').textContent = 'live';
   }
@@ -533,8 +554,32 @@
     if ($('dd-live')) $('dd-live').textContent = status;
   }
 
+  var lastOk = 0;
+  var ageClock = 0;
+
+  function paintAge() {
+    var el = $('dd-age');
+    if (!el) return;
+    try {
+      el.textContent = lastOk ? ageLabel(lastOk, Date.now()) : '';
+    } catch (e) {}
+  }
+
+  function markOk() {
+    lastOk = Date.now();
+    paintAge();
+    if (ageClock) return;
+    try {
+      ageClock = setInterval(function () {
+        try {
+          paintAge();
+        } catch (e) {}
+      }, 1000);
+    } catch (e) {}
+  }
+
   function refresh() {
-    if ($('dd-asof')) $('dd-asof').textContent = 'Refreshing…';
+    if (!lastOk && $('dd-asof')) $('dd-asof').textContent = 'Refreshing…';
     if ($('dd-live')) $('dd-live').textContent = '…';
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var tid = null;
@@ -554,6 +599,7 @@
         var pairs = (data && data.pairs) || [];
         if (!pairs.length) {
           clearPair('Dex returned no pools · use sources below', 'no pool');
+          paintAge();
           return;
         }
         var best = pairs[0];
@@ -563,9 +609,11 @@
           if ((a || 0) > (b || 0)) best = pairs[i];
         }
         paintPair(best);
+        markOk();
       })
       .catch(function () {
         clearPair('Dex unavailable · use sources below', 'offline');
+        paintAge();
       })
       .then(function () {
         if (tid) clearTimeout(tid);

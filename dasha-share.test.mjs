@@ -73,6 +73,16 @@ assert.equal(drift.mintChanged, true);
 assert.match(drift.label, /differs|re-verify/i);
 
 assert.ok(body.includes('id="dd-visit"'), 'body has #dd-visit');
+assert.ok(body.includes('id="dd-age"'), 'body has #dd-age');
+
+assert.equal(typeof DD.ageLabel, 'function', 'ageLabel exported');
+assert.equal(DD.ageLabel(0, 50_000), '');
+assert.equal(DD.ageLabel(1_000, 5_000), 'just now');
+assert.equal(DD.ageLabel(1_000, 41_000), 'checked 40 seconds ago');
+assert.equal(DD.ageLabel(1_000, 64_400), 'about a minute ago');
+assert.doesNotMatch(DD.ageLabel(1_000, 64_400), /\d+\.\d|63\.4s|64\.4s/);
+assert.equal(DD.ageLabel(1_000, 1_000 + 5 * 60_000), 'checked 5 minutes ago');
+assert.equal(DD.ageLabel(1_000, 1_000 + 60 * 60_000), 'about an hour ago');
 
 
 // Body contract: core IDs present, pressure surfaces gone
@@ -165,10 +175,13 @@ assert.ok(src.includes('DDShare') && src.includes('buildSharePack'), 'DDShare ex
   vm.runInNewContext(src, dom, { filename: 'src/app.js' });
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(elements['s-price'].textContent, '$1.00', 'successful Dex response did not paint');
+  assert.match(elements['dd-age'].textContent, /just now|checked|ago/);
+  const ageAfterOk = elements['dd-age'].textContent;
   elements['dd-refresh'].listeners.click();
   await new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(['s-price', 's-mcap', 's-liq', 's-24h', 'dd-px'].map(id => elements[id].textContent), ['—', '—', '—', '—', '—'], 'failed Dex refresh left stale data');
   assert.match(elements['dd-asof'].textContent, /unavailable · use sources below/i);
+  assert.equal(elements['dd-age'].textContent, ageAfterOk, 'failed refresh must not reset age to a new just-now');
 }
 
 console.log('dasha-share.test.mjs: PASS (trust-reset)');

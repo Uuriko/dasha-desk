@@ -39,7 +39,7 @@ export function buildStudioEmbed(studio) {
   // Primary ship path + progressive disclosure. Looks/formats use chip strips + hidden selects.
   // Moods/history/variants are painted in script; markup buttons stay intentionally bounded.
   const buttons = (markup.match(/<button\b/g) || []).length;
-  if (buttons !== 19) {
+  if (buttons !== 20) {
     throw new Error(`the Studio action set is no longer intentionally bounded (buttons=${buttons})`);
   }
   if (!markup.includes('id="edit"') || !markup.includes('id="share"') || !markup.includes('id="download"') || !markup.includes('id="copy-link"')) {
@@ -48,8 +48,11 @@ export function buildStudioEmbed(studio) {
   if (!markup.includes('id="oco-export"') || !markup.includes('id="oco-import"')) {
     throw new Error('Open Culture Object save/open controls missing from markup');
   }
-  if (!markup.includes('id="surprise"') || !markup.includes('id="batch-looks"') || !markup.includes('id="after-share"')) {
+  if (!markup.includes('id="surprise"') || !markup.includes('id="surprise-go"') || !markup.includes('id="batch-looks"') || !markup.includes('id="after-share"')) {
     throw new Error('Studio lost surprise, batch cook, or share aftermath tray');
+  }
+  if (!/<div class="go">[\s\S]*id="surprise-go"[\s\S]*Surprise me/.test(markup)) {
+    throw new Error('Surprise me must sit with the other .go actions');
   }
   if (!markup.includes('id="looks"') || !markup.includes('id="formats"') || !markup.includes('id="effects"') || !markup.includes('id="stickers"')) {
     throw new Error('compact Studio controls missing from markup');

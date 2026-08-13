@@ -104,6 +104,8 @@
 
 .dd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:8px}
 .dd-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.dd-age{margin:0;color:var(--muted);font-size:13px;font-weight:700;letter-spacing:.01em;text-align:right;flex:1}
+.dd-age:empty{display:none}
 .dd-card h2{margin:0 0 6px;font-size:18px;letter-spacing:-.02em}
 .dd-disclosure{padding:0;overflow:hidden}.dd-disclosure summary{min-height:58px;padding:16px 18px;display:flex;align-items:center;cursor:pointer;font-size:16px;font-weight:800}.dd-disclosure-body{padding:0 18px 18px}.dd-tools.dd-disclosure-body{padding-top:0}
 .dd-meta{margin:0 0 12px;color:var(--muted);font-size:15px;line-height:1.5}
