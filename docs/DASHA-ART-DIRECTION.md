@@ -39,8 +39,9 @@ Strong, and better than it looks. There is a committed palette, one type voice, 
 motifs, and — the part most projects lack — the Studio, which is already the generator layer. Most
 projects have to *build* the thing that lets a community produce on-brand work. Ours ships.
 
-Weak: Desk still ships lavender glass. That is a bug, not a variant. `src/styles.css` must be
-rewritten to the tokens below. That rewrite *is* the overhaul.
+Desk source (`src/styles.css`) is on the five tokens below. Lavender glass on `/dasha` is a
+regression, not a variant. Live Webflow `/`, `/studio`, and `/bounties` still need the pastes
+in this file.
 
 ## The system
 
@@ -65,6 +66,11 @@ primary action in **acid**, and offset it **4px hard, usually hot**. Display typ
 Helvetica 900**, uppercase. Violet is never type.
 
 A soft shadow is a bug. `0 8px 24px` is a bug. `backdrop-filter` as the look is a bug.
+
+Webflow pastes from this repo: Home is `home/index.html` (ticker, one H1, one Studio CTA, mint +
+buy, optional still — no Simp board). Studio is `studio/loader.html` or `studio/index.html` (paper
+H1 on ink, drop `.dgnav`). Bounties is `bounties/app.html` as an HTML embed, not an iframe; empty
+state is “We don't hold it.” plus the list form. Desk is `src/app.html`.
 
 ### Type
 
@@ -107,12 +113,13 @@ Hex is copied from these files. Nowhere else invents colour.
 
 | Surface | File | What to copy |
 |---|---|---|
-| Home / landing | landing `:root` (getdasha home / `dasha-home.html` inline) | `--ink --paper --acid --hot --violet` |
+| Home / landing | landing `:root` (getdasha home / `home/index.html` inline) | `--ink --paper --acid --hot --violet` |
 | Studio | `studio/index.html` `:root` | same five + `--line --muted` |
 | Board | `bounties/board.css` `:root` | same five |
+| Desk | `src/styles.css` `:root` on `#dd-app.dd` | same five |
 
-**`src/styles.css` must be rewritten to those tokens.** Until it is, Desk is the surface that
-disagrees, and the surface is wrong. Do not "harmonise" landing toward lavender. Pull Desk onto ink.
+Desk source already copies those tokens. Do not "harmonise" landing toward lavender. Do not
+regress `src/styles.css` off ink.
 
 ### Forbidden
 
@@ -170,9 +177,9 @@ Ranked by effect per unit of work. Status as of 2026-08-13.
    Board is cherries. Home must not ship the Webflow default ico. Desk must stop using a likeness as
    if it were the mark. Gated: `dasha-brand.test.mjs` renders each look with and without the mark
    and fails if any look stops carrying it, or if it dies at GIF scale.
-4. **Rewrite Desk onto the five tokens — THE OVERHAUL.** `src/styles.css` still is lavender glass.
-   Copy landing / studio / `bounties/board.css` `:root`. Acid CTA, 4px hot offset, Arial Black
-   uppercase. Then Desk agrees with this file.
+4. **Rewrite Desk onto the five tokens — DONE in this repo.** `src/styles.css` is ink / paper /
+   acid / hot / violet: acid CTA, 4px hot offset, Arial Black uppercase. Paste `src/app.html` onto
+   `/dasha` so live Desk matches. Lavender glass returning is a bug.
 
 ## How this stays true
 
@@ -180,4 +187,4 @@ The Studio is the enforcement mechanism: it can only draw from this palette and 
 anything it exports is on-brand by construction. That is the reason to keep adding looks to the
 Studio rather than making one-off images by hand — a one-off drifts, a look cannot.
 
-Home enforces the band. Board enforces the tokens in `bounties/board.css`. Desk must join them.
+Home enforces the band. Board enforces the tokens in `bounties/board.css`. Desk source joins them.
