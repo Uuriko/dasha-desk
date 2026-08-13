@@ -33,6 +33,8 @@ assert.match(html, /id="bb-payto"/);
 assert.match(html, /id="bb-github"/);
 assert.match(html, /id="bb-x"/);
 assert.match(html, />X</);
+assert.match(html, /href="https:\/\/lobby\.getdasha\.com\/oauth\/github\/start"/);
+assert.match(html, /href="https:\/\/lobby\.getdasha\.com\/oauth\/x\/start"/);
 assert.match(html, /We don't hold it\./);
 assert.match(html, /rel="alternate"[^>]*feed\.json/);
 assert.doesNotMatch(copy, /[1-9A-HJ-NP-Za-km-z]{32,44}pump/);
@@ -306,6 +308,7 @@ assert.match(html, /rel="canonical" href="https:\/\/www\.getdasha\.com\/bounties
 assert.doesNotMatch(html, /rel="canonical" href="https:\/\/www\.getdasha\.com\/bounties\/"/);
 assert.match(html, /property="og:url" content="https:\/\/www\.getdasha\.com\/bounties"/);
 assert.match(html, /https:\/\/uuriko\.github\.io\/dasha-desk\/bounties\/feed\.json/);
+assert.match(html, /https:\/\/uuriko\.github\.io\/dasha-desk\/bounties\.json/);
 assert.match(html, /https:\/\/raw\.githubusercontent\.com\/Uuriko\/dasha-desk\/main\/bounties\/feed\.json/);
 assert.doesNotMatch(html, /www\.getdasha\.com\/bounties\.json/);
 assert.doesNotMatch(html, /www\.getdasha\.com\/bounties\/feed\.json/);

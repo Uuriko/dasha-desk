@@ -10,9 +10,11 @@ gallery, three formats, PNG and animated GIF out. No account or wallet.
 Jupiter route. [Use it ↗](https://www.getdasha.com/dasha)
 
 **[bounties/](bounties/)** — USDC bounties on Solana. GitHub to list or claim; X is optional
-(same lobby session as Simp Board). Feed:
-[uuriko.github.io/dasha-desk/bounties/feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json)
-([raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)).
+(same lobby session as Simp Board). Canonical feed:
+[uuriko.github.io/dasha-desk/bounties.json](https://uuriko.github.io/dasha-desk/bounties.json)
+([feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json),
+[raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)).
+www.getdasha.com/bounties.json is a Webflow pretty-URL trap unless the lobby edge proxies it.
 We don't hold it.
 [Use it ↗](https://www.getdasha.com/bounties)
 
