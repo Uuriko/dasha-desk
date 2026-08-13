@@ -2,6 +2,7 @@
 
 ## v0.1.1 — unreleased (main)
 
+- **Desk on the five-token poster spine:** ink / paper / acid / hot / violet. Hard 4px offsets, acid CTAs, no lavender glass dashboard.
 - **dasha bounties / the board** at `/bounties`: sparse USDC-on-Solana board. GitHub required to list/claim/pay; X optional via lobby.getdasha.com (same popup as Simp Board). Feed `schema: dasha-bounties-feed/v1`. We don't hold it.
 - **Honest GitHub CTA:** the board labels GitHub connect "GitHub soon" unless lobby `/oauth/github/status` reports `configured: true`. The crawlable link still hits the real start URL (which says the worker secrets are missing). Nav in the GitHub Pages iframe uses canonical getdasha.com URLs so Home/Studio are not 404s on uuriko.github.io.
 - **Last-visit stamp** on the mint card: this browser only records when you last checked the associated mint and warns if the mint string differs from your previous visit (no server).

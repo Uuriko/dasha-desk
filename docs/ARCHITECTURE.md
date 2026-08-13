@@ -38,9 +38,7 @@ are stale. That is the whole reason for the indirection.
 **`src/body.html`** — markup only. No styles, no behaviour. Everything is inside `#dd-app`, and every
 class is prefixed `dd-`, because this markup gets dropped into a page with its own CSS.
 
-**`src/styles.css`** — scoped under `#dd-app.dd`, which holds the design tokens (`--text`, `--muted`,
-`--accent`…). Nothing is styled by element selector alone; a bare `p { }` would reach into the host
-page and change something that is not ours.
+**`src/styles.css`** — scoped under `#dd-app.dd`, which holds the five poster tokens (`--ink`, `--paper`, `--acid`, `--hot`, `--violet`). Nothing is styled by element selector alone; a bare `p { }` would reach into the host page and change something that is not ours. Visual rules: [DASHA-ART-DIRECTION.md](DASHA-ART-DIRECTION.md).
 
 **`src/app.js`** — no framework, no build step, no dependencies. It fetches public market data,
 renders it, and degrades. It never connects a wallet and never constructs a transaction.

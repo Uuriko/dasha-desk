@@ -112,7 +112,24 @@ const decodedBody = body.replace(/%([0-9a-f]{2})/gi, (_, hex) => String.fromChar
 assert.ok(!/can go to zero|not financial advice|association is not endorsement|\bNFA\b/i.test(decodedBody),
   'URL-encoded share copy must not hide retired coin disclaimers');
 
-// Styles stay light and free of pressure chrome
+// Poster spine: five tokens, hard offsets, no lavender glass.
+assert.match(styles, /--ink:\s*#070608/i);
+assert.match(styles, /--paper:\s*#f4eddb/i);
+assert.match(styles, /--acid:\s*#dfff00/i);
+assert.match(styles, /--hot:\s*#ff3b81/i);
+assert.match(styles, /--violet:\s*#7c4dff/i);
+assert.match(styles, /"Arial Black",Arial,Helvetica/);
+assert.match(styles, /box-shadow:\s*4px 4px 0 var\(--hot\)/);
+assert.doesNotMatch(styles, /system-ui|\bExo\b|\bBangers\b|\bRaleway\b/i);
+assert.doesNotMatch(styles, /#f6f1ff|#c4a5ff|#7c3aed|#7dffa3|#a78bfa|#5b21b6|#2a1840/i);
+assert.doesNotMatch(styles, /backdrop-filter/);
+assert.doesNotMatch(styles, /linear-gradient\s*\(\s*135deg/i);
+assert.ok(!body.includes('dd-avatar'), 'likeness must not be used as a logo');
+assert.match(body, /class="dd-nav"/);
+assert.match(body, /\$<span>DASHA<\/span>/);
+assert.doesNotMatch(body, /dgnav|\.dgnav/);
+
+// Styles stay free of pressure chrome
 assert.ok(styles.includes('.dd-btn') && styles.includes('.dd-verify'), 'core styles present');
 assert.ok(!/\.dd-fomo|\.dd-sticky|\.dd-raid/i.test(styles), 'no FOMO/sticky/raid styles');
 for (const selector of ['#dd-app a:focus-visible', '#dd-app button:focus-visible', '#dd-app input:focus-visible', '#dd-app textarea:focus-visible']) {
@@ -135,6 +152,9 @@ for (const url of ['https://www.getdasha.com/', 'https://www.getdasha.com/studio
   assert.ok(standalone.includes(`href="${url}"`), `standalone navigation lost ${url}`);
 }
 assert.ok(!/href="\/(?:studio|dasha|bounties)\/?"/.test(standalone), 'standalone navigation breaks on a subpath host');
+assert.match(build, /theme-color" content="#070608"/);
+assert.doesNotMatch(build, /#2a1840|#07060a|#0b0a10/);
+assert.doesNotMatch(build, /<iframe/i);
 
 // App must not reintroduce pressure builders
 assert.ok(!/fomoDipHeadline|dipRaidLabel|buildSharePack\('raid'|dd-fomo-raid|invite loop|ref=/i.test(src), 'app.js free of FOMO/raid/ref builders');

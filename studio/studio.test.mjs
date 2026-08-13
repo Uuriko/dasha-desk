@@ -104,4 +104,14 @@ for (const banned of ['<!doctype', '<html', '<body', ':root']) {
   assert.ok(!embed.toLowerCase().includes(banned), `the embed is a fragment and must not contain ${banned}`);
 }
 
+/* Chrome is the five-token poster spine. Effect swatches may keep tool colours. */
+assert.match(studio, /--ink:#070608/);
+assert.match(studio, /--paper:#f4eddb/);
+assert.match(studio, /--acid:#dfff00/);
+assert.match(studio, /--hot:#ff3b81/);
+assert.match(studio, /--violet:#7c4dff/);
+assert.match(studio, /Arial,Helvetica,sans-serif/);
+assert.doesNotMatch(studio, /dgnav|\.dgnav|system-ui|\bExo\b|\bBangers\b|\bRaleway\b|#f6f1ff|#c4a5ff|#7c3aed|#7dffa3/);
+assert.doesNotMatch(studio, /backdrop-filter/);
+
 console.log('Dasha Studio: PASS (self-contained, looks and formats intact, licence stated, mint correct, embed generated and scoped)');
