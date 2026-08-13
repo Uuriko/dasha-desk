@@ -51,7 +51,7 @@ async function get(url, tries = 3) {
    sweep missed it: it is a live public page that no publish path here touches and no gate knew
    about. It was still serving copy the operator removed hours after every other surface was clean.
    A surface nobody watches is a surface that drifts, so it is watched here now. */
-for (const route of ['/', '/studio', '/dasha', '/how-to-buy']) {
+for (const route of ['/', '/studio', '/dasha', '/how-to-buy', '/bounties/']) {
   const res = await get(ORIGIN + route);
   fail(res.ok, `${route}: unreachable — ${res.error || 'HTTP ' + res.status}`);
   if (!res.ok) continue;
@@ -104,6 +104,9 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy']) {
     fail(/name or likeness/i.test(html), '/studio: the likeness carve-out is gone; CC0 alone overstates what we can grant');
     fail(!/not affiliated with dasha/i.test(html), '/studio: claims no affiliation, which is false');
   }
+  if (route === '/bounties/') {
+    fail(/declared bounties, not escrow/i.test(html), '/bounties/: lost the escrow disclaimer');
+  }
 
   /* The share card is a separate binary on a CDN. It can rot with nothing in any repo changing,
      and the only place anyone would notice is someone else's timeline. */
@@ -138,7 +141,7 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy']) {
    standard rather than a shallower one — Codex's review pointed out that this was checking the mint
    and then merely confirming the Studio answered at all, which left the alternate public copy
    materially less watched than the primary. Same invariants, both copies. */
-for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio/']]) {
+for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio/'], ['pages /bounties/', PAGES + 'bounties/']]) {
   const res = await get(url);
   fail(res.ok, `${label}: unreachable — ${res.error || 'HTTP ' + res.status}`);
   if (!res.ok) continue;
@@ -155,6 +158,8 @@ for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio
   if (label.includes('studio')) {
     fail(/CC0/.test(html), `${label}: the public-domain dedication is gone`);
     fail(/name or likeness/i.test(html), `${label}: the likeness carve-out is gone`);
+  } else if (label.includes('bounties')) {
+    fail(/declared bounties, not escrow/i.test(html), `${label}: lost the escrow disclaimer`);
   } else {
     fail(html.includes(MINT), `${label}: the mint is not shown`);
   }

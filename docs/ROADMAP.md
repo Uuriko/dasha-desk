@@ -26,12 +26,14 @@ Tracked on GitHub so newcomers see the project moves. These are **not** external
 - Good first issues and Ideas template (#4, #7, #8 open or done as labeled)
 - Neutral desk copy (no FOMO/raid framing)
 - Contribute entry points via GitHub `/contribute` + site `#oss`
+- Static **dasha bounties** board at `/bounties/` (GitHub issues as listings, no wallet, no escrow)
 
 ## Not now
 
 - wallets, accounts, custody, or trading-terminal features
 - price predictions, referrals, raids, or engagement farming
 - a backend for behavior the browser can handle
+- escrow, custody, or payout execution for listed bounties
 - unrelated Studio or website features in this repository
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) to propose or ship a change.

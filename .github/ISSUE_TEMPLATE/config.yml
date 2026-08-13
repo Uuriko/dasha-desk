@@ -9,6 +9,9 @@ contact_links:
   - name: Live product
     url: https://www.getdasha.com/dasha
     about: Try the desk before proposing changes.
+  - name: Bounties board
+    url: https://www.getdasha.com/bounties/
+    about: Ranked declared bounties. List a GitHub project with the bounty-project template.
   - name: Site open-source section
     url: https://www.getdasha.com/#oss
     about: How Contribute on GitHub is framed on the public site.

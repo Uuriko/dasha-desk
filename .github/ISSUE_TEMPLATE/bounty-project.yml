@@ -1,0 +1,34 @@
+name: Bounty project listing
+description: List a GitHub repo on the dasha bounties board. Declared bounty, not escrow — no funds move through this repo.
+title: "[bounty] "
+labels: [bounty-project]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is the listing. The public board at [getdasha.com/bounties](https://www.getdasha.com/bounties/) reads the JSON below from **open** issues titled `[bounty] …` (and the `bounty-project` label when GitHub applies it).
+
+        **Declared bounties, not escrow.** Dasha desk does not hold funds, connect a wallet, or pay anyone. You pay however you said (wallet / gitarmy / link).
+
+        Keep the fenced JSON valid. The board skips malformed listings rather than guessing.
+  - type: textarea
+    id: listing
+    attributes:
+      label: Listing JSON
+      description: The board parses a json block from this issue. Do not invent contributor scores here — those are fetched live from GitHub.
+      render: json
+      value: |
+        {
+          "repo": "owner/name",
+          "blurb": "",
+          "pool": { "amount": 50, "currency": "USD", "period": "monthly" },
+          "payout": { "solana": "", "url": "" },
+          "scoring": { "merge": 10, "issue_close": 4, "review": 2, "merge_cap": 5, "review_cap": 10 }
+        }
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes (optional)
+      description: Human-readable context for the issue thread. The board uses `blurb` inside the JSON, not this field.

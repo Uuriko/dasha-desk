@@ -1,0 +1,25 @@
+{
+  "note": "Seed listing so the board is not empty before any GitHub issues exist. Scores are never stored here — the page fetches public GitHub activity for the current UTC month. Declared pool is an example listing, not escrow.",
+  "listings": [
+    {
+      "repo": "Uuriko/dasha-desk",
+      "blurb": "Seed listing for the desk itself. Declared bounty, not escrow — dasha desk does not hold funds.",
+      "pool": {
+        "amount": 50,
+        "currency": "USD",
+        "period": "monthly"
+      },
+      "payout": {
+        "solana": "",
+        "url": "https://github.com/Uuriko/dasha-desk"
+      },
+      "scoring": {
+        "merge": 10,
+        "issue_close": 4,
+        "review": 2,
+        "merge_cap": 5,
+        "review_cap": 10
+      }
+    }
+  ]
+}

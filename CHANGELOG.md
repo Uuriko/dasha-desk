@@ -2,6 +2,7 @@
 
 ## v0.1.1 — unreleased (main)
 
+- **dasha bounties / the board** at `/bounties/`: ranked GitHub contributors for listed projects. Anyone can list a repo via a public issue. Declared bounties, not escrow — no wallet, no custody.
 - **Last-visit stamp** on the mint card: this browser only records when you last checked the associated mint and warns if the mint string differs from your previous visit (no server).
 - Contributor guide: claim good first issues; expanded verify commands.
 - Home site (getdasha monorepo): mint paste-check on the token panel (shipped with site publish).
