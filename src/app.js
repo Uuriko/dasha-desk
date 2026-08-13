@@ -85,6 +85,27 @@
     return { prev: prev, current: next, mintChanged: mintChanged, label: label };
   }
 
+  /**
+   * Relative age of a successful fetch. Buckets, not tenths of a second.
+   * from/now: ms epoch. Empty string if there has not been a success yet.
+   */
+  function ageLabel(from, now) {
+    var t = Number(from) || 0;
+    var n = Number(now) || 0;
+    if (!t || !n || n < t) return '';
+    var s = Math.round((n - t) / 1000);
+    if (s < 10) return 'just now';
+    if (s < 50) return 'checked ' + s + ' seconds ago';
+    if (s < 90) return 'about a minute ago';
+    var m = Math.round(s / 60);
+    if (m < 45) return 'checked ' + m + ' minutes ago';
+    if (m < 90) return 'about an hour ago';
+    var h = Math.round(m / 60);
+    if (h < 36) return 'checked ' + h + ' hours ago';
+    var days = Math.round(h / 24);
+    return days === 1 ? 'about a day ago' : 'checked ' + days + ' days ago';
+  }
+
   // Pure export for unit tests / reuse (no FOMO builders).
   globalThis.DDShare = {
     CA: CA,
@@ -94,6 +115,7 @@
     buildSharePack: buildSharePack,
     normalizeMint: normalizeMint,
     visitStamp: visitStamp,
+    ageLabel: ageLabel,
   };
 
   if (typeof document === 'undefined') return;
@@ -221,11 +243,7 @@
     }
     if ($('dd-px')) $('dd-px').textContent = money(price);
     if ($('dd-asof')) {
-      $('dd-asof').textContent =
-        'Dexscreener · ' +
-        (pair.dexId || 'pool') +
-        ' · ' +
-        new Date().toLocaleTimeString();
+      $('dd-asof').textContent = 'Dexscreener · ' + (pair.dexId || 'pool');
     }
     if ($('dd-live')) $('dd-live').textContent = 'live';
   }
@@ -239,8 +257,32 @@
     if ($('dd-live')) $('dd-live').textContent = status;
   }
 
+  var lastOk = 0;
+  var ageClock = 0;
+
+  function paintAge() {
+    var el = $('dd-age');
+    if (!el) return;
+    try {
+      el.textContent = lastOk ? ageLabel(lastOk, Date.now()) : '';
+    } catch (e) {}
+  }
+
+  function markOk() {
+    lastOk = Date.now();
+    paintAge();
+    if (ageClock) return;
+    try {
+      ageClock = setInterval(function () {
+        try {
+          paintAge();
+        } catch (e) {}
+      }, 1000);
+    } catch (e) {}
+  }
+
   function refresh() {
-    if ($('dd-asof')) $('dd-asof').textContent = 'Refreshing…';
+    if (!lastOk && $('dd-asof')) $('dd-asof').textContent = 'Refreshing…';
     if ($('dd-live')) $('dd-live').textContent = '…';
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var tid = null;
@@ -260,6 +302,7 @@
         var pairs = (data && data.pairs) || [];
         if (!pairs.length) {
           clearPair('Dex returned no pools · use sources below', 'no pool');
+          paintAge();
           return;
         }
         var best = pairs[0];
@@ -269,9 +312,11 @@
           if ((a || 0) > (b || 0)) best = pairs[i];
         }
         paintPair(best);
+        markOk();
       })
       .catch(function () {
         clearPair('Dex unavailable · use sources below', 'offline');
+        paintAge();
       })
       .then(function () {
         if (tid) clearTimeout(tid);

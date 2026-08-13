@@ -308,6 +308,7 @@
             <button class="btn" id="copy" type="button">Copy image</button>
             <button class="btn" id="gif" type="button">Save GIF</button>
             <button class="btn" id="kit" type="button">Prepare 3 sizes</button>
+            <button class="btn" id="surprise-go" type="button">Surprise me</button>
           </div>
           <div class="go">
             <button class="btn" id="batch-looks" type="button">Cook 3 looks</button>
@@ -989,8 +990,7 @@ function surpriseMe() {
     : '';
   const nextSticker = stickerRoll;
   applyLookFormatEffect(nextLook.id, nextFormat.id, nextEffect[0], nextSticker);
-  const pool = linePool().filter((text) => text !== ($('line').value || '').trim());
-  const pick = (pool.length ? pool : linePool())[Math.floor(Math.random() * (pool.length || linePool().length))] || look.line;
+  const pick = nextLook.line || '';
   $('line').value = capsOn ? pick.toUpperCase() : pick;
   updateLineCount();
   activeMood = '';
@@ -2285,6 +2285,7 @@ paintHistory();
 refreshShareLabel();
 updateLineCount();
 if ($('surprise')) $('surprise').addEventListener('click', surpriseMe);
+if ($('surprise-go')) $('surprise-go').addEventListener('click', surpriseMe);
 if ($('caps-line')) $('caps-line').addEventListener('click', () => {
   capsOn = !capsOn;
   $('caps-line').setAttribute('aria-pressed', capsOn ? 'true' : 'false');

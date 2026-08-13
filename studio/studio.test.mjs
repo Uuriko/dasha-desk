@@ -59,6 +59,16 @@ for (const format of ['square', 'story', 'banner']) {
   assert.ok(studio.includes(`id: '${format}'`), `the "${format}" format is gone`);
 }
 
+/* 2b. Surprise me sits with the other .go actions, picks a new look, and uses that look's line. */
+assert.match(studio, /<div class="go">[\s\S]*id="surprise-go"[\s\S]*Surprise me/,
+  'Surprise me must sit next to the existing .go buttons');
+assert.match(studio, /LOOKS\.filter\(\(option\) => option\.id !== look\.id\)/,
+  'Surprise me must not re-pick the look that is already selected');
+assert.match(studio, /\$\('line'\)\.value = capsOn \? pick\.toUpperCase\(\) : pick/,
+  'Surprise me must set the caption from the chosen look');
+assert.match(studio, /const pick = nextLook\.line/,
+  'Surprise me caption must come from the chosen look\'s line');
+
 /* 3. The licence. Contributors need to know what they may do with what they make, and the carve-out
       has to survive with it: CC0 can dedicate our drawing, it cannot grant rights to a real person's
       name or likeness, and saying only the first half would imply it did. */
