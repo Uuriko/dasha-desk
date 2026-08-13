@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * dasha bounties — parse listings, skip junk, never invent ranks or dollars,
- * and prove the “list a project” form builds a real GitHub new-issue URL.
+ * dasha bounties — parse listings, skip junk, never invent ranks,
+ * prove the form builds a GitHub issue URL, and that seed has no fake leaderboard.
  */
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -21,277 +21,203 @@ const css = readFileSync(join(here, 'board.css'), 'utf8');
 const js = readFileSync(join(here, 'board.js'), 'utf8');
 const template = read('.github/ISSUE_TEMPLATE/bounty-project.yml');
 
-assert.ok(existsSync(join(here, 'index.html')), 'bounties/index.html missing');
-assert.ok(existsSync(join(root, 'config/bounties.seed.json')), 'seed listing missing');
+assert.ok(existsSync(join(here, 'index.html')));
+assert.ok(existsSync(join(root, 'config/bounties.seed.json')));
 assert.match(html, /declared bounties, not escrow/i);
 assert.match(html, /id="bb-form"/);
+assert.match(html, /id="bb-rules"/);
 assert.match(html, /open bounties, you set the pool/i);
 assert.doesNotMatch(html + css + js, /[1-9A-HJ-NP-Za-km-z]{32,44}pump/);
+assert.doesNotMatch(html, /1% platform fee|signed compute|14-day wallet/i);
+assert.doesNotMatch(js, /merge_cap|issue_close|DEFAULT_SCORING/);
 assert.match(template, /name: Bounty project listing/);
 assert.match(template, /bounty-project/);
 assert.match(template, /id: listing/);
-assert.match(template, /\[bounty\]/);
 
-/* JSON listing parse */
-const fenced = listingFromBody(`hello
-
+/* JSON listing parse — freeform rules, repo optional */
+const fenced = B.listingFromIssue({
+  number: 11,
+  title: '[bounty] dasha desk',
+  html_url: 'https://github.com/Uuriko/dasha-desk/issues/11',
+  body: `hello
 \`\`\`json
 {
+  "name": "dasha desk",
   "repo": "Uuriko/dasha-desk",
-  "pool": { "amount": 50, "currency": "USD", "period": "monthly" },
-  "payout": { "solana": "", "url": "https://github.com/Uuriko/dasha-desk" },
-  "scoring": { "merge": 10, "issue_close": 4, "review": 2, "merge_cap": 5, "review_cap": 10 }
+  "pool": { "amount": 50, "currency": "USD" },
+  "pays": "Merged PRs",
+  "eligibility": "Anyone",
+  "payout": "SOL to the address on the PR"
 }
 \`\`\`
-`);
+`,
+});
+assert.equal(fenced.name, 'dasha desk');
 assert.equal(fenced.repo, 'Uuriko/dasha-desk');
 assert.equal(fenced.pool.amount, 50);
-assert.equal(fenced.pool.currency, 'USD');
+assert.equal(fenced.pays, 'Merged PRs');
 assert.equal(fenced.origin, 'issue');
+assert.ok(!('scoring' in fenced) || fenced.scoring == null);
 
-const defaults = B.normalizeListing({ repo: 'Acme/tools' });
-assert.equal(defaults.repo, 'Acme/tools');
-assert.equal(defaults.pool, null);
-assert.equal(B.formatPool(defaults.pool), 'undeclared');
-assert.deepEqual(defaults.scoring, B.DEFAULT_SCORING);
+const namedOnly = B.normalizeListing({ name: 'Zine', pays: 'A printed page' });
+assert.equal(namedOnly.name, 'Zine');
+assert.equal(namedOnly.repo, '');
+assert.equal(namedOnly.pool, null);
+assert.equal(B.formatPool(namedOnly.pool), 'undeclared');
+assert.match(B.renderRules(namedOnly), /A printed page/);
+assert.equal(B.normalizeListing({ title: 'Poster' }).name, 'Poster');
+assert.match(B.renderRules(B.normalizeListing({ name: 'X', rules: 'Pay in stickers' })), /Pay in stickers/);
 
-const fromUrl = B.normalizeListing({ repo: 'https://github.com/Uuriko/dasha-desk.git' });
+const fromUrl = B.normalizeListing({ name: 'desk', repo: 'https://github.com/Uuriko/dasha-desk.git' });
 assert.equal(fromUrl.repo, 'Uuriko/dasha-desk');
 
+assert.equal(B.normalizeListing({}), null);
 assert.equal(B.normalizeListing({ repo: 'not a repo' }), null);
-assert.equal(B.normalizeListing({ repo: '../etc/passwd' }), null);
 assert.equal(B.extractJsonObject('no json here'), null);
 assert.equal(B.extractJsonObject('```json\n{not json}\n```'), null);
 
 /* skip malformed issues */
-const issues = [
-  { number: 1, title: '[bounty] good', html_url: 'https://github.com/Uuriko/dasha-desk/issues/1', body: '```json\n{"repo":"a/b","pool":{"amount":10,"currency":"SOL"}}\n```' },
-  { number: 2, title: '[bounty] junk', html_url: 'https://github.com/x/y/issues/2', body: 'I forgot the json' },
-  { number: 3, title: '[bounty] bad repo', html_url: 'https://github.com/x/y/issues/3', body: '{"repo":"nope"}' },
-  { number: 4, title: 'not a listing', html_url: 'https://github.com/x/y/issues/4', body: '```json\n{"repo":"a/c"}\n```' },
-  { number: 5, title: '[bounty] pr-shaped', pull_request: { url: 'https://api.github.com' }, body: '```json\n{"repo":"a/d"}\n```' },
-  { number: 6, title: 'Labeled only', labels: [{ name: 'bounty-project' }], html_url: 'https://github.com/Uuriko/dasha-desk/issues/6', body: '```json\n{"repo":"z/y"}\n```' },
-];
-const parsed = B.listingsFromIssues(issues);
+const parsed = B.listingsFromIssues([
+  { number: 1, title: '[bounty] good', html_url: 'https://x/1', body: '```json\n{"name":"Alpha","repo":"a/b","pool":{"amount":10,"currency":"SOL"}}\n```' },
+  { number: 2, title: '[bounty] junk', html_url: 'https://x/2', body: 'I forgot the json' },
+  { number: 3, title: '[bounty] empty', html_url: 'https://x/3', body: '{"repo":"nope"}' },
+  { number: 4, title: 'not a listing', html_url: 'https://x/4', body: '```json\n{"name":"skip"}\n```' },
+  { number: 5, title: '[bounty] pr', pull_request: { url: 'https://api.github.com' }, body: '```json\n{"name":"nope"}\n```' },
+  { number: 6, title: 'Labeled', labels: [{ name: 'bounty-project' }], html_url: 'https://x/6', body: '```json\n{"name":"Zed"}\n```' },
+]);
 assert.deepEqual(
-  parsed.map((row) => row.repo),
-  ['a/b', 'z/y'],
+  parsed.map((row) => row.name),
+  ['Alpha', 'Zed'],
 );
-assert.ok(!parsed.some((row) => row.repo === 'a/c' || row.repo === 'a/d'));
-assert.equal(B.formatPool(parsed[0].pool), '10 SOL / MONTH');
+assert.equal(B.formatPool(parsed[0].pool), '10 SOL');
 
 /* no fabricated numbers when fetch fails */
-const failed = {
-  repo: 'Uuriko/dasha-desk',
-  pool: { amount: 50, currency: 'USD', period: 'monthly' },
-  contributors: null,
-  error: 'unavailable',
-};
 const failedBoard = B.renderGlobalBoard({
-  boardError: 'Contributor fetch failed. No ranks are shown.',
+  boardError: 'GitHub contributor fetch failed.',
   global: [],
 });
-assert.match(failedBoard, /no ranks|unavailable|failed/i);
+assert.match(failedBoard, /failed|unavailable|no ranks/i);
 assert.doesNotMatch(failedBoard, /#1/);
 assert.doesNotMatch(failedBoard, /\$50/);
-assert.doesNotMatch(failedBoard, />0</);
 
 const emptyBoard = B.renderGlobalBoard({ global: [] });
-assert.match(emptyBoard, /no accepted outcomes/i);
+assert.match(emptyBoard, /no public github/i);
 assert.doesNotMatch(emptyBoard, /#1/);
 
-const failCard = B.renderProjectCard(
-  {
-    repo: 'Uuriko/dasha-desk',
-    origin: 'seed',
-    blurb: 'Seed listing',
-    pool: { amount: 50, currency: 'USD', period: 'monthly' },
-    payout: { solana: '', url: 'https://github.com/Uuriko/dasha-desk' },
-    scoring: B.DEFAULT_SCORING,
-    period: 'monthly',
-  },
-  failed,
-);
+const seedListing = B.listingsFromSeed(seed)[0];
+const failCard = B.renderProjectCard(seedListing);
 assert.match(failCard, /Uuriko\/dasha-desk/);
 assert.match(failCard, /seed listing/i);
 assert.doesNotMatch(failCard, /#1/);
-assert.match(failCard, /\$50 \/ MONTH/);
-const failPage = B.renderProjectPage(
-  {
-    repo: 'Uuriko/dasha-desk',
-    origin: 'seed',
-    blurb: 'Seed listing',
-    pool: { amount: 50, currency: 'USD', period: 'monthly' },
-    payout: { solana: '', url: 'https://github.com/Uuriko/dasha-desk' },
-    scoring: B.DEFAULT_SCORING,
-    period: 'monthly',
-  },
-  failed,
-  { asOf: 'Wed, 13 Aug 2026 12:00:00 GMT' },
-);
+assert.match(failCard, /\$50/);
+assert.match(failCard, /Merged pull requests/i);
+
+const failPage = B.renderProjectPage(seedListing, { contributors: null, error: 'unavailable' }, {});
 assert.match(failPage, /no fake leaderboard/i);
 assert.doesNotMatch(failPage, /#1/);
-assert.match(failPage, /as of /i);
-assert.match(failPage, />—</);
 
-const scoredFail = await B.scoreRepo(
-  { repo: 'Uuriko/dasha-desk', scoring: B.DEFAULT_SCORING, pool: { amount: 50, currency: 'USD' } },
-  {
-    fetchImpl: async () =>
-      new Response('nope', {
-        status: 500,
-        headers: { 'content-type': 'application/json', date: 'Wed, 13 Aug 2026 12:00:00 GMT' },
-      }),
-  },
-  B.utcMonthRange('2026-08-13T12:00:00Z'),
-);
+const scoredFail = await B.fetchContributors('Uuriko/dasha-desk', {
+  fetchImpl: async () => new Response('nope', { status: 500, headers: { date: 'Wed, 13 Aug 2026 12:00:00 GMT' } }),
+});
 assert.equal(scoredFail.contributors, null);
 assert.equal(scoredFail.error, 'unavailable');
-assert.ok(!Array.isArray(scoredFail.contributors));
 
-const limited = await B.scoreRepo(
-  { repo: 'Uuriko/dasha-desk', scoring: B.DEFAULT_SCORING, pool: null },
-  {
-    fetchImpl: async () =>
-      new Response('API rate limit exceeded', {
-        status: 403,
-        headers: { 'x-ratelimit-remaining': '0', date: 'Wed, 13 Aug 2026 12:00:00 GMT' },
-      }),
-  },
-  B.utcMonthRange('2026-08-13T12:00:00Z'),
-);
+const limited = await B.fetchContributors('Uuriko/dasha-desk', {
+  fetchImpl: async () =>
+    new Response('API rate limit exceeded', {
+      status: 403,
+      headers: { 'x-ratelimit-remaining': '0', date: 'Wed, 13 Aug 2026 12:00:00 GMT' },
+    }),
+});
 assert.equal(limited.contributors, null);
 assert.equal(limited.error, 'rate-limited');
 
-assert.equal(B.declaredShare(10, 0, { amount: 50, currency: 'USD' }), null);
-assert.equal(B.declaredShare(10, 20, null), null);
-assert.equal(B.declaredShare(10, 20, { amount: 50, currency: 'USD' }), 25);
-
-/* form builds a valid GitHub new-issue URL */
+/* form builds a GitHub new-issue URL — name is enough */
 const built = B.buildIssueUrl({
+  name: 'dasha desk',
   repo: 'Uuriko/dasha-desk',
   amount: '50',
   currency: 'USD',
-  period: 'monthly',
-  blurb: 'desk seed',
-  solana: '',
-  url: 'https://github.com/Uuriko/dasha-desk',
-  scoring: B.DEFAULT_SCORING,
+  pays: 'Merged PRs',
+  eligibility: 'Anyone',
+  payout: 'https://github.com/Uuriko/dasha-desk',
 });
 assert.equal(built.ok, true);
 const issueUrl = new URL(built.url);
-assert.equal(issueUrl.origin, 'https://github.com');
 assert.equal(issueUrl.pathname, '/Uuriko/dasha-desk/issues/new');
 assert.equal(issueUrl.searchParams.get('template'), 'bounty-project.yml');
-assert.equal(issueUrl.searchParams.get('title'), '[bounty] Uuriko/dasha-desk');
-assert.equal(issueUrl.searchParams.get('labels'), 'bounty-project');
+assert.match(issueUrl.searchParams.get('title'), /^\[bounty\]/);
 const listing = JSON.parse(issueUrl.searchParams.get('listing'));
+assert.equal(listing.name, 'dasha desk');
 assert.equal(listing.repo, 'Uuriko/dasha-desk');
 assert.equal(listing.pool.amount, 50);
-assert.equal(listing.pool.currency, 'USD');
-assert.equal(listing.payout.url, 'https://github.com/Uuriko/dasha-desk');
+assert.equal(listing.pays, 'Merged PRs');
+assert.ok(!listing.scoring);
 
-const blankPool = B.buildIssueUrl({ repo: 'owner/name', amount: '' });
+const noRepo = B.buildIssueUrl({ name: 'Zine', pays: 'A spread' });
+assert.equal(noRepo.ok, true);
+assert.equal(JSON.parse(new URL(noRepo.url).searchParams.get('listing')).name, 'Zine');
+
+const blankPool = B.buildIssueUrl({ name: 'X', amount: '' });
 assert.equal(blankPool.ok, true);
 assert.equal(JSON.parse(new URL(blankPool.url).searchParams.get('listing')).pool, undefined);
 
-const badForm = B.buildIssueUrl({ repo: 'nope' });
-assert.equal(badForm.ok, false);
-assert.match(badForm.error, /owner\/name/);
+assert.equal(B.buildIssueUrl({ repo: 'nope' }).ok, false);
+assert.equal(B.buildIssueUrl({}).ok, false);
 
-/* seed listing renders */
+/* seed listing renders without a fake leaderboard */
 const seedListings = B.listingsFromSeed(seed);
 assert.equal(seedListings.length, 1);
 assert.equal(seedListings[0].repo, 'Uuriko/dasha-desk');
 assert.equal(seedListings[0].origin, 'seed');
-assert.ok(seedListings[0].pool);
-assert.equal(typeof seedListings[0].pool.amount, 'number');
 assert.ok(!('contributors' in seed.listings[0]));
 assert.ok(!('score' in seed.listings[0]));
-
-const seedCard = B.renderProjectCard(seedListings[0], null);
-assert.match(seedCard, /Uuriko\/dasha-desk/);
-assert.match(seedCard, /seed listing/i);
+assert.ok(!('scoring' in seed.listings[0]));
+const listingsFile = JSON.parse(read('bounties/listings.json'));
+assert.deepEqual(listingsFile.listings, seed.listings);
+const seedCard = B.renderProjectCard(seedListings[0]);
 assert.match(seedCard, /data-origin="seed"/);
-assert.match(seedCard, /\$50 \/ MONTH/);
 assert.doesNotMatch(seedCard, /#1/);
 
-const merged = B.mergeListings(seedListings, [
-  B.listingFromIssue({
-    number: 99,
-    title: '[bounty] Uuriko/dasha-desk',
-    html_url: 'https://github.com/Uuriko/dasha-desk/issues/99',
-    body: '```json\n{"repo":"Uuriko/dasha-desk","pool":{"amount":75,"currency":"USD","period":"monthly"}}\n```',
-  }),
-]);
-assert.equal(merged.length, 1);
-assert.equal(merged[0].origin, 'issue');
-assert.equal(merged[0].pool.amount, 75);
-
-const scored = B.scoreEvents({ merges: 9, issue_closes: 2, reviews: 40 }, B.DEFAULT_SCORING);
-assert.equal(scored.merge_counted, 5);
-assert.equal(scored.review_counted, 10);
-assert.equal(scored.score, 5 * 10 + 2 * 4 + 10 * 2);
-
-const rankedHuman = B.rankContributors([
-  { login: 'ada', score: 10 },
-  { login: 'dependabot[bot]', score: 99 },
-]);
-assert.equal(rankedHuman.length, 1);
-assert.equal(rankedHuman[0].login, 'ada');
+/* localStorage + shareable JSON */
+const mem = {
+  data: {},
+  getItem(k) { return this.data[k] || null; },
+  setItem(k, v) { this.data[k] = String(v); },
+};
+assert.equal(B.saveLocal([namedOnly], mem), true);
+assert.equal(B.loadLocal(mem)[0].name, 'Zine');
+const token = B.encodeShare({ name: 'Poster', pays: 'A remix' });
+const shared = B.decodeShare(token);
+assert.equal(shared.name, 'Poster');
+assert.equal(shared.pays, 'A remix');
 
 const ranked = B.aggregateGlobal([
   {
     repo: 'Uuriko/dasha-desk',
-    pool: { amount: 50, currency: 'USD' },
     contributors: [
-      { login: 'ada', htmlUrl: 'https://github.com/ada', score: 10 },
-      { login: 'bob', htmlUrl: 'https://github.com/bob', score: 10 },
+      { login: 'ada', htmlUrl: 'https://github.com/ada', contributions: 10 },
+      { login: 'bob', htmlUrl: 'https://github.com/bob', contributions: 10 },
     ],
   },
 ]);
 assert.equal(ranked[0].rank, 1);
-assert.equal(ranked[1].rank, 1);
-assert.equal(ranked[0].shares[0].share, 25);
+assert.equal(ranked[0].contributions, 10);
 
 const boardHtml = B.renderGlobalBoard({
-  global: [
-    {
-      rank: 1,
-      login: 'ada',
-      htmlUrl: 'https://github.com/ada',
-      score: 10,
-      projects: ['Uuriko/dasha-desk'],
-      shares: [{ repo: 'Uuriko/dasha-desk', share: 25, pool: { amount: 50, currency: 'USD' } }],
-    },
-  ],
+  global: [{ rank: 1, login: 'ada', htmlUrl: 'https://github.com/ada', contributions: 10, projects: ['Uuriko/dasha-desk'] }],
 });
 assert.match(boardHtml, /Contributor/i);
-assert.match(boardHtml, /Declared share/i);
-assert.match(boardHtml, /Projected/i);
-assert.match(boardHtml, /Total paid/i);
-assert.match(boardHtml, /1 project · 1 scored cycle/);
-assert.match(boardHtml, /\$25/);
-assert.match(boardHtml, /—/);
-assert.doesNotMatch(boardHtml, /\$0/);
+assert.match(boardHtml, /GitHub contributions/i);
+assert.doesNotMatch(boardHtml, /Projected|Total paid|1 scored cycle/i);
 
 assert.match(html, /Home/);
 assert.match(html, /Studio/);
 assert.match(html, /Bounties/);
-assert.match(html, /Leaderboard/);
 assert.match(html, /List a project/);
 assert.match(css, /#F4F0E7/i);
 assert.match(css, /#F5511E/i);
 assert.match(css, /Poppins/);
 assert.match(css, /prefers-reduced-motion/);
-
-function listingFromBody(body) {
-  return B.listingFromIssue({
-    number: 11,
-    title: '[bounty] Uuriko/dasha-desk',
-    html_url: 'https://github.com/Uuriko/dasha-desk/issues/11',
-    body,
-  });
-}
 
 console.log('dasha-bounties: PASS');

@@ -15,13 +15,13 @@
 ## Other static surfaces in this repo
 
 - **Studio** — local image tool, no account
-- **dasha bounties / the board** (`/bounties/`) — ranked GitHub contributor board for listed repos. Anyone can list a project by opening a public GitHub issue. **Declared bounties, not escrow.** Owners set their own pool and payout pointer. This page does not hold funds, connect a wallet, or pay anyone.
+- **dasha bounties / the board** (`/bounties/`) — anybody can list a project and write their own bounty rules (pool, what pays, eligibility, payout). GitHub issues, this-device localStorage, and shareable JSON. Optional public GitHub contributor counts if they linked a repo. **Declared bounties, not escrow.** The board does not hold funds.
 
 ## Non-goals
 
 - Wallet connect / claims
 - Price predictions, FOMO, raid kits, referrals, Telegram
-- Backend / accounts
+- Backend / accounts **on the desk** (the bounties page may use this-device localStorage and public GitHub issues; still no server of our own)
 - Demigod / other products
 - Thesis Card, receipts, forecasting (permanently scrapped)
 - Escrow, custody, or constructed payout transactions for bounties
@@ -34,7 +34,7 @@
 | **dasha desk** | This open-source product |
 | **$dasha** | The token (mint in config) |
 | **@dash_eats** | Public X account referenced by quotes/links |
-| **dasha bounties / the board** | Static ranked listing of declared project bounties |
+| **dasha bounties / the board** | Bulletin board for owner-written project bounties |
 
 ## Version
 
@@ -42,4 +42,4 @@
 
 ## Product boundary
 
-Dasha Desk is the live coin/source/community landing product. Thesis, receipt and forecasting products are permanently retired and are not part of Dasha. The bounties board is still a static page: GitHub issues are the listing database, and GitHub's API is the score source. No new backend.
+Dasha Desk is the live coin/source/community landing product. Thesis, receipt and forecasting products are permanently retired and are not part of Dasha. The bounties board is a separate static page: owners write their own rules; listings come from a seed file, open GitHub issues, localStorage, and shareable JSON. GitHub contributor counts are optional. No payout execution.

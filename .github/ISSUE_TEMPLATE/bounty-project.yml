@@ -1,29 +1,31 @@
 name: Bounty project listing
-description: List a GitHub repo on the dasha bounties board. Declared bounty, not escrow — no funds move through this repo.
+description: Put a project on the dasha bounties board. You write the rules. This repo does not hold funds.
 title: "[bounty] "
 labels: [bounty-project]
 body:
   - type: markdown
     attributes:
       value: |
-        This issue is the listing. The public board at [getdasha.com/bounties](https://www.getdasha.com/bounties/) reads the JSON below from **open** issues titled `[bounty] …` (and the `bounty-project` label when GitHub applies it).
+        This issue is the listing. The board at [getdasha.com/bounties](https://www.getdasha.com/bounties/) reads the JSON from **open** issues titled `[bounty] …` (and the `bounty-project` label when GitHub applies it).
 
-        **Declared bounties, not escrow.** Dasha desk does not hold funds, connect a wallet, or pay anyone. You pay however you said (wallet / gitarmy / link).
-
-        Keep the fenced JSON valid. The board skips malformed listings rather than guessing.
+        Write your own rules. The board renders them as you typed them. It does not rewrite them into a scoring formula.
   - type: textarea
     id: listing
     attributes:
       label: Listing JSON
-      description: The board parses a json block from this issue. Do not invent contributor scores here — those are fetched live from GitHub.
+      description: Keep this valid JSON. Skip contributor scores — those are fetched live only if you linked a public repo.
       render: json
       value: |
         {
+          "name": "my project",
           "repo": "owner/name",
           "blurb": "",
-          "pool": { "amount": 50, "currency": "USD", "period": "monthly" },
-          "payout": { "solana": "", "url": "" },
-          "scoring": { "merge": 10, "issue_close": 4, "review": 2, "merge_cap": 5, "review_cap": 10 }
+          "pool": { "amount": 50, "currency": "USD" },
+          "pays": "What you pay for.",
+          "eligibility": "Who can collect.",
+          "payout": "How you actually send it.",
+          "rules": "Anything else, in your words.",
+          "wantScores": true
         }
     validations:
       required: true
@@ -31,4 +33,4 @@ body:
     id: notes
     attributes:
       label: Notes (optional)
-      description: Human-readable context for the issue thread. The board uses `blurb` inside the JSON, not this field.
+      description: For the issue thread. The board uses the JSON, not this field.
