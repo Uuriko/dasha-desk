@@ -191,7 +191,8 @@
     if (!currency) head = String(amount) + ' (currency undeclared)';
     else if (/^usd$/i.test(currency) || currency === '$') head = '$' + String(amount);
     else head = String(amount) + ' ' + currency;
-    return head + ' / ' + period;
+    var periodLabel = /^month/i.test(period) ? 'MONTH' : String(period).toUpperCase();
+    return head + ' / ' + periodLabel;
   }
 
   function formatMoney(amount, currency) {
@@ -574,14 +575,53 @@
     }
   }
 
+  function paidCell() {
+    return '<span class="bb-na" title="This board does not record payouts">—</span>';
+  }
+
+  function avatarHtml(login) {
+    return (
+      '<img class="bb-avatar" src="https://github.com/' +
+      esc(login) +
+      '.png?size=80" alt="" width="36" height="36" loading="lazy"/>'
+    );
+  }
+
+  function contributorCell(row) {
+    var n = (row.projects && row.projects.length) || 1;
+    var sub = n + ' project' + (n === 1 ? '' : 's') + ' · 1 scored cycle';
+    return (
+      '<div class="bb-who">' +
+      avatarHtml(row.login) +
+      '<div><a class="bb-name" href="' +
+      esc(row.htmlUrl) +
+      '" target="_blank" rel="noopener noreferrer">@' +
+      esc(row.login) +
+      '</a><span class="bb-sub">' +
+      esc(sub) +
+      '</span></div></div>'
+    );
+  }
+
+  function shareTotal(shares) {
+    if (!shares || !shares.length) return null;
+    var currency = null;
+    var sum = 0;
+    var any = false;
+    for (var i = 0; i < shares.length; i++) {
+      if (shares[i].share == null || !shares[i].pool) continue;
+      any = true;
+      sum += shares[i].share;
+      currency = (shares[i].pool && shares[i].pool.currency) || currency;
+    }
+    if (!any) return null;
+    return { amount: sum, currency: currency };
+  }
+
   function renderShareCell(shares) {
-    if (!shares || !shares.length) return 'undeclared';
-    return shares
-      .map(function (item) {
-        if (item.share == null) return esc(item.repo) + ': undeclared';
-        return esc(item.repo) + ': ' + esc(formatMoney(item.share, item.pool && item.pool.currency)) + ' declared';
-      })
-      .join('<br/>');
+    var total = shareTotal(shares);
+    if (!total) return 'undeclared';
+    return esc(formatMoney(total.amount, total.currency));
   }
 
   function renderGlobalBoard(state) {
@@ -592,30 +632,36 @@
         ' No ranks or payouts are shown. The mint desk still works.</p>'
       );
     }
-    var rows = (state && state.global) || [];
+    var rows = ((state && state.global) || []).slice(0, 20);
     if (!rows.length) {
-      return '<p class="bb-empty" role="status">No scored activity this UTC month yet. Nothing here is invented to fill the table.</p>';
+      return '<p class="bb-empty" role="status">No accepted outcomes in this cycle yet. Nothing here is invented to fill the table.</p>';
     }
     var body = rows
       .map(function (row) {
+        var share = shareTotal(row.shares);
+        var projected =
+          share == null
+            ? 'undeclared'
+            : esc(formatMoney(share.amount, share.currency)) + ' <span class="bb-na">est.</span>';
         return (
           '<tr>' +
           '<td class="bb-rank">#' +
           esc(row.rank) +
           '</td>' +
-          '<td><a href="' +
-          esc(row.htmlUrl) +
-          '" target="_blank" rel="noopener noreferrer">@' +
-          esc(row.login) +
-          '</a></td>' +
           '<td>' +
-          esc((row.projects || []).join(', ')) +
+          contributorCell(row) +
           '</td>' +
           '<td>' +
           esc(row.score) +
           '</td>' +
           '<td>' +
-          renderShareCell(row.shares) +
+          (share == null ? 'undeclared' : esc(formatMoney(share.amount, share.currency))) +
+          '</td>' +
+          '<td>' +
+          projected +
+          '</td>' +
+          '<td>' +
+          paidCell() +
           '</td>' +
           '</tr>'
         );
@@ -623,7 +669,14 @@
       .join('');
     return (
       '<div class="bb-table-wrap"><table class="bb-table">' +
-      '<thead><tr><th scope="col">Rank</th><th scope="col">GitHub</th><th scope="col">Project(s)</th><th scope="col">Score</th><th scope="col">Declared share / pool</th></tr></thead>' +
+      '<thead><tr>' +
+      '<th scope="col">Rank</th>' +
+      '<th scope="col">Contributor</th>' +
+      '<th scope="col">Score</th>' +
+      '<th scope="col">Declared share</th>' +
+      '<th scope="col">Projected</th>' +
+      '<th scope="col">Total paid</th>' +
+      '</tr></thead>' +
       '<tbody>' +
       body +
       '</tbody></table></div>'
@@ -644,76 +697,172 @@
     return bits.length ? bits.join(' · ') : 'undeclared';
   }
 
+  function repoShortName(repo) {
+    var parts = String(repo || '').split('/');
+    return parts[1] || repo;
+  }
+
   function renderProjectCard(listing, scored) {
     var origin = listing.origin === 'seed' ? 'seed listing' : listing.origin === 'issue' ? 'live issue' : listing.origin;
     var originClass = listing.origin === 'issue' ? 'live' : '';
-    var issueBit = listing.issueUrl
-      ? ' · <a href="' + esc(listing.issueUrl) + '" target="_blank" rel="noopener noreferrer">listing issue</a>'
-      : '';
-    var contributorsHtml;
+    var emptyNote = '';
     if (scored && scored.error) {
-      contributorsHtml =
-        '<p class="bb-empty" role="status">Contributor scores unavailable (' +
-        esc(scored.error) +
-        '). Project listing still shown — no fake leaderboard.</p>';
-    } else if (!scored || !scored.contributors) {
-      contributorsHtml = '<p class="bb-empty" role="status">No contributor table until GitHub activity loads.</p>';
-    } else if (!scored.contributors.length) {
-      contributorsHtml = '<p class="bb-empty" role="status">No scored contributors this UTC month.</p>';
-    } else {
-      contributorsHtml =
-        '<div class="bb-table-wrap"><table class="bb-table"><thead><tr><th scope="col">Rank</th><th scope="col">GitHub</th><th scope="col">Score</th><th scope="col">Declared share</th></tr></thead><tbody>' +
-        scored.contributors
-          .map(function (row) {
-            var total = scored.contributors.reduce(function (sum, item) {
-              return sum + item.score;
-            }, 0);
-            var share = declaredShare(row.score, total, listing.pool);
-            return (
-              '<tr><td class="bb-rank">#' +
-              esc(row.rank) +
-              '</td><td><a href="' +
-              esc(row.htmlUrl) +
-              '" target="_blank" rel="noopener noreferrer">@' +
-              esc(row.login) +
-              '</a></td><td>' +
-              esc(row.score) +
-              '</td><td>' +
-              (share == null ? 'undeclared' : esc(formatMoney(share, listing.pool && listing.pool.currency)) + ' declared') +
-              '</td></tr>'
-            );
-          })
-          .join('') +
-        '</tbody></table></div>';
+      emptyNote = '';
+    } else if (scored && scored.contributors && !scored.contributors.length) {
+      emptyNote = '<p class="bb-empty">No accepted outcomes in this cycle yet.</p>';
     }
     return (
-      '<article class="bb-card" data-repo="' +
+      '<a class="bb-card" data-repo="' +
       esc(listing.repo) +
       '" data-origin="' +
       esc(listing.origin) +
+      '" href="#project/' +
+      esc(listing.repo) +
       '">' +
-      '<div class="bb-proj-top"><h3><a href="https://github.com/' +
-      esc(listing.repo) +
-      '" target="_blank" rel="noopener noreferrer">' +
-      esc(listing.repo) +
-      '</a></h3><span class="bb-origin ' +
+      '<div class="bb-proj-top">' +
+      '<p class="bb-eyebrow" style="margin:0">Open-source agents</p>' +
+      '<span class="bb-origin ' +
       originClass +
       '">' +
       esc(origin) +
       '</span></div>' +
+      '<h3>' +
+      esc(repoShortName(listing.repo)) +
+      '</h3>' +
+      '<p class="bb-meta" style="margin-top:4px">' +
+      esc(listing.repo) +
+      '</p>' +
       (listing.blurb ? '<p class="bb-blurb">' + esc(listing.blurb) + '</p>' : '') +
-      '<div class="bb-facts">' +
-      '<span class="bb-pill">pool ' +
+      '<p class="bb-pool-amount">' +
       esc(formatPool(listing.pool)) +
-      '</span>' +
-      '<span class="bb-pill">' +
-      esc(listing.period || 'monthly') +
-      '</span>' +
-      '<span class="bb-pill">payout ' +
+      '<small>Maximum principal allocated each UTC month</small></p>' +
+      emptyNote +
+      '</a>'
+    );
+  }
+
+  function statDash(value, ok) {
+    if (!ok) return '—';
+    return String(value);
+  }
+
+  function renderCycleBoard(listing, scored) {
+    if (scored && scored.error) {
+      return (
+        '<p class="bb-empty" role="status">Contributor scores unavailable (' +
+        esc(scored.error) +
+        '). Project listing still shown — no fake leaderboard.</p>'
+      );
+    }
+    if (!scored || !scored.contributors) {
+      return '<p class="bb-empty" role="status">No contributor table until GitHub activity loads.</p>';
+    }
+    if (!scored.contributors.length) {
+      return '<p class="bb-empty" role="status">No accepted outcomes in this cycle yet.</p>';
+    }
+    var total = scored.contributors.reduce(function (sum, item) {
+      return sum + item.score;
+    }, 0);
+    return (
+      '<div class="bb-table-wrap"><table class="bb-table"><thead><tr>' +
+      '<th scope="col">Rank</th><th scope="col">Contributor</th><th scope="col">Score</th>' +
+      '<th scope="col">Declared share</th><th scope="col">Projected</th><th scope="col">Total paid</th>' +
+      '</tr></thead><tbody>' +
+      scored.contributors
+        .map(function (row) {
+          var share = declaredShare(row.score, total, listing.pool);
+          var money = share == null ? 'undeclared' : esc(formatMoney(share, listing.pool && listing.pool.currency));
+          return (
+            '<tr><td class="bb-rank">#' +
+            esc(row.rank) +
+            '</td><td>' +
+            contributorCell({ login: row.login, htmlUrl: row.htmlUrl, projects: [listing.repo] }) +
+            '</td><td>' +
+            esc(row.score) +
+            '</td><td>' +
+            money +
+            '</td><td>' +
+            (share == null ? 'undeclared' : money + ' <span class="bb-na">est.</span>') +
+            '</td><td>' +
+            paidCell() +
+            '</td></tr>'
+          );
+        })
+        .join('') +
+      '</tbody></table></div>'
+    );
+  }
+
+  function renderProjectPage(listing, scored, meta) {
+    if (!listing) {
+      return '<p class="bb-empty" role="status">No listing for that repo.</p>';
+    }
+    var origin = listing.origin === 'seed' ? 'seed listing' : listing.origin === 'issue' ? 'live issue' : listing.origin;
+    var originClass = listing.origin === 'issue' ? 'live' : '';
+    var fetched = !!(scored && scored.contributors);
+    var contributors = fetched ? scored.contributors : [];
+    var totals = contributors.reduce(
+      function (acc, row) {
+        acc.score += row.score || 0;
+        acc.merges += row.merges || 0;
+        acc.reviews += row.reviews || 0;
+        return acc;
+      },
+      { score: 0, merges: 0, reviews: 0 },
+    );
+    var stamp = (meta && meta.asOf) || '';
+    var issueBit = listing.issueUrl
+      ? '<a href="' + esc(listing.issueUrl) + '" target="_blank" rel="noopener noreferrer">listing issue</a>'
+      : '';
+    return (
+      '<a class="bb-back" href="#projects">← Projects</a>' +
+      '<p class="bb-stamp"><span class="bb-pill">' +
+      esc(stamp ? 'as of ' + stamp + ' from GitHub' : 'snapshot pending') +
+      '</span> <span class="bb-origin ' +
+      originClass +
+      '">' +
+      esc(origin) +
+      '</span></p>' +
+      '<p class="bb-eyebrow">Open-source agents</p>' +
+      '<h2 style="margin:0 0 8px;font-size:clamp(36px,5vw,68px);letter-spacing:-.06em;text-transform:uppercase;font-weight:800">' +
+      esc(repoShortName(listing.repo)) +
+      '</h2>' +
+      '<p class="bb-meta"><a href="https://github.com/' +
+      esc(listing.repo) +
+      '" target="_blank" rel="noopener noreferrer">' +
+      esc(listing.repo) +
+      '</a>' +
+      (issueBit ? ' · ' + issueBit : '') +
+      '</p>' +
+      (listing.blurb ? '<p class="bb-blurb">' + esc(listing.blurb) + '</p>' : '') +
+      '<div class="bb-panel">' +
+      '<p class="bb-eyebrow">Monthly pool</p>' +
+      '<h3>Maximum principal allocated each UTC month.</h3>' +
+      '<p class="bb-pool-amount">' +
+      esc(formatPool(listing.pool)) +
+      '</p>' +
+      '<p><strong style="color:#fff">Declared bounties, not escrow.</strong> Dasha desk does not hold funds. Project owners approve rewards. Owners pay however they said (wallet / gitarmy / link).</p>' +
+      '<p>Payout pointer: ' +
       payoutHtml(listing.payout) +
-      '</span>' +
+      '</p>' +
       '</div>' +
-      '<p class="bb-meta">merge ' +
+      '<div class="bb-stats" aria-label="Cycle snapshot">' +
+      '<div class="bb-stat"><span>Contributors</span><strong>' +
+      esc(statDash(contributors.length, fetched)) +
+      '</strong></div>' +
+      '<div class="bb-stat"><span>Cycle score</span><strong>' +
+      esc(statDash(totals.score, fetched)) +
+      '</strong></div>' +
+      '<div class="bb-stat"><span>Merges</span><strong>' +
+      esc(statDash(totals.merges, fetched)) +
+      '</strong></div>' +
+      '<div class="bb-stat"><span>Reviews</span><strong>' +
+      esc(statDash(totals.reviews, fetched)) +
+      '</strong></div>' +
+      '</div>' +
+      '<p class="bb-eyebrow">Cycle leaderboard</p>' +
+      renderCycleBoard(listing, scored) +
+      '<p class="bb-meta" style="margin-top:16px">merge ' +
       esc(listing.scoring.merge) +
       ' · issue_close ' +
       esc(listing.scoring.issue_close) +
@@ -723,10 +872,7 @@
       esc(listing.scoring.merge_cap) +
       ' / review ' +
       esc(listing.scoring.review_cap) +
-      issueBit +
-      '</p>' +
-      contributorsHtml +
-      '</article>'
+      '</p>'
     );
   }
 
@@ -824,6 +970,90 @@
     return githubList(url, ctx, 3);
   }
 
+  var live = {
+    listings: [],
+    scoresByRepo: {},
+    range: null,
+    asOf: '',
+    boardError: null,
+    global: [],
+  };
+  var rotatorBound = false;
+  var routingBound = false;
+
+  function bindRotator() {
+    var el = $('bb-rotator');
+    if (!el || rotatorBound) return;
+    rotatorBound = true;
+    var phrases = String(el.getAttribute('data-phrases') || '')
+      .split('|')
+      .map(function (s) {
+        return s.trim();
+      })
+      .filter(Boolean);
+    if (phrases.length < 2) return;
+    var reduce = false;
+    try {
+      reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (e) {}
+    if (reduce) return;
+    var i = 0;
+    setInterval(function () {
+      i = (i + 1) % phrases.length;
+      el.textContent = phrases[i];
+    }, 2400);
+  }
+
+  function parseHash() {
+    var raw = '';
+    try {
+      raw = String(location.hash || '').replace(/^#/, '');
+    } catch (e) {
+      raw = '';
+    }
+    if (raw.indexOf('project/') === 0) {
+      return { view: 'project', repo: raw.slice('project/'.length) };
+    }
+    return { view: 'home', id: raw };
+  }
+
+  function paintView() {
+    var home = $('bb-home');
+    var detail = $('bb-project-page');
+    if (!home || !detail) return;
+    var route = parseHash();
+    if (route.view === 'project') {
+      home.hidden = true;
+      detail.hidden = false;
+      var listing = (live.listings || []).filter(function (row) {
+        return row.repo.toLowerCase() === String(route.repo || '').toLowerCase();
+      })[0];
+      detail.innerHTML = renderProjectPage(listing, listing && live.scoresByRepo[listing.repo], {
+        asOf: live.asOf,
+      });
+      try {
+        window.scrollTo(0, 0);
+      } catch (e) {}
+      return;
+    }
+    home.hidden = false;
+    detail.hidden = true;
+    detail.innerHTML = '';
+    if (route.id && document.getElementById(route.id)) {
+      try {
+        document.getElementById(route.id).scrollIntoView({ block: 'start' });
+      } catch (e) {}
+    }
+  }
+
+  function bindRouting() {
+    if (routingBound) return;
+    routingBound = true;
+    try {
+      window.addEventListener('hashchange', paintView);
+    } catch (e) {}
+  }
+
   async function boot(options) {
     options = options || {};
     var ctx = { fetchImpl: options.fetchImpl || fetch };
@@ -837,6 +1067,8 @@
     if (periodEl) periodEl.textContent = range.label;
     if (formulaEl) formulaEl.textContent = formulaText(DEFAULT_SCORING);
     bindForm();
+    bindRotator();
+    bindRouting();
 
     var seedListings = [];
     var issueListings = [];
@@ -855,6 +1087,9 @@
     }
 
     var listings = mergeListings(seedListings, issueListings);
+    live.listings = listings;
+    live.range = range;
+    live.scoresByRepo = {};
     if (projectsEl) projectsEl.innerHTML = renderProjects(listings, {});
 
     var messages = [];
@@ -880,13 +1115,16 @@
     }
 
     if (!listings.length) {
+      live.boardError = issuesError ? 'The board is unavailable (' + issuesError + ').' : null;
+      live.global = [];
       if (boardEl) {
         boardEl.innerHTML = renderGlobalBoard({
-          boardError: issuesError ? 'The board is unavailable (' + issuesError + ').' : null,
+          boardError: live.boardError,
           global: [],
         });
       }
       if (asof) asof.textContent = 'No listings loaded.';
+      paintView();
       return;
     }
 
@@ -897,6 +1135,8 @@
       scoresByRepo[listings[i].repo] = scored;
       if (scored.error) anyScoreError = scored.error;
     }
+    live.scoresByRepo = scoresByRepo;
+    live.asOf = ctx.asOf || '';
     if (projectsEl) projectsEl.innerHTML = renderProjects(listings, scoresByRepo);
     var global = aggregateGlobal(
       listings.map(function (listing) {
@@ -912,6 +1152,8 @@
           ? 'GitHub rate-limited scoring. No ranks are shown.'
           : 'Contributor fetch failed. No ranks are shown.';
     }
+    live.global = global;
+    live.boardError = boardError;
     if (boardEl) boardEl.innerHTML = renderGlobalBoard({ global: global, boardError: boardError });
     if (asof) {
       var stamp = ctx.asOf || new Date().toISOString();
@@ -926,6 +1168,7 @@
           : 'GitHub contributor fetch failed.') +
         ' Project cards stay up. No fake leaderboard. <a href="/dasha">The mint desk still works</a>.';
     }
+    paintView();
   }
 
   var api = {
@@ -955,6 +1198,7 @@
     scoreRepo: scoreRepo,
     renderGlobalBoard: renderGlobalBoard,
     renderProjectCard: renderProjectCard,
+    renderProjectPage: renderProjectPage,
     renderProjects: renderProjects,
     boot: boot,
   };

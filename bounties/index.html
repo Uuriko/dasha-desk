@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>dasha bounties — the board</title>
+<title>dasha bounties — MAKE MONEY SHIPPING BOUNTIES.</title>
 <meta name="description" content="Open bounties, you set the pool. Ranked GitHub contributors for listed projects. Declared bounties, not escrow."/>
 <link rel="canonical" href="https://www.getdasha.com/bounties/"/>
 <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48e1dd29d210f01235_dasha-icon-32.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48cdcf3c87b29fc830_dasha-icon-180.png"/>
-<meta name="theme-color" content="#07060a"/>
-<meta property="og:title" content="dasha bounties — the board"/>
+<meta name="theme-color" content="#F4F0E7"/>
+<meta property="og:title" content="dasha bounties — MAKE MONEY SHIPPING BOUNTIES."/>
 <meta property="og:description" content="Open bounties, you set the pool. Declared bounties, not escrow."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://www.getdasha.com/bounties/"/>
@@ -18,151 +18,161 @@
 <meta property="og:image:height" content="630"/>
 <meta property="og:image:alt" content="Dasha remix Studio card with three colorful editable artifact previews."/>
 <meta name="twitter:card" content="summary_large_image"/>
-<meta name="twitter:title" content="dasha bounties — the board"/>
+<meta name="twitter:title" content="dasha bounties — MAKE MONEY SHIPPING BOUNTIES."/>
 <meta name="twitter:description" content="Open bounties, you set the pool. Declared bounties, not escrow."/>
 <meta name="twitter:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a773b5a0a2303b170ea67c0_dasha-social-card-v3.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;display=swap"/>
 <link rel="stylesheet" href="./board.css"/>
-<style>html,body{margin:0;padding:0;background:#07060a;min-height:100%}</style>
 </head>
 <body>
-<a class="bb-skip" href="#board">Skip to the board</a>
+<a class="bb-skip" href="#projects">Skip to projects</a>
 <div id="bb-app" class="bb">
-  <header class="bb-top">
-    <div class="bb-brand">
-      <div class="bb-mark" aria-hidden="true">$</div>
-      <div>
-        <strong class="bb-name">dasha bounties</strong>
-        <p class="bb-tag"><a href="/">Home</a> · <a href="/studio">Studio</a> · <a href="/bounties/" aria-current="page">Bounties</a> · <a href="/dasha">Desk</a></p>
-      </div>
-    </div>
-    <div class="bb-pills">
-      <span class="bb-pill" id="bb-period-pill">UTC month</span>
-      <span class="bb-pill bb-pill-warn">not escrow</span>
-      <span class="bb-pill bb-pill-ok">the board</span>
-    </div>
-  </header>
+  <div class="bb-shell">
+    <p class="bb-desk-nav"><a href="/">Home</a> · <a href="/studio">Studio</a> · <a href="/dasha">Desk</a> · <a href="/bounties/" aria-current="page">Bounties</a></p>
+    <nav class="bb-nav" aria-label="Board">
+      <a class="bb-brand" href="/bounties/">dasha <span>bounties</span></a>
+      <a class="bb-nav-link" href="#projects">Projects</a>
+      <a class="bb-nav-link" href="#leaderboard">Leaderboard</a>
+      <a class="bb-cta" href="#list">List a project</a>
+    </nav>
 
-  <section class="bb-lede" aria-labelledby="bb-title">
-    <p class="bb-kicker">the board</p>
-    <h1 id="bb-title">open bounties, you set the pool.</h1>
-    <p><strong>Declared bounties, not escrow.</strong> Anyone can list a GitHub repo and write their own rules. Dasha desk does not hold funds, connect a wallet, or pay anyone. Owners pay however they said — wallet, gitarmy, or a link.</p>
-  </section>
+    <div id="bb-banner" class="bb-banner bad" hidden></div>
+    <noscript><p class="bb-banner warn">This board needs JavaScript to read public GitHub listings. No ranks are invented offline. <a href="/dasha">The mint desk still works</a>.</p></noscript>
 
-  <div id="bb-banner" class="bb-banner bad" hidden></div>
-  <noscript><p class="bb-banner warn">This board needs JavaScript to read public GitHub listings. No ranks are invented offline. <a href="/dasha">The mint desk still works</a>.</p></noscript>
+    <div id="bb-home">
+      <section aria-labelledby="bb-title">
+        <p class="bb-eyebrow">Monthly pool</p>
+        <h1 class="bb-hero" id="bb-title">
+          <span class="bb-hero-line">Make money</span>
+          <span class="bb-hero-line bb-hero-swap" id="bb-rotator" data-phrases="SHIPPING BOUNTIES.|LISTING REPOS.|SETTING THE POOL.|OPEN SOURCE.">Shipping bounties.</span>
+        </h1>
+        <p class="bb-lede"><strong>Open bounties, you set the pool.</strong> Outcome score leads. <strong>Declared bounties, not escrow.</strong> Dasha desk does not hold funds. Project owners approve rewards.</p>
+      </section>
 
-  <section class="bb-section" id="board">
-    <div class="bb-head">
-      <h2>Global board</h2>
-      <button type="button" class="bb-linkish" id="bb-refresh">Refresh</button>
-    </div>
-    <p class="bb-meta" id="bb-asof" role="status" aria-live="polite">Loading GitHub…</p>
-    <div id="bb-global"></div>
-  </section>
-
-  <section class="bb-section" id="projects">
-    <div class="bb-head">
-      <h2>Projects</h2>
-    </div>
-    <p class="bb-meta">Each listing is a public GitHub issue (or the seed file). Pool amounts are whatever the owner wrote. If they omitted a pool, it shows undeclared — never a made-up dollar figure.</p>
-    <div class="bb-projects" id="bb-projects"></div>
-  </section>
-
-  <section class="bb-section bb-legend" id="legend">
-    <div class="bb-head"><h2>Scoring</h2></div>
-    <div class="bb-card">
-      <pre class="bb-formula" id="bb-formula"></pre>
-      <p>Per listed repo, current UTC month, public GitHub API. Caps stop a single kind of activity from farming the table. A listing can change the weights; the defaults above apply when JSON omits them. Accounts whose login ends in <code>[bot]</code> are omitted.</p>
-      <p>This is a scoreboard for declared shares, not a payroll. Rank is not a payment.</p>
-    </div>
-  </section>
-
-  <section class="bb-section" id="list">
-    <div class="bb-head"><h2>List a project</h2></div>
-    <div class="bb-card">
-      <p class="bb-meta">No account on this site. Submit opens a prefilled public issue on Uuriko/dasha-desk. You still click GitHub’s Submit. The board can pick it up without a merge.</p>
-      <form class="bb-form" id="bb-form" action="https://github.com/Uuriko/dasha-desk/issues/new" method="get">
-        <input type="hidden" name="template" value="bounty-project.yml"/>
-        <div class="bb-fields">
-          <div class="bb-span">
-            <label class="bb-label" for="bb-repo">GitHub repo</label>
-            <input class="bb-input" id="bb-repo" name="repo" type="text" required spellcheck="false" autocomplete="off" placeholder="owner/name" inputmode="url"/>
-            <p class="bb-hint">Must be <code>owner/name</code>. A github.com URL is ok — it gets trimmed.</p>
-          </div>
-          <div>
-            <label class="bb-label" for="bb-amount">Declared monthly pool</label>
-            <input class="bb-input" id="bb-amount" name="amount" type="number" inputmode="decimal" step="any" min="0" placeholder="leave blank if undeclared"/>
-          </div>
-          <div>
-            <label class="bb-label" for="bb-currency">Currency</label>
-            <select class="bb-select" id="bb-currency" name="currency">
-              <option value="USD" selected>USD</option>
-              <option value="SOL">SOL</option>
-            </select>
-          </div>
-          <div>
-            <label class="bb-label" for="bb-period">Period</label>
-            <select class="bb-select" id="bb-period" name="period">
-              <option value="monthly" selected>monthly</option>
-            </select>
-          </div>
-          <div>
-            <label class="bb-label" for="bb-merge">Weight · merge</label>
-            <input class="bb-input" id="bb-merge" name="merge" type="number" value="10" step="any"/>
-          </div>
-          <div>
-            <label class="bb-label" for="bb-issue-close">Weight · issue close</label>
-            <input class="bb-input" id="bb-issue-close" name="issue-close" type="number" value="4" step="any"/>
-          </div>
-          <div>
-            <label class="bb-label" for="bb-review">Weight · review</label>
-            <input class="bb-input" id="bb-review" name="review" type="number" value="2" step="any"/>
-          </div>
-          <div>
-            <label class="bb-label" for="bb-merge-cap">Cap · merges / month</label>
-            <input class="bb-input" id="bb-merge-cap" name="merge-cap" type="number" value="5" step="1" min="0"/>
-          </div>
-          <div>
-            <label class="bb-label" for="bb-review-cap">Cap · reviews / month</label>
-            <input class="bb-input" id="bb-review-cap" name="review-cap" type="number" value="10" step="1" min="0"/>
-          </div>
-          <div class="bb-span">
-            <label class="bb-label" for="bb-solana">Payout pointer · Solana address</label>
-            <input class="bb-input" id="bb-solana" name="solana" type="text" spellcheck="false" autocomplete="off" placeholder="optional"/>
-          </div>
-          <div class="bb-span">
-            <label class="bb-label" for="bb-payout-url">Payout pointer · URL</label>
-            <input class="bb-input" id="bb-payout-url" name="url" type="url" spellcheck="false" autocomplete="off" placeholder="https://… gitarmy, notes, whatever you use"/>
-          </div>
-          <div class="bb-span">
-            <label class="bb-label" for="bb-blurb">Short blurb</label>
-            <textarea class="bb-textarea" id="bb-blurb" name="blurb" rows="3" maxlength="280" placeholder="what this pool is for"></textarea>
-          </div>
+      <section class="bb-section" id="projects">
+        <div class="bb-head">
+          <h2>Projects</h2>
         </div>
-        <p class="bb-error" id="bb-form-error" role="alert" hidden></p>
-        <div class="bb-actions">
-          <button type="submit" class="bb-btn bb-btn-primary">Open listing issue on GitHub</button>
-          <a class="bb-btn" id="bb-issue-preview" hidden target="_blank" rel="noopener noreferrer">Preview GitHub issue URL</a>
+        <p class="bb-meta">Each listing is a public GitHub issue (or the seed file). Pool amounts are whatever the owner wrote. If they omitted a pool, it shows undeclared — never a made-up dollar figure.</p>
+        <div class="bb-projects" id="bb-projects"></div>
+      </section>
+
+      <section class="bb-section" id="leaderboard">
+        <div class="bb-head">
+          <h2>Leaderboard</h2>
+          <button type="button" class="bb-linkish" id="bb-refresh">Refresh</button>
         </div>
-      </form>
+        <p class="bb-eyebrow" id="bb-period-pill">UTC month</p>
+        <p class="bb-meta" id="bb-asof" role="status" aria-live="polite">Loading GitHub…</p>
+        <div id="bb-global"></div>
+      </section>
+
+      <section class="bb-section bb-legend" id="legend">
+        <p class="bb-eyebrow">Outcome score leads</p>
+        <div class="bb-head"><h2>Scoring</h2></div>
+        <pre class="bb-formula" id="bb-formula"></pre>
+        <p>Per listed repo, current UTC month, public GitHub API. Caps stop a single kind of activity from farming the table. A listing can change the weights; the defaults above apply when JSON omits them. Accounts whose login ends in <code>[bot]</code> are omitted.</p>
+        <p>Projected dollars are estimates from the declared pool, not wages. Rank is not a payment.</p>
+      </section>
+
+      <section class="bb-section" id="list">
+        <p class="bb-eyebrow">Open-source agents</p>
+        <div class="bb-head"><h2>List a project</h2></div>
+        <div class="bb-card">
+          <p class="bb-meta">No account on this site. Submit opens a prefilled public issue on Uuriko/dasha-desk. You still click GitHub’s Submit. The board can pick it up without a merge.</p>
+          <form class="bb-form" id="bb-form" action="https://github.com/Uuriko/dasha-desk/issues/new" method="get">
+            <input type="hidden" name="template" value="bounty-project.yml"/>
+            <div class="bb-fields">
+              <div class="bb-span">
+                <label class="bb-label" for="bb-repo">GitHub repo</label>
+                <input class="bb-input" id="bb-repo" name="repo" type="text" required spellcheck="false" autocomplete="off" placeholder="owner/name" inputmode="url"/>
+                <p class="bb-hint">Must be <code>owner/name</code>. A github.com URL is ok — it gets trimmed.</p>
+              </div>
+              <div>
+                <label class="bb-label" for="bb-amount">Declared monthly pool</label>
+                <input class="bb-input" id="bb-amount" name="amount" type="number" inputmode="decimal" step="any" min="0" placeholder="leave blank if undeclared"/>
+              </div>
+              <div>
+                <label class="bb-label" for="bb-currency">Currency</label>
+                <select class="bb-select" id="bb-currency" name="currency">
+                  <option value="USD" selected>USD</option>
+                  <option value="SOL">SOL</option>
+                </select>
+              </div>
+              <div>
+                <label class="bb-label" for="bb-period">Period</label>
+                <select class="bb-select" id="bb-period" name="period">
+                  <option value="monthly" selected>monthly</option>
+                </select>
+              </div>
+              <div>
+                <label class="bb-label" for="bb-merge">Weight · merge</label>
+                <input class="bb-input" id="bb-merge" name="merge" type="number" value="10" step="any"/>
+              </div>
+              <div>
+                <label class="bb-label" for="bb-issue-close">Weight · issue close</label>
+                <input class="bb-input" id="bb-issue-close" name="issue-close" type="number" value="4" step="any"/>
+              </div>
+              <div>
+                <label class="bb-label" for="bb-review">Weight · review</label>
+                <input class="bb-input" id="bb-review" name="review" type="number" value="2" step="any"/>
+              </div>
+              <div>
+                <label class="bb-label" for="bb-merge-cap">Cap · merges / month</label>
+                <input class="bb-input" id="bb-merge-cap" name="merge-cap" type="number" value="5" step="1" min="0"/>
+              </div>
+              <div>
+                <label class="bb-label" for="bb-review-cap">Cap · reviews / month</label>
+                <input class="bb-input" id="bb-review-cap" name="review-cap" type="number" value="10" step="1" min="0"/>
+              </div>
+              <div class="bb-span">
+                <label class="bb-label" for="bb-solana">Payout pointer · Solana address</label>
+                <input class="bb-input" id="bb-solana" name="solana" type="text" spellcheck="false" autocomplete="off" placeholder="optional"/>
+              </div>
+              <div class="bb-span">
+                <label class="bb-label" for="bb-payout-url">Payout pointer · URL</label>
+                <input class="bb-input" id="bb-payout-url" name="url" type="url" spellcheck="false" autocomplete="off" placeholder="https://… gitarmy, notes, whatever you use"/>
+              </div>
+              <div class="bb-span">
+                <label class="bb-label" for="bb-blurb">Short blurb</label>
+                <textarea class="bb-textarea" id="bb-blurb" name="blurb" rows="3" maxlength="280" placeholder="what this pool is for"></textarea>
+              </div>
+            </div>
+            <p class="bb-error" id="bb-form-error" role="alert" hidden></p>
+            <div class="bb-actions">
+              <button type="submit" class="bb-btn bb-btn-primary">Open listing issue on GitHub</button>
+              <a class="bb-btn" id="bb-issue-preview" hidden target="_blank" rel="noopener noreferrer">Preview GitHub issue URL</a>
+            </div>
+          </form>
+        </div>
+      </section>
     </div>
-  </section>
+
+    <div id="bb-project-page" hidden></div>
+  </div>
 
   <footer class="bb-foot">
-    <p>Static page. No wallet connect, no custody, no backend. Source: open issues on <a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">Uuriko/dasha-desk</a> plus <code>config/bounties.seed.json</code>.</p>
-    <p><a href="/dasha">The mint desk still works</a> · <a href="/studio">Studio</a> · <a href="/">Home</a></p>
+    <div class="bb-foot-inner">
+      <h2>The board is a record, not a payroll</h2>
+      <p><strong style="color:#fff">Declared bounties, not escrow.</strong> Projections are estimates from declared pools and GitHub evidence, not wages. Owners pay however they said. This page is the public record of listings plus what GitHub will admit this UTC month.</p>
+      <p>Static page. No wallet connect, no custody, no backend. Source: open issues on <a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">Uuriko/dasha-desk</a> plus <code>config/bounties.seed.json</code>.</p>
+      <p><a href="/dasha">The mint desk still works</a> · <a href="/studio">Studio</a> · <a href="/">Home</a></p>
+    </div>
   </footer>
 </div>
 <script src="./board.js"></script>
 <script>
 (function () {
   var btn = document.getElementById('bb-refresh');
-  if (!btn || !window.DashaBounties) return;
-  btn.addEventListener('click', function () {
-    var asof = document.getElementById('bb-asof');
-    if (asof) asof.textContent = 'Refreshing GitHub…';
-    window.DashaBounties.boot();
-  });
+  if (btn && window.DashaBounties) {
+    btn.addEventListener('click', function () {
+      var asof = document.getElementById('bb-asof');
+      if (asof) asof.textContent = 'Refreshing GitHub…';
+      window.DashaBounties.boot();
+    });
+  }
 })();
 </script>
 </body>

@@ -78,7 +78,7 @@ assert.deepEqual(
   ['a/b', 'z/y'],
 );
 assert.ok(!parsed.some((row) => row.repo === 'a/c' || row.repo === 'a/d'));
-assert.equal(B.formatPool(parsed[0].pool), '10 SOL / monthly');
+assert.equal(B.formatPool(parsed[0].pool), '10 SOL / MONTH');
 
 /* no fabricated numbers when fetch fails */
 const failed = {
@@ -97,7 +97,7 @@ assert.doesNotMatch(failedBoard, /\$50/);
 assert.doesNotMatch(failedBoard, />0</);
 
 const emptyBoard = B.renderGlobalBoard({ global: [] });
-assert.match(emptyBoard, /no scored activity/i);
+assert.match(emptyBoard, /no accepted outcomes/i);
 assert.doesNotMatch(emptyBoard, /#1/);
 
 const failCard = B.renderProjectCard(
@@ -112,9 +112,27 @@ const failCard = B.renderProjectCard(
   },
   failed,
 );
-assert.match(failCard, /no fake leaderboard/i);
+assert.match(failCard, /Uuriko\/dasha-desk/);
+assert.match(failCard, /seed listing/i);
 assert.doesNotMatch(failCard, /#1/);
-assert.match(failCard, /\$50 \/ monthly/);
+assert.match(failCard, /\$50 \/ MONTH/);
+const failPage = B.renderProjectPage(
+  {
+    repo: 'Uuriko/dasha-desk',
+    origin: 'seed',
+    blurb: 'Seed listing',
+    pool: { amount: 50, currency: 'USD', period: 'monthly' },
+    payout: { solana: '', url: 'https://github.com/Uuriko/dasha-desk' },
+    scoring: B.DEFAULT_SCORING,
+    period: 'monthly',
+  },
+  failed,
+  { asOf: 'Wed, 13 Aug 2026 12:00:00 GMT' },
+);
+assert.match(failPage, /no fake leaderboard/i);
+assert.doesNotMatch(failPage, /#1/);
+assert.match(failPage, /as of /i);
+assert.match(failPage, />—</);
 
 const scoredFail = await B.scoreRepo(
   { repo: 'Uuriko/dasha-desk', scoring: B.DEFAULT_SCORING, pool: { amount: 50, currency: 'USD' } },
@@ -195,7 +213,7 @@ const seedCard = B.renderProjectCard(seedListings[0], null);
 assert.match(seedCard, /Uuriko\/dasha-desk/);
 assert.match(seedCard, /seed listing/i);
 assert.match(seedCard, /data-origin="seed"/);
-assert.match(seedCard, /\$50 \/ monthly/);
+assert.match(seedCard, /\$50 \/ MONTH/);
 assert.doesNotMatch(seedCard, /#1/);
 
 const merged = B.mergeListings(seedListings, [
@@ -236,11 +254,35 @@ assert.equal(ranked[0].rank, 1);
 assert.equal(ranked[1].rank, 1);
 assert.equal(ranked[0].shares[0].share, 25);
 
+const boardHtml = B.renderGlobalBoard({
+  global: [
+    {
+      rank: 1,
+      login: 'ada',
+      htmlUrl: 'https://github.com/ada',
+      score: 10,
+      projects: ['Uuriko/dasha-desk'],
+      shares: [{ repo: 'Uuriko/dasha-desk', share: 25, pool: { amount: 50, currency: 'USD' } }],
+    },
+  ],
+});
+assert.match(boardHtml, /Contributor/i);
+assert.match(boardHtml, /Declared share/i);
+assert.match(boardHtml, /Projected/i);
+assert.match(boardHtml, /Total paid/i);
+assert.match(boardHtml, /1 project · 1 scored cycle/);
+assert.match(boardHtml, /\$25/);
+assert.match(boardHtml, /—/);
+assert.doesNotMatch(boardHtml, /\$0/);
+
 assert.match(html, /Home/);
 assert.match(html, /Studio/);
 assert.match(html, /Bounties/);
-assert.match(css, /--text:#f6f1ff/);
-assert.match(css, /--accent:#c4a5ff/);
+assert.match(html, /Leaderboard/);
+assert.match(html, /List a project/);
+assert.match(css, /#F4F0E7/i);
+assert.match(css, /#F5511E/i);
+assert.match(css, /Poppins/);
 assert.match(css, /prefers-reduced-motion/);
 
 function listingFromBody(body) {
