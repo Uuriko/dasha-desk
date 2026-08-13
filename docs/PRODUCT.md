@@ -15,7 +15,7 @@
 ## Other static surfaces in this repo
 
 - **Studio** — local image tool, no account
-- **dasha bounties / the board** (`/bounties/`) — anybody can list a GitHub issue/PR or a whole project and write their own bounty rules. Static JSON feed at `/bounties/feed.json` and `/bounties.json`. GitHub issues, this-device localStorage, shareable JSON, and Demigod’s public listings JSON (GitHub raw / jsDelivr). Demigod-sourced rows are marked as such and are not Dasha mint or Studio work. Accepted outcomes need a GitHub proof URL. **Declared bounties, not escrow.** The board does not hold funds.
+- **dasha bounties / the board** (`/bounties`) — anybody can list a GitHub issue/PR or a whole project and write their own bounty rules. Static JSON feed on GitHub Pages at [uuriko.github.io/dasha-desk/bounties/feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json) (same file in-repo as `bounties/feed.json` / `bounties.json`). GitHub issues, this-device localStorage, shareable JSON, and Demigod’s public listings JSON (GitHub raw / jsDelivr). Demigod-sourced rows are marked as such and are not Dasha mint or Studio work. Accepted outcomes need a GitHub proof URL. **Declared bounties, not escrow.** The board does not hold funds.
 
 ## Non-goals
 

@@ -26,7 +26,7 @@ Tracked on GitHub so newcomers see the project moves. These are **not** external
 - Good first issues and Ideas template (#4, #7, #8 open or done as labeled)
 - Neutral desk copy (no FOMO/raid framing)
 - Contribute entry points via GitHub `/contribute` + site `#oss`
-- Static **dasha bounties** board at `/bounties/` (issue + project listings; JSON feed; proof-linked outcomes)
+- Static **dasha bounties** board at `/bounties` (issue + project listings; JSON feed; proof-linked outcomes)
 
 ## Not now
 

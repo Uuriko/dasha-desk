@@ -121,10 +121,10 @@ assert.ok(build.includes(`<meta property="og:image" content="${socialCard}"/>`),
 assert.ok(build.includes(`<meta name="twitter:image" content="${socialCard}"/>`), 'standalone Desk Twitter card missing');
 assert.ok(build.includes('<meta property="og:image:width" content="1200"/>') && build.includes('<meta property="og:image:height" content="630"/>'), 'standalone Desk social dimensions missing');
 assert.ok(!/gpjyb0|casino-open-card/i.test(build), 'standalone Desk retained the retired casino card');
-for (const url of ['https://www.getdasha.com/', 'https://www.getdasha.com/studio', 'https://www.getdasha.com/dasha', 'https://www.getdasha.com/bounties/']) {
+for (const url of ['https://www.getdasha.com/', 'https://www.getdasha.com/studio', 'https://www.getdasha.com/dasha', 'https://www.getdasha.com/bounties']) {
   assert.ok(standalone.includes(`href="${url}"`), `standalone navigation lost ${url}`);
 }
-assert.ok(!/href="\/(?:studio|dasha|bounties\/)?"/.test(standalone), 'standalone navigation breaks on a subpath host');
+assert.ok(!/href="\/(?:studio|dasha|bounties)\/?"/.test(standalone), 'standalone navigation breaks on a subpath host');
 
 // App must not reintroduce pressure builders
 assert.ok(!/fomoDipHeadline|dipRaidLabel|buildSharePack\('raid'|dd-fomo-raid|invite loop|ref=/i.test(src), 'app.js free of FOMO/raid/ref builders');

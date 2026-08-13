@@ -1,7 +1,8 @@
 {
   "name": "dasha bounties",
+  "schema": "dasha-bounties-feed/v1",
   "note": "Declared bounties, not escrow. Static snapshot the HTML page also loads. Live GitHub listing issues and this-device saves may appear on the page in addition to this file.",
-  "url": "https://www.getdasha.com/bounties/",
+  "url": "https://www.getdasha.com/bounties",
   "listings": [
     {
       "kind": "item",
