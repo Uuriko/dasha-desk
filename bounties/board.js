@@ -1,17 +1,27 @@
 'use strict';
 /**
- * dasha bounties — anybody lists a project or a GitHub issue/PR and writes their own rules.
- * Static feed: GitHub Pages /bounties/feed.json (same file the page loads). Inbox: GitHub issues.
- * This-device: localStorage. Share: #l= JSON. Also merges Demigod's public feed (GitHub raw / jsDelivr).
- * Outcomes need a GitHub proof URL. Nothing invents numbers. Declared, not escrow.
+ * dasha bounties — USDC on Solana. Declared, not escrow. GitHub required to list/claim/pay.
+ * X is optional and reuses lobby.getdasha.com (same OAuth popup as Simp Board).
  */
 (function (global) {
   var LISTING_REPO = 'Uuriko/dasha-desk';
   var ISSUE_LABEL = 'bounty-project';
   var TITLE_PREFIX = '[bounty]';
   var STORAGE_KEY = 'dasha-bounties-listings-v1';
+  var IDENTITY_KEY = 'dasha-identity-v1';
   var FEED_SCHEMA = 'dasha-bounties-feed/v1';
   var BOARD_URL = 'https://www.getdasha.com/bounties';
+  var LOBBY_URL = 'https://lobby.getdasha.com';
+  var X_OAUTH_START = LOBBY_URL + '/oauth/x/start';
+  var X_OAUTH_STATUS = LOBBY_URL + '/oauth/x/status';
+  var X_OAUTH_WINDOW = 'dasha_x';
+  var GITHUB_OAUTH_START = LOBBY_URL + '/oauth/github/start';
+  var GITHUB_OAUTH_STATUS = LOBBY_URL + '/oauth/github/status';
+  var GITHUB_OAUTH_WINDOW = 'dasha_gh';
+  var SIMP_ME = LOBBY_URL + '/simp/me';
+  var USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+  var CHAIN = 'solana';
+  var CURRENCY = 'USDC';
   var EXTRA_SEED_URLS = [
     'https://raw.githubusercontent.com/Uuriko/demigod-site-cdn/main/bounties-feed.json',
     'https://cdn.jsdelivr.net/gh/Uuriko/demigod-site-cdn@main/bounties-feed.json',
@@ -25,6 +35,9 @@
     /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/(issues|pull)\/(\d+)(?:#(?:issuecomment-\d+|pullrequestreview-\d+|discussion_r\d+))?$/i;
   var ITEM_RE =
     /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/(issues|pull)\/(\d+)/i;
+  var SOLANA_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  var GH_LOGIN_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
+  var X_HANDLE_RE = /^[A-Za-z0-9_]{1,15}$/;
 
   function esc(s) {
     return String(s)
@@ -114,13 +127,56 @@
     return 'name:' + slugify(listing && listing.name);
   }
 
+  function coerceCurrency(value) {
+    var c = String(value || '').trim();
+    if (!c || /^usd$/i.test(c) || c === '$' || /^usdc$/i.test(c)) return CURRENCY;
+    return c;
+  }
+
+  function isUsdc(currency) {
+    var c = String(currency || '').trim();
+    return !c || /^usd$/i.test(c) || c === '$' || /^usdc$/i.test(c);
+  }
+
+  function isSolanaAddress(value) {
+    return SOLANA_RE.test(String(value || '').trim());
+  }
+
+  function normalizePayTo(raw) {
+    var s = String(raw || '').trim();
+    if (!s) return '';
+    var solana = s.match(/^solana:([1-9A-HJ-NP-Za-km-z]{32,44})/i);
+    if (solana) return solana[1];
+    if (isSolanaAddress(s)) return s;
+    var m = s.match(/[1-9A-HJ-NP-Za-km-z]{32,44}/);
+    return m && isSolanaAddress(m[0]) ? m[0] : '';
+  }
+
+  function solanaPayUrl(amount, payTo, label) {
+    var dest = normalizePayTo(payTo);
+    if (!dest) return '';
+    var n = Number(amount);
+    if (!Number.isFinite(n) || n < 0) return '';
+    var q =
+      'amount=' +
+      encodeURIComponent(String(n)) +
+      '&spl-token=' +
+      encodeURIComponent(USDC_MINT);
+    if (label) q += '&label=' + encodeURIComponent(String(label));
+    return 'solana:' + dest + '?' + q;
+  }
+
+  function phantomBrowseUrl(solanaUrl) {
+    if (!solanaUrl) return '';
+    return 'https://phantom.app/ul/browse/' + encodeURIComponent(solanaUrl);
+  }
+
   function normalizePool(raw) {
     if (!raw || typeof raw !== 'object') return null;
     if (!Object.prototype.hasOwnProperty.call(raw, 'amount')) return null;
     var amount = Number(raw.amount);
     if (!Number.isFinite(amount)) return null;
-    var currency = String(raw.currency || '').trim();
-    return { amount: amount, currency: currency || null };
+    return { amount: amount, currency: coerceCurrency(raw.currency) };
   }
 
   function normalizeCreatedAt(value) {
@@ -184,9 +240,117 @@
   function normalizePayout(raw) {
     if (typeof raw === 'string') return raw.trim();
     if (raw && typeof raw === 'object') {
-      return String(raw.note || raw.url || raw.solana || '').trim();
+      return String(raw.note || raw.url || raw.solana || raw.payTo || '').trim();
     }
     return '';
+  }
+
+  function githubLoginOf(value) {
+    if (!value) return '';
+    if (typeof value === 'string') {
+      var s = value.trim().replace(/^@/, '');
+      var fromUrl = s.match(/github\.com\/([A-Za-z0-9-]+)/i);
+      if (fromUrl) s = fromUrl[1];
+      return GH_LOGIN_RE.test(s) ? s : '';
+    }
+    return githubLoginOf(value.login || value.handle || value.user);
+  }
+
+  function xHandleOf(value) {
+    if (!value) return '';
+    if (typeof value === 'string') {
+      var s = value.trim().replace(/^@/, '');
+      var fromUrl = s.match(/(?:x|twitter)\.com\/([A-Za-z0-9_]+)/i);
+      if (fromUrl) s = fromUrl[1];
+      return X_HANDLE_RE.test(s) ? s : '';
+    }
+    return xHandleOf(value.handle || value.display || value.user);
+  }
+
+  function githubProfile(login) {
+    var id = githubLoginOf(login);
+    if (!id) return null;
+    return {
+      login: id,
+      href: 'https://github.com/' + id,
+      avatar: 'https://github.com/' + id + '.png?size=80',
+    };
+  }
+
+  function xProfile(raw) {
+    if (!raw) return null;
+    if (typeof raw === 'object') {
+      var handle = xHandleOf(raw.handle || raw.display || raw);
+      if (!handle) return null;
+      return {
+        handle: handle,
+        display: String(raw.display || '@' + handle),
+        href: String(raw.href || 'https://x.com/' + handle),
+        avatar: raw.avatar || '',
+      };
+    }
+    var h = xHandleOf(raw);
+    if (!h) return null;
+    return { handle: h, display: '@' + h, href: 'https://x.com/' + h, avatar: '' };
+  }
+
+  function emptyIdentity() {
+    return { github: null, x: null };
+  }
+
+  function normalizeIdentity(raw) {
+    raw = raw || {};
+    return {
+      github: githubProfile(raw.github || raw.gh || (raw.user && raw.user.login)),
+      x: xProfile(raw.x || raw.twitter),
+    };
+  }
+
+  function identityFromLobbyMe(me) {
+    me = me || {};
+    var ident = emptyIdentity();
+    if (me.x && (me.linked || me.x.handle || me.x.display)) ident.x = xProfile(me.x);
+    if (me.github) ident.github = githubProfile(me.github);
+    if (me.gh) ident.github = ident.github || githubProfile(me.gh);
+    return ident;
+  }
+
+  function hasGitHub(identity) {
+    return !!(identity && identity.github && identity.github.login);
+  }
+
+  function canAct(identity) {
+    return hasGitHub(identity);
+  }
+
+  function mergeIdentity(base, extra) {
+    var a = normalizeIdentity(base);
+    var b = normalizeIdentity(extra);
+    return {
+      github: b.github || a.github,
+      x: b.x || a.x,
+    };
+  }
+
+  function loadIdentity(storage) {
+    var store = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    if (!store) return emptyIdentity();
+    try {
+      return normalizeIdentity(JSON.parse(store.getItem(IDENTITY_KEY) || 'null'));
+    } catch (e) {
+      return emptyIdentity();
+    }
+  }
+
+  function saveIdentity(identity, storage) {
+    var store = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    if (!store) return false;
+    try {
+      store.setItem(IDENTITY_KEY, JSON.stringify(normalizeIdentity(identity)));
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   function normalizeListing(raw, meta) {
@@ -195,21 +359,23 @@
     var kindHint = String(raw.kind || raw.type || '').toLowerCase();
     var kind = kindHint === 'item' || item ? 'item' : 'project';
     if (kind === 'item' && !item) return null;
-    var repo = item ? item.repo : normalizeRepo(raw.repo || raw.github || raw.repository || '');
+    var repo = item ? item.repo : normalizeRepo(raw.repo || raw.repository || raw.itemUrl || '');
     var name = String(raw.name || raw.project || raw.title || '').trim();
     if (!name && item) name = repo + '#' + item.number;
     if (!name && repo) name = repo.replace(/^.*\//, '');
     if (!name) return null;
     var pool = kind === 'project' ? normalizePool(raw.pool) : null;
     var amount = num(raw.amount);
-    var currency = String(raw.currency || '').trim() || null;
+    var currency = raw.currency != null && String(raw.currency).trim() ? coerceCurrency(raw.currency) : amount != null ? CURRENCY : null;
     if (amount == null && pool) {
       amount = pool.amount;
       currency = currency || pool.currency;
     }
     if (kind === 'project' && !pool && amount != null) {
-      pool = { amount: amount, currency: currency };
+      pool = { amount: amount, currency: currency || CURRENCY };
     }
+    var payout = normalizePayout(raw.payout);
+    var payTo = normalizePayTo(raw.payTo || raw.payto || payout);
     var listing = {
       kind: kind,
       name: name,
@@ -220,11 +386,16 @@
       blurb: String(raw.blurb || '').trim(),
       amount: amount,
       currency: currency,
+      chain: String(raw.chain || CHAIN).trim() || CHAIN,
+      payTo: payTo,
+      tokenMint: String(raw.tokenMint || USDC_MINT).trim() || USDC_MINT,
       pool: pool,
       pays: String(raw.pays || '').trim(),
       eligibility: String(raw.eligibility || '').trim(),
-      payout: normalizePayout(raw.payout),
+      payout: payout,
       rules: String(raw.rules || '').trim(),
+      github: githubLoginOf(raw.github),
+      x: xHandleOf(raw.x),
       createdAt: normalizeCreatedAt(raw.createdAt || raw.created_at || (meta && meta.createdAt)),
       outcomes: normalizeOutcomes(raw.outcomes || raw.accepted),
       origin: (meta && meta.origin) || 'unknown',
@@ -292,6 +463,15 @@
     });
   }
 
+  function sortNewest(listings) {
+    return (listings || []).slice().sort(function (a, b) {
+      var ta = a && a.createdAt ? Date.parse(a.createdAt) : 0;
+      var tb = b && b.createdAt ? Date.parse(b.createdAt) : 0;
+      if (tb !== ta) return (tb || 0) - (ta || 0);
+      return 0;
+    });
+  }
+
   async function listingsFromExtraUrls(fetchImpl, urls, origin) {
     var extraUrls = Array.isArray(urls) ? urls : [];
     var extraRes = null;
@@ -311,21 +491,37 @@
     return listingsFromSeed(await extraRes.json(), origin || 'demigod');
   }
 
+  function formatMoney(amount, currency) {
+    if (!Number.isFinite(amount)) return 'undeclared';
+    var c = coerceCurrency(currency);
+    return String(amount) + ' ' + c;
+  }
+
   function formatPool(pool) {
     if (!pool || !Number.isFinite(pool.amount)) return 'undeclared';
     return formatMoney(pool.amount, pool.currency);
   }
 
-  function formatMoney(amount, currency) {
-    if (!Number.isFinite(amount)) return 'undeclared';
-    if (!currency) return String(amount) + ' (currency undeclared)';
-    if (/^usd$/i.test(currency) || currency === '$') return '$' + String(amount);
-    return String(amount) + ' ' + currency;
-  }
-
   function formatAmount(listing) {
     if (!listing || !Number.isFinite(listing.amount)) return listing && listing.kind === 'project' ? null : 'undeclared';
     return formatMoney(listing.amount, listing.currency);
+  }
+
+  function payClipboardText(listing) {
+    var n = listing && Number.isFinite(listing.amount) ? String(listing.amount) : '';
+    return (n ? n + ' ' : '') + 'USDC Solana';
+  }
+
+  function listingHref(listing) {
+    if (!listing) return '';
+    if (listing.itemUrl) return listing.itemUrl;
+    if (listing.repo) return 'https://github.com/' + listing.repo;
+    if (listing.url && /^https?:\/\//i.test(listing.url)) return listing.url;
+    return '';
+  }
+
+  function isPaid(listing) {
+    return !!(listing && listing.outcomes && listing.outcomes.length);
   }
 
   function rulesBlocks(listing) {
@@ -369,7 +565,12 @@
       repo: listing.repo || null,
       itemUrl: listing.itemUrl || null,
       amount: Number.isFinite(listing.amount) ? listing.amount : null,
-      currency: listing.currency || null,
+      currency: listing.currency || CURRENCY,
+      chain: listing.chain || CHAIN,
+      payTo: listing.payTo || '',
+      tokenMint: listing.tokenMint || USDC_MINT,
+      github: listing.github || '',
+      x: listing.x || '',
       rules: rulesText(listing) || null,
       payout: listing.payout || null,
       createdAt: listing.createdAt || null,
@@ -385,7 +586,7 @@
       {
         name: 'dasha bounties',
         schema: FEED_SCHEMA,
-        note: 'Declared bounties, not escrow. Static snapshot; the HTML page may also merge live GitHub issues and this-device saves.',
+        note: 'USDC on Solana. We don\'t hold it.',
         url: BOARD_URL,
         listings: (listings || []).map(toFeedEntry),
       },
@@ -453,7 +654,12 @@
       url: listing.url || undefined,
       blurb: listing.blurb || undefined,
       amount: Number.isFinite(listing.amount) ? listing.amount : undefined,
-      currency: listing.currency || undefined,
+      currency: listing.currency || CURRENCY,
+      chain: listing.chain || CHAIN,
+      payTo: listing.payTo || '',
+      tokenMint: listing.tokenMint || USDC_MINT,
+      github: listing.github || undefined,
+      x: listing.x || undefined,
       pool: listing.kind === 'project' ? listing.pool || undefined : undefined,
       pays: listing.pays || undefined,
       eligibility: listing.eligibility || undefined,
@@ -468,34 +674,36 @@
     return out;
   }
 
-  function buildIssueUrl(fields) {
+  function buildIssueUrl(fields, identity) {
     var kindHint = String((fields && fields.kind) || '').toLowerCase();
-    var item = parseGithubItem(fields && (fields.itemUrl || fields.item));
+    var item = parseGithubItem(fields && (fields.itemUrl || fields.item || fields.repo));
+    var repo = item ? item.repo : fields && (fields.repo || fields.itemUrl) ? normalizeRepo(fields.repo || fields.itemUrl) : '';
     if (kindHint === 'item' && !item) {
-      return { ok: false, error: 'Paste a GitHub issue or PR URL to list an item bounty.' };
+      return { ok: false, error: 'Paste a GitHub issue, PR, or repo URL.' };
     }
-    var repo = item ? item.repo : fields && fields.repo ? normalizeRepo(fields.repo) : '';
+    if (!item && !repo) {
+      return { ok: false, error: 'Paste a GitHub issue, PR, or repo URL.' };
+    }
     var name = String((fields && fields.name) || '').trim();
     if (!name && item) name = repo + '#' + item.number;
     if (!name && repo) name = repo.replace(/^.*\//, '');
     if (!name) {
-      return { ok: false, error: 'Give it a name, or paste a GitHub issue/PR URL.' };
-    }
-    if (!item && fields && fields.repo && String(fields.repo).trim() && !repo) {
-      return { ok: false, error: 'Repo must look like owner/name, or be left blank.' };
+      return { ok: false, error: 'Paste a GitHub issue, PR, or repo URL.' };
     }
     var amountRaw = fields && fields.amount;
     var amount = null;
-    var currency = String((fields && fields.currency) || '').trim() || null;
+    var currency = CURRENCY;
     var pool = null;
     if (amountRaw !== '' && amountRaw != null) {
       amount = Number(amountRaw);
       if (!Number.isFinite(amount)) {
         return { ok: false, error: 'Amount must be a number, or left blank.' };
       }
-      if (!item) pool = { amount: amount, currency: currency || 'USD' };
-      if (!currency) currency = 'USD';
+      if (!item) pool = { amount: amount, currency: currency };
     }
+    var payTo = normalizePayTo((fields && (fields.payTo || fields.payout)) || '');
+    var gh = githubLoginOf((identity && identity.github) || (fields && fields.github));
+    var xh = xHandleOf((identity && identity.x) || (fields && fields.x));
     var listing = normalizeListing(
       {
         kind: item ? 'item' : 'project',
@@ -506,7 +714,12 @@
         blurb: fields && fields.blurb,
         amount: amount,
         currency: currency,
+        chain: CHAIN,
+        payTo: payTo,
+        tokenMint: USDC_MINT,
         pool: pool,
+        github: gh,
+        x: xh,
         pays: fields && fields.pays,
         eligibility: fields && fields.eligibility,
         payout: fields && fields.payout,
@@ -565,6 +778,57 @@
       var parseErr = new Error('unavailable');
       parseErr.code = 'unavailable';
       throw parseErr;
+    }
+  }
+
+  async function fetchJson(url, fetchImpl, init) {
+    var impl = fetchImpl || fetch;
+    var res = await impl(url, init);
+    var text = '';
+    try {
+      text = await res.text();
+    } catch (e) {
+      text = '';
+    }
+    var data = null;
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        data = null;
+      }
+    }
+    return { ok: !!(res && res.ok), status: res && res.status, data: data || {} };
+  }
+
+  async function loadLobbyIdentity(fetchImpl) {
+    var impl = fetchImpl || fetch;
+    var ident = emptyIdentity();
+    var cred = { method: 'GET', credentials: 'include', mode: 'cors', cache: 'no-store' };
+    try {
+      var me = await fetchJson(SIMP_ME, impl, cred);
+      ident = mergeIdentity(ident, identityFromLobbyMe(me.data));
+    } catch (e) {}
+    try {
+      var xStatus = await fetchJson(X_OAUTH_STATUS, impl, cred);
+      if (xStatus.data && xStatus.data.x) ident = mergeIdentity(ident, { x: xStatus.data.x });
+    } catch (e) {}
+    try {
+      var ghStatus = await fetchJson(GITHUB_OAUTH_STATUS, impl, cred);
+      if (ghStatus.data && (ghStatus.data.github || ghStatus.data.gh || ghStatus.data.user)) {
+        ident = mergeIdentity(ident, {
+          github: ghStatus.data.github || ghStatus.data.gh || ghStatus.data.user,
+        });
+      }
+    } catch (e) {}
+    return ident;
+  }
+
+  function openOauthPopup(url, name) {
+    try {
+      return window.open(url, name, 'width=520,height=700');
+    } catch (e) {
+      return null;
     }
   }
 
@@ -658,6 +922,113 @@
     return renderOutcomes(rows);
   }
 
+  function gatedAttr(ok) {
+    return ok ? '' : ' aria-disabled="true"';
+  }
+
+  function renderRow(listing, identity) {
+    var ok = canAct(identity);
+    var amt = formatAmount(listing) || '—';
+    var href = listingHref(listing);
+    var title = href
+      ? '<a class="bb-title" href="' +
+        esc(href) +
+        '" target="_blank" rel="noopener noreferrer">' +
+        esc(listing.name) +
+        '</a>'
+      : '<span class="bb-title">' + esc(listing.name) + '</span>';
+    var payUrl = isUsdc(listing.currency) ? solanaPayUrl(listing.amount, listing.payTo, listing.name) : '';
+    var copy = payClipboardText(listing);
+    var payDisabled = !ok || (!payUrl && !Number.isFinite(listing.amount));
+    var pay =
+      payDisabled && !ok
+        ? '<button type="button" class="bb-pay" data-bb-pay="need-github"' + gatedAttr(false) + '>Pay</button>'
+        : payUrl
+          ? '<button type="button" class="bb-pay" data-bb-pay="wallet" data-solana="' +
+            esc(payUrl) +
+            '"' +
+            gatedAttr(ok) +
+            '>Pay</button>'
+          : Number.isFinite(listing.amount)
+            ? '<button type="button" class="bb-pay" data-bb-pay="copy" data-copy="' +
+              esc(copy) +
+              '"' +
+              gatedAttr(ok) +
+              '>Pay</button>'
+            : '<span class="bb-pay-na" aria-hidden="true">—</span>';
+    var claim = href
+      ? '<button type="button" class="bb-claim" data-bb-claim="' +
+        esc(href) +
+        '"' +
+        gatedAttr(ok) +
+        '>Claim</button>'
+      : '';
+    return (
+      '<article class="bb-row" data-origin="' +
+      esc(listing.origin || '') +
+      '" data-kind="' +
+      esc(listing.kind) +
+      '" data-repo="' +
+      esc(listing.repo || listing.id) +
+      '"' +
+      gatedAttr(ok) +
+      '>' +
+      '<p class="bb-amt">' +
+      esc(String(amt).replace(/ USDC$/, '')) +
+      (String(amt).indexOf('USDC') >= 0 ? ' <small>USDC</small>' : '') +
+      '</p>' +
+      title +
+      '<div class="bb-actions-inline">' +
+      claim +
+      pay +
+      '</div></article>'
+    );
+  }
+
+  function filterListings(listings, filter) {
+    var rows = sortNewest(listings || []);
+    if (filter === 'paid') return rows.filter(isPaid);
+    if (filter === 'open') return rows.filter(function (row) { return !isPaid(row); });
+    return rows;
+  }
+
+  function renderBoard(listings, filter, identity) {
+    var rows = filterListings(listings, filter);
+    if (!rows.length) {
+      return '<p class="bb-empty" role="status">No bounties yet.</p>';
+    }
+    return rows
+      .map(function (listing) {
+        return renderRow(listing, identity);
+      })
+      .join('');
+  }
+
+  function renderHunt(listings, identity) {
+    return renderBoard(listings, 'all', identity);
+  }
+
+  function renderProjectCard(listing, identity) {
+    return renderRow(listing, identity);
+  }
+
+  function renderProjects(listings, identity) {
+    var projects = (listings || []).filter(function (row) {
+      return row.kind !== 'item';
+    });
+    if (!projects.length) return '<p class="bb-empty" role="status">No bounties yet.</p>';
+    return projects
+      .map(function (listing) {
+        return renderRow(listing, identity);
+      })
+      .join('');
+  }
+
+  function renderProjectPage(listing, allListings, identity) {
+    if (!listing) return '<p class="bb-empty" role="status">No listing for that id.</p>';
+    return renderRow(listing, identity);
+  }
+
   function originLabel(listing) {
     if (listing.origin === 'seed') return 'seed listing';
     if (listing.origin === 'issue') return 'live issue';
@@ -667,219 +1038,59 @@
     return listing.origin || '';
   }
 
-  function originNoteHtml(listing) {
-    if (!listing || listing.origin !== 'demigod') return '';
-    return (
-      '<span class="bb-sub">' +
-      esc(DEMIGOD_BOARD_NOTE) +
-      ' — declared, not escrow. Not a Dasha mint or Studio listing.</span>'
-    );
-  }
-
-  function renderHunt(listings) {
-    var items = (listings || []).filter(function (row) {
-      return row.kind === 'item';
-    });
-    if (!items.length) {
-      return '<p class="bb-empty" role="status">No open item bounties yet. List a GitHub issue or PR — it saves on this device immediately.</p>';
-    }
-    var body = items
-      .map(function (listing) {
-        var amt = formatAmount(listing);
-        var href = '#bounty/' + encodeURIComponent(listing.id);
-        return (
-          '<tr>' +
-          '<td class="bb-hunt-amt">' +
-          esc(amt) +
-          '</td>' +
-          '<td><a class="bb-name" href="' +
-          href +
-          '">' +
-          esc(listing.name) +
-          '</a>' +
-          (listing.blurb ? '<span class="bb-sub">' + esc(listing.blurb) + '</span>' : '') +
-          originNoteHtml(listing) +
-          '</td>' +
-          '<td class="bb-mono">' +
-          esc(listing.repo || '') +
-          (listing.item ? ' #' + listing.item.number : '') +
-          '</td>' +
-          '<td><a class="bb-proof" href="' +
-          esc(listing.itemUrl) +
-          '" target="_blank" rel="noopener noreferrer">Open on GitHub</a></td>' +
-          '</tr>'
-        );
-      })
-      .join('');
-    return (
-      '<div class="bb-table-wrap"><table class="bb-table bb-hunt">' +
-      '<thead><tr><th scope="col">Bounty</th><th scope="col">Issue / PR</th><th scope="col">Repo</th><th scope="col">Proof</th></tr></thead>' +
-      '<tbody>' +
-      body +
-      '</tbody></table></div>'
-    );
-  }
-
-  function renderProjectCard(listing) {
-    var originClass = listing.origin === 'issue' ? 'live' : '';
-    var amt = formatAmount(listing);
-    var kindLabel = listing.kind === 'item' ? 'Issue bounty' : 'Project';
-    return (
-      '<a class="bb-card" data-kind="' +
-      esc(listing.kind) +
-      '" data-repo="' +
-      esc(listing.repo || listing.id) +
-      '" data-origin="' +
-      esc(listing.origin) +
-      '" href="#bounty/' +
-      encodeURIComponent(listing.id) +
-      '">' +
-      '<div class="bb-proj-top"><p class="bb-eyebrow" style="margin:0">' +
-      esc(kindLabel) +
-      '</p><span class="bb-origin ' +
-      originClass +
-      '">' +
-      esc(originLabel(listing)) +
-      '</span></div>' +
-      '<h3>' +
-      esc(listing.name) +
-      '</h3>' +
-      (listing.repo ? '<p class="bb-meta" style="margin-top:4px">' + esc(listing.repo) + (listing.item ? ' #' + listing.item.number : '') + '</p>' : '') +
-      (listing.itemUrl
-        ? '<p class="bb-meta"><span class="bb-proof">GitHub item</span></p>'
-        : '') +
-      (listing.blurb ? '<p class="bb-blurb">' + esc(listing.blurb) + '</p>' : '') +
-      originNoteHtml(listing) +
-      (amt ? '<p class="bb-pool-amount">' + esc(amt) + '</p>' : '<p class="bb-meta">No pool declared</p>') +
-      renderRules(listing) +
-      '</a>'
-    );
-  }
-
-  function renderProjects(listings) {
-    var projects = (listings || []).filter(function (row) {
-      return row.kind !== 'item';
-    });
-    if (!projects.length) {
-      return '<p class="bb-empty" role="status">No project listings yet. A monthly pool is optional — you can list a single issue instead.</p>';
-    }
-    return projects.map(renderProjectCard).join('');
-  }
-
-  function itemsForRepo(listings, repo) {
-    if (!repo) return [];
-    var key = String(repo).toLowerCase();
-    return (listings || []).filter(function (row) {
-      return row.kind === 'item' && row.repo && row.repo.toLowerCase() === key;
-    });
-  }
-
-  function renderProjectPage(listing, allListings) {
-    if (!listing) return '<p class="bb-empty" role="status">No listing for that id.</p>';
-    var originClass = listing.origin === 'issue' ? 'live' : '';
-    var issueBit = listing.issueUrl
-      ? ' · <a href="' + esc(listing.issueUrl) + '" target="_blank" rel="noopener noreferrer">listing issue</a>'
-      : '';
-    var demigodBit =
-      listing.origin === 'demigod'
-        ? ' · <a href="https://trydemigod.com/bounties" target="_blank" rel="noopener noreferrer">' +
-          esc(DEMIGOD_BOARD_NOTE) +
-          '</a>'
-        : '';
-    var itemLink = listing.itemUrl || '';
-    var link =
-      itemLink ||
-      (listing.url && /^https?:\/\//i.test(listing.url) ? listing.url : listing.repo ? 'https://github.com/' + listing.repo : '');
-    var amt = formatAmount(listing);
-    var related = listing.kind === 'project' ? itemsForRepo(allListings, listing.repo) : [];
-    var relatedHtml = related.length
-      ? '<p class="bb-eyebrow">Open item bounties on this repo</p>' + renderHunt(related)
-      : '';
-    return (
-      '<a class="bb-back" href="' +
-      (listing.kind === 'item' ? '#items' : '#projects') +
-      '">← ' +
-      (listing.kind === 'item' ? 'Open bounties' : 'Projects') +
-      '</a>' +
-      '<p class="bb-stamp"><span class="bb-pill">' +
-      esc(listing.createdAt ? 'listed ' + listing.createdAt : 'owner-written listing') +
-      '</span> <span class="bb-origin ' +
-      originClass +
-      '">' +
-      esc(originLabel(listing)) +
-      '</span></p>' +
-      '<p class="bb-eyebrow">' +
-      esc(listing.kind === 'item' ? 'Issue bounty' : 'Project') +
-      '</p>' +
-      '<h2 style="margin:0 0 8px;font-size:clamp(36px,5vw,68px);letter-spacing:-.06em;text-transform:uppercase;font-weight:800">' +
-      esc(listing.name) +
-      '</h2>' +
-      '<p class="bb-meta">' +
-      (link
-        ? '<a href="' +
-          esc(link) +
-          '" target="_blank" rel="noopener noreferrer">' +
-          esc(listing.itemUrl ? proofLabel(listing.itemUrl) : listing.repo || listing.url || listing.name) +
-          '</a>'
-        : esc(listing.repo || '')) +
-      issueBit +
-      demigodBit +
-      '</p>' +
-      (listing.blurb ? '<p class="bb-blurb">' + esc(listing.blurb) + '</p>' : '') +
-      (listing.origin === 'demigod' ? '<p class="bb-meta">' + originNoteHtml(listing) + '</p>' : '') +
-      '<div class="bb-panel">' +
-      '<p class="bb-eyebrow">' +
-      esc(listing.kind === 'item' ? 'Bounty' : 'Pool') +
-      '</p>' +
-      '<p class="bb-pool-amount">' +
-      esc(amt || 'No pool declared') +
-      '</p>' +
-      '<p>Whatever the owner wrote. This board does not hold funds or pay anyone.</p>' +
-      (itemLink
-        ? '<p><a class="bb-cta" href="' +
-          esc(itemLink) +
-          '" target="_blank" rel="noopener noreferrer">Open on GitHub</a></p>'
-        : '') +
-      '</div>' +
-      renderRules(listing) +
-      relatedHtml +
-      '<p class="bb-eyebrow" style="margin-top:28px">Accepted outcomes</p>' +
-      renderOutcomes(listing.outcomes)
-    );
-  }
-
   function $(id) {
     if (typeof document === 'undefined' || !document || typeof document.getElementById !== 'function') return null;
     return document.getElementById(id);
   }
 
-  function readForm() {
-    var kindEl = document.querySelector('#bb-form input[name="kind"]:checked');
-    return {
-      kind: kindEl ? kindEl.value : 'item',
-      name: $('bb-name') && $('bb-name').value,
-      repo: $('bb-repo') && $('bb-repo').value,
-      itemUrl: $('bb-item') && $('bb-item').value,
-      amount: $('bb-amount') && $('bb-amount').value,
-      currency: $('bb-currency') && $('bb-currency').value,
-      blurb: $('bb-blurb') && $('bb-blurb').value,
-      pays: $('bb-pays') && $('bb-pays').value,
-      eligibility: $('bb-eligibility') && $('bb-eligibility').value,
-      payout: $('bb-payout') && $('bb-payout').value,
-      rules: $('bb-rules') && $('bb-rules').value,
-      url: $('bb-url') && $('bb-url').value,
-    };
+  function toast(msg) {
+    var el = $('bb-toast');
+    if (!el) return;
+    el.textContent = msg || '';
   }
 
-  function syncKindFields() {
-    var kindEl = document.querySelector('#bb-form input[name="kind"]:checked');
-    var kind = kindEl ? kindEl.value : 'item';
-    document.querySelectorAll('[data-for-kind]').forEach(function (el) {
-      var want = el.getAttribute('data-for-kind');
-      el.hidden = want !== 'any' && want !== kind;
-    });
-    var amountLabel = $('bb-amount-label');
-    if (amountLabel) amountLabel.textContent = kind === 'item' ? 'Bounty amount' : 'Optional pool';
+  function copyText(text) {
+    var s = String(text || '');
+    if (!s) return Promise.resolve(false);
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(s).then(
+        function () {
+          return true;
+        },
+        function () {
+          return false;
+        },
+      );
+    }
+    return Promise.resolve(false);
+  }
+
+  function openWalletPay(solanaUrl) {
+    var phantom = phantomBrowseUrl(solanaUrl);
+    var opened = null;
+    try {
+      opened = window.open(phantom, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      opened = null;
+    }
+    if (opened) return true;
+    try {
+      opened = window.open(solanaUrl, '_blank', 'noopener,noreferrer');
+    } catch (e2) {
+      opened = null;
+    }
+    if (opened) return true;
+    copyText(solanaUrl);
+    return false;
+  }
+
+  function readForm() {
+    return {
+      kind: '',
+      itemUrl: $('bb-item') && $('bb-item').value,
+      amount: $('bb-amount') && $('bb-amount').value,
+      payTo: $('bb-payto') && $('bb-payto').value,
+    };
   }
 
   var formBound = false;
@@ -889,26 +1100,35 @@
     formBound = true;
     var err = $('bb-form-error');
     var preview = $('bb-issue-preview');
-    var shareBtn = $('bb-share');
     var localBtn = $('bb-save-local');
-    var shareOut = $('bb-share-out');
 
     function built() {
-      return buildIssueUrl(readForm());
+      return buildIssueUrl(readForm(), live.identity);
     }
 
     function showErr(msg) {
+      if (!err) return;
       err.hidden = false;
       err.textContent = msg;
     }
 
     function clearErr() {
+      if (!err) return;
       err.hidden = true;
       err.textContent = '';
     }
 
+    function needGitHub() {
+      if (canAct(live.identity)) return false;
+      toast('GitHub');
+      var btn = $('bb-github');
+      if (btn) btn.focus();
+      return true;
+    }
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      if (needGitHub()) return;
       var result = built();
       if (!result.ok) return showErr(result.error);
       clearErr();
@@ -916,29 +1136,14 @@
       if (!opened && preview) {
         preview.hidden = false;
         preview.href = result.url;
-        preview.textContent = 'Popup blocked — open the listing issue here';
+        preview.textContent = 'Open listing issue';
         preview.focus();
       }
     });
 
-    form.addEventListener('input', function () {
-      syncKindFields();
-      var result = built();
-      if (preview) {
-        if (result.ok) {
-          preview.hidden = false;
-          preview.href = result.url;
-          preview.textContent = 'Preview GitHub issue';
-        } else {
-          preview.hidden = true;
-        }
-      }
-    });
-    form.addEventListener('change', syncKindFields);
-    syncKindFields();
-
     if (localBtn) {
       localBtn.addEventListener('click', function () {
+        if (needGitHub()) return;
         var result = built();
         if (!result.ok) return showErr(result.error);
         var current = loadLocal();
@@ -951,135 +1156,217 @@
         clearErr();
         live.listings = mergeListings(live.seed, live.demigod, live.issues, live.shared, next);
         paintListings();
-        localBtn.textContent = 'Saved on this device';
-      });
-    }
-
-    if (shareBtn) {
-      shareBtn.addEventListener('click', function () {
-        var result = built();
-        if (!result.ok) return showErr(result.error);
-        var url = location.origin + location.pathname + '#l=' + encodeShare(listingPayload(result.listing));
-        if (shareOut) {
-          shareOut.hidden = false;
-          shareOut.value = url;
-          shareOut.focus();
-          shareOut.select();
-        }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url).catch(function () {});
-        }
-        clearErr();
+        localBtn.textContent = 'Saved';
       });
     }
   }
 
-  var rotatorBound = false;
-  function bindRotator() {
-    var el = $('bb-rotator');
-    if (!el || rotatorBound) return;
-    rotatorBound = true;
-    var phrases = String(el.getAttribute('data-phrases') || '')
-      .split('|')
-      .map(function (s) {
-        return s.trim();
-      })
-      .filter(Boolean);
-    if (phrases.length < 2) return;
-    var reduce = false;
+  function faceButton(el, profile, kind) {
+    if (!el) return;
+    if (!profile) {
+      el.className = kind === 'x' ? 'bb-id-btn bb-id-x' : 'bb-id-btn';
+      el.innerHTML = kind === 'x' ? 'X' : 'GitHub';
+      el.setAttribute('aria-label', kind === 'x' ? 'X' : 'GitHub');
+      return;
+    }
+    var label = kind === 'x' ? profile.display || '@' + profile.handle : profile.login;
+    var href = profile.href || '';
+    var img = profile.avatar
+      ? '<img src="' + esc(profile.avatar) + '" alt="" width="36" height="36"/>'
+      : '';
+    el.className = kind === 'x' ? 'bb-id-face bb-id-x' : 'bb-id-face';
+    el.innerHTML = img + esc(label);
+    el.setAttribute('aria-label', label);
+    el.dataset.href = href;
+  }
+
+  function paintIdentity() {
+    faceButton($('bb-github'), live.identity && live.identity.github, 'github');
+    faceButton($('bb-x'), live.identity && live.identity.x, 'x');
+    var ok = canAct(live.identity);
+    ['bb-list', 'bb-save-local'].forEach(function (id) {
+      var el = $(id);
+      if (!el) return;
+      if (ok) el.removeAttribute('aria-disabled');
+      else el.setAttribute('aria-disabled', 'true');
+    });
+  }
+
+  function applyIdentity(next) {
+    live.identity = mergeIdentity(live.identity, next);
+    saveIdentity(live.identity);
+    paintIdentity();
+    paintListings();
+  }
+
+  var identityBound = false;
+  function bindIdentity(fetchImpl) {
+    if (identityBound) return;
+    identityBound = true;
+    var ghBtn = $('bb-github');
+    var xBtn = $('bb-x');
+    if (ghBtn) {
+      ghBtn.addEventListener('click', function () {
+        if (live.identity && live.identity.github && ghBtn.dataset.href) {
+          window.open(ghBtn.dataset.href, '_blank', 'noopener,noreferrer');
+          return;
+        }
+        var w = openOauthPopup(GITHUB_OAUTH_START, GITHUB_OAUTH_WINDOW);
+        if (!w) toast('Allow popups');
+      });
+    }
+    if (xBtn) {
+      xBtn.addEventListener('click', function () {
+        if (live.identity && live.identity.x && xBtn.dataset.href) {
+          window.open(xBtn.dataset.href, '_blank', 'noopener,noreferrer');
+          return;
+        }
+        var w = openOauthPopup(X_OAUTH_START, X_OAUTH_WINDOW);
+        if (!w) toast('Allow popups');
+      });
+    }
     try {
-      reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.addEventListener('message', function (ev) {
+        if (!ev || ev.origin !== LOBBY_URL || !ev.data) return;
+        if (ev.data.type === 'dasha-x-linked') {
+          applyIdentity({ x: ev.data.x || ev.data });
+          loadLobbyIdentity(fetchImpl).then(function (remote) {
+            applyIdentity(remote);
+          });
+          return;
+        }
+        if (ev.data.type === 'dasha-github-linked') {
+          applyIdentity({ github: ev.data.github || ev.data.gh || ev.data.user || ev.data });
+          loadLobbyIdentity(fetchImpl).then(function (remote) {
+            applyIdentity(remote);
+          });
+        }
+      });
     } catch (e) {}
-    if (reduce) return;
-    var i = 0;
-    setInterval(function () {
-      i = (i + 1) % phrases.length;
-      el.textContent = phrases[i];
-    }, 2400);
   }
 
-  var live = { listings: [], seed: [], issues: [], shared: [], demigod: [] };
-  var routingBound = false;
+  var payBound = false;
+  function bindPay() {
+    if (payBound) return;
+    payBound = true;
+    var app = $('bb-app');
+    if (!app) return;
+    app.addEventListener('click', function (e) {
+      var claim = e.target.closest && e.target.closest('[data-bb-claim]');
+      if (claim) {
+        e.preventDefault();
+        if (!canAct(live.identity)) {
+          toast('GitHub');
+          var gh = $('bb-github');
+          if (gh) gh.focus();
+          return;
+        }
+        var href = claim.getAttribute('data-bb-claim');
+        if (href) window.open(href, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      var btn = e.target.closest && e.target.closest('[data-bb-pay]');
+      if (!btn) return;
+      e.preventDefault();
+      if (!canAct(live.identity)) {
+        toast('GitHub');
+        var ghb = $('bb-github');
+        if (ghb) ghb.focus();
+        return;
+      }
+      var mode = btn.getAttribute('data-bb-pay');
+      if (mode === 'wallet') {
+        var solana = btn.getAttribute('data-solana');
+        if (!openWalletPay(solana)) toast('Copied');
+        return;
+      }
+      if (mode === 'copy') {
+        copyText(btn.getAttribute('data-copy') || '').then(function (ok) {
+          toast(ok ? 'Copied' : btn.getAttribute('data-copy') || '');
+        });
+      }
+    });
+    app.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var pay = e.target.closest && e.target.closest('[data-bb-pay]');
+      if (pay) {
+        e.preventDefault();
+        pay.click();
+      }
+    });
+  }
 
+  var filterBound = false;
+  function bindFilters() {
+    if (filterBound) return;
+    filterBound = true;
+    var box = $('bb-filters');
+    if (!box) return;
+    box.addEventListener('click', function (e) {
+      var chip = e.target.closest && e.target.closest('[data-filter]');
+      if (!chip) return;
+      var next = chip.getAttribute('data-filter');
+      live.filter = live.filter === next ? 'all' : next;
+      box.querySelectorAll('[data-filter]').forEach(function (el) {
+        el.setAttribute('aria-pressed', el.getAttribute('data-filter') === live.filter ? 'true' : 'false');
+      });
+      paintListings();
+    });
+  }
+
+  var live = {
+    listings: [],
+    seed: [],
+    issues: [],
+    shared: [],
+    demigod: [],
+    identity: emptyIdentity(),
+    filter: 'all',
+  };
+
+  var routingBound = false;
   function parseHash() {
     var raw = '';
     try {
       raw = String(location.hash || '').replace(/^#/, '');
     } catch (e) {}
     if (raw.indexOf('l=') === 0) return { view: 'share', token: raw.slice(2) };
-    if (raw.indexOf('bounty/') === 0) return { view: 'detail', id: decodeURIComponent(raw.slice('bounty/'.length)) };
-    if (raw.indexOf('project/') === 0) return { view: 'detail', id: decodeURIComponent(raw.slice('project/'.length)) };
-    if (raw.indexOf('item/') === 0) return { view: 'detail', id: decodeURIComponent(raw.slice('item/'.length)) };
     return { view: 'home', id: raw };
-  }
-
-  function findListing(id) {
-    var rows = live.listings || [];
-    var exact = rows.filter(function (row) {
-      return row.id === id;
-    })[0];
-    if (exact) return exact;
-    var lower = String(id || '').toLowerCase();
-    return rows.filter(function (row) {
-      return row.kind === 'project' && row.repo && row.repo.toLowerCase() === lower;
-    })[0];
   }
 
   function paintListings() {
     var huntEl = $('bb-hunt');
-    if (huntEl) huntEl.innerHTML = renderHunt(live.listings);
-    var projectsEl = $('bb-projects');
-    if (projectsEl) projectsEl.innerHTML = renderProjects(live.listings);
-    var boardEl = $('bb-global');
-    if (boardEl) boardEl.innerHTML = renderOutcomes(collectOutcomes(live.listings));
-  }
-
-  function paintView() {
-    var home = $('bb-home');
-    var detail = $('bb-project-page');
-    if (!home || !detail) return;
-    var route = parseHash();
-    if (route.view === 'detail') {
-      home.hidden = true;
-      detail.hidden = false;
-      var listing = findListing(route.id);
-      detail.innerHTML = renderProjectPage(listing, live.listings);
-      try {
-        window.scrollTo(0, 0);
-      } catch (e) {}
-      return;
-    }
-    home.hidden = false;
-    detail.hidden = true;
-    if (route.id && document.getElementById(route.id)) {
-      try {
-        document.getElementById(route.id).scrollIntoView({ block: 'start' });
-      } catch (e) {}
+    if (huntEl) huntEl.innerHTML = renderBoard(live.listings, live.filter, live.identity);
+    var filters = $('bb-filters');
+    if (filters) {
+      var hasPaid = (live.listings || []).some(isPaid);
+      filters.hidden = !hasPaid;
     }
   }
 
   function bindRouting() {
     if (routingBound) return;
     routingBound = true;
-    try {
-      window.addEventListener('hashchange', paintView);
-    } catch (e) {}
   }
 
   async function boot(options) {
     options = options || {};
     var ctx = { fetchImpl: options.fetchImpl || fetch, storage: options.storage };
+    var fetchImpl = ctx.fetchImpl || fetch;
+    live.identity = options.identity ? normalizeIdentity(options.identity) : loadIdentity(ctx.storage);
     bindForm();
-    bindRotator();
+    bindIdentity(fetchImpl);
+    bindPay();
+    bindFilters();
     bindRouting();
+    paintIdentity();
 
     var seedListings = [];
     var issueListings = [];
     var demigodListings = [];
     var issuesError = null;
-    var fetchImpl = ctx.fetchImpl || fetch;
     try {
-      var seedUrls = (options && options.seedUrl)
+      var seedUrls = options && options.seedUrl
         ? [options.seedUrl]
         : ['./feed.json', '../bounties.json', './listings.json', '../config/bounties.seed.json'];
       var seedRes = null;
@@ -1127,11 +1414,7 @@
       if (issuesError) {
         banner.hidden = false;
         banner.className = 'bb-banner ' + (issuesError === 'rate-limited' ? 'warn' : 'bad');
-        banner.innerHTML =
-          (issuesError === 'rate-limited'
-            ? 'GitHub rate-limited this browser. Public issues paused.'
-            : 'Public GitHub listings are unavailable.') +
-          ' The static feed and listings saved on this device still show. <a href="/dasha">Desk</a>';
+        banner.textContent = issuesError === 'rate-limited' ? 'GitHub paused.' : 'GitHub listings paused.';
       } else {
         banner.hidden = true;
         banner.textContent = '';
@@ -1139,12 +1422,10 @@
     }
 
     paintListings();
-    var asof = $('bb-asof');
-    if (asof) {
-      asof.textContent =
-        'Outcomes are owner-declared. Every row needs a GitHub PR, issue, or comment URL — no score without a link.';
-    }
-    paintView();
+    try {
+      var remote = await loadLobbyIdentity(fetchImpl);
+      applyIdentity(remote);
+    } catch (e) {}
     return live;
   }
 
@@ -1153,8 +1434,20 @@
     ISSUE_LABEL: ISSUE_LABEL,
     TITLE_PREFIX: TITLE_PREFIX,
     STORAGE_KEY: STORAGE_KEY,
+    IDENTITY_KEY: IDENTITY_KEY,
     FEED_SCHEMA: FEED_SCHEMA,
     BOARD_URL: BOARD_URL,
+    LOBBY_URL: LOBBY_URL,
+    X_OAUTH_START: X_OAUTH_START,
+    X_OAUTH_STATUS: X_OAUTH_STATUS,
+    X_OAUTH_WINDOW: X_OAUTH_WINDOW,
+    GITHUB_OAUTH_START: GITHUB_OAUTH_START,
+    GITHUB_OAUTH_STATUS: GITHUB_OAUTH_STATUS,
+    GITHUB_OAUTH_WINDOW: GITHUB_OAUTH_WINDOW,
+    SIMP_ME: SIMP_ME,
+    USDC_MINT: USDC_MINT,
+    CHAIN: CHAIN,
+    CURRENCY: CURRENCY,
     EXTRA_SEED_URLS: EXTRA_SEED_URLS,
     DEMIGOD_BOARD_NOTE: DEMIGOD_BOARD_NOTE,
     EMPTY_OUTCOMES: EMPTY_OUTCOMES,
@@ -1173,6 +1466,18 @@
     mergeListings: mergeListings,
     formatPool: formatPool,
     formatAmount: formatAmount,
+    formatMoney: formatMoney,
+    solanaPayUrl: solanaPayUrl,
+    phantomBrowseUrl: phantomBrowseUrl,
+    normalizePayTo: normalizePayTo,
+    payClipboardText: payClipboardText,
+    identityFromLobbyMe: identityFromLobbyMe,
+    normalizeIdentity: normalizeIdentity,
+    hasGitHub: hasGitHub,
+    canAct: canAct,
+    loadIdentity: loadIdentity,
+    saveIdentity: saveIdentity,
+    loadLobbyIdentity: loadLobbyIdentity,
     rulesText: rulesText,
     toFeed: toFeed,
     toFeedEntry: toFeedEntry,
@@ -1186,10 +1491,13 @@
     renderOutcomes: renderOutcomes,
     renderGlobalBoard: renderGlobalBoard,
     renderHunt: renderHunt,
+    renderRow: renderRow,
+    renderBoard: renderBoard,
     renderProjectCard: renderProjectCard,
     renderProjectPage: renderProjectPage,
     renderProjects: renderProjects,
     renderRules: renderRules,
+    originLabel: originLabel,
     boot: boot,
   };
 

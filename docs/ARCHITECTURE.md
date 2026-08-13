@@ -54,7 +54,7 @@ Listings come from `bounties/feed.json` (also published as GitHub Pages `/dasha-
 localStorage, `#l=` share JSON, and Demigod’s public feed (`options.extraSeedUrls`, defaulting to `bounties-feed.json` on GitHub raw / jsDelivr — not mixed into the local seed first-OK-wins list). Failure is non-fatal.
 Demigod-sourced rows are captioned; they are not Dasha mint or Studio work. `listingId` dedupes items by repo/type/number.
 Project-level pools are optional. Accepted outcomes need a GitHub PR, issue, or comment URL — no score without a link.
-Never invent ranks or dollar amounts. If a mint/CA appears here, it must come from `config/dasha.json`.
+GitHub identity is required to list, claim, or pay. X is optional and reuses `lobby.getdasha.com` OAuth (`/oauth/x/start`, window name `dasha_x`) — the same session as Simp Board. Never invent ranks or dollar amounts. If a mint/CA appears here, it must come from `config/dasha.json`.
 
 ## What the gates protect
 
@@ -69,7 +69,7 @@ Each of these exists because of a specific failure, not as ceremony.
 | `dasha-oss-docs.test.mjs` | The docs in this repo do not contradict each other. |
 | `studio/studio.test.mjs` | The Studio stays self-contained, every look id a remix URL can name still exists, and the embed is generated rather than hand-edited. |
 | `bounties/bounties.test.mjs` | Listing JSON parses (item + project), malformed issues are skipped, empty outcomes copy, proof URLs required, the form builds a GitHub `issues/new` URL, static feed matches root `bounties.json` and carries `schema: dasha-bounties-feed/v1`, seed has no fake leaderboard, extra Demigod feed merge/dedup is non-fatal. |
-| `watch.mjs` | What the **live site** actually serves. Runs on a schedule, not just on a push. `/bounties` is watched for the escrow disclaimer and must not show a foreign mint; it is not required to display the CA. |
+| `watch.mjs` | What the **live site** actually serves. Runs on a schedule, not just on a push. `/bounties` is watched for the no-custody line and must not show a foreign mint; it is not required to display the CA. |
 
 `watch.mjs` is the odd one out and the most important. Every other gate reads files in this repo, and
 the failures that reach visitors happen *between* the repo and the site: the Studio's public-domain

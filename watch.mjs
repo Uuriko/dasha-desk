@@ -105,7 +105,7 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy', '/bounties']) {
     fail(!/not affiliated with dasha/i.test(html), '/studio: claims no affiliation, which is false');
   }
   if (route === '/bounties') {
-    fail(/declared bounties, not escrow/i.test(html), '/bounties: lost the escrow disclaimer');
+    fail(/we don't hold it|declared bounties, not escrow/i.test(html), '/bounties: lost the no-custody line');
   }
 
   /* The share card is a separate binary on a CDN. It can rot with nothing in any repo changing,
@@ -159,7 +159,7 @@ for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio
     fail(/CC0/.test(html), `${label}: the public-domain dedication is gone`);
     fail(/name or likeness/i.test(html), `${label}: the likeness carve-out is gone`);
   } else if (label.includes('bounties')) {
-    fail(/declared bounties, not escrow/i.test(html), `${label}: lost the escrow disclaimer`);
+    fail(/we don't hold it|declared bounties, not escrow/i.test(html), `${label}: lost the no-custody line`);
   } else {
     fail(html.includes(MINT), `${label}: the mint is not shown`);
   }

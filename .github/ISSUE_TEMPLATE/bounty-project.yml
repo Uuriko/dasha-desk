@@ -1,31 +1,29 @@
 name: Bounty listing
-description: Put a GitHub issue/PR or a whole project on the dasha bounties board. You write the rules. This repo does not hold funds.
+description: Put a GitHub issue/PR or repo on the dasha bounties board. USDC on Solana. This repo does not hold funds.
 title: "[bounty] "
 labels: [bounty-project]
 body:
   - type: markdown
     attributes:
       value: |
-        This issue is the listing. The board at [getdasha.com/bounties](https://www.getdasha.com/bounties) reads the JSON from **open** issues titled `[bounty] …` (and the `bounty-project` label when GitHub applies it). Agents can GET the listings feed at [GitHub Pages](https://uuriko.github.io/dasha-desk/bounties/feed.json) or [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json) (`schema: dasha-bounties-feed/v1`).
-
-        `kind` is `"item"` (a specific GitHub issue or PR) or `"project"` (optional pool). Write your own rules. The board renders them as you typed them. `outcomes` need a GitHub PR, issue, or comment URL — no score without a link.
+        The board at [getdasha.com/bounties](https://www.getdasha.com/bounties) reads JSON from **open** issues titled `[bounty] …`. Feed: [GitHub Pages](https://uuriko.github.io/dasha-desk/bounties/feed.json) or [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json) (`schema: dasha-bounties-feed/v1`).
   - type: textarea
     id: listing
     attributes:
       label: Listing JSON
-      description: Keep this valid JSON. For an item bounty, set itemUrl. Skip fabricated outcomes.
+      description: Keep this valid JSON. GitHub URL required. payTo is a Solana address or empty.
       render: json
       value: |
         {
           "kind": "item",
-          "name": "Short title",
           "itemUrl": "https://github.com/owner/name/issues/1",
           "amount": 25,
-          "currency": "USD",
-          "pays": "What you pay for.",
-          "eligibility": "Who can collect.",
-          "payout": "How you actually send it.",
-          "rules": "Anything else, in your words.",
+          "currency": "USDC",
+          "chain": "solana",
+          "payTo": "",
+          "tokenMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          "github": "",
+          "x": "",
           "createdAt": "2026-08-13T00:00:00.000Z",
           "outcomes": []
         }

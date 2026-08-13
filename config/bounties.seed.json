@@ -1,6 +1,6 @@
 {
   "schema": "dasha-bounties-feed/v1",
-  "note": "Seed listings so the board is not empty. Same listings as bounties/feed.json. No fabricated outcomes or scores.",
+  "note": "USDC on Solana. We don't hold it.",
   "listings": [
     {
       "kind": "item",
@@ -8,12 +8,12 @@
       "repo": "Uuriko/dasha-desk",
       "itemUrl": "https://github.com/Uuriko/dasha-desk/issues/8",
       "amount": 25,
-      "currency": "USD",
-      "pays": "A merged PR that adds the screenshot the issue asks for.",
-      "eligibility": "Anyone. First-timers welcome.",
-      "payout": "Owner-declared example. Pay however you announce. This board does not hold or send funds.",
-      "rules": "",
-      "blurb": "Hunt this issue. Declared, not escrowed.",
+      "currency": "USDC",
+      "chain": "solana",
+      "payTo": "",
+      "tokenMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "github": "",
+      "x": "",
       "createdAt": "2026-08-13T00:00:00.000Z",
       "outcomes": []
     },
@@ -22,17 +22,17 @@
       "name": "dasha desk",
       "repo": "Uuriko/dasha-desk",
       "itemUrl": null,
-      "blurb": "The mint desk and Studio. Example project listing — a monthly pool is optional.",
       "amount": 50,
-      "currency": "USD",
+      "currency": "USDC",
+      "chain": "solana",
+      "payTo": "",
+      "tokenMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "github": "",
+      "x": "",
       "pool": {
         "amount": 50,
-        "currency": "USD"
+        "currency": "USDC"
       },
-      "pays": "Merged pull requests and useful issues on the desk or Studio. You decide if a change counts.",
-      "eligibility": "Anyone who opens a PR. Simp Board points are a different page and are not this bounty.",
-      "payout": "Owner-declared example. Pay however you announce. This board does not hold or send funds.",
-      "rules": "",
       "createdAt": "2026-08-13T00:00:00.000Z",
       "outcomes": []
     }
