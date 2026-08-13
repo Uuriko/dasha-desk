@@ -2,13 +2,19 @@
 /**
  * dasha bounties — anybody lists a project or a GitHub issue/PR and writes their own rules.
  * Static feed: /bounties/feed.json (same file the page loads). Inbox: GitHub issues.
- * This-device: localStorage. Share: #l= JSON. Outcomes need a GitHub proof URL. Nothing invents numbers.
+ * This-device: localStorage. Share: #l= JSON. Also merges Demigod's public feed (GitHub raw / jsDelivr).
+ * Outcomes need a GitHub proof URL. Nothing invents numbers. Declared, not escrow.
  */
 (function (global) {
   var LISTING_REPO = 'Uuriko/dasha-desk';
   var ISSUE_LABEL = 'bounty-project';
   var TITLE_PREFIX = '[bounty]';
   var STORAGE_KEY = 'dasha-bounties-listings-v1';
+  var EXTRA_SEED_URLS = [
+    'https://raw.githubusercontent.com/Uuriko/demigod-site-cdn/main/bounties-feed.json',
+    'https://cdn.jsdelivr.net/gh/Uuriko/demigod-site-cdn@main/bounties-feed.json',
+  ];
+  var DEMIGOD_BOARD_NOTE = 'also on trydemigod.com/bounties';
   var REPO_RE = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/;
   var GH_ACCEPT = 'application/vnd.github+json';
   var GH_VERSION = '2022-11-28';
@@ -259,11 +265,11 @@
     return out;
   }
 
-  function listingsFromSeed(seed) {
+  function listingsFromSeed(seed, origin) {
     var rows = seed && Array.isArray(seed.listings) ? seed.listings : Array.isArray(seed) ? seed : [];
     var out = [];
     rows.forEach(function (raw) {
-      var listing = normalizeListing(raw, { origin: 'seed' });
+      var listing = normalizeListing(raw, { origin: origin || 'seed' });
       if (listing) out.push(listing);
     });
     return out;
@@ -282,6 +288,25 @@
     return order.map(function (key) {
       return byId[key];
     });
+  }
+
+  async function listingsFromExtraUrls(fetchImpl, urls, origin) {
+    var extraUrls = Array.isArray(urls) ? urls : [];
+    var extraRes = null;
+    for (var x = 0; x < extraUrls.length; x++) {
+      try {
+        var extraOpts = { mode: 'cors', headers: { Accept: 'application/json' } };
+        if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+          extraOpts.signal = AbortSignal.timeout(4000);
+        }
+        extraRes = await fetchImpl(extraUrls[x], extraOpts);
+        if (extraRes && extraRes.ok) break;
+      } catch (err) {
+        extraRes = null;
+      }
+    }
+    if (!extraRes || !extraRes.ok) return [];
+    return listingsFromSeed(await extraRes.json(), origin || 'demigod');
   }
 
   function formatPool(pool) {
@@ -635,7 +660,17 @@
     if (listing.origin === 'issue') return 'live issue';
     if (listing.origin === 'local') return 'on this device';
     if (listing.origin === 'share') return 'shared link';
+    if (listing.origin === 'demigod') return DEMIGOD_BOARD_NOTE;
     return listing.origin || '';
+  }
+
+  function originNoteHtml(listing) {
+    if (!listing || listing.origin !== 'demigod') return '';
+    return (
+      '<span class="bb-sub">' +
+      esc(DEMIGOD_BOARD_NOTE) +
+      ' — declared, not escrow. Not a Dasha mint or Studio listing.</span>'
+    );
   }
 
   function renderHunt(listings) {
@@ -660,6 +695,7 @@
           esc(listing.name) +
           '</a>' +
           (listing.blurb ? '<span class="bb-sub">' + esc(listing.blurb) + '</span>' : '') +
+          originNoteHtml(listing) +
           '</td>' +
           '<td class="bb-mono">' +
           esc(listing.repo || '') +
@@ -710,6 +746,7 @@
         ? '<p class="bb-meta"><span class="bb-proof">GitHub item</span></p>'
         : '') +
       (listing.blurb ? '<p class="bb-blurb">' + esc(listing.blurb) + '</p>' : '') +
+      originNoteHtml(listing) +
       (amt ? '<p class="bb-pool-amount">' + esc(amt) + '</p>' : '<p class="bb-meta">No pool declared</p>') +
       renderRules(listing) +
       '</a>'
@@ -740,6 +777,12 @@
     var issueBit = listing.issueUrl
       ? ' · <a href="' + esc(listing.issueUrl) + '" target="_blank" rel="noopener noreferrer">listing issue</a>'
       : '';
+    var demigodBit =
+      listing.origin === 'demigod'
+        ? ' · <a href="https://trydemigod.com/bounties" target="_blank" rel="noopener noreferrer">' +
+          esc(DEMIGOD_BOARD_NOTE) +
+          '</a>'
+        : '';
     var itemLink = listing.itemUrl || '';
     var link =
       itemLink ||
@@ -777,8 +820,10 @@
           '</a>'
         : esc(listing.repo || '')) +
       issueBit +
+      demigodBit +
       '</p>' +
       (listing.blurb ? '<p class="bb-blurb">' + esc(listing.blurb) + '</p>' : '') +
+      (listing.origin === 'demigod' ? '<p class="bb-meta">' + originNoteHtml(listing) + '</p>' : '') +
       '<div class="bb-panel">' +
       '<p class="bb-eyebrow">' +
       esc(listing.kind === 'item' ? 'Bounty' : 'Pool') +
@@ -801,6 +846,7 @@
   }
 
   function $(id) {
+    if (typeof document === 'undefined' || !document || typeof document.getElementById !== 'function') return null;
     return document.getElementById(id);
   }
 
@@ -900,7 +946,7 @@
         var next = mergeListings(current, [saved]);
         if (!saveLocal(next)) return showErr('Could not write localStorage in this browser.');
         clearErr();
-        live.listings = mergeListings(live.seed, live.issues, live.shared, next);
+        live.listings = mergeListings(live.seed, live.demigod, live.issues, live.shared, next);
         paintListings();
         localBtn.textContent = 'Saved on this device';
       });
@@ -949,7 +995,7 @@
     }, 2400);
   }
 
-  var live = { listings: [], seed: [], issues: [], shared: [] };
+  var live = { listings: [], seed: [], issues: [], shared: [], demigod: [] };
   var routingBound = false;
 
   function parseHash() {
@@ -1026,9 +1072,10 @@
 
     var seedListings = [];
     var issueListings = [];
+    var demigodListings = [];
     var issuesError = null;
+    var fetchImpl = ctx.fetchImpl || fetch;
     try {
-      var fetchImpl = ctx.fetchImpl || fetch;
       var seedUrls = (options && options.seedUrl)
         ? [options.seedUrl]
         : ['./feed.json', '../bounties.json', './listings.json', '../config/bounties.seed.json'];
@@ -1044,6 +1091,12 @@
       if (!seedRes || !seedRes.ok) throw new Error('unavailable');
       seedListings = listingsFromSeed(await seedRes.json());
     } catch (e) {}
+    try {
+      var extraUrls = Array.isArray(options.extraSeedUrls) ? options.extraSeedUrls : EXTRA_SEED_URLS;
+      demigodListings = await listingsFromExtraUrls(fetchImpl, extraUrls, 'demigod');
+    } catch (e) {
+      demigodListings = [];
+    }
     try {
       issueListings = listingsFromIssues(
         await githubGet('https://api.github.com/repos/' + LISTING_REPO + '/issues?state=open&per_page=100', ctx),
@@ -1063,7 +1116,8 @@
     live.seed = seedListings;
     live.issues = issueListings;
     live.shared = shared;
-    live.listings = mergeListings(seedListings, issueListings, shared, local);
+    live.demigod = demigodListings;
+    live.listings = mergeListings(seedListings, demigodListings, issueListings, shared, local);
 
     var banner = $('bb-banner');
     if (banner) {
@@ -1088,6 +1142,7 @@
         'Outcomes are owner-declared. Every row needs a GitHub PR, issue, or comment URL — no score without a link.';
     }
     paintView();
+    return live;
   }
 
   var api = {
@@ -1095,6 +1150,8 @@
     ISSUE_LABEL: ISSUE_LABEL,
     TITLE_PREFIX: TITLE_PREFIX,
     STORAGE_KEY: STORAGE_KEY,
+    EXTRA_SEED_URLS: EXTRA_SEED_URLS,
+    DEMIGOD_BOARD_NOTE: DEMIGOD_BOARD_NOTE,
     EMPTY_OUTCOMES: EMPTY_OUTCOMES,
     isValidRepo: isValidRepo,
     normalizeRepo: normalizeRepo,
@@ -1107,6 +1164,7 @@
     listingFromIssue: listingFromIssue,
     listingsFromIssues: listingsFromIssues,
     listingsFromSeed: listingsFromSeed,
+    listingsFromExtraUrls: listingsFromExtraUrls,
     mergeListings: mergeListings,
     formatPool: formatPool,
     formatAmount: formatAmount,
