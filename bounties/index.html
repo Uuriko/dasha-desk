@@ -4,13 +4,14 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>dasha bounties — MAKE MONEY SHIPPING BOUNTIES.</title>
-<meta name="description" content="Open bounties, you set the pool. Anybody can list a project and write their own rules."/>
+<meta name="description" content="Open bounties, you set the pool. Hunt a paid GitHub issue or list a project with your own rules."/>
 <link rel="canonical" href="https://www.getdasha.com/bounties/"/>
+<link rel="alternate" type="application/json" href="./feed.json" title="dasha bounties feed"/>
 <link rel="icon" type="image/png" sizes="32x32" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48e1dd29d210f01235_dasha-icon-32.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48cdcf3c87b29fc830_dasha-icon-180.png"/>
 <meta name="theme-color" content="#F4F0E7"/>
 <meta property="og:title" content="dasha bounties — MAKE MONEY SHIPPING BOUNTIES."/>
-<meta property="og:description" content="Open bounties, you set the pool. Anybody can list a project and write their own rules."/>
+<meta property="og:description" content="Open bounties, you set the pool. Hunt a paid GitHub issue or list a project with your own rules."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://www.getdasha.com/bounties/"/>
 <meta property="og:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a773b5a0a2303b170ea67c0_dasha-social-card-v3.png"/>
@@ -19,7 +20,7 @@
 <meta property="og:image:alt" content="Dasha remix Studio card with three colorful editable artifact previews."/>
 <meta name="twitter:card" content="summary_large_image"/>
 <meta name="twitter:title" content="dasha bounties — MAKE MONEY SHIPPING BOUNTIES."/>
-<meta name="twitter:description" content="Open bounties, you set the pool. Anybody can list a project and write their own rules."/>
+<meta name="twitter:description" content="Open bounties, you set the pool. Hunt a paid GitHub issue or list a project with your own rules."/>
 <meta name="twitter:image" content="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a773b5a0a2303b170ea67c0_dasha-social-card-v3.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -27,70 +28,90 @@
 <link rel="stylesheet" href="./board.css"/>
 </head>
 <body>
-<a class="bb-skip" href="#projects">Skip to projects</a>
+<a class="bb-skip" href="#items">Skip to open bounties</a>
 <div id="bb-app" class="bb">
   <div class="bb-shell">
     <p class="bb-desk-nav"><a href="/">Home</a> · <a href="/studio">Studio</a> · <a href="/dasha">Desk</a> · <a href="/bounties/" aria-current="page">Bounties</a></p>
     <nav class="bb-nav" aria-label="Board">
       <a class="bb-brand" href="/bounties/">dasha <span>bounties</span></a>
+      <a class="bb-nav-link" href="#items">Open bounties</a>
       <a class="bb-nav-link" href="#projects">Projects</a>
-      <a class="bb-nav-link" href="#leaderboard">Activity</a>
-      <a class="bb-cta" href="#list">List a project</a>
+      <a class="bb-nav-link" href="#outcomes">Outcomes</a>
+      <a class="bb-cta" href="#list">List a bounty</a>
     </nav>
 
     <div id="bb-banner" class="bb-banner bad" hidden></div>
-    <noscript><p class="bb-banner warn">This board needs JavaScript to read listings. <a href="/dasha">The mint desk still works</a>.</p></noscript>
+    <noscript><p class="bb-banner warn">This board needs JavaScript to merge live listings. The static <a href="./feed.json">JSON feed</a> still works. <a href="/dasha">The mint desk still works</a>.</p></noscript>
 
     <div id="bb-home">
       <section aria-labelledby="bb-title">
         <p class="bb-eyebrow">You set the rules</p>
         <h1 class="bb-hero" id="bb-title">
           <span class="bb-hero-line">Make money</span>
-          <span class="bb-hero-line bb-hero-swap" id="bb-rotator" data-phrases="SHIPPING BOUNTIES.|LISTING REPOS.|SETTING THE POOL.|YOUR RULES.">Shipping bounties.</span>
+          <span class="bb-hero-line bb-hero-swap" id="bb-rotator" data-phrases="SHIPPING BOUNTIES.|HUNTING ISSUES.|SETTING THE POOL.|YOUR RULES.">Shipping bounties.</span>
         </h1>
-        <p class="bb-lede"><strong>Open bounties, you set the pool.</strong> Write what pays, who is eligible, and how you pay. This page lists it. It does not hold funds. <strong>Declared bounties, not escrow.</strong></p>
+        <p class="bb-lede"><strong>Open bounties, you set the pool.</strong> Put a price on a GitHub issue or PR, or list a whole project. Write what pays. This page lists it. It does not hold funds. <strong>Declared bounties, not escrow.</strong></p>
+      </section>
+
+      <section class="bb-section" id="items">
+        <div class="bb-head">
+          <h2>Open bounties</h2>
+        </div>
+        <p class="bb-meta">Issue-level bounties. Amount and rules are whatever the owner typed. Open the GitHub item to hunt it.</p>
+        <div id="bb-hunt"></div>
       </section>
 
       <section class="bb-section" id="projects">
         <div class="bb-head">
           <h2>Projects</h2>
         </div>
-        <p class="bb-meta">Owner-written listings. Seed file, public GitHub issues, this-device saves, and shared links. Pool amounts are whatever they typed — undeclared if they skipped it.</p>
+        <p class="bb-meta">Optional project-level pools. Skip this if you only want to price one issue.</p>
         <div class="bb-projects" id="bb-projects"></div>
       </section>
 
-      <section class="bb-section" id="leaderboard">
+      <section class="bb-section" id="outcomes">
         <div class="bb-head">
-          <h2>GitHub activity</h2>
+          <h2>Accepted outcomes</h2>
           <button type="button" class="bb-linkish" id="bb-refresh">Refresh</button>
         </div>
-        <p class="bb-meta" id="bb-asof" role="status" aria-live="polite">Optional. Only for listings that linked a public repo.</p>
+        <p class="bb-meta" id="bb-asof" role="status" aria-live="polite">Every row needs a GitHub PR, issue, or comment URL. No score without a link.</p>
         <div id="bb-global"></div>
       </section>
 
       <section class="bb-section" id="list">
         <p class="bb-eyebrow">Anybody can list</p>
-        <div class="bb-head"><h2>List a project</h2></div>
+        <div class="bb-head"><h2>List a bounty</h2></div>
         <div class="bb-card">
-          <p class="bb-meta">No account on this site. Save on this device instantly, copy a share link, or post a public GitHub issue so the board can pick it up without a merge.</p>
+          <p class="bb-meta">No account on this site. Save on this device instantly, copy a share link, or post a public GitHub issue so the board can pick it up without a merge. Agents can GET <a href="./feed.json">/bounties/feed.json</a> or <a href="/bounties.json">/bounties.json</a>.</p>
           <form class="bb-form" id="bb-form" action="https://github.com/Uuriko/dasha-desk/issues/new" method="get">
             <input type="hidden" name="template" value="bounty-project.yml"/>
             <div class="bb-fields">
               <div class="bb-span">
-                <label class="bb-label" for="bb-name">Project name</label>
-                <input class="bb-input" id="bb-name" name="name" type="text" required spellcheck="false" autocomplete="off" placeholder="whatever you call it"/>
+                <p class="bb-label" id="bb-kind-label">What are you listing</p>
+                <div class="bb-kinds" role="radiogroup" aria-labelledby="bb-kind-label">
+                  <label class="bb-check"><input type="radio" name="kind" value="item" checked/> <span>A GitHub issue or PR</span></label>
+                  <label class="bb-check"><input type="radio" name="kind" value="project"/> <span>A whole project (optional pool)</span></label>
+                </div>
+              </div>
+              <div class="bb-span" data-for-kind="item">
+                <label class="bb-label" for="bb-item">GitHub issue or PR URL</label>
+                <input class="bb-input" id="bb-item" name="itemUrl" type="url" spellcheck="false" autocomplete="off" placeholder="https://github.com/owner/name/issues/1"/>
+                <p class="bb-hint">That’s the item people hunt. Repo is inferred.</p>
               </div>
               <div class="bb-span">
+                <label class="bb-label" for="bb-name">Title</label>
+                <input class="bb-input" id="bb-name" name="name" type="text" spellcheck="false" autocomplete="off" placeholder="blank = inferred from the GitHub URL"/>
+              </div>
+              <div class="bb-span" data-for-kind="project" hidden>
                 <label class="bb-label" for="bb-repo">GitHub repo (optional)</label>
                 <input class="bb-input" id="bb-repo" name="repo" type="text" spellcheck="false" autocomplete="off" placeholder="owner/name"/>
-                <p class="bb-hint">Only if you want a public contributor list. Not required to list.</p>
               </div>
-              <div class="bb-span">
+              <div class="bb-span" data-for-kind="project" hidden>
                 <label class="bb-label" for="bb-url">Project URL (optional)</label>
                 <input class="bb-input" id="bb-url" name="url" type="url" spellcheck="false" autocomplete="off" placeholder="https://"/>
               </div>
               <div>
-                <label class="bb-label" for="bb-amount">Pool</label>
+                <label class="bb-label" for="bb-amount" id="bb-amount-label">Bounty amount</label>
                 <input class="bb-input" id="bb-amount" name="amount" type="number" inputmode="decimal" step="any" min="0" placeholder="blank = undeclared"/>
               </div>
               <div>
@@ -99,7 +120,7 @@
               </div>
               <div class="bb-span">
                 <label class="bb-label" for="bb-pays">What pays</label>
-                <textarea class="bb-textarea" id="bb-pays" name="pays" rows="3" placeholder="Merged PRs, closed issues, a tweet, a demo — you write it."></textarea>
+                <textarea class="bb-textarea" id="bb-pays" name="pays" rows="3" placeholder="Closing this issue, a merged PR, a demo — you write it."></textarea>
               </div>
               <div class="bb-span">
                 <label class="bb-label" for="bb-eligibility">Who’s eligible</label>
@@ -116,12 +137,6 @@
               <div class="bb-span">
                 <label class="bb-label" for="bb-blurb">Short blurb</label>
                 <textarea class="bb-textarea" id="bb-blurb" name="blurb" rows="2" maxlength="280" placeholder="one line for the card"></textarea>
-              </div>
-              <div class="bb-span">
-                <label class="bb-check" for="bb-want-scores">
-                  <input id="bb-want-scores" name="wantScores" type="checkbox" checked/>
-                  <span>If I linked a GitHub repo, show its public contributor list (not a payout ranking)</span>
-                </label>
               </div>
             </div>
             <p class="bb-error" id="bb-form-error" role="alert" hidden></p>
@@ -144,8 +159,8 @@
   <footer class="bb-foot">
     <div class="bb-foot-inner">
       <h2>Owners pay. This is the bulletin board.</h2>
-      <p><strong style="color:#fff">Declared bounties, not escrow.</strong> Rules are whatever the owner typed. Contributor counts, when present, are GitHub’s public numbers — not wages, not a ranking this site will pay.</p>
-      <p>Listings live in a seed file, open GitHub issues, this browser’s localStorage, and shareable JSON links. <a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">Uuriko/dasha-desk</a></p>
+      <p><strong style="color:#fff">Declared bounties, not escrow.</strong> Rules are whatever the owner typed. Accepted outcomes, when present, must link a GitHub PR, issue, or comment — not a score this site invented.</p>
+      <p>Machine-readable feed: <a href="./feed.json">/bounties/feed.json</a> · <a href="/bounties.json">/bounties.json</a>. Listings also live in open GitHub issues, this browser’s localStorage, and shareable JSON links. <a href="https://github.com/Uuriko/dasha-desk" target="_blank" rel="noopener noreferrer">Uuriko/dasha-desk</a></p>
       <p><a href="/dasha">Desk</a> · <a href="/studio">Studio</a> · <a href="/">Home</a></p>
     </div>
   </footer>

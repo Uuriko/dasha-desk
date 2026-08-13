@@ -11,7 +11,7 @@ contact_links:
     about: Try the desk before proposing changes.
   - name: Bounties board
     url: https://www.getdasha.com/bounties/
-    about: List a project with your own bounty rules. Template: bounty-project.
+    about: List a GitHub issue/PR or a project with your own bounty rules. Template: bounty-project.
   - name: Site open-source section
     url: https://www.getdasha.com/#oss
     about: How Contribute on GitHub is framed on the public site.

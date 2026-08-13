@@ -1,31 +1,33 @@
-name: Bounty project listing
-description: Put a project on the dasha bounties board. You write the rules. This repo does not hold funds.
+name: Bounty listing
+description: Put a GitHub issue/PR or a whole project on the dasha bounties board. You write the rules. This repo does not hold funds.
 title: "[bounty] "
 labels: [bounty-project]
 body:
   - type: markdown
     attributes:
       value: |
-        This issue is the listing. The board at [getdasha.com/bounties](https://www.getdasha.com/bounties/) reads the JSON from **open** issues titled `[bounty] …` (and the `bounty-project` label when GitHub applies it).
+        This issue is the listing. The board at [getdasha.com/bounties](https://www.getdasha.com/bounties/) reads the JSON from **open** issues titled `[bounty] …` (and the `bounty-project` label when GitHub applies it). Agents can also GET [feed.json](https://www.getdasha.com/bounties/feed.json).
 
-        Write your own rules. The board renders them as you typed them. It does not rewrite them into a scoring formula.
+        `kind` is `"item"` (a specific GitHub issue or PR) or `"project"` (optional pool). Write your own rules. The board renders them as you typed them. `outcomes` need a GitHub PR, issue, or comment URL — no score without a link.
   - type: textarea
     id: listing
     attributes:
       label: Listing JSON
-      description: Keep this valid JSON. Skip contributor scores — those are fetched live only if you linked a public repo.
+      description: Keep this valid JSON. For an item bounty, set itemUrl. Skip fabricated outcomes.
       render: json
       value: |
         {
-          "name": "my project",
-          "repo": "owner/name",
-          "blurb": "",
-          "pool": { "amount": 50, "currency": "USD" },
+          "kind": "item",
+          "name": "Short title",
+          "itemUrl": "https://github.com/owner/name/issues/1",
+          "amount": 25,
+          "currency": "USD",
           "pays": "What you pay for.",
           "eligibility": "Who can collect.",
           "payout": "How you actually send it.",
           "rules": "Anything else, in your words.",
-          "wantScores": true
+          "createdAt": "2026-08-13T00:00:00.000Z",
+          "outcomes": []
         }
     validations:
       required: true

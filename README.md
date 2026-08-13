@@ -9,8 +9,9 @@ gallery, three formats, PNG and animated GIF out. No account or wallet.
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
 Jupiter route. [Use it ↗](https://www.getdasha.com/dasha)
 
-**[bounties/](bounties/)** — dasha bounties / the board: anybody lists a project and writes their own
-rules. Optional GitHub contributor counts. Declared bounties, not escrow.
+**[bounties/](bounties/)** — dasha bounties / the board: hunt a paid GitHub issue or list a
+project with your own rules. Machine-readable feed at
+[getdasha.com/bounties/feed.json](https://www.getdasha.com/bounties/feed.json). Declared bounties, not escrow.
 [Use it ↗](https://www.getdasha.com/bounties/)
 
 None of them connects a wallet or moves anything. Original drawings are public domain. Uploaded or

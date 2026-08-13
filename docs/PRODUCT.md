@@ -15,7 +15,7 @@
 ## Other static surfaces in this repo
 
 - **Studio** — local image tool, no account
-- **dasha bounties / the board** (`/bounties/`) — anybody can list a project and write their own bounty rules (pool, what pays, eligibility, payout). GitHub issues, this-device localStorage, and shareable JSON. Optional public GitHub contributor counts if they linked a repo. **Declared bounties, not escrow.** The board does not hold funds.
+- **dasha bounties / the board** (`/bounties/`) — anybody can list a GitHub issue/PR or a whole project and write their own bounty rules. Static JSON feed at `/bounties/feed.json` and `/bounties.json`. GitHub issues, this-device localStorage, and shareable JSON. Accepted outcomes need a GitHub proof URL. **Declared bounties, not escrow.** The board does not hold funds.
 
 ## Non-goals
 
@@ -34,7 +34,7 @@
 | **dasha desk** | This open-source product |
 | **$dasha** | The token (mint in config) |
 | **@dash_eats** | Public X account referenced by quotes/links |
-| **dasha bounties / the board** | Bulletin board for owner-written project bounties |
+| **dasha bounties / the board** | Bulletin board for owner-written issue and project bounties |
 
 ## Version
 
@@ -42,4 +42,4 @@
 
 ## Product boundary
 
-Dasha Desk is the live coin/source/community landing product. Thesis, receipt and forecasting products are permanently retired and are not part of Dasha. The bounties board is a separate static page: owners write their own rules; listings come from a seed file, open GitHub issues, localStorage, and shareable JSON. GitHub contributor counts are optional. No payout execution.
+Dasha Desk is the live coin/source/community landing product. Thesis, receipt and forecasting products are permanently retired and are not part of Dasha. The bounties board is a separate static page: owners write their own rules for a GitHub item or a project; listings come from a JSON feed, open GitHub issues, localStorage, and shareable JSON. Outcomes must link a GitHub PR, issue, or comment. No payout execution.
