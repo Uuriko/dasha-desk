@@ -1,13 +1,13 @@
 ---
 status: canonical
 canonical_for: culture-and-claims
-last_verified: 2026-08-13
+last_verified: 2026-08-14
 ---
 
 # Dasha bible — culture, design, product truth
 
-**Updated:** 2026-08-13  
-**Owner surfaces:** getdasha.com · `/` · `/studio` · lobby.getdasha.com · `/dasha` · `/bounties` · `/how-to-buy` · `dasha-landing.html` · `dasha-desk` · `dasha-meme-studio.html` · `dasha-how-to-buy.html`  
+**Updated:** 2026-08-14  
+**Owner surfaces:** getdasha.com · `/` · `/lobby` · `/studio` · lobby.getdasha.com · `/dasha` · `/desk` → `/dasha` · `/bounties` · `/privacy` · `/how-to-buy` · `dasha-landing.html` · `dasha-desk` · `dasha-meme-studio.html` · `dasha-how-to-buy.html`  
 **Hard rule:** **Association is not endorsement.** Public posts ≠ brand deal, safety, or legal control of any mint.
 
 This doc is the shared design + culture spine for agents and humans shipping getdasha. Prefer primary sources linked below over vibes.
@@ -214,11 +214,13 @@ Use these as **aesthetic references**, not product pledges:
 
 | Surface | Job | Culture hooks |
 |---------|-----|----------------|
-| Home `/` | Entry: Studio, Lobby, Board, mint and buy. Acid band/ticker required and live. | Sparse. One optional culture still max. `@dash_eats` in nav, not only footer. |
-| Studio `/studio` | Meme and image editor | Procedural looks plus local upload and a sourced Dasha image gallery |
-| Lobby `lobby.getdasha.com` | Simp Board + GitHub/X OAuth for board identity | Few clicks. No promises. Not Demigod status/black-hole. |
-| Desk `/dasha` | Mint, chart, neutral share pack | Five tokens only — not lavender glass. Source-linked culture stills and token references. |
+| Home `/` | Ticker + one H1 + Studio CTA + mint/buy + one optional culture still. **No Simp.** Live still has `#simp` until the paste. Quiz pills already gone (0 hits, 2026-08-13 ~20:19 ET). | Sparse. `@dash_eats` in nav. `#simp` sends to `/lobby`. |
+| Studio `/studio` | Meme and image editor. Live 200. | Procedural looks plus local upload and a sourced Dasha image gallery |
+| Lobby `/lobby` | Simp Board (quiz that ships inside the board client). Live 200. Forum remains `lobby.getdasha.com/forum`. | Few clicks. No promises. Not Demigod status/black-hole. |
+| Desk `/dasha` | Mint, chart, neutral share pack. `/desk` goes here. | Five tokens only — not lavender glass. Source-linked culture stills and token references. |
 | Board `/bounties` | **First-class.** Anybody with GitHub can list or claim a USDC bounty on Solana. Native mount — iframe is not the product. | GitHub required to list/claim. X optional (same lobby session as Simp Board). USDC declared. We don't hold it. Require `payTo`. Solana Pay URL must include a `reference`. |
+| Privacy `/privacy` | What the browser stores. No wallet. We don't hold it. | Minimal. No Telegram. |
+| 404 | Branded miss page in the five tokens | Not the generic host 404 |
 | How-to-buy `/how-to-buy` | Live edge-served buy ladder | Source post + `@dash_eats` in nav, not only footer |
 
 Board is not a widget on Home. Ship it as its own route with `bounties/board.css` tokens.
@@ -261,6 +263,7 @@ Dropped 2026-08-13: “≥4 culture images on home.” That gate produced a like
 | 2026-08-08 | Internet bio sweep | Wikipedia, Vulture, Red Scare Cut, Spotify |
 | 2026-08-08 | Site wiring | Home tape + @dash_eats nav; desk avatar→pbs; studio/howto X links |
 | 2026-08-13 | Visual-spine overhaul | Board first-class; ticker required; likeness out of the mark; Desk must match landing tokens; GitHub-soon honesty |
+| 2026-08-13 ~20:19 ET | Live curl (www) | `/` 200 + Simp still on home, quiz 0 hits; `/lobby` `/bounties` `/studio` `/dasha` 200; `/privacy` `/desk` 404; `/bounties.json` 200 edge feed; apex 301 → www; unknown paths real host 404s |
 
 ---
 

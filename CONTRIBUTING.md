@@ -56,7 +56,7 @@ For a larger idea, [open an issue](https://github.com/Uuriko/dasha-desk/issues/n
 ## What the `impact:` labels mean
 
 Issues carry an `impact:` label, and it is not decoration. A merged pull request scores points on the
-public [Simp Board](https://www.getdasha.com/#simp):
+public [Simp Board](https://www.getdasha.com/lobby):
 
 | Label | Points |
 |---|---:|

@@ -152,16 +152,41 @@
     return m && isSolanaAddress(m[0]) ? m[0] : '';
   }
 
-  function solanaPayUrl(amount, payTo, label) {
+  var B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+  function payReference(seed) {
+    var s = String(seed || '');
+    var out = '';
+    var i;
+    if (s) {
+      for (i = 0; i < 32; i++) out += B58[(s.charCodeAt(i % s.length) + i * 17) % 58];
+      return out;
+    }
+    for (i = 0; i < 32; i++) {
+      var n = 7;
+      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        var b = new Uint8Array(1);
+        crypto.getRandomValues(b);
+        n = b[0];
+      }
+      out += B58[n % 58];
+    }
+    return out;
+  }
+
+  function solanaPayUrl(amount, payTo, label, reference) {
     var dest = normalizePayTo(payTo);
     if (!dest) return '';
     var n = Number(amount);
     if (!Number.isFinite(n) || n < 0) return '';
+    var ref = String(reference || '').trim() || payReference(dest + '|' + n + '|' + (label || ''));
     var q =
       'amount=' +
       encodeURIComponent(String(n)) +
       '&spl-token=' +
-      encodeURIComponent(USDC_MINT);
+      encodeURIComponent(USDC_MINT) +
+      '&reference=' +
+      encodeURIComponent(ref);
     if (label) q += '&label=' + encodeURIComponent(String(label));
     return 'solana:' + dest + '?' + q;
   }
@@ -694,14 +719,18 @@
     var amount = null;
     var currency = CURRENCY;
     var pool = null;
-    if (amountRaw !== '' && amountRaw != null) {
-      amount = Number(amountRaw);
-      if (!Number.isFinite(amount)) {
-        return { ok: false, error: 'Amount must be a number, or left blank.' };
-      }
-      if (!item) pool = { amount: amount, currency: currency };
+    if (amountRaw === '' || amountRaw == null) {
+      return { ok: false, error: 'USDC amount is required.' };
     }
+    amount = Number(amountRaw);
+    if (!Number.isFinite(amount)) {
+      return { ok: false, error: 'USDC amount must be a number.' };
+    }
+    if (!item) pool = { amount: amount, currency: currency };
     var payTo = normalizePayTo((fields && (fields.payTo || fields.payout)) || '');
+    if (!payTo) {
+      return { ok: false, error: 'Pay to is required.' };
+    }
     var gh = githubLoginOf((identity && identity.github) || (fields && fields.github));
     var xh = xHandleOf((identity && identity.x) || (fields && fields.x));
     var listing = normalizeListing(

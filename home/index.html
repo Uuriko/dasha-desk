@@ -39,10 +39,15 @@
   .ticker{
     overflow:hidden;border-bottom:1px solid var(--line);
     background:var(--acid);color:var(--ink);
+  }
+  .ticker p{
+    display:flex;width:max-content;margin:0;
+    animation:dasha-ticker 22s linear infinite;
     font-family:"Arial Black",Arial,Helvetica,sans-serif;
     font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:12px;
   }
-  .ticker p{margin:0;padding:10px 16px;white-space:nowrap}
+  .ticker span{padding:10px 24px 10px 0;white-space:nowrap}
+  @keyframes dasha-ticker{to{transform:translateX(-50%)}}
   .wrap{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:28px 0 48px}
   h1{
     margin:0 0 18px;font-size:clamp(42px,12vw,88px);line-height:.82;
@@ -71,12 +76,31 @@
   .buy:hover{color:var(--acid)}
   .still{
     margin-top:22px;display:block;width:120px;border:1px solid var(--line);
-    box-shadow:4px 4px 0 var(--hot);background:var(--ink);
+    box-shadow:4px 4px 0 var(--hot);background:var(--ink);text-decoration:none;color:inherit;
   }
   .still img{display:block;width:120px;height:120px;object-fit:cover}
+  .still figcaption{margin:8px 0 0;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.04em}
+  .foot{
+    width:min(1120px,calc(100% - 32px));margin:0 auto;
+    padding:0 0 28px;color:var(--muted);font-size:12px;font-weight:800;
+  }
+  .foot a{color:var(--paper);text-underline-offset:3px}
   :focus-visible{outline:3px solid var(--acid);outline-offset:3px}
-  @media(max-width:520px){.wrap,.nav{width:min(1120px,calc(100% - 24px))}h1{font-size:clamp(36px,16vw,64px)}}
+  @media(prefers-reduced-motion:reduce){.ticker p{animation:none}.cta:hover{transform:none}}
+  @media(max-width:520px){.wrap,.nav,.foot{width:min(1120px,calc(100% - 24px))}h1{font-size:clamp(36px,16vw,64px)}}
 </style>
+<script>
+(function(){
+  try{
+    var q=new URLSearchParams(location.search);
+    var quiz=String(q.get('quiz')||q.get('start')||'').toLowerCase();
+    var h=String(location.hash||'').replace(/^#/,'').toLowerCase();
+    if(quiz==='1'||quiz==='start'||quiz==='true'||h==='simp'||h==='quiz'||h==='simp-quiz'){
+      location.replace('https://www.getdasha.com/lobby'+location.search+location.hash);
+    }
+  }catch(e){}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#go">Skip to make something</a>
@@ -84,10 +108,17 @@
   <a class="brand" href="https://www.getdasha.com/">$<span>DASHA</span></a>
   <a href="https://www.getdasha.com/" aria-current="page">Home</a>
   <a href="https://www.getdasha.com/studio">Studio</a>
+  <a href="https://www.getdasha.com/lobby">Lobby</a>
   <a href="https://www.getdasha.com/bounties">Bounties</a>
   <a href="https://www.getdasha.com/dasha">Desk</a>
+  <a href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer">@dash_eats</a>
 </nav>
-<div class="ticker" role="note"><p>$DASHA · 53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump · SOLANA</p></div>
+<div class="ticker" role="note">
+  <p>
+    <span>$DASHA · 53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump · SOLANA · IT’S TIME · CMON · </span>
+    <span aria-hidden="true">$DASHA · 53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump · SOLANA · IT’S TIME · CMON · </span>
+  </p>
+</div>
 <main class="wrap">
   <h1>It’s time $dasha.</h1>
   <a class="cta" id="go" href="https://www.getdasha.com/studio">Make something</a>
@@ -95,9 +126,13 @@
     <code class="ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
     <a class="buy" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&amp;buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump" target="_blank" rel="noopener noreferrer">Buy $dasha ↗</a>
   </p>
-  <a class="still" href="https://www.getdasha.com/studio" aria-label="Open Studio">
-    <img src="https://ipfs.io/ipfs/Qmb4fcJYbM1RSU43bvNPwUjhwGXK42L9xGvjEEijmWtAcg" alt="$dasha token art" width="120" height="120" loading="lazy"/>
-  </a>
+  <figure class="still">
+    <a href="https://x.com/dash_eats/status/2072126740206375093" target="_blank" rel="noopener noreferrer" aria-label="Open the @dash_eats still on X">
+      <img src="https://pbs.twimg.com/media/HMGsRZ8XgAEEPrS.jpg" alt="Public still from @dash_eats" width="120" height="120" loading="lazy" referrerpolicy="no-referrer"/>
+    </a>
+    <figcaption>@dash_eats. Not endorsement.</figcaption>
+  </figure>
 </main>
+<p class="foot"><a href="https://www.getdasha.com/privacy">Privacy</a></p>
 </body>
 </html>

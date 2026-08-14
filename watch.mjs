@@ -90,7 +90,7 @@ for (const route of ['/', '/studio', '/dasha', '/how-to-buy', '/bounties']) {
 
   if (route === '/') {
     warn(!/simp-board|simp-row|Simp board/i.test(html), `${route}: Simp board is Lobby, not Home`);
-    warn(!/START QUIZ|LET'S GO/i.test(html), `${route}: quiz pills are Lobby, not Home`);
+    warn(!/START QUIZ|LET'S GO/i.test(html), `${route}: quiz pills came back — they were already gone`);
     warn((html.match(/<h1[\s>]/gi) || []).length <= 1, `${route}: Home should have one H1`);
   }
   if (route === '/studio') {
@@ -176,6 +176,15 @@ for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio
   } else {
     fail(html.includes(MINT), `${label}: the mint is not shown`);
   }
+}
+
+for (const [label, url] of [['pages /lobby/', PAGES + 'lobby/'], ['pages /privacy/', PAGES + 'privacy/']]) {
+  const res = await get(url);
+  warn(res.ok, `${label}: unreachable until Pages deploys this tree`);
+  if (!res.ok) continue;
+  const html = await res.text();
+  if (label.includes('lobby')) warn(/dasha-simp-board|simp-board/i.test(html), `${label}: Simp board is missing`);
+  if (label.includes('privacy')) warn(/we don't hold it/i.test(html), `${label}: lost the no-custody line`);
 }
 
 /* ---- freshness ------------------------------------------------------------------
@@ -264,6 +273,61 @@ for (const [label, url] of [['home', ORIGIN + '/'], ['lobby', ORIGIN + '/lobby']
           `price: serving a reading ${Math.round(age / 60000)} minutes old — the chart is showing a stale number as current`);
       }
     }
+  }
+}
+
+{
+  const feed = await get(ORIGIN + '/bounties.json');
+  if (!feed.ok) warn(false, '/bounties.json: unreachable');
+  else {
+    const text = await feed.text();
+    warn(/dasha-bounties-feed/.test(text), '/bounties.json: reachable but not the listings feed');
+  }
+}
+
+{
+  let apex;
+  try {
+    apex = await fetch('https://getdasha.com/', { redirect: 'manual', headers: { 'user-agent': 'dasha-watch' } });
+  } catch { apex = null; }
+  const loc = apex && apex.headers && apex.headers.get('location') || '';
+  warn(apex && apex.status === 301 && /www\.getdasha\.com/.test(loc), 'apex getdasha.com should 301 to www');
+}
+
+{
+  const privacy = await get(ORIGIN + '/privacy');
+  const privacyHtml = privacy.ok ? await privacy.text() : '';
+  warn(privacy.ok && !/404 - Page not found/i.test(privacyHtml), '/privacy: missing or still the host 404 — paste privacy/index.html');
+}
+
+{
+  let desk;
+  try {
+    desk = await fetch(ORIGIN + '/desk', { redirect: 'manual', headers: { 'user-agent': 'dasha-watch' } });
+  } catch { desk = null; }
+  const loc = desk && desk.headers && desk.headers.get('location') || '';
+  const followed = await get(ORIGIN + '/desk');
+  const deskHtml = followed.ok ? await followed.text() : '';
+  warn(
+    (desk && (desk.status === 301 || desk.status === 302) && /\/dasha/.test(loc)) ||
+      (followed.ok && /dd-app|Check the mint/i.test(deskHtml)),
+    '/desk should go to /dasha — paste desk/index.html or set a 301',
+  );
+}
+
+{
+  const lobby = await get(ORIGIN + '/lobby');
+  if (lobby.ok) {
+    const html = await lobby.text();
+    warn(/dasha-simp-board|simp-board/i.test(html), '/lobby: Simp paste is not live yet');
+  }
+}
+
+{
+  const miss = await get(ORIGIN + '/not-a-dasha-page-404-check');
+  if (!miss.ok) {
+    const html = await miss.text();
+    warn(/This page isn’t here|This page isn't here|#070608/.test(html), '404: still the generic host page — paste 404.html');
   }
 }
 

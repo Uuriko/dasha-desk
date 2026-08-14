@@ -7,17 +7,22 @@ gallery, three formats, PNG and animated GIF out. No account or wallet.
 [Use it ↗](https://www.getdasha.com/studio)
 
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
-Jupiter route. Live URL is `/dasha` — [Use it ↗](https://www.getdasha.com/dasha). `/desk` is not a route and returns a true HTTP 404 (Webflow 404 page). Do not link it; there is no redirect.
+Jupiter route. Live URL is `/dasha` — [Use it ↗](https://www.getdasha.com/dasha). `/desk` goes to `/dasha`.
 
 **[bounties/](bounties/)** — USDC bounties on Solana. GitHub connect is coming (lobby
 `/oauth/github/status` is `configured: false` until worker secrets exist); listings still
-open as GitHub issues. X is optional (same lobby session as Simp Board). Canonical feed:
-[uuriko.github.io/dasha-desk/bounties.json](https://uuriko.github.io/dasha-desk/bounties.json)
-([feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json),
+open as GitHub issues. X is optional (same lobby session as Simp Board). Canonical feed (live, `x-dasha-edge: bounties-feed`, curled 2026-08-13 ~20:19 ET):
+[www.getdasha.com/bounties.json](https://www.getdasha.com/bounties.json)
+([Pages](https://uuriko.github.io/dasha-desk/bounties.json),
+[feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json),
 [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)).
-www.getdasha.com/bounties.json is a Webflow pretty-URL trap unless the lobby edge proxies it.
 We don't hold it.
 [Use it ↗](https://www.getdasha.com/bounties)
+
+**lobby** — Simp board lives on `/lobby`, not on `/`. Live home still has `#simp` until the Home paste lands. Quiz pills are already gone from `/` (0 hits).
+[Use it ↗](https://www.getdasha.com/lobby)
+
+**privacy** — [www.getdasha.com/privacy](https://www.getdasha.com/privacy)
 
 None of them connects a wallet or moves anything. Original drawings are public domain. Uploaded or
 externally sourced images keep their own rights.
@@ -40,7 +45,7 @@ This is **code and docs contribution** to the public MIT repo — not a payment,
 
 Also: [Ideas welcome (#7)](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions) · [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
 
-Merged pull requests score points on the public [Simp Board](https://www.getdasha.com/#simp), sized by
+Merged pull requests score points on the public [Simp Board](https://www.getdasha.com/lobby), sized by
 the issue's `impact:` label — [how that works](CONTRIBUTING.md#what-the-impact-labels-mean). Points are
 recognition on a page, not a payment or a token allocation. You never need points to open a PR.
 
@@ -63,12 +68,15 @@ CI runs the complete build, mint, share, docs, and browser-resilience gate on ev
 git clone https://github.com/Uuriko/dasha-desk.git
 cd dasha-desk
 python3 -m http.server 8766
-# → http://127.0.0.1:8766/
+# → http://127.0.0.1:8766/           desk (GitHub Pages root)
+# → http://127.0.0.1:8766/home/
+# → http://127.0.0.1:8766/lobby/
 # → http://127.0.0.1:8766/bounties/
+# → http://127.0.0.1:8766/privacy/
 # → http://127.0.0.1:8766/studio/
 ```
 
-Production desk is `/dasha`, not `/desk`. `https://www.getdasha.com/desk` 404s on purpose.
+Production desk is `/dasha`. `/desk` goes to `/dasha`.
 
 After changing sources:
 

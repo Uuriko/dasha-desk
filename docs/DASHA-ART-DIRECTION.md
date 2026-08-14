@@ -1,7 +1,7 @@
 ---
 status: canonical
 canonical_for: visual
-last_verified: 2026-08-13
+last_verified: 2026-08-14
 ---
 
 # Dasha art direction
@@ -67,10 +67,12 @@ Helvetica 900**, uppercase. Violet is never type.
 
 A soft shadow is a bug. `0 8px 24px` is a bug. `backdrop-filter` as the look is a bug.
 
-Webflow pastes from this repo: Home is `home/index.html` (ticker, one H1, one Studio CTA, mint +
-buy, optional still — no Simp board). Studio is `studio/loader.html` or `studio/index.html` (paper
-H1 on ink, drop `.dgnav`). Bounties is `bounties/app.html` as an HTML embed, not an iframe; empty
-state is “We don't hold it.” plus the list form. Desk is `src/app.html`.
+Webflow pastes from this repo: Home is `home/index.html` (live ticker, one H1, one Studio CTA, mint +
+buy, one still — no Simp board). Lobby is `lobby/index.html` (Simp). Studio is
+`studio/loader.html` or `studio/index.html` (paper H1 on ink, drop `.dgnav`). Bounties is
+`bounties/app.html` as an HTML embed, not an iframe; empty state is “We don't hold it.” plus the
+list form. Privacy is `privacy/index.html`. Desk is `src/app.html` on `/dasha`; `/desk` is
+`desk/index.html` (redirect). 404 is `404.html`.
 
 ### Type
 
