@@ -38,7 +38,12 @@ assert.match(html, />GitHub soon</);
 assert.match(html, /href="https:\/\/lobby\.getdasha\.com\/oauth\/github\/start"/);
 assert.match(html, /href="https:\/\/lobby\.getdasha\.com\/oauth\/x\/start"/);
 assert.match(html, /href="https:\/\/www\.getdasha\.com\/studio"/);
+assert.match(html, /href="https:\/\/www\.getdasha\.com\/lobby"/);
 assert.match(html, /href="https:\/\/www\.getdasha\.com\/bounties"/);
+assert.match(html, /href="https:\/\/www\.getdasha\.com\/dasha"/);
+assert.match(html, /href="https:\/\/x\.com\/dash_eats"/);
+assert.match(html, /id="bb-payto"[^>]*required/);
+assert.match(html, /id="bb-amount"[^>]*required/);
 assert.doesNotMatch(html, /href="\/studio"/);
 assert.doesNotMatch(html, /href="\/bounties\/"/);
 assert.equal(B.githubCtaLabel(false), 'GitHub soon');
@@ -87,15 +92,14 @@ assert.match(js, /oauth\/x\/start/);
 assert.match(js, /simp\/me/);
 
 const SYS = '11111111111111111111111111111111';
-assert.equal(
-  B.solanaPayUrl(25, SYS, 'docs'),
-  'solana:' + SYS + '?amount=25&spl-token=' + B.USDC_MINT + '&label=docs',
-);
+const payUrl = B.solanaPayUrl(25, SYS, 'docs');
+assert.match(payUrl, new RegExp('^solana:' + SYS + '\\?amount=25&spl-token=' + B.USDC_MINT + '&reference=[1-9A-HJ-NP-Za-km-z]{32,44}&label=docs$'));
+assert.equal(B.solanaPayUrl(25, SYS, 'docs'), payUrl);
 assert.equal(B.solanaPayUrl(25, '', 'docs'), '');
 assert.equal(B.solanaPayUrl('nope', SYS, 'docs'), '');
 assert.equal(
-  B.phantomBrowseUrl(B.solanaPayUrl(25, SYS, 'docs')),
-  'https://phantom.app/ul/browse/' + encodeURIComponent(B.solanaPayUrl(25, SYS, 'docs')),
+  B.phantomBrowseUrl(payUrl),
+  'https://phantom.app/ul/browse/' + encodeURIComponent(payUrl),
 );
 assert.equal(B.normalizePayTo('solana:' + SYS + '?amount=1'), SYS);
 assert.equal(B.payClipboardText({ amount: 25 }), '25 USDC Solana');
@@ -290,11 +294,44 @@ assert.equal(B.buildIssueUrl({ kind: 'project', name: 'Zine' }).ok, false);
 assert.equal(B.buildIssueUrl({ kind: 'item', itemUrl: 'https://example.com/nope' }).ok, false);
 assert.equal(B.buildIssueUrl({ repo: 'nope' }).ok, false);
 assert.equal(B.buildIssueUrl({}).ok, false);
+assert.equal(
+  B.buildIssueUrl({
+    kind: 'item',
+    itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8',
+    amount: '25',
+  }).ok,
+  false,
+);
+assert.match(
+  B.buildIssueUrl({
+    kind: 'item',
+    itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8',
+    amount: '25',
+  }).error,
+  /pay to/i,
+);
+assert.equal(
+  B.buildIssueUrl({
+    kind: 'item',
+    itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8',
+    payTo: SYS,
+  }).ok,
+  false,
+);
+assert.match(
+  B.buildIssueUrl({
+    kind: 'item',
+    itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8',
+    payTo: SYS,
+  }).error,
+  /USDC/i,
+);
 
 const itemForm = B.buildIssueUrl({
   kind: 'item',
   itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8',
   amount: '25',
+  payTo: SYS,
 });
 assert.equal(itemForm.ok, true);
 const itemListing = JSON.parse(new URL(itemForm.url).searchParams.get('listing'));

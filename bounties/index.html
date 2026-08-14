@@ -35,7 +35,10 @@
     <a class="bb-brand" href="https://www.getdasha.com/">$<span>DASHA</span></a>
     <a href="https://www.getdasha.com/">Home</a>
     <a href="https://www.getdasha.com/studio">Studio</a>
+    <a href="https://www.getdasha.com/lobby">Lobby</a>
     <a href="https://www.getdasha.com/bounties" aria-current="page">Bounties</a>
+    <a href="https://www.getdasha.com/dasha">Desk</a>
+    <a href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer">@dash_eats</a>
   </nav>
 
   <div class="bb-shell">
@@ -70,9 +73,9 @@
         <label class="bb-label" for="bb-item">GitHub URL</label>
         <input class="bb-input" id="bb-item" name="itemUrl" type="url" spellcheck="false" autocomplete="off" placeholder="https://github.com/owner/name" inputmode="url"/>
         <label class="bb-label" for="bb-amount">USDC</label>
-        <input class="bb-input" id="bb-amount" name="amount" type="number" inputmode="decimal" step="any" min="0" placeholder="25"/>
+        <input class="bb-input" id="bb-amount" name="amount" type="number" inputmode="decimal" step="any" min="0" placeholder="25" required/>
         <label class="bb-label" for="bb-payto">Pay to</label>
-        <input class="bb-input" id="bb-payto" name="payTo" type="text" spellcheck="false" autocomplete="off" placeholder="Solana address"/>
+        <input class="bb-input" id="bb-payto" name="payTo" type="text" spellcheck="false" autocomplete="off" placeholder="Solana address" required/>
         <p class="bb-error" id="bb-form-error" role="alert" hidden></p>
         <div class="bb-actions">
           <button type="submit" class="bb-btn bb-btn-primary" id="bb-list">List</button>

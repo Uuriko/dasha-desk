@@ -32,7 +32,9 @@ assert.match(readme, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'README must
 assert.match(readme, /\$dasha|dasha/i, 'README must name the product');
 assert.match(readme, /src\/body\.html|src\/app\.js|generated/i, 'README should point at sources or generated surfaces');
 assert.match(readme, /getdasha\.com\/dasha/, 'README must link live desk');
-assert.match(readme, /`\/desk` is not a route/, 'README must say /desk is not a route');
+assert.match(readme, /`\/desk` (goes to|redirects to) `\/dasha`/, 'README must say /desk goes to /dasha');
+assert.match(readme, /getdasha\.com\/lobby/, 'README must link lobby');
+assert.match(readme, /getdasha\.com\/privacy/, 'README must link privacy');
 assert.match(readme, /getdasha\.com\/bounties/, 'README must link the bounties board');
 assert.match(readme, /getdasha\.com\/#oss/, 'README must link site open-source section');
 assert.match(readme, /desk-demo\.(gif|png)/, 'README must embed demo visual');

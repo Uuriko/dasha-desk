@@ -7,7 +7,9 @@ const js = await read('./src/app.js');
 const standaloneBody = body
   .replaceAll('href="/studio"', 'href="https://www.getdasha.com/studio"')
   .replaceAll('href="/dasha"', 'href="https://www.getdasha.com/dasha"')
+  .replaceAll('href="/lobby"', 'href="https://www.getdasha.com/lobby"')
   .replaceAll('href="/bounties"', 'href="https://www.getdasha.com/bounties"')
+  .replaceAll('href="/privacy"', 'href="https://www.getdasha.com/privacy"')
   .replaceAll('href="/"', 'href="https://www.getdasha.com/"');
 
 const meta = `<!DOCTYPE html>

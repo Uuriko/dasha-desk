@@ -222,7 +222,10 @@ html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);min-height
     <a class="bb-brand" href="https://www.getdasha.com/">$<span>DASHA</span></a>
     <a href="https://www.getdasha.com/">Home</a>
     <a href="https://www.getdasha.com/studio">Studio</a>
+    <a href="https://www.getdasha.com/lobby">Lobby</a>
     <a href="https://www.getdasha.com/bounties" aria-current="page">Bounties</a>
+    <a href="https://www.getdasha.com/dasha">Desk</a>
+    <a href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer">@dash_eats</a>
   </nav>
 
   <div class="bb-shell">
@@ -257,9 +260,9 @@ html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);min-height
         <label class="bb-label" for="bb-item">GitHub URL</label>
         <input class="bb-input" id="bb-item" name="itemUrl" type="url" spellcheck="false" autocomplete="off" placeholder="https://github.com/owner/name" inputmode="url"/>
         <label class="bb-label" for="bb-amount">USDC</label>
-        <input class="bb-input" id="bb-amount" name="amount" type="number" inputmode="decimal" step="any" min="0" placeholder="25"/>
+        <input class="bb-input" id="bb-amount" name="amount" type="number" inputmode="decimal" step="any" min="0" placeholder="25" required/>
         <label class="bb-label" for="bb-payto">Pay to</label>
-        <input class="bb-input" id="bb-payto" name="payTo" type="text" spellcheck="false" autocomplete="off" placeholder="Solana address"/>
+        <input class="bb-input" id="bb-payto" name="payTo" type="text" spellcheck="false" autocomplete="off" placeholder="Solana address" required/>
         <p class="bb-error" id="bb-form-error" role="alert" hidden></p>
         <div class="bb-actions">
           <button type="submit" class="bb-btn bb-btn-primary" id="bb-list">List</button>
@@ -429,16 +432,41 @@ html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);min-height
     return m && isSolanaAddress(m[0]) ? m[0] : '';
   }
 
-  function solanaPayUrl(amount, payTo, label) {
+  var B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+  function payReference(seed) {
+    var s = String(seed || '');
+    var out = '';
+    var i;
+    if (s) {
+      for (i = 0; i < 32; i++) out += B58[(s.charCodeAt(i % s.length) + i * 17) % 58];
+      return out;
+    }
+    for (i = 0; i < 32; i++) {
+      var n = 7;
+      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+        var b = new Uint8Array(1);
+        crypto.getRandomValues(b);
+        n = b[0];
+      }
+      out += B58[n % 58];
+    }
+    return out;
+  }
+
+  function solanaPayUrl(amount, payTo, label, reference) {
     var dest = normalizePayTo(payTo);
     if (!dest) return '';
     var n = Number(amount);
     if (!Number.isFinite(n) || n < 0) return '';
+    var ref = String(reference || '').trim() || payReference(dest + '|' + n + '|' + (label || ''));
     var q =
       'amount=' +
       encodeURIComponent(String(n)) +
       '&spl-token=' +
-      encodeURIComponent(USDC_MINT);
+      encodeURIComponent(USDC_MINT) +
+      '&reference=' +
+      encodeURIComponent(ref);
     if (label) q += '&label=' + encodeURIComponent(String(label));
     return 'solana:' + dest + '?' + q;
   }
@@ -971,14 +999,18 @@ html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);min-height
     var amount = null;
     var currency = CURRENCY;
     var pool = null;
-    if (amountRaw !== '' && amountRaw != null) {
-      amount = Number(amountRaw);
-      if (!Number.isFinite(amount)) {
-        return { ok: false, error: 'Amount must be a number, or left blank.' };
-      }
-      if (!item) pool = { amount: amount, currency: currency };
+    if (amountRaw === '' || amountRaw == null) {
+      return { ok: false, error: 'USDC amount is required.' };
     }
+    amount = Number(amountRaw);
+    if (!Number.isFinite(amount)) {
+      return { ok: false, error: 'USDC amount must be a number.' };
+    }
+    if (!item) pool = { amount: amount, currency: currency };
     var payTo = normalizePayTo((fields && (fields.payTo || fields.payout)) || '');
+    if (!payTo) {
+      return { ok: false, error: 'Pay to is required.' };
+    }
     var gh = githubLoginOf((identity && identity.github) || (fields && fields.github));
     var xh = xHandleOf((identity && identity.x) || (fields && fields.x));
     var listing = normalizeListing(

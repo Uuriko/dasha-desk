@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>$dasha privacy</title>
+<meta name="description" content="What getdasha.com stores. No wallet. We don't hold it."/>
+<link rel="canonical" href="https://www.getdasha.com/privacy"/>
+<link rel="icon" type="image/png" sizes="32x32" href="https://cdn.prod.website-files.com/5f1458122ba25e70a3ff2bd0/6a767a48e1dd29d210f01235_dasha-icon-32.png"/>
+<meta name="theme-color" content="#070608"/>
+<style>
+  :root{--ink:#070608;--paper:#f4eddb;--acid:#dfff00;--hot:#ff3b81;--violet:#7c4dff;--line:rgba(244,237,219,.32);--muted:#e6dcc4}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);min-height:100%}
+  body{
+    font-family:Arial,Helvetica,sans-serif;
+    background-image:radial-gradient(circle at 82% 4%,rgba(124,77,255,.22),transparent 28rem);
+  }
+  .skip{position:absolute;left:-999px;top:8px;z-index:20;background:var(--acid);color:var(--ink);font-weight:900;padding:8px 12px;text-transform:uppercase;text-decoration:none}
+  .skip:focus{left:8px}
+  .nav{
+    width:min(1120px,calc(100% - 32px));min-height:56px;margin:0 auto;
+    display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+    border-bottom:1px solid var(--line);padding:6px 0;
+  }
+  .brand{
+    margin-right:auto;min-height:44px;display:inline-flex;align-items:center;
+    color:var(--paper);font-size:17px;font-weight:900;letter-spacing:-.05em;
+    text-decoration:none;text-transform:uppercase;
+    font-family:"Arial Black",Arial,Helvetica,sans-serif;
+  }
+  .brand span{color:var(--acid)}
+  .nav>a:not(.brand){
+    color:var(--paper);font-size:12px;font-weight:900;letter-spacing:.06em;
+    text-decoration:none;text-transform:uppercase;min-width:44px;min-height:44px;
+    padding-inline:6px;display:inline-flex;align-items:center;justify-content:center;
+  }
+  .nav>a[aria-current="page"]{color:var(--acid)}
+  .wrap{width:min(720px,calc(100% - 32px));margin:0 auto;padding:28px 0 48px}
+  h1{
+    margin:0 0 18px;font-size:clamp(42px,12vw,88px);line-height:.82;
+    letter-spacing:-.05em;font-weight:900;text-transform:uppercase;color:var(--paper);
+    font-family:"Arial Black",Arial,Helvetica,sans-serif;
+  }
+  h2{
+    margin:28px 0 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:900;
+  }
+  p,li{margin:0 0 12px;max-width:46ch;color:var(--paper);line-height:1.4;font-weight:700}
+  ul{margin:0 0 12px;padding-left:1.2em}
+  a{color:var(--acid)}
+  :focus-visible{outline:3px solid var(--acid);outline-offset:3px}
+  @media(max-width:520px){.wrap,.nav{width:min(1120px,calc(100% - 24px))}h1{font-size:clamp(36px,16vw,64px)}}
+</style>
+</head>
+<body>
+<a class="skip" href="#privacy">Skip to privacy</a>
+<nav class="nav" aria-label="Dasha">
+  <a class="brand" href="https://www.getdasha.com/">$<span>DASHA</span></a>
+  <a href="https://www.getdasha.com/">Home</a>
+  <a href="https://www.getdasha.com/studio">Studio</a>
+  <a href="https://www.getdasha.com/lobby">Lobby</a>
+  <a href="https://www.getdasha.com/bounties">Bounties</a>
+  <a href="https://www.getdasha.com/dasha">Desk</a>
+  <a href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer">@dash_eats</a>
+</nav>
+<main class="wrap" id="privacy">
+  <h1>Privacy</h1>
+  <p>Static pages. No wallet. We don't hold it.</p>
+  <h2>This device</h2>
+  <ul>
+    <li>Desk may remember the last mint you checked, in this browser only.</li>
+    <li>Bounties may keep drafts you save, in this browser only.</li>
+  </ul>
+  <h2>Connect</h2>
+  <p>GitHub is required to list or claim a bounty. X is optional. Both go through <a href="https://lobby.getdasha.com/">lobby.getdasha.com</a> — the same session as the Simp board.</p>
+  <h2>What we don't do</h2>
+  <p>No accounts on Desk or Studio. No custody. No mailing list.</p>
+  <h2>Contact</h2>
+  <p>Security reports: <a href="https://github.com/Uuriko/dasha-desk/security">GitHub security</a>.</p>
+</main>
+</body>
+</html>

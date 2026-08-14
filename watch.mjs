@@ -178,6 +178,15 @@ for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio
   }
 }
 
+for (const [label, url] of [['pages /lobby/', PAGES + 'lobby/'], ['pages /privacy/', PAGES + 'privacy/']]) {
+  const res = await get(url);
+  warn(res.ok, `${label}: unreachable until Pages deploys this tree`);
+  if (!res.ok) continue;
+  const html = await res.text();
+  if (label.includes('lobby')) warn(/dasha-simp-board|simp-board/i.test(html), `${label}: Simp board is missing`);
+  if (label.includes('privacy')) warn(/we don't hold it/i.test(html), `${label}: lost the no-custody line`);
+}
+
 /* ---- freshness ------------------------------------------------------------------
    Everything above asks "is it reachable and does it say the right things". None of it can see the
    failure that actually happened: the GitHub Pages deploy workflow broke, Pages froze, and for
@@ -264,6 +273,43 @@ for (const [label, url] of [['home', ORIGIN + '/'], ['lobby', ORIGIN + '/lobby']
           `price: serving a reading ${Math.round(age / 60000)} minutes old — the chart is showing a stale number as current`);
       }
     }
+  }
+}
+
+{
+  const privacy = await get(ORIGIN + '/privacy');
+  const privacyHtml = privacy.ok ? await privacy.text() : '';
+  warn(privacy.ok && !/404 - Page not found/i.test(privacyHtml), '/privacy: missing or still the host 404 — paste privacy/index.html');
+}
+
+{
+  let desk;
+  try {
+    desk = await fetch(ORIGIN + '/desk', { redirect: 'manual', headers: { 'user-agent': 'dasha-watch' } });
+  } catch { desk = null; }
+  const loc = desk && desk.headers && desk.headers.get('location') || '';
+  const followed = await get(ORIGIN + '/desk');
+  const deskHtml = followed.ok ? await followed.text() : '';
+  warn(
+    (desk && (desk.status === 301 || desk.status === 302) && /\/dasha/.test(loc)) ||
+      (followed.ok && /dd-app|Check the mint/i.test(deskHtml)),
+    '/desk should go to /dasha — paste desk/index.html or set a 301',
+  );
+}
+
+{
+  const lobby = await get(ORIGIN + '/lobby');
+  if (lobby.ok) {
+    const html = await lobby.text();
+    warn(/dasha-simp-board|simp-board/i.test(html), '/lobby: Simp/quiz paste is not live yet');
+  }
+}
+
+{
+  const miss = await get(ORIGIN + '/not-a-dasha-page-404-check');
+  if (!miss.ok) {
+    const html = await miss.text();
+    warn(/This page isn’t here|This page isn't here|#070608/.test(html), '404: still the generic host page — paste 404.html');
   }
 }
 
