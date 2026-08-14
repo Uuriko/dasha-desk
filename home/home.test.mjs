@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Home is band + one H1 + one Studio CTA + mint/buy + optional still.
- * Lobby (Simp board, quiz pills) does not belong on `/`.
+ * Simp board does not belong on `/`. Quiz pills are already gone from live home.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';

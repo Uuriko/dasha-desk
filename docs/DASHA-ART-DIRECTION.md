@@ -68,7 +68,7 @@ Helvetica 900**, uppercase. Violet is never type.
 A soft shadow is a bug. `0 8px 24px` is a bug. `backdrop-filter` as the look is a bug.
 
 Webflow pastes from this repo: Home is `home/index.html` (live ticker, one H1, one Studio CTA, mint +
-buy, one still — no Simp board). Lobby is `lobby/index.html` (Simp + quiz). Studio is
+buy, one still — no Simp board). Lobby is `lobby/index.html` (Simp). Studio is
 `studio/loader.html` or `studio/index.html` (paper H1 on ink, drop `.dgnav`). Bounties is
 `bounties/app.html` as an HTML embed, not an iframe; empty state is “We don't hold it.” plus the
 list form. Privacy is `privacy/index.html`. Desk is `src/app.html` on `/dasha`; `/desk` is

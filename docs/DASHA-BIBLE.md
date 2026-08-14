@@ -214,9 +214,9 @@ Use these as **aesthetic references**, not product pledges:
 
 | Surface | Job | Culture hooks |
 |---------|-----|----------------|
-| Home `/` | Ticker + one H1 + Studio CTA + mint/buy + one optional culture still. **No Simp/quiz.** | Sparse. `@dash_eats` in nav. Old `?quiz=1` / `#simp` send to `/lobby`. |
-| Studio `/studio` | Meme and image editor | Procedural looks plus local upload and a sourced Dasha image gallery |
-| Lobby `/lobby` | Simp Board + quiz. GitHub/X OAuth for board identity. Forum remains `lobby.getdasha.com/forum`. | Few clicks. No promises. Not Demigod status/black-hole. |
+| Home `/` | Ticker + one H1 + Studio CTA + mint/buy + one optional culture still. **No Simp.** Live still has `#simp` until the paste. Quiz pills already gone (0 hits, 2026-08-13 ~20:19 ET). | Sparse. `@dash_eats` in nav. `#simp` sends to `/lobby`. |
+| Studio `/studio` | Meme and image editor. Live 200. | Procedural looks plus local upload and a sourced Dasha image gallery |
+| Lobby `/lobby` | Simp Board (quiz that ships inside the board client). Live 200. Forum remains `lobby.getdasha.com/forum`. | Few clicks. No promises. Not Demigod status/black-hole. |
 | Desk `/dasha` | Mint, chart, neutral share pack. `/desk` goes here. | Five tokens only — not lavender glass. Source-linked culture stills and token references. |
 | Board `/bounties` | **First-class.** Anybody with GitHub can list or claim a USDC bounty on Solana. Native mount — iframe is not the product. | GitHub required to list/claim. X optional (same lobby session as Simp Board). USDC declared. We don't hold it. Require `payTo`. Solana Pay URL must include a `reference`. |
 | Privacy `/privacy` | What the browser stores. No wallet. We don't hold it. | Minimal. No Telegram. |
@@ -263,7 +263,7 @@ Dropped 2026-08-13: “≥4 culture images on home.” That gate produced a like
 | 2026-08-08 | Internet bio sweep | Wikipedia, Vulture, Red Scare Cut, Spotify |
 | 2026-08-08 | Site wiring | Home tape + @dash_eats nav; desk avatar→pbs; studio/howto X links |
 | 2026-08-13 | Visual-spine overhaul | Board first-class; ticker required; likeness out of the mark; Desk must match landing tokens; GitHub-soon honesty |
-| 2026-08-14 | Surface map | Home loses Simp/quiz; `/lobby` hosts them; `/privacy`; `/desk` → `/dasha`; branded 404 |
+| 2026-08-13 ~20:19 ET | Live curl (www) | `/` 200 + Simp still on home, quiz 0 hits; `/lobby` `/bounties` `/studio` `/dasha` 200; `/privacy` `/desk` 404; `/bounties.json` 200 edge feed; apex 301 → www; unknown paths real host 404s |
 
 ---
 

@@ -11,15 +11,15 @@ Jupiter route. Live URL is `/dasha` — [Use it ↗](https://www.getdasha.com/da
 
 **[bounties/](bounties/)** — USDC bounties on Solana. GitHub connect is coming (lobby
 `/oauth/github/status` is `configured: false` until worker secrets exist); listings still
-open as GitHub issues. X is optional (same lobby session as Simp Board). Canonical feed:
-[uuriko.github.io/dasha-desk/bounties.json](https://uuriko.github.io/dasha-desk/bounties.json)
-([feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json),
+open as GitHub issues. X is optional (same lobby session as Simp Board). Canonical feed (live, `x-dasha-edge: bounties-feed`, curled 2026-08-13 ~20:19 ET):
+[www.getdasha.com/bounties.json](https://www.getdasha.com/bounties.json)
+([Pages](https://uuriko.github.io/dasha-desk/bounties.json),
+[feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json),
 [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)).
-www.getdasha.com/bounties.json is a Webflow pretty-URL trap unless the lobby edge proxies it.
 We don't hold it.
 [Use it ↗](https://www.getdasha.com/bounties)
 
-**lobby** — Simp board and quiz live on `/lobby`, not on `/`.
+**lobby** — Simp board lives on `/lobby`, not on `/`. Live home still has `#simp` until the Home paste lands. Quiz pills are already gone from `/` (0 hits).
 [Use it ↗](https://www.getdasha.com/lobby)
 
 **privacy** — [www.getdasha.com/privacy](https://www.getdasha.com/privacy)
