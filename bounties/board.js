@@ -144,12 +144,19 @@
 
   function normalizePayTo(raw) {
     var s = String(raw || '').trim();
-    if (!s) return '';
+    if (!s) return null;
     var solana = s.match(/^solana:([1-9A-HJ-NP-Za-km-z]{32,44})/i);
     if (solana) return solana[1];
     if (isSolanaAddress(s)) return s;
     var m = s.match(/[1-9A-HJ-NP-Za-km-z]{32,44}/);
-    return m && isSolanaAddress(m[0]) ? m[0] : '';
+    return m && isSolanaAddress(m[0]) ? m[0] : null;
+  }
+
+  function payRail(listing) {
+    var dest = normalizePayTo(listing && listing.payTo);
+    var out = { payTo: dest || null };
+    if (!dest) out.payoutStatus = 'not_implemented';
+    return out;
   }
 
   var B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
@@ -400,7 +407,7 @@
       pool = { amount: amount, currency: currency || CURRENCY };
     }
     var payout = normalizePayout(raw.payout);
-    var payTo = normalizePayTo(raw.payTo || raw.payto || payout);
+    var rail = payRail({ payTo: raw.payTo || raw.payto || payout });
     var listing = {
       kind: kind,
       name: name,
@@ -412,7 +419,7 @@
       amount: amount,
       currency: currency,
       chain: String(raw.chain || CHAIN).trim() || CHAIN,
-      payTo: payTo,
+      payTo: rail.payTo,
       tokenMint: String(raw.tokenMint || USDC_MINT).trim() || USDC_MINT,
       pool: pool,
       pays: String(raw.pays || '').trim(),
@@ -425,6 +432,7 @@
       outcomes: normalizeOutcomes(raw.outcomes || raw.accepted),
       origin: (meta && meta.origin) || 'unknown',
     };
+    if (rail.payoutStatus) listing.payoutStatus = rail.payoutStatus;
     if (meta) {
       if (meta.issueNumber != null) listing.issueNumber = meta.issueNumber;
       if (meta.issueUrl) listing.issueUrl = meta.issueUrl;
@@ -583,7 +591,8 @@
   }
 
   function toFeedEntry(listing) {
-    return {
+    var rail = payRail(listing);
+    var entry = {
       id: listing.id,
       kind: listing.kind,
       name: listing.name,
@@ -592,7 +601,7 @@
       amount: Number.isFinite(listing.amount) ? listing.amount : null,
       currency: listing.currency || CURRENCY,
       chain: listing.chain || CHAIN,
-      payTo: listing.payTo || '',
+      payTo: rail.payTo,
       tokenMint: listing.tokenMint || USDC_MINT,
       github: listing.github || '',
       x: listing.x || '',
@@ -604,6 +613,8 @@
       blurb: listing.blurb || null,
       outcomes: listing.outcomes || [],
     };
+    if (rail.payoutStatus) entry.payoutStatus = rail.payoutStatus;
+    return entry;
   }
 
   function toFeed(listings, extra) {
@@ -671,6 +682,7 @@
   }
 
   function listingPayload(listing) {
+    var rail = payRail(listing);
     var out = {
       kind: listing.kind,
       name: listing.name,
@@ -681,7 +693,7 @@
       amount: Number.isFinite(listing.amount) ? listing.amount : undefined,
       currency: listing.currency || CURRENCY,
       chain: listing.chain || CHAIN,
-      payTo: listing.payTo || '',
+      payTo: rail.payTo,
       tokenMint: listing.tokenMint || USDC_MINT,
       github: listing.github || undefined,
       x: listing.x || undefined,
@@ -693,6 +705,7 @@
       createdAt: listing.createdAt || undefined,
       outcomes: listing.outcomes && listing.outcomes.length ? listing.outcomes : undefined,
     };
+    if (rail.payoutStatus) out.payoutStatus = rail.payoutStatus;
     Object.keys(out).forEach(function (key) {
       if (out[key] === undefined) delete out[key];
     });

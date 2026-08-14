@@ -102,6 +102,8 @@ assert.equal(
   'https://phantom.app/ul/browse/' + encodeURIComponent(payUrl),
 );
 assert.equal(B.normalizePayTo('solana:' + SYS + '?amount=1'), SYS);
+assert.equal(B.normalizePayTo(''), null);
+assert.equal(B.normalizePayTo(null), null);
 assert.equal(B.payClipboardText({ amount: 25 }), '25 USDC Solana');
 
 const ident = B.identityFromLobbyMe({
@@ -135,6 +137,15 @@ const emptyPayTo = B.renderRow(
 );
 assert.doesNotMatch(emptyPayTo, />Pay</);
 assert.match(emptyPayTo, /bb-pay-na/);
+const nullPayTo = B.renderRow(
+  B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, currency: 'USDC', payTo: null }),
+  { github: { login: 'Uuriko' }, x: null },
+);
+assert.doesNotMatch(nullPayTo, />Pay</);
+assert.match(nullPayTo, /bb-pay-na/);
+const destListing = B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, payTo: SYS });
+assert.equal(destListing.payTo, SYS);
+assert.notEqual(destListing.payoutStatus, 'not_implemented');
 const liveRow = B.renderRow(
   B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, payTo: SYS }),
   { github: { login: 'Uuriko' }, x: null },
@@ -167,6 +178,8 @@ assert.equal(fenced.pool.amount, 50);
 assert.equal(fenced.currency, 'USDC');
 assert.equal(fenced.github, 'Uuriko');
 assert.equal(fenced.origin, 'issue');
+assert.equal(fenced.payTo, null);
+assert.equal(fenced.payoutStatus, 'not_implemented');
 assert.ok(fenced.createdAt);
 assert.ok(!('scoring' in fenced) || fenced.scoring == null);
 
@@ -345,7 +358,10 @@ assert.equal(seedListings.length, 2);
 assert.equal(project.repo, 'Uuriko/dasha-desk');
 assert.equal(project.origin, 'seed');
 assert.equal(itemSeed.kind, 'item');
-assert.equal(itemSeed.payTo, '');
+assert.equal(itemSeed.payTo, null);
+assert.equal(itemSeed.payoutStatus, 'not_implemented');
+assert.equal(project.payTo, null);
+assert.equal(project.payoutStatus, 'not_implemented');
 assert.equal(itemSeed.itemUrl, 'https://github.com/Uuriko/dasha-desk/issues/8');
 assert.ok(!('contributors' in seed.listings[0]));
 assert.ok(!('score' in seed.listings[0]));
@@ -376,13 +392,24 @@ assert.equal(serializedFeed.schema, 'dasha-bounties-feed/v1');
 assert.equal(serializedFeed.url, 'https://www.getdasha.com/bounties');
 assert.ok(Array.isArray(serializedFeed.listings));
 
+function assertHonestPayTo(row) {
+  assert.ok('payTo' in row);
+  assert.notEqual(row.payTo, '');
+  if (row.payTo == null) {
+    assert.equal(row.payTo, null);
+    assert.equal(row.payoutStatus, 'not_implemented');
+  } else {
+    assert.notEqual(row.payoutStatus, 'not_implemented');
+  }
+}
+
 feed.listings.forEach((row) => {
   assert.ok('repo' in row);
   assert.ok('itemUrl' in row);
   assert.ok('amount' in row);
   assert.equal(row.currency, 'USDC');
   assert.equal(row.chain, 'solana');
-  assert.ok('payTo' in row);
+  assertHonestPayTo(row);
   assert.equal(row.tokenMint, B.USDC_MINT);
   assert.ok('github' in row);
   assert.ok('x' in row);
@@ -395,12 +422,28 @@ serialized.listings.forEach((row) => {
   assert.ok('amount' in row);
   assert.ok('currency' in row);
   assert.ok('chain' in row);
-  assert.ok('payTo' in row);
+  assertHonestPayTo(row);
   assert.ok('tokenMint' in row);
   assert.ok('github' in row);
   assert.ok('x' in row);
   assert.ok('createdAt' in row);
 });
+assert.doesNotMatch(read('bounties.json'), /"payTo":\s*""/);
+assert.doesNotMatch(read('bounties/feed.json'), /"payTo":\s*""/);
+assert.doesNotMatch(read('config/bounties.seed.json'), /"payTo":\s*""/);
+assert.doesNotMatch(JSON.stringify(serialized), /"payTo":""/);
+assert.doesNotMatch(JSON.stringify(B.listingPayload(itemSeed)), /"payTo":""/);
+const paidEntry = B.toFeedEntry(
+  B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, payTo: SYS }),
+);
+assert.equal(paidEntry.payTo, SYS);
+assert.notEqual(paidEntry.payoutStatus, 'not_implemented');
+assert.doesNotMatch(JSON.stringify(paidEntry), /"payTo":""/);
+const paidPayload = B.listingPayload(
+  B.normalizeListing({ itemUrl: 'https://github.com/Uuriko/dasha-desk/issues/8', amount: 25, payTo: SYS }),
+);
+assert.equal(paidPayload.payTo, SYS);
+assert.notEqual(paidPayload.payoutStatus, 'not_implemented');
 assert.equal(serialized.listings.find((row) => row.kind === 'item').itemUrl, 'https://github.com/Uuriko/dasha-desk/issues/8');
 assert.ok(serialized.listings.every((row) => Array.isArray(row.outcomes)));
 assert.ok(serialized.listings.every((row) => row.outcomes.every((o) => B.parseGithubProof(o.url))));
