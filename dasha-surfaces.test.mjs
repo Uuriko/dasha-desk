@@ -3,6 +3,7 @@
  * Hunt for this-week getdasha surfaces in-repo: lobby, privacy, desk→dasha, branded 404.
  */
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,6 +32,7 @@ const notFound = read(files.notFound);
 const bounties = read(files.bounties) + read('bounties/board.css');
 const loader = read('studio/loader.html');
 const studioReadme = read('studio/README.md');
+const studioSri = `sha384-${createHash('sha384').update(read('studio/embed.js')).digest('base64')}`;
 
 assert.doesNotMatch(home, /id="dasha-simp-board"|Simp board/i);
 assert.match(lobby, /id="dasha-simp-board"/);
@@ -57,7 +59,7 @@ for (const [name, html] of Object.entries({ home, lobby, privacy, desk, notFound
 assert.match(bounties, /id="bb-payto"[^>]*required/);
 assert.doesNotMatch(bounties, /<iframe/i);
 
-assert.match(loader, /integrity="sha384-N0Vm3A\+TxwHEMMhSrLyA8DUAcm3ggzoPeuqzJpeFrpMGtwXV0oK2dVyW\+GEieNZk"/);
-assert.match(studioReadme, /sha384-N0Vm3A\+TxwHEMMhSrLyA8DUAcm3ggzoPeuqzJpeFrpMGtwXV0oK2dVyW\+GEieNZk/);
+assert.ok(loader.includes(`integrity="${studioSri}"`));
+assert.ok(studioReadme.includes(studioSri));
 
 console.log('dasha-surfaces: PASS');

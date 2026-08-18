@@ -161,12 +161,12 @@ regress `src/styles.css` off ink.
 
 Ranked by effect per unit of work. Status as of 2026-08-13.
 
-1. **Declare the kit CC0, visibly — DONE.** [`DASHA-KIT-LICENSE.md`](DASHA-KIT-LICENSE.md) covers the
+1. **Declare the kit CC0, visibly — DONE.** [`DASHA-KIT-LICENSE.md`](../../DASHA-KIT-LICENSE.md) covers the
    mark, the looks and everything the Studio exports, with the CC0 1.0 legal text in `LICENSE-KIT`.
    Stated in the Studio itself, not only in the repo, because a licence nobody sees produces no
    remixes. Both carve-outs are stated and gated: CC0 waives copyright, and touches neither
    trademark nor anyone's name and likeness.
-2. **A drawn character — DONE.** [`DASHA-CHARACTER.md`](DASHA-CHARACTER.md): one of the mark's
+2. **A drawn character — DONE.** [`DASHA-CHARACTER.md`](../../DASHA-CHARACTER.md): one of the mark's
    cherries with a face on it, five expressions, drawn in coordinates. The mark and the character
    are the same object, so the vocabulary does not grow — the logo teaches the character and the
    character teaches the logo. It ships as the Studio's Cherry look and is deliberately replaceable:

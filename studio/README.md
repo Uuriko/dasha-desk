@@ -48,8 +48,8 @@ Two lines. It works on any page, including ones you do not control.
 
 ```html
 <div class="dasha-studio-embed"></div>
-<script src="https://uuriko.github.io/dasha-desk/studio/embed-2315460c555a.js"
-        integrity="sha384-N0Vm3A+TxwHEMMhSrLyA8DUAcm3ggzoPeuqzJpeFrpMGtwXV0oK2dVyW+GEieNZk"
+<script src="https://uuriko.github.io/dasha-desk/studio/embed-f1fbf4ea4ed5.js"
+        integrity="sha384-2axgZ0uXqwGhqbV7yW8afPN8ZVGRu4rNvMlGCocXLiFbvbIzP0MoCEun927w1wrG"
         crossorigin="anonymous"></script>
 ```
 
@@ -65,7 +65,7 @@ The trade is that you will not receive updates. If you would rather track the cu
 accept that it changes without notice, drop the `integrity` line and point at the unversioned file:
 
 ```html
-<script src="https://uuriko.github.io/dasha-desk/studio/embed-2315460c555a.js" crossorigin="anonymous"></script>
+<script src="https://uuriko.github.io/dasha-desk/studio/embed-f1fbf4ea4ed5.js" crossorigin="anonymous"></script>
 ```
 
 Do not combine the two — an `integrity` pin on the unversioned URL is the one arrangement that

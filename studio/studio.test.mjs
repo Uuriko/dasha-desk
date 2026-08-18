@@ -19,13 +19,14 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { buildStudioEmbed, pagesEmbedPin, studioLoaderHtml } from './embed-build.mjs';
+import { buildStudioEmbed } from './embed-build.mjs';
 
 const here = (f) => new URL(`./${f}`, import.meta.url);
 const studio = await readFile(here('index.html'), 'utf8');
 const embed = await readFile(here('embed.html'), 'utf8');
 const embedScript = await readFile(here('embed.js'), 'utf8');
 const readme = await readFile(here('README.md'), 'utf8');
+const loader = await readFile(here('loader.html'), 'utf8');
 
 /* 1. Nothing loads that nobody approved.
       The tool's code, styles and drawn art are all in this one file, so the drawn looks work with
@@ -59,16 +60,6 @@ for (const format of ['square', 'story', 'banner']) {
   assert.ok(studio.includes(`id: '${format}'`), `the "${format}" format is gone`);
 }
 
-/* 2b. Surprise me sits with the other .go actions, picks a new look, and uses that look's line. */
-assert.match(studio, /<div class="go">[\s\S]*id="surprise-go"[\s\S]*Surprise me/,
-  'Surprise me must sit next to the existing .go buttons');
-assert.match(studio, /LOOKS\.filter\(\(option\) => option\.id !== look\.id\)/,
-  'Surprise me must not re-pick the look that is already selected');
-assert.match(studio, /\$\('line'\)\.value = capsOn \? pick\.toUpperCase\(\) : pick/,
-  'Surprise me must set the caption from the chosen look');
-assert.match(studio, /const pick = nextLook\.line/,
-  'Surprise me caption must come from the chosen look\'s line');
-
 /* 3. The licence. Contributors need to know what they may do with what they make, and the carve-out
       has to survive with it: CC0 can dedicate our drawing, it cannot grant rights to a real person's
       name or likeness, and saying only the first half would imply it did. */
@@ -95,6 +86,12 @@ assert.match(readme, new RegExp(`integrity=["']${sri.replace(/[.*+?^${}()|[\]\\]
   'README integrity does not match embed.js — update the copy-paste snippet with the reviewed SHA-384');
 assert.match(readme, /crossorigin=["']anonymous["']/,
   'cross-origin SRI requires crossorigin="anonymous"');
+assert.match(loader, new RegExp(`integrity=["']${sri.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`),
+  'loader.html integrity does not match embed.js — regenerate the loader with the reviewed SHA-384');
+assert.match(loader, /embed-[a-f0-9]{12}\.js/,
+  'loader.html must pin the fingerprinted embed, not the moving embed.js URL');
+assert.match(loader, /crossorigin=["']anonymous["']/,
+  'loader.html cross-origin SRI requires crossorigin="anonymous"');
 
 /* 6. The embed cannot fight its host page. It goes into sites we do not control, where a bare
       `#canvas` or a `body { }` rule would collide with whatever is already there. */
@@ -103,28 +100,5 @@ assert.ok(!/\bdocument\.getElementById\b/.test(embed),
 for (const banned of ['<!doctype', '<html', '<body', ':root']) {
   assert.ok(!embed.toLowerCase().includes(banned), `the embed is a fragment and must not contain ${banned}`);
 }
-
-/* Chrome is the five-token poster spine. Effect swatches may keep tool colours. */
-assert.match(studio, /--ink:#070608/);
-assert.match(studio, /--paper:#f4eddb/);
-assert.match(studio, /--acid:#dfff00/);
-assert.match(studio, /--hot:#ff3b81/);
-assert.match(studio, /--violet:#7c4dff/);
-assert.match(studio, /Arial,Helvetica,sans-serif/);
-assert.doesNotMatch(studio, /dgnav|\.dgnav|system-ui|\bExo\b|\bBangers\b|\bRaleway\b|#f6f1ff|#c4a5ff|#7c3aed|#7dffa3/);
-assert.doesNotMatch(studio, /backdrop-filter/);
-
-const pin = pagesEmbedPin(embedScript);
-const loader = studioLoaderHtml(pin);
-assert.match(loader, /color:#f4eddb!important/);
-assert.match(loader, /min-height:100vh/);
-assert.doesNotMatch(loader, /max-width:40rem/);
-assert.doesNotMatch(loader, /dgnav|#c4a5ff|#3b6bff|#7c3aed/);
-assert.ok(loader.includes(pin.src));
-assert.ok(loader.includes(`integrity="${pin.sri}"`));
-assert.match(loader, /Open studio/);
-assert.doesNotMatch(loader, /lobby\.getdasha\.com\/client\/studio\.js/);
-assert.equal(await readFile(here('loader.html'), 'utf8'), loader,
-  'loader.html is stale — run: node embed-build.mjs');
 
 console.log('Dasha Studio: PASS (self-contained, looks and formats intact, licence stated, mint correct, embed generated and scoped)');

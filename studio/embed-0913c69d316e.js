@@ -1,26 +1,18 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<!-- Generated from dasha-favicon.svg (comments stripped, whitespace collapsed).
-     Inline so the page stays self-contained from file:// and anywhere it is served;
-     dasha-mark.test.mjs re-derives this from the SVG and fails if the two drift. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%20role%3D%22img%22%20aria-label%3D%22Dasha%22%3E%3Ctitle%3EDasha%3C%2Ftitle%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23070608%22%2F%3E%3Cg%20transform%3D%22translate(32%2033)%20scale(0.82)%20translate(-32%20-32)%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23dfff00%22%20stroke-width%3D%227%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M18%2031%20C19%2019%2026%2010%2036%206%22%2F%3E%3Cpath%20d%3D%22M46%2037%20C48%2026%2042%2014%2036%206%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%2245%22%20r%3D%2214%22%20fill%3D%22%23dfff00%22%2F%3E%3Ccircle%20cx%3D%2246%22%20cy%3D%2247%22%20r%3D%2212%22%20fill%3D%22%23dfff00%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
-<title>$dasha Studio</title>
-<meta name="description" content="Make a $dasha image. No wallet, no account, nothing uploaded.">
-<style>
-  :root{--ink:#070608;--paper:#f4eddb;--acid:#dfff00;--hot:#ff3b81;--violet:#7c4dff;--line:rgba(244,237,219,.22);--muted:#c9c2b2;--ship-h:68px}
-  *{box-sizing:border-box}
-  [hidden]{display:none!important}
-  body{margin:0;background:#0b0a0c;color:var(--paper);font-family:Arial,Helvetica,sans-serif}
+(() => {
+  const host = document.currentScript.previousElementSibling;
+  if (!host || !host.classList.contains('dasha-studio-embed')) return;
+  while (host.firstChild) host.removeChild(host.firstChild);
+  const root = host.attachShadow({ mode: 'open' });
+  root.innerHTML = `<style>:host{--ink:#070608;--paper:#f4eddb;--acid:#dfff00;--hot:#ff3b81;--violet:#7c4dff;--line:rgba(244,237,219,.32);--muted:#e6dcc4;--ship-h:72px}
+  *{box-sizing:border-box}:host{margin:0;background:var(--ink);color:var(--paper);font-family:Arial,Helvetica,sans-serif;
+    background-image:radial-gradient(circle at 82% 4%,rgba(124,77,255,.22),transparent 28rem),radial-gradient(circle at 4% 70%,rgba(255,59,129,.12),transparent 24rem)}
   main.wrap h1,main.wrap .eyebrow,main.wrap label{color:var(--paper)!important}
-  .wrap{width:min(1040px,calc(100% - 24px));margin:0 auto;padding:12px 0 calc(24px + env(safe-area-inset-bottom,0px))}
-  .topbar{width:min(1040px,calc(100% - 24px));min-height:48px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;border-bottom:1px solid var(--line)}
+  .wrap{width:min(1120px,calc(100% - 32px));margin:0 auto;padding:20px 0 calc(28px + env(safe-area-inset-bottom,0px))}
+  .topbar{width:min(1120px,calc(100% - 32px));min-height:56px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;border-bottom:1px solid var(--line);padding:6px 0}
   .topbar .brand{margin-right:auto;min-height:44px;display:inline-flex;align-items:center;color:var(--paper);font-size:17px;font-weight:900;letter-spacing:-.03em;text-decoration:none;text-transform:uppercase}.topbar .brand span{color:var(--acid)}
   .topbar>a:not(.brand){color:var(--paper);font-size:12px;font-weight:900;letter-spacing:.06em;text-decoration:none;text-transform:uppercase;min-width:44px;min-height:44px;padding-inline:6px;display:inline-flex;align-items:center;justify-content:center}
-  .title-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:10px 0 12px}
-  h1{margin:0;font-size:clamp(24px,4vw,34px);line-height:1;letter-spacing:-.04em;text-transform:uppercase;font-weight:900}
+  .title-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:12px 0 8px}
+  h1{margin:0;font-size:clamp(28px,6vw,56px);line-height:.88;letter-spacing:-.05em;text-transform:uppercase;font-weight:900}
   .stroke{color:var(--acid);-webkit-text-stroke:0}
   .title-hint{margin:0;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
   .handoff{display:grid;gap:8px;margin:0 0 14px}
@@ -36,9 +28,9 @@
   .first-export li.done{color:var(--paper)}
   .first-export li.done::before{border-color:var(--acid);background:var(--acid)}
   .first-export .fe-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 2px;font-weight:900}
-  .studio{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,310px);gap:16px;align-items:start;min-width:0}
+  .studio{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,320px);gap:22px;align-items:start;min-width:0}
   .stage{min-width:0;max-width:100%;position:sticky;top:8px;display:grid;gap:10px}
-  .stage-frame{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--ink);transition:border-color .18s,box-shadow .18s}
+  .stage-frame{position:relative;border:1px solid var(--line);background:var(--ink);transition:border-color .18s,box-shadow .18s}
   .stage-frame.pulse{border-color:var(--acid);box-shadow:0 0 0 1px var(--acid),0 12px 40px rgba(223,255,0,.08)}
   .stage-frame[data-format=story]{border-color:rgba(223,255,0,.55)}
   .stage-frame[data-format=banner]{border-color:rgba(124,77,255,.65)}
@@ -94,7 +86,12 @@
     color:var(--paper);font:inherit;font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
   .moods button:hover,.moods button:focus-visible,.tool-row button.ghost-chip:hover{border-color:var(--acid);color:var(--acid)}
   .moods button[aria-pressed=true]{border-color:var(--acid);background:rgba(223,255,0,.12);color:var(--acid)}
-  .tool-row button.ghost-chip.invite{border-color:var(--line);color:var(--paper);box-shadow:none}
+  /* Cold-open: pull the eye to one-tap craft before Share. */
+  .tool-row button.ghost-chip.invite{border-color:var(--acid);color:var(--acid);box-shadow:0 0 0 1px rgba(223,255,0,.35)}
+  @media (prefers-reduced-motion:no-preference){
+    .tool-row button.ghost-chip.invite{animation:invite-pulse 1.6s ease-in-out 2}
+  }
+  @keyframes invite-pulse{0%,100%{box-shadow:0 0 0 1px rgba(223,255,0,.25)}50%{box-shadow:0 0 0 4px rgba(223,255,0,.18)}}
   .tool-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
   .line-meta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-top:6px}
   .line-count{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted)}
@@ -121,7 +118,7 @@
   body.inbound .first-export{opacity:.85}
   body.inbound #share{letter-spacing:.04em}
   body.view-before .stage-frame{outline:1px dashed rgba(223,255,0,.45);outline-offset:2px}
-  .panel{display:grid;gap:12px;min-width:0;max-width:100%;padding:14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025)}
+  .panel{display:grid;gap:14px;min-width:0;max-width:100%}
   .panel>*{min-width:0;max-width:100%}
   .field-label{display:block;margin:0 0 6px;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--paper)}
   .gallery{display:grid;grid-auto-flow:column;grid-auto-columns:72px;gap:8px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;max-width:100%;min-width:0;width:100%}
@@ -136,26 +133,25 @@
   .strip.label-look label{min-width:0;justify-content:center}
   .strip.label-format label{flex:1 1 calc(33% - 8px);justify-content:center;min-width:4.5rem}
   label.block{display:grid;gap:8px;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
-  textarea{width:100%;min-height:84px;padding:12px;resize:vertical;border:1px solid var(--line);border-radius:8px;
+  textarea{width:100%;min-height:88px;padding:12px;resize:vertical;border:1px solid var(--line);border-radius:0;
     background:rgba(255,255,255,.04);color:var(--paper);font:inherit;font-size:16px}
-  select{width:100%;min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--ink);color:var(--paper);font:inherit;font-size:13px;font-weight:900;text-transform:uppercase}
-  .basic-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.basic-grid>*{min-width:0}
+  select{width:100%;min-height:48px;padding:0 12px;border:1px solid var(--line);border-radius:0;background:var(--ink);color:var(--paper);font:inherit;font-size:14px;font-weight:900;text-transform:uppercase}
   .go{display:flex;gap:10px;flex-wrap:wrap}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
   .chip{min-height:44px;max-width:100%;padding:8px 12px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--paper);font:inherit;font-size:12px;font-weight:800;line-height:1.25;text-align:left;cursor:pointer}
   .chip:hover{border-color:var(--acid);color:var(--acid)}
-  .secondary{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-  .text-action{min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--paper);font:inherit;font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+  .secondary{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+  .text-action{min-height:44px;padding:0;border:0;background:none;color:var(--paper);font:inherit;font-size:12px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
   .text-action:hover{color:var(--acid)}
-  details{border-top:1px solid var(--line);padding-top:8px}summary{min-height:40px;cursor:pointer;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}summary::after{content:'+';font-size:18px}details[open] summary::after{content:'−'}
+  details{border-top:1px solid var(--line);padding-top:12px}summary{min-height:44px;cursor:pointer;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}summary::after{content:'+';font-size:20px}details[open] summary::after{content:'−'}
   .advanced{display:grid;gap:12px;padding-top:12px}.advanced .btn{min-height:44px;font-size:12px;box-shadow:none}.advanced input[type=range]{min-height:44px}
   .kit-links{display:flex;gap:10px;flex-wrap:wrap}.kit-links a{color:var(--paper);font-size:12px;font-weight:900;text-transform:uppercase;text-underline-offset:4px}
-  .btn{flex:1 1 auto;min-height:48px;padding:0 16px;cursor:pointer;font:inherit;font-weight:900;font-size:13px;letter-spacing:.05em;
+  .btn{flex:1 1 auto;min-height:52px;padding:0 18px;cursor:pointer;font:inherit;font-weight:900;font-size:14px;letter-spacing:.06em;
     text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
-    border:1px solid var(--paper);border-radius:8px;background:transparent;color:var(--paper);box-shadow:none;
+    border:1px solid var(--paper);background:transparent;color:var(--paper);box-shadow:4px 4px 0 var(--paper);
     transition:transform .18s,box-shadow .18s}
-  .btn:hover{transform:translateY(-1px);box-shadow:none}
-  .btn.primary{background:var(--acid);border-color:var(--acid);color:var(--ink);box-shadow:none}
+  .btn:hover{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--paper)}
+  .btn.primary{background:var(--acid);border-color:var(--acid);color:var(--ink);box-shadow:4px 4px 0 var(--hot)}
   .btn.ghost{box-shadow:none;min-height:44px;font-size:12px}
   .ship-bar{display:grid;gap:8px;padding-top:4px}
   .status{margin:0;min-height:1.35em;font-size:13px;font-weight:700;color:var(--acid)}
@@ -167,26 +163,27 @@
   @media(max-width:860px){
     .studio{grid-template-columns:minmax(0,1fr);gap:16px}
     .stage{position:relative;top:auto;order:-1}
-    .wrap{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+    .wrap{padding-bottom:calc(var(--ship-h) + 20px + env(safe-area-inset-bottom,0px))}
     .title-hint{display:none}
     h1{font-size:clamp(26px,8vw,40px)}
-    .ship-bar{position:static;width:100%;padding:0;background:none;border:0;backdrop-filter:none}
+    .ship-bar{position:fixed;left:0;right:0;bottom:0;z-index:5;width:100%;max-width:100vw;box-sizing:border-box;
+      padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
+      background:rgba(7,6,8,.94);border-top:1px solid var(--line);backdrop-filter:blur(10px)}
     .ship-bar .btn.primary{width:100%;max-width:100%;box-shadow:none}
-    .undo{bottom:calc(12px + env(safe-area-inset-bottom,0px))}
-    .panel{padding:12px}
+    .undo{bottom:calc(var(--ship-h) + 12px + env(safe-area-inset-bottom,0px))}:host{background-image:radial-gradient(circle at 80% 0%,rgba(124,77,255,.16),transparent 18rem)}
   }
   @media(max-width:520px){.topbar{gap:8px}.topbar .brand{font-size:15px}.topbar>a:not(.brand){font-size:11px}.wrap{padding-top:14px;width:min(1120px,calc(100% - 24px))}.topbar{width:min(1120px,calc(100% - 24px))}}
   @media(prefers-reduced-motion:reduce){.btn,.stage-frame,.stage-frame.ship-flash{transition:none}}
   @media(forced-colors:active){.btn.primary,.strip label:has(input:checked),.variant{border:2px solid ButtonText}}
   @media(prefers-contrast:more){.stroke{color:var(--paper);-webkit-text-stroke:0}.micro,.lineage,footer p,.title-hint,.status,.variant .v-kicker{color:var(--paper)}}
-</style>
-</head>
-<body>
-<nav class="topbar" aria-label="Dasha"><a class="brand" href="/">$<span>DASHA</span></a><a href="/#token" aria-label="Contract address 53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump">CA 53ux…pump</a></nav>
-<main class="wrap">
+
+    :host{display:block}
+    .wrap{padding-top:0}
+  </style>
+  <main class="wrap">
   <div class="title-row">
-    <h1><span class="stroke">Studio</span></h1>
-    <p class="title-hint">Make an image</p>
+    <h1>$dasha <span class="stroke">Studio.</span></h1>
+    <p class="title-hint">Make · pass it on</p>
   </div>
 
   <div class="handoff">
@@ -195,7 +192,7 @@
     <p class="diff-note" id="diff-note" hidden></p>
   </div>
 
-  <div class="first-export" id="first-export" aria-label="First export" hidden>
+  <div class="first-export" id="first-export" aria-label="First export">
     <p class="fe-label">First export</p>
     <ol class="first-export-steps" style="list-style:none;margin:0;padding:0;display:grid;gap:6px">
       <li id="fe-line" data-step="line">Write a line</li>
@@ -214,24 +211,41 @@
         <canvas id="canvas" width="1080" height="1080" role="img" aria-label="Preview of the image you are making"></canvas>
         <div class="relay-seal" id="relay-seal" hidden aria-live="polite"></div>
       </div>
+      <div class="variants" id="variants" role="group" aria-label="Quick variants"></div>
+      <div>
+        <span class="field-label">Recent</span>
+        <div class="history" id="history" role="list" aria-label="Recent states"></div>
+      </div>
     </div>
 
     <div class="panel">
       <div>
-        <label class="field-label" for="line">Your line</label>
-        <textarea id="line" maxlength="120" spellcheck="false" placeholder="Type something…"></textarea>
-        <div class="line-meta">
-          <span class="line-count" id="line-count">0/120</span>
-          <div class="tool-row"><button type="button" class="ghost-chip" id="surprise">New idea</button></div>
+        <span class="field-label" id="moods-label">Mood</span>
+        <div class="moods" id="moods" role="group" aria-labelledby="moods-label"></div>
+        <div class="tool-row" style="margin-top:8px">
+          <button type="button" class="ghost-chip" id="surprise">Surprise me</button>
         </div>
       </div>
 
-      <div class="basic-grid">
-        <label class="block" for="looks">Look<select id="looks"></select></label>
-        <label class="block" for="formats">Size<select id="formats"></select></label>
+      <div>
+        <label class="field-label" for="line">Your line</label>
+        <textarea id="line" maxlength="120" spellcheck="false"></textarea>
+        <div class="line-meta">
+          <div class="tool-row">
+            <button type="button" class="ghost-chip" id="caps-line" aria-pressed="false">Caps</button>
+            <button type="button" class="ghost-chip" id="shuffle-line">Shuffle line</button>
+          </div>
+          <span class="line-count" id="line-count">0/120</span>
+        </div>
+        <div class="chips" id="chips" role="group" aria-label="Suggested lines"></div>
       </div>
-      <div class="strip label-look" id="look-strip" role="radiogroup" aria-label="Look" hidden></div>
-      <div class="strip label-format" id="format-strip" role="radiogroup" aria-label="Size" hidden></div>
+
+      <div>
+        <span class="field-label" id="looks-label">Look</span>
+        <div class="strip label-look" id="look-strip" role="radiogroup" aria-labelledby="looks-label"></div>
+        <label class="sr-only" for="looks">Look</label>
+        <select id="looks" class="sr-only" tabindex="-1" aria-hidden="true"></select>
+      </div>
 
       <div class="photo-block" id="photo-block" hidden>
         <span class="field-label">Photo</span>
@@ -239,12 +253,30 @@
         <button class="btn ghost" id="edit" type="button" hidden>Randomize</button>
       </div>
 
+      <div>
+        <span class="field-label" id="formats-label">Format</span>
+        <div class="strip label-format" id="format-strip" role="radiogroup" aria-labelledby="formats-label"></div>
+        <label class="sr-only" for="formats">Format</label>
+        <select id="formats" class="sr-only" tabindex="-1" aria-hidden="true"></select>
+      </div>
+
+      <div>
+        <span class="field-label" id="effects-label">Effect</span>
+        <div class="strip label-effect" id="effect-strip" role="radiogroup" aria-labelledby="effects-label"></div>
+      </div>
+
+      <div>
+        <span class="field-label" id="stickers-label">Sticker</span>
+        <div class="strip label-sticker" id="sticker-strip" role="radiogroup" aria-labelledby="stickers-label"></div>
+      </div>
+
       <div class="secondary">
-        <button class="text-action" id="download" type="button">Save image</button>
+        <button class="text-action" id="download" type="button">Save PNG</button>
+        <button class="text-action" id="copy-link" type="button">Copy editable link</button>
       </div>
 
       <div class="ship-bar">
-        <button class="btn primary" id="share" type="button">Share image</button>
+        <button class="btn primary" id="share" type="button">Share</button>
         <div class="after-share" id="after-share" hidden>
           <p id="after-share-copy">Shipped.</p>
           <p class="alt" id="after-share-alt" hidden></p>
@@ -259,30 +291,13 @@
       </div>
 
       <details>
-        <summary>More</summary>
+        <summary>More options</summary>
         <div class="advanced">
-          <div>
-            <span class="field-label">Versions</span>
-            <div class="variants" id="variants" role="group" aria-label="Quick variants"></div>
-            <div class="history" id="history" role="list" aria-label="Recent states"></div>
-          </div>
-          <div>
-            <span class="field-label" id="moods-label">Mood</span>
-            <div class="moods" id="moods" role="group" aria-labelledby="moods-label"></div>
-          </div>
-          <div class="tool-row" id="idea-tools">
-            <button type="button" class="ghost-chip" id="caps-line" aria-pressed="false">Caps</button>
-            <button type="button" class="ghost-chip" id="shuffle-line">Shuffle line</button>
-          </div>
-          <div class="chips" id="chips" role="group" aria-label="Suggested lines"></div>
-          <div class="strip label-effect" id="effect-strip" role="radiogroup" aria-label="Effect" hidden></div>
-          <div class="strip label-sticker" id="sticker-strip" role="radiogroup" aria-label="Sticker" hidden></div>
           <label class="block" for="effects">Effect<select id="effects"></select></label>
           <label class="block" for="stickers">Sticker<select id="stickers"></select></label>
           <label class="block" for="zoom">Zoom<input id="zoom" type="range" min="1" max="2.5" step="0.05" value="1"></label>
           <label class="block" for="tilt">Tilt<input id="tilt" type="range" min="-15" max="15" step="1" value="0"></label>
           <div class="go">
-            <button class="btn" id="copy-link" type="button">Copy editable link</button>
             <button class="btn" id="copy" type="button">Copy image</button>
             <button class="btn" id="gif" type="button">Save GIF</button>
             <button class="btn" id="kit" type="button">Prepare 3 sizes</button>
@@ -312,10 +327,10 @@
     <p><a href="https://github.com/Uuriko/dasha-desk/contribute" target="_blank" rel="noopener noreferrer" aria-label="Source — contribute to Dasha on GitHub">Source ↗</a></p>
   </footer>
   <button class="undo" id="undo" type="button" hidden>Undo</button>
-</main>
+</main>`;
 
-<script>
-const $ = (id) => document.getElementById(id);
+
+const $ = (id) => root.querySelector('#'+id);
 const canvas = $('canvas'), ctx = canvas.getContext('2d');
 const INK = '#070608', PAPER = '#f4eddb', ACID = '#dfff00', HOT = '#ff3b81', VIOLET = '#7c4dff';
 const MARK = 'getdasha.com';
@@ -982,7 +997,7 @@ function surpriseMe() {
   setStatus(`Surprise · ${nextLook.name} · ${nextFormat.name}${stickerBit}`);
 }
 function paintRitual() {
-  const row = $('idea-tools');
+  const row = $('surprise') && $('surprise').parentElement;
   if (!row || row.dataset.ritual) return;
   row.dataset.ritual = '1';
   const ritual = todaysRitual();
@@ -1093,7 +1108,7 @@ async function copyPostText() {
 function refreshShareLabel() {
   const btn = $('share');
   if (!btn) return;
-  btn.textContent = inbound && !imageOnly ? 'Pass it on' : 'Share image';
+  btn.textContent = inbound && !imageOnly ? 'Pass it on' : 'Share';
 }
 function afterStatePaint({ pulseFormat = false } = {}) {
   if (pulseFormat) pulseFormatFrame();
@@ -2403,7 +2418,7 @@ document.addEventListener('keydown', (event) => {
     const more = details?.parentElement?.closest('details');
     if (more) more.open = true;
     if (details) details.open = true;
-    setStatus('Keyboard list open under More');
+    setStatus('Keyboard list open under More options');
   }
 });
 
@@ -2423,7 +2438,7 @@ if (!inbound && !fragmentHasState && !imageOnly) {
   render();
   afterStatePaint({ pulseFormat: true });
   const lookName = LOOKS.find((option) => option.id === ritual.look)?.name || ritual.look;
-  setStatus('');
+  setStatus(`Today’s ${lookName} — change one thing, then Share`);
   for (const id of ['surprise', 'ritual-today']) {
     const chip = $(id);
     if (chip) {
@@ -2472,6 +2487,4 @@ if (!inbound && !fragmentHasState && !imageOnly) {
 render();
 afterStatePaint();
 trackStudio('open');
-</script>
-</body>
-</html>
+})();

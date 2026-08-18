@@ -1,5 +1,11 @@
 # Roadmap
 
+## 2026-08-13 — site + automation
+
+getdasha.com / lobby / native bounties / Studio SRI / one Buy CTA / acid ticker / payTo / GitHub OAuth honesty live in **[SITE-ROADMAP.md](SITE-ROADMAP.md)**. Laptop canonical: `/home/potter/DASHA-ROADMAP.md`.
+
+That slice is additive. It does not retire the Desk-small list below. Do not clobber this product history. Do not dump Webflow-only chrome into this repository as if it were Desk features. Do not dispatch Claude, TUI, or eliza from these files.
+
 The Desk stays small. Work earns a place by making verification clearer, safer, or more reliable.
 
 ## Now

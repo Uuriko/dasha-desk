@@ -10,6 +10,7 @@ const standaloneBody = body
   .replaceAll('href="/lobby"', 'href="https://www.getdasha.com/lobby"')
   .replaceAll('href="/bounties"', 'href="https://www.getdasha.com/bounties"')
   .replaceAll('href="/privacy"', 'href="https://www.getdasha.com/privacy"')
+  .replaceAll('href="/how-to-buy"', 'href="https://www.getdasha.com/how-to-buy"')
   .replaceAll('href="/"', 'href="https://www.getdasha.com/"');
 
 const meta = `<!DOCTYPE html>
