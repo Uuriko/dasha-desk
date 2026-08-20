@@ -39,7 +39,7 @@ export function buildStudioEmbed(studio) {
   // Primary ship path + progressive disclosure. Looks/formats use visible selects and hidden sync strips.
   // Moods/history/variants are painted in script; markup buttons stay intentionally bounded.
   const buttons = (markup.match(/<button\b/g) || []).length;
-  if (buttons !== 19) {
+  if (buttons !== 21) {
     throw new Error(`the Studio action set is no longer intentionally bounded (buttons=${buttons})`);
   }
   if (!markup.includes('id="edit"') || !markup.includes('id="share"') || !markup.includes('id="download"') || !markup.includes('id="copy-link"')) {
@@ -151,7 +151,7 @@ export function studioLoaderHtml() {
       operatingSystem: 'Any modern web browser',
       isAccessibleForFree: true,
     })}</script>\n` +
-    `<div class="dasha-studio-embed" style="display:block;min-height:100vh;background:#070608">` +
+    `<main class="dasha-studio-embed" style="display:block;min-height:100vh;background:#070608">` +
     `<div class="dasha-studio-shell" data-studio-shell style="box-sizing:border-box;margin:0 auto;padding:28px 16px 40px;max-width:40rem;color:#f4eddb;font:16px/1.45 Arial,Helvetica,sans-serif;background:#070608">` +
     `<p style="margin:0 0 8px;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#dfff00">Dasha Meme Studio</p>` +
     `<h1 style="margin:0 0 14px;font-size:clamp(28px,6vw,42px);line-height:1;font-weight:900;letter-spacing:-.04em;text-transform:uppercase">Make one. Pass it on.</h1>` +
@@ -164,7 +164,7 @@ export function studioLoaderHtml() {
     `</p>` +
     `<p style="margin:18px 0 0;font-size:13px;color:#e6dcc4">Loading studio…</p>` +
     `<p style="margin:12px 0 0;font-size:12px;color:#e6dcc4;max-width:42ch">CC0 for what you make here, except Dasha's name or likeness which stays hers.</p>` +
-    `</div></div>\n` +
+    `</div></main>\n` +
     `<script src="${STUDIO_SRC}" integrity="${STUDIO_CLIENT_SRI}" crossorigin="anonymous"></script>\n`
   );
 }

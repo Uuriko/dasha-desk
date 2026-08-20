@@ -99,6 +99,8 @@
   .line-meta{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin-top:6px}
   .line-count{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted)}
   .line-count.hot{color:var(--acid)}
+  .chart-dir{display:grid;gap:6px;margin-top:10px}
+  .chart-dir button[aria-pressed=true]{border-color:var(--acid);background:rgba(223,255,0,.12);color:var(--acid)}
   .duet{display:flex;gap:0;border:1px solid var(--line);width:fit-content;max-width:100%}
   .duet button{min-height:36px;padding:6px 14px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:11px;
     font-weight:900;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
@@ -224,6 +226,13 @@
           <span class="line-count" id="line-count">0/120</span>
           <div class="tool-row"><button type="button" class="ghost-chip" id="surprise">New idea</button></div>
         </div>
+        <div class="chart-dir" id="chart-dir" hidden>
+          <span class="field-label">Direction</span>
+          <div class="tool-row" role="group" aria-label="Chart direction">
+            <button type="button" class="ghost-chip" id="chart-moon" aria-pressed="true">Moon</button>
+            <button type="button" class="ghost-chip" id="chart-tank" aria-pressed="false">Tank</button>
+          </div>
+        </div>
       </div>
 
       <div class="basic-grid">
@@ -343,6 +352,17 @@ const LOOKS = [
   { id: 'marquee', name: 'Marquee', line: 'Go ahead and doubt me see what happens' },
   { id: 'signal',  name: 'Signal',  line: 'Cmon' },
   { id: 'face',    name: 'Cherry',  line: 'They are angels actually' },
+  /* CT-native formats. Each one bakes in a joke structure (a store receipt, caught-in-4K evidence,
+     a one-sided scoreboard, a price-chart dunk, a hazard sign) so the look itself lands the
+     punchline instead of just placing a line on brand chrome. Same palette, same type, same mark. */
+  { id: 'receipt',  name: 'Receipt',  line: 'Friday in the 4HL you can really feel the pull of the weekend' },
+  { id: 'caught',   name: 'Caught',   line: 'Cmon' },
+  { id: 'score',    name: 'Scoreboard', line: 'They are angels actually' },
+  { id: 'chart',    name: 'Chart',    line: 'It’s time $dasha' },
+  { id: 'warning',  name: 'Warning',  line: 'You’re not gonna believe this' },
+  { id: 'delulu',   name: 'Delulu',   line: 'They are angels actually' },
+  { id: 'rip',      name: 'RIP',      line: 'Well Im still alive' },
+  { id: 'panels',   name: 'Panels',   line: 'How u crying at the casino and u can’t even get in' },
 ];
 /* Cold open defaults to Poster: full graphic without needing a photo. Photo stays first in the strip for gallery makers. */
 let look = LOOKS.find((option) => option.id === 'poster') || LOOKS[0];
@@ -835,6 +855,7 @@ const HISTORY_MAX = 5;
 let viewMode = 'now';
 let activeMood = '';
 let capsOn = false;
+let chartMoon = true;
 let historyQuiet = false;
 
 function applyLookFormatEffect(nextLookId, nextFormatId, nextEffectId, nextSticker) {
@@ -1073,13 +1094,13 @@ function hideAfterShare() {
 async function copyPostText() {
   const text = shareText();
   try {
-    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+    if (navigator.clipboard?.writeText) await withTimeout(navigator.clipboard.writeText(text), 800);
     else {
       const ta = Object.assign(document.createElement('textarea'), { value: text });
       document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
     }
     if (navigator.clipboard?.readText) {
-      const got = await navigator.clipboard.readText();
+      const got = await withTimeout(navigator.clipboard.readText(), 800);
       if (!handoffCopiedOk(got, text)) {
         setStatus('Could not copy post text.');
         return;
@@ -1497,6 +1518,220 @@ const draw = {
     ctx.fillText('DASHA STUDIO', 960, 940); ctx.textAlign = 'left';
     drawMark(896, 112, 58, ACID);
   },
+
+  /* A thermal receipt. The line becomes line-items when the writer separates them with · or /, so
+     one field carries the "receipts, line-itemized" grammar. Mono is the machine costume, same as
+     print. */
+  receipt(text, t = 0) {
+    ctx.fillStyle = PAPER; ctx.fillRect(0, 0, 1080, 1080);
+    const mono = (s) => `700 ${s}px ui-monospace,Menlo,Consolas,monospace`;
+    ctx.fillStyle = INK; ctx.font = mono(30);
+    ctx.fillText('DASHA MART', 120, 132);
+    ctx.textAlign = 'right'; ctx.font = mono(22);
+    ctx.fillText('ORD #0001', 960, 132); ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(7,6,8,.58)'; ctx.font = mono(20);
+    ctx.fillText('THANK YOU FOR SHOPPING', 120, 172);
+    ctx.strokeStyle = 'rgba(7,6,8,.5)'; ctx.setLineDash([8, 8]); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(120, 202); ctx.lineTo(960, 202); ctx.stroke(); ctx.setLineDash([]);
+
+    const parts = String(text).split(/[·/]+/).map((s) => s.trim()).filter(Boolean);
+    ctx.font = mono(26);
+    const items = parts.length > 1 ? parts : wrap(text.toUpperCase(), 720).slice(0, 8);
+    let y = 274;
+    for (let i = 0; i < items.length && y < 760; i++) {
+      ctx.fillStyle = INK; ctx.fillText(String(items[i] || '').toUpperCase().slice(0, 44), 120, y);
+      ctx.textAlign = 'right'; ctx.fillText('$' + String(4 + i * 7), 960, y); ctx.textAlign = 'left';
+      y += 56;
+    }
+    ctx.strokeStyle = 'rgba(7,6,8,.5)'; ctx.setLineDash([8, 8]);
+    ctx.beginPath(); ctx.moveTo(120, y + 6); ctx.lineTo(960, y + 6); ctx.stroke(); ctx.setLineDash([]);
+    y += 66;
+    ctx.fillStyle = INK; ctx.font = '900 42px Arial,Helvetica,sans-serif';
+    ctx.fillText('TOTAL: PRICELESS', 120, y);
+    ctx.save(); ctx.translate(750, y + 46); ctx.rotate(-0.1);
+    ctx.fillStyle = ACID; ctx.fillRect(-132, -40, 264, 80);
+    ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.strokeRect(-132, -40, 264, 80);
+    ctx.fillStyle = INK; ctx.font = '900 34px Arial,Helvetica,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('PAID', 0, 14); ctx.restore(); ctx.textAlign = 'left';
+
+    y += 130;
+    ctx.fillStyle = INK;
+    for (let x = 120, i = 0; x < 960; x += 6, i++) if (i % 3) ctx.fillRect(x, y, 3, 96);
+    ctx.fillStyle = 'rgba(7,6,8,.6)'; ctx.font = mono(20);
+    ctx.fillText('A RECEIPT IS NOT AN ENDORSEMENT', 120, y + 138);
+    ctx.fillStyle = INK; ctx.font = '900 26px Arial,Helvetica,sans-serif';
+    ctx.fillText('$DASHA', 196, y + 190);
+    drawMark(120, y + 186, 56, INK);
+  },
+
+  /* Caught-in-4K evidence card: violet arc (depth), hot REC dot, acid stamp, the line as the
+     incriminating quote. The timestamp advances so the GIF reads as a live recording. */
+  caught(text, t = 0) {
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
+    ctx.strokeStyle = VIOLET; ctx.lineWidth = 2;
+    for (let r = 60; r < 520; r += 40) { ctx.beginPath(); ctx.arc(1000, 120, r, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(244,237,219,.35)'; ctx.lineWidth = 3; ctx.strokeRect(88, 88, 904, 904);
+    ctx.fillStyle = HOT; ctx.beginPath(); ctx.arc(150, 150, 18, 0, Math.PI * 2); ctx.fill();
+    if (t < 0.5) { ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(150, 150, 6, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = PAPER; ctx.font = '900 24px Arial,Helvetica,sans-serif';
+    ctx.fillText('REC · 4K · 00:00:' + String(Math.floor(t * 59)).padStart(2, '0'), 196, 160);
+    ctx.save(); ctx.translate(540, 320); ctx.rotate(-0.05);
+    ctx.fillStyle = ACID; ctx.fillRect(-330, -62, 660, 124);
+    ctx.strokeStyle = INK; ctx.lineWidth = 4; ctx.strokeRect(-330, -62, 660, 124);
+    ctx.fillStyle = INK; ctx.font = '900 74px Arial,Helvetica,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('CAUGHT IN 4K', 0, 26); ctx.restore(); ctx.textAlign = 'left';
+    const { size, lines } = fit(text.toUpperCase(), (s) => `900 ${s}px Arial,Helvetica,sans-serif`, 96, 820, 380, 0.94);
+    ctx.font = `900 ${size}px Arial,Helvetica,sans-serif`; ctx.fillStyle = PAPER;
+    let y = blockStart(420, 900, lines.length, size, 0.94);
+    for (const line of lines) { ctx.fillText(line, 130, y); y += size * 0.94; }
+    ctx.fillStyle = 'rgba(244,237,219,.6)'; ctx.font = '700 24px ui-monospace,Menlo,Consolas,monospace';
+    ctx.fillText('EXHIBIT A · THE TIMELINE', 130, 962);
+    drawMark(936, 968, 62, ACID);
+  },
+
+  /* A one-sided scoreboard. The line is the winning play; the timeline always loses. Hot is the
+     risk/losing side, acid the win — matching art direction, not a coin-flip. */
+  score(text, t = 0) {
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
+    ctx.fillStyle = 'rgba(244,237,219,.06)'; ctx.fillRect(88, 88, 904, 420);
+    ctx.strokeStyle = PAPER; ctx.lineWidth = 3; ctx.strokeRect(88, 88, 904, 420);
+    ctx.font = '900 40px Arial,Helvetica,sans-serif';
+    ctx.fillStyle = HOT; ctx.fillText('THE TIMELINE', 140, 196);
+    ctx.fillStyle = ACID; ctx.textAlign = 'right'; ctx.fillText('$DASHA', 940, 196); ctx.textAlign = 'left';
+    ctx.font = '900 240px Arial,Helvetica,sans-serif';
+    ctx.fillStyle = HOT; ctx.fillText('0', 196, 428);
+    ctx.fillStyle = ACID; ctx.fillText('1', 800, 428);
+    ctx.fillStyle = PAPER; ctx.fillRect(526, 130, 6, 330);
+    const { size, lines } = fit(text.toUpperCase(), (s) => `900 ${s}px Arial,Helvetica,sans-serif`, 104, 880, 340, 0.92);
+    ctx.font = `900 ${size}px Arial,Helvetica,sans-serif`; ctx.fillStyle = PAPER;
+    let y = blockStart(600, 936, lines.length, size, 0.92);
+    for (const line of lines) { ctx.fillText(line, 100, y); y += size * 0.92; }
+    ctx.fillStyle = ACID; ctx.fillRect(100, 964, 120, 6);
+    ctx.fillStyle = 'rgba(244,237,219,.6)'; ctx.font = '900 24px Arial,Helvetica,sans-serif';
+    ctx.fillText('FINAL · NOT CLOSE', 100, 1016);
+    drawMark(940, 1018, 58, ACID);
+  },
+
+  /* A fake price chart. The punchline is the direction, and it is an explicit Moon/Tank control
+     rather than a hidden ! suffix: a bullish caption should not silently render as a crash. Hot is
+     the risk line by art-direction law. */
+  chart(text, t = 0) {
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
+    ctx.strokeStyle = 'rgba(244,237,219,.12)'; ctx.lineWidth = 2;
+    for (let x = 140; x <= 960; x += 120) { ctx.beginPath(); ctx.moveTo(x, 200); ctx.lineTo(x, 760); ctx.stroke(); }
+    for (let y = 200; y <= 760; y += 90) { ctx.beginPath(); ctx.moveTo(140, y); ctx.lineTo(960, y); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(244,237,219,.55)'; ctx.font = '700 22px ui-monospace,Menlo,Consolas,monospace';
+    ctx.fillText('$DASHA', 140, 180); ctx.textAlign = 'right'; ctx.fillText('TIME', 960, 800); ctx.textAlign = 'left';
+    const moon = chartMoon;
+    ctx.strokeStyle = HOT; ctx.lineWidth = 8; ctx.beginPath();
+    for (let i = 0; i <= 40; i++) {
+      const x = 140 + i * (820 / 40);
+      const p = i / 40;
+      const y = moon
+        ? 760 - p * 300 - (p > 0.72 ? (p - 0.72) * 1400 : 0)
+        : 400 + p * 260 + (p > 0.78 ? (p - 0.78) * 2600 : 0);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    const { size, lines } = fit(text.toUpperCase(), (s) => `900 ${s}px Arial,Helvetica,sans-serif`, 92, 860, 180, 0.92);
+    ctx.font = `900 ${size}px Arial,Helvetica,sans-serif`; ctx.fillStyle = PAPER;
+    let y = blockStart(840, 978, lines.length, size, 0.92);
+    for (const line of lines) { ctx.fillText(line, 100, y); y += size * 0.92; }
+    ctx.fillStyle = HOT; ctx.fillRect(100, 986, 60, 6);
+    drawMark(936, 156, 58, ACID);
+  },
+
+  /* A hazard sign. Diagonal hot/ink stripes ring a hard ink panel; the line is the warning. */
+  warning(text, t = 0) {
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
+    ctx.save(); ctx.beginPath(); ctx.rect(60, 60, 960, 960); ctx.clip();
+    ctx.strokeStyle = HOT; ctx.lineWidth = 60;
+    for (let x = -1080; x < 2160; x += 120) { ctx.beginPath(); ctx.moveTo(x, 1020); ctx.lineTo(x + 1020, 60); ctx.stroke(); }
+    ctx.restore();
+    ctx.fillStyle = INK; ctx.fillRect(120, 120, 840, 840);
+    ctx.strokeStyle = PAPER; ctx.lineWidth = 4; ctx.strokeRect(120, 120, 840, 840);
+    ctx.fillStyle = ACID; ctx.font = '900 108px Arial,Helvetica,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('WARNING', 540, 306); ctx.textAlign = 'left';
+    const { size, lines } = fit(text.toUpperCase(), (s) => `900 ${s}px Arial,Helvetica,sans-serif`, 90, 700, 420, 0.94);
+    ctx.font = `900 ${size}px Arial,Helvetica,sans-serif`; ctx.fillStyle = PAPER; ctx.textAlign = 'center';
+    let y = blockStart(360, 760, lines.length, size, 0.94);
+    for (const line of lines) { ctx.fillText(line, 540, y); y += size * 0.94; }
+    ctx.textAlign = 'left';
+    ctx.fillStyle = HOT; ctx.fillRect(0, 1008, 1080, 72);
+    ctx.fillStyle = INK; ctx.font = '900 26px Arial,Helvetica,sans-serif';
+    ctx.fillText('PROCEED AT YOUR OWN RISK · $DASHA', 40, 1054);
+    drawMark(980, 156, 60, ACID);
+  },
+
+  /* A delulu affirmation card. The line is the mantra; the joke is the header/footer around it. */
+  delulu(text, t = 0) {
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
+    const glow = ctx.createRadialGradient(540, 460, 0, 540, 460, 520);
+    glow.addColorStop(0, VIOLET + '44'); glow.addColorStop(1, VIOLET + '00');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, 1080, 1080);
+    ctx.fillStyle = ACID; ctx.font = '900 30px Arial,Helvetica,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('DAILY AFFIRMATION', 540, 180); ctx.textAlign = 'left';
+    const { size, lines } = fit(text.toUpperCase(), (s) => `900 ${s}px Arial,Helvetica,sans-serif`, 120, 840, 520, 0.94);
+    ctx.font = `900 ${size}px Arial,Helvetica,sans-serif`; ctx.fillStyle = PAPER; ctx.textAlign = 'center';
+    let y = blockStart(240, 760, lines.length, size, 0.94);
+    for (const line of lines) { ctx.fillText(line, 540, y); y += size * 0.94; }
+    ctx.textAlign = 'left';
+    ctx.fillStyle = ACID; ctx.fillRect(0, 1008, 1080, 72);
+    ctx.fillStyle = INK; ctx.font = '900 26px Arial,Helvetica,sans-serif';
+    ctx.fillText('SAY IT WITH YOUR CHEST · $DASHA', 40, 1054);
+    drawMark(940, 156, 60, ACID);
+  },
+
+  /* An obit for the bags. The line is the epitaph; the dates and footer keep it a
+     joke rather than a promise. */
+  rip(text, t = 0) {
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
+    ctx.fillStyle = 'rgba(244,237,219,.06)';
+    ctx.beginPath();
+    ctx.moveTo(300, 900); ctx.lineTo(300, 520);
+    ctx.arc(540, 520, 240, Math.PI, Math.PI * 2);
+    ctx.lineTo(780, 900); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = PAPER; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = ACID; ctx.font = '900 88px Arial,Helvetica,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('R.I.P.', 540, 336); ctx.textAlign = 'left';
+    ctx.fillStyle = HOT; ctx.font = '900 24px Arial,Helvetica,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('MY BAGS', 540, 376); ctx.textAlign = 'left';
+    const { size, lines } = fit(text.toUpperCase(), (s) => `900 ${s}px Arial,Helvetica,sans-serif`, 66, 520, 300, 0.98);
+    ctx.font = `900 ${size}px Arial,Helvetica,sans-serif`; ctx.fillStyle = PAPER; ctx.textAlign = 'center';
+    let y = blockStart(430, 760, lines.length, size, 0.98);
+    for (const line of lines) { ctx.fillText(line, 540, y); y += size * 0.98; }
+    ctx.textAlign = 'left';
+    ctx.fillStyle = ACID; ctx.fillRect(0, 1008, 1080, 72);
+    ctx.fillStyle = INK; ctx.font = '900 26px Arial,Helvetica,sans-serif';
+    ctx.fillText('BUILT FOR THE TIMELINE · $DASHA', 40, 1054);
+    drawMark(940, 156, 60, ACID);
+  },
+
+  /* The two-panel setup → beat. A · or / in the line splits it into the two panels; otherwise the
+     words split down the middle so a single field still lands a punchline. */
+  panels(text, t = 0) {
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, 1080, 1080);
+    const parts = String(text).split(/[·/]+/).map((s) => s.trim()).filter(Boolean);
+    let setup, beat;
+    if (parts.length >= 2) { setup = parts[0]; beat = parts.slice(1).join(' '); }
+    else {
+      const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+      const mid = Math.ceil(words.length / 2);
+      setup = words.slice(0, mid).join(' ');
+      beat = words.slice(mid).join(' ');
+    }
+    const s = fit(setup.toUpperCase(), (f) => `900 ${f}px Arial,Helvetica,sans-serif`, 96, 900, 340, 0.94);
+    ctx.font = `900 ${s.size}px Arial,Helvetica,sans-serif`; ctx.fillStyle = PAPER;
+    let y = blockStart(96, 500, s.lines.length, s.size, 0.94);
+    for (const line of s.lines) { ctx.fillText(line, 90, y); y += s.size * 0.94; }
+    ctx.fillStyle = ACID; ctx.fillRect(0, 540, 1080, 8);
+    ctx.fillStyle = 'rgba(223,255,0,.06)'; ctx.fillRect(0, 548, 1080, 532);
+    const b = fit(beat.toUpperCase(), (f) => `900 ${f}px Arial,Helvetica,sans-serif`, 96, 900, 340, 0.94);
+    ctx.font = `900 ${b.size}px Arial,Helvetica,sans-serif`; ctx.fillStyle = ACID;
+    let y2 = blockStart(560, 1000, b.lines.length, b.size, 0.94);
+    for (const line of b.lines) { ctx.fillText(line, 90, y2); y2 += b.size * 0.94; }
+    drawMark(936, 60, 56, ACID);
+  },
 };
 
 /* phase runs 0 -> 1 over one loop of the animation. Every look is drawn as a pure function of it,
@@ -1708,6 +1943,10 @@ const shareText = () => `${$('line').value.trim() || look.line}\n\n$dasha \u{1F3
 function handoffCopiedOk(got, want) {
   return String(got || '') === String(want || '');
 }
+/* writeText/readText can hang with no reject. 800ms then fall through. */
+function withTimeout(p, ms) {
+  return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('copy-timeout')), ms))]);
+}
 
 function save(blob, name = fileName()) {
   const link = document.createElement('a');
@@ -1785,13 +2024,13 @@ $('download').addEventListener('click', async () => {
 $('copy-link').addEventListener('click', async () => {
   const url = await ensureHandoffUrl();
   try {
-    if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
+    if (navigator.clipboard?.writeText) await withTimeout(navigator.clipboard.writeText(url), 800);
     else {
       const ta = Object.assign(document.createElement('textarea'), { value: url });
       document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
     }
     if (navigator.clipboard?.readText) {
-      const got = await navigator.clipboard.readText();
+      const got = await withTimeout(navigator.clipboard.readText(), 800);
       if (!handoffCopiedOk(got, url)) {
         setStatus('Could not copy the link. Select the address bar after Share.');
         return;
@@ -1814,7 +2053,7 @@ $('copy').addEventListener('click', async () => {
     const blob = await png();
     try {
       if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': Promise.resolve(blob) })]);
+        await withTimeout(navigator.clipboard.write([new ClipboardItem({ 'image/png': Promise.resolve(blob) })]), 800);
         $('status').textContent = 'Image copied.';
         trackStudio('export'); trackStudio('completion');
         feMark('export');
@@ -2041,6 +2280,16 @@ function refreshPhotoUi() {
   if (isPhoto && !photo && !isBusyStatus($('status')?.textContent)) {
     setStatus('Photo look · pick or paste an image');
   }
+  refreshChartUi();
+}
+function refreshChartUi() {
+  const dir = $('chart-dir');
+  if (!dir) return;
+  dir.hidden = look.id !== 'chart';
+  const moon = $('chart-moon');
+  const tank = $('chart-tank');
+  if (moon) moon.setAttribute('aria-pressed', chartMoon ? 'true' : 'false');
+  if (tank) tank.setAttribute('aria-pressed', chartMoon ? 'false' : 'true');
 }
 fillSelect('looks', LOOKS, look);
 fillSelect('formats', FORMATS, format);
@@ -2307,6 +2556,22 @@ if ($('shuffle-line')) $('shuffle-line').addEventListener('click', () => {
   render();
   setStatus('Line shuffled');
 });
+if ($('chart-moon')) $('chart-moon').addEventListener('click', () => {
+  if (chartMoon) return;
+  chartMoon = true;
+  trackStudio('first_edit');
+  refreshChartUi();
+  render();
+  setStatus('Chart · moon');
+});
+if ($('chart-tank')) $('chart-tank').addEventListener('click', () => {
+  if (!chartMoon) return;
+  chartMoon = false;
+  trackStudio('first_edit');
+  refreshChartUi();
+  render();
+  setStatus('Chart · tank');
+});
 if ($('view-now')) $('view-now').addEventListener('click', () => {
   viewMode = 'now';
   syncDuetUi();
@@ -2423,7 +2688,7 @@ if (!inbound && !fragmentHasState && !imageOnly) {
   render();
   afterStatePaint({ pulseFormat: true });
   const lookName = LOOKS.find((option) => option.id === ritual.look)?.name || ritual.look;
-  setStatus('');
+  setStatus('Change one thing, then Share.');
   for (const id of ['surprise', 'ritual-today']) {
     const chip = $(id);
     if (chip) {
