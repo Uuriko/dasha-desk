@@ -17,7 +17,7 @@ assert.equal((html.match(/<h1\b/g) || []).length, 1);
 assert.match(html, /id="simp"/);
 assert.match(html, /id="dasha-simp-board"/);
 assert.match(html, /lobby\.getdasha\.com\/client\/simp-board\.js/);
-assert.match(html, /integrity='sha384-UTvrCJlUnlRpT2IJpsLh7/PCpHxqEqdqeM2OX5eNrDdBWVBpesms1soa7Usd5jyG'/);
+assert.ok(html.includes("integrity='sha384-UTvrCJlUnlRpT2IJpsLh7/PCpHxqEqdqeM2OX5eNrDdBWVBpesms1soa7Usd5jyG'"));
 assert.match(html, /x\.com\/dash_eats/);
 assert.match(html, /getdasha\.com\/bounties/);
 assert.doesNotMatch(html, /<iframe/i);
