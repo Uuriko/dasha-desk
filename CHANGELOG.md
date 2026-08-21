@@ -2,6 +2,8 @@
 
 ## v0.1.1 — unreleased (main)
 
+- **Lobby Simp pin:** `lobby/index.html` rehashed 2026-08-21 from live `simp-board.js` (`sha384-UTvr…`). The 2026-08-14 pin is stale — a browser that loaded this paste would refuse the script.
+- **Watch / Worker SoR:** live Watch FAILs (`/studio` 308 → `/`, stale `x-connect.js` SRI) are `Uuriko/demigod-ops` worker-tree / dasha-2, not this repo. Documented in `docs/DEPLOY.md`. `watch.mjs` was not weakened.
 - **This-week surfaces:** Home is ticker + stills (no Simp). Simp on `/lobby`. Native `/bounties` (List needs USDC + `payTo`). `/privacy`. `/desk` goes to `/dasha`. In-repo `404.html` (Webflow 404 is a separate paste). Live `/bounties.json` is the edge feed.
 - **Desk on the five-token poster spine:** ink / paper / acid / hot / violet. Hard 4px offsets, acid CTAs, no lavender glass dashboard.
 - **Home / Studio / Bounties paste:** Home is ticker + one H1 + one Studio CTA (no Simp board). Studio loader is paper on ink and pins the Pages embed. Bounties paste is `app.html`, not an iframe.

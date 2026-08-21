@@ -73,7 +73,7 @@ Each of these exists because of a specific failure, not as ceremony.
 | `dasha-oss-docs.test.mjs` | The docs in this repo do not contradict each other. |
 | `studio/studio.test.mjs` | The Studio stays self-contained, every look id a remix URL can name still exists, and the embed is generated rather than hand-edited. |
 | `bounties/bounties.test.mjs` | Listing JSON parses (item + project), malformed issues are skipped, empty outcomes copy, proof URLs required, the form builds a GitHub `issues/new` URL, static feed matches root `bounties.json` and carries `schema: dasha-bounties-feed/v1`, seed has no fake leaderboard, extra Demigod feed merge/dedup is non-fatal. |
-| `watch.mjs` | What the **live site** actually serves. Runs on a schedule, not just on a push. `/bounties` is watched for the no-custody line and must not show a foreign mint; it is not required to display the CA. `/privacy` and `/desk`→`/dasha` are warned until Webflow pastes land. |
+| `watch.mjs` | What the **live site** actually serves. Runs on a schedule, not just on a push. `/bounties` is watched for the no-custody line and must not show a foreign mint; it is not required to display the CA. `/privacy` and `/desk`→`/dasha` are warned until those pretty URLs exist. Live Watch FAILs on `/studio` CC0/likeness (Worker 308 → `/`) and stale `x-connect.js` SRI are **not** this repo — SoR is `Uuriko/demigod-ops` worker-tree / dasha-2. Do not weaken `watch.mjs` to hide them. |
 
 `watch.mjs` is the odd one out and the most important. Every other gate reads files in this repo, and
 the failures that reach visitors happen *between* the repo and the site: the Studio's public-domain
