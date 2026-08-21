@@ -114,6 +114,7 @@
   .after-share[hidden]{display:none}
   .after-share p{margin:0;font-size:13px;font-weight:800;color:var(--paper)}
   .after-share .go{gap:8px}
+  .after-forum{min-height:44px;display:inline-flex;align-items:center;color:var(--acid);font-size:12px;font-weight:900;text-transform:uppercase;text-underline-offset:4px}
   .keys-help{font-size:11px;line-height:1.5;color:var(--muted);margin:0}
   .keys-help kbd{display:inline-block;min-width:1.2em;padding:1px 5px;border:1px solid var(--line);color:var(--paper);font-weight:800}
   body.inbound .topbar{opacity:.72}
@@ -259,7 +260,7 @@
           <p class="alt" id="after-share-alt" hidden></p>
           <div class="go">
             <button class="btn ghost" id="after-copy" type="button">Copy editable link</button>
-            <button class="btn ghost" id="after-text" type="button">Copy post text</button>
+            <a class="after-forum" id="after-forum" href="https://www.getdasha.com/lobby" target="_blank" rel="noopener noreferrer">Discuss in Forum →</a>
             <a class="btn ghost" id="after-open" href="/studio" target="_blank" rel="noopener noreferrer">Open what they get</a>
             <button class="text-action" id="after-dismiss" type="button">Make another</button>
           </div>
@@ -1055,7 +1056,15 @@ function storySafeHint() {
     setStatus('Long for Story — still readable?');
   }
 }
-function showAfterShare(kind) {
+function forumDraftUrl(handoff) {
+  const params = new URLSearchParams({
+    new: '1',
+    title: ($('line').value.trim() || look.line).slice(0, 80),
+    body: `Made in Dasha Studio:\n\n${handoff}`.slice(0, 2000),
+  });
+  return `https://www.getdasha.com/lobby#${params}`;
+}
+function showAfterShare(kind, handoff) {
   const tray = $('after-share');
   if (!tray) return;
   tray.hidden = false;
@@ -1077,39 +1086,19 @@ function showAfterShare(kind) {
   const open = $('after-open');
   if (open) {
     open.hidden = Boolean(imageOnly);
-    open.href = handoffCache?.url || remixURL();
-    if (!imageOnly && !handoffCache?.url) {
-      ensureHandoffUrl().then((url) => { if (open && url) open.href = url; }).catch(() => {});
-    }
+    open.href = handoff || handoffCache?.url || remixURL();
   }
   const afterCopy = $('after-copy');
   if (afterCopy) afterCopy.hidden = Boolean(imageOnly);
-  const afterText = $('after-text');
-  if (afterText) afterText.hidden = false;
+  const afterForum = $('after-forum');
+  if (afterForum) {
+    afterForum.hidden = Boolean(imageOnly);
+    afterForum.href = forumDraftUrl(handoff || handoffCache?.url || remixURL());
+  }
 }
 function hideAfterShare() {
   const tray = $('after-share');
   if (tray) tray.hidden = true;
-}
-async function copyPostText() {
-  const text = shareText();
-  try {
-    if (navigator.clipboard?.writeText) await withTimeout(navigator.clipboard.writeText(text), 800);
-    else {
-      const ta = Object.assign(document.createElement('textarea'), { value: text });
-      document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove();
-    }
-    if (navigator.clipboard?.readText) {
-      const got = await withTimeout(navigator.clipboard.readText(), 800);
-      if (!handoffCopiedOk(got, text)) {
-        setStatus('Could not copy post text.');
-        return;
-      }
-    }
-    setStatus('Post text copied.');
-  } catch {
-    setStatus('Could not copy post text.');
-  }
 }
 function refreshShareLabel() {
   const btn = $('share');
@@ -1978,7 +1967,7 @@ $('share').addEventListener('click', async () => {
         feMark('export');
         setStatus(imageOnly ? 'Shared image.' : 'Shared — editable link went with it.');
         flashStage();
-        showAfterShare('native');
+        showAfterShare('native', handoff);
         return;
       } catch (error) {
         if (error.name === 'AbortError') { setStatus(''); return; }
@@ -1997,10 +1986,10 @@ $('share').addEventListener('click', async () => {
       setStatus(imageOnly
         ? 'Image saved — attach it in the X tab that just opened.'
         : 'Image saved — attach it in the X tab that just opened. The editable link is already there.');
-      showAfterShare('x');
+      showAfterShare('x', handoff);
     } else {
       setStatus('Image saved. X did not open — attach the PNG there yourself.');
-      showAfterShare('saved');
+      showAfterShare('saved', handoff);
     }
     flashStage();
   } catch {
@@ -2586,7 +2575,6 @@ if ($('view-before')) $('view-before').addEventListener('click', () => {
   setStatus('Showing before');
 });
 if ($('after-copy')) $('after-copy').addEventListener('click', () => $('copy-link').click());
-if ($('after-text')) $('after-text').addEventListener('click', () => { copyPostText(); });
 if ($('after-dismiss')) $('after-dismiss').addEventListener('click', () => {
   hideAfterShare();
   surpriseMe();

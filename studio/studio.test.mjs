@@ -35,7 +35,7 @@ const loader = await readFile(here('loader.html'), 'utf8');
       Note the pattern: it matches any absolute URL, not just src=/href=. An earlier version only
       checked attributes and waved through fifteen photographs, because they are URLs in a
       JavaScript array loaded with new Image(). Markup-shaped checks do not check a canvas app. */
-const LINKS = /^https:\/\/(creativecommons\.org|github\.com\/Uuriko|jup\.ag|x\.com|lobby\.getdasha\.com)/;
+const LINKS = /^https:\/\/(creativecommons\.org|github\.com\/Uuriko|jup\.ag|x\.com|(?:www\.|lobby\.)getdasha\.com)/;
 const PHOTO_HOSTS = /^https:\/\/(pbs\.twimg\.com|static1\.squarespace\.com|www\.moviemaker\.com|m\.media-amazon\.com|br\.web\.img2\.acsta\.net|avatars\.mds\.yandex\.net|upload\.wikimedia\.org)\//;
 const external = [...studio.matchAll(/https?:\/\/[^\s"'`)<>]+/g)].map((m) => m[0]);
 assert.deepEqual([...new Set(external.filter((u) => !LINKS.test(u) && !PHOTO_HOSTS.test(u)))], [],

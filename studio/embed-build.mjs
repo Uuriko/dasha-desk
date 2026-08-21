@@ -39,7 +39,7 @@ export function buildStudioEmbed(studio) {
   // Primary ship path + progressive disclosure. Looks/formats use visible selects and hidden sync strips.
   // Moods/history/variants are painted in script; markup buttons stay intentionally bounded.
   const buttons = (markup.match(/<button\b/g) || []).length;
-  if (buttons !== 21) {
+  if (buttons !== 20) {
     throw new Error(`the Studio action set is no longer intentionally bounded (buttons=${buttons})`);
   }
   if (!markup.includes('id="edit"') || !markup.includes('id="share"') || !markup.includes('id="download"') || !markup.includes('id="copy-link"')) {
@@ -48,8 +48,8 @@ export function buildStudioEmbed(studio) {
   if (!markup.includes('id="oco-export"') || !markup.includes('id="oco-import"')) {
     throw new Error('Open Culture Object save/open controls missing from markup');
   }
-  if (!markup.includes('id="surprise"') || !markup.includes('id="batch-looks"') || !markup.includes('id="after-share"')) {
-    throw new Error('Studio lost surprise, batch cook, or share aftermath tray');
+  if (!markup.includes('id="surprise"') || !markup.includes('id="batch-looks"') || !markup.includes('id="after-share"') || !markup.includes('id="after-forum"')) {
+    throw new Error('Studio lost surprise, batch cook, share aftermath, or Forum handoff');
   }
   if (!markup.includes('id="looks"') || !markup.includes('id="formats"') || !markup.includes('id="effects"') || !markup.includes('id="stickers"')) {
     throw new Error('compact Studio controls missing from markup');
@@ -59,9 +59,6 @@ export function buildStudioEmbed(studio) {
   }
   if (!markup.includes('id="effect-strip"') || !markup.includes('id="sticker-strip"')) {
     throw new Error('Studio lost effect or sticker strip');
-  }
-  if (!markup.includes('id="after-text"')) {
-    throw new Error('Studio lost after-share post text copy');
   }
   if (!markup.includes('id="variants"') || !markup.includes('id="relay-seal"') || !markup.includes('id="stage-frame"')) {
     throw new Error('Studio lost variants rail, relay seal, or stage frame');
