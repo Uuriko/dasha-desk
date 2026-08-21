@@ -22,6 +22,9 @@ const deploy = read('docs/DEPLOY.md');
 const archive = read('docs/ARCHIVE.md');
 const studio = read('studio/README.md');
 const issueConfig = read('.github/ISSUE_TEMPLATE/config.yml');
+const ideaTemplate = read('.github/ISSUE_TEMPLATE/idea.yml');
+const bugTemplate = read('.github/ISSUE_TEMPLATE/bug.yml');
+const pullTemplate = read('.github/PULL_REQUEST_TEMPLATE.md');
 const watch = read('watch.mjs');
 const workflows = ['watch.yml', 'verify.yml', 'pages.yml'].map((name) => read(`.github/workflows/${name}`));
 const dependabot = read('.github/dependabot.yml');
@@ -33,17 +36,23 @@ assert.match(readme, /\$dasha|dasha/i, 'README must name the product');
 assert.match(readme, /src\/body\.html|src\/app\.js|generated/i, 'README should point at sources or generated surfaces');
 assert.match(readme, /getdasha\.com\/dasha/, 'README must link live desk');
 assert.match(readme, /`\/desk` (goes to|redirects to) `\/dasha`/, 'README must say /desk goes to /dasha');
-assert.match(readme, /getdasha\.com\/lobby/, 'README must link lobby');
+assert.match(readme, /getdasha\.com\/simp/, 'README must link the Simp Board');
 assert.match(readme, /getdasha\.com\/privacy/, 'README must link privacy');
 assert.match(readme, /getdasha\.com\/bounties/, 'README must link the bounties board');
-assert.match(readme, /getdasha\.com\/#oss/, 'README must link site open-source section');
+assert.doesNotMatch(readme, /getdasha\.com\/#oss/, 'README must not link the retired #oss anchor');
 assert.match(readme, /desk-demo\.(gif|png)/, 'README must embed demo visual');
 assert.match(readme, /Uploaded or\s+externally sourced images keep their own rights/i, 'README must bound Studio image rights');
 
 assert.match(contrib, /issue|PR|pull request|fork/i, 'CONTRIBUTING must describe how to help');
 assert.match(contrib, /open-source project contributor|not a payment/i, 'CONTRIBUTING must disambiguate from payment/bag');
 assert.match(contrib, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'CONTRIBUTING must link /contribute');
-assert.match(contrib, /getdasha\.com\/#oss/, 'CONTRIBUTING must link live #oss');
+assert.doesNotMatch(contrib, /getdasha\.com\/#oss/, 'CONTRIBUTING must not link the retired #oss anchor');
+assert.match(contrib, /getdasha\.com\/simp/, 'CONTRIBUTING must link the Simp Board reward path');
+assert.match(contrib, /not active yet[\s\S]*no current pull request earns Simp Points/i, 'CONTRIBUTING must not promise inactive OSS points');
+assert.match(contrib, /maintainer applies[\s\S]*exactly one `impact:` label to the PR/i, 'CONTRIBUTING must match the PR-label scorer input');
+assert.match(readme, /inactive today[\s\S]*no current\s+PR earns points/i, 'README must distinguish prepared OSS scoring from live rewards');
+assert.doesNotMatch(readme, /Merged pull requests score points/, 'README claims inactive OSS points are live');
+assert.match(pullTemplate, /Maintainer only:[\s\S]*exactly one impact: label or simp:no-score/i, 'PR template must leave the scorer label handoff with maintainers');
 
 assert.match(roadmap, /## Resolved/i, 'ROADMAP must have honest Resolved section');
 assert.ok(!/shipped from community|external contributors shipped/i.test(roadmap), 'ROADMAP must not invent community PR traction');
@@ -55,6 +64,19 @@ assert.ok(existsSync(join(root, 'studio/media.json')), 'Studio media manifest mi
 
 assert.match(issueConfig, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'issue chooser must link /contribute');
 assert.match(issueConfig, /Start contributing/, 'issue chooser Start contributing contact');
+assert.match(issueConfig, /name: Live Dasha[\s\S]*url: https:\/\/www\.getdasha\.com\//,
+  'issue chooser must link the whole live product, not only the Desk surface');
+assert.doesNotMatch(issueConfig, /getdasha\.com\/#oss/, 'issue chooser must not link the retired #oss anchor');
+assert.doesNotMatch(issueConfig, /^\s+about: [^"'|>\n][^\n]*: /m,
+  'issue chooser descriptions containing a colon must be quoted YAML');
+assert.match(ideaTemplate, /Dasha's open-source tools/);
+assert.match(ideaTemplate, /Studio \/ creative tools/);
+assert.match(ideaTemplate, /Simp \/ community/);
+assert.doesNotMatch(ideaTemplate, /improvement to the Desk|The Desk should/,
+  'idea form must not reject non-Desk Dasha work by its framing');
+assert.match(bugTemplate, /Dasha's open-source tools or docs/);
+assert.doesNotMatch(bugTemplate, /on the desk or docs/i,
+  'bug form must cover every repository surface');
 
 // Demo asset for strangers (GIF or PNG)
 assert.ok(

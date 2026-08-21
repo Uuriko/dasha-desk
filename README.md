@@ -19,15 +19,15 @@ open as GitHub issues. X is optional (same lobby session as Simp Board). Canonic
 We don't hold it.
 [Use it ↗](https://www.getdasha.com/bounties)
 
-**lobby** — Simp board lives on `/lobby`, not on `/`. Live home still has `#simp` until the Home paste lands. Quiz pills are already gone from `/` (0 hits).
-[Use it ↗](https://www.getdasha.com/lobby)
+**simp** — the public Simp Board, quiz, earned profile Spotlight and contribution points.
+[Use it ↗](https://www.getdasha.com/simp)
 
 **privacy** — [www.getdasha.com/privacy](https://www.getdasha.com/privacy)
 
 None of them connects a wallet or moves anything. Original drawings are public domain. Uploaded or
 externally sourced images keep their own rights.
 
-[GitHub Pages demo](https://uuriko.github.io/dasha-desk/) · [Website](https://www.getdasha.com) · [Site: open source](https://www.getdasha.com/#oss)
+[GitHub Pages demo](https://uuriko.github.io/dasha-desk/) · [Website](https://www.getdasha.com)
 
 ![Dasha desk — mint, sources, buy rails](assets/desk-demo.gif)
 
@@ -35,7 +35,7 @@ externally sourced images keep their own rights.
 
 This is **code and docs contribution** to the public MIT repo — not a payment, bag check, or paid program. Open a pull request and you are a project contributor. No invite. **Maintainer:** [@Uuriko](https://github.com/Uuriko).
 
-**From getdasha.com:** the homepage **Work on open source ↗** / **Open source ↗** buttons land on [good first issues](https://github.com/Uuriko/dasha-desk/contribute).
+**From getdasha.com:** the homepage **Contribute code ↗** button lands on [good first issues](https://github.com/Uuriko/dasha-desk/contribute).
 
 **Fastest path (no clone):**
 
@@ -45,9 +45,11 @@ This is **code and docs contribution** to the public MIT repo — not a payment,
 
 Also: [Ideas welcome (#7)](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions) · [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
 
-Merged pull requests score points on the public [Simp Board](https://www.getdasha.com/lobby), sized by
-the issue's `impact:` label — [how that works](CONTRIBUTING.md#what-the-impact-labels-mean). Points are
-recognition on a page, not a payment or a token allocation. You never need points to open a PR.
+A prepared lane can recognize qualifying merged pull requests on the public
+[Simp Board](https://www.getdasha.com/simp) once it is activated. It is inactive today, so no current
+PR earns points. The maintainer will apply the PR's `impact:` label; contributors need no label
+permissions. [How that works](CONTRIBUTING.md#prepared-simp-points-lane). Points are recognition on a
+page, not payment or a token allocation. You never need points to open a PR.
 
 CI runs the complete build, mint, share, docs, and browser-resilience gate on every PR.
 

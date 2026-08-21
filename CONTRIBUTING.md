@@ -6,7 +6,7 @@ It is not a payment, airdrop, bag check, or paid program.
 There is nothing to join. Open a pull request and you are a contributor — no invite, no org access,
 no application. Holder status and Board points are **never** required to contribute.
 
-**Product context:** [getdasha.com open source](https://www.getdasha.com/#oss) · live desk [getdasha.com/dasha](https://www.getdasha.com/dasha)
+**Product context:** [getdasha.com](https://www.getdasha.com/) · live desk [getdasha.com/dasha](https://www.getdasha.com/dasha)
 
 **Start here:** [good first issues](https://github.com/Uuriko/dasha-desk/contribute) · [Ideas welcome](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions)
 
@@ -53,10 +53,10 @@ Good first contributions include keyboard and screen-reader fixes, clearer loadi
 
 For a larger idea, [open an issue](https://github.com/Uuriko/dasha-desk/issues/new/choose) or post in [Discussions](https://github.com/Uuriko/dasha-desk/discussions) with the smallest useful first slice — crypto infra, consumer UX, or creative tools are all fair game.
 
-## What the `impact:` labels mean
+## Prepared Simp Points lane
 
-Issues carry an `impact:` label, and it is not decoration. A merged pull request scores points on the
-public [Simp Board](https://www.getdasha.com/lobby):
+This lane is not active yet, so no current pull request earns Simp Points. Once activated, qualifying
+merged work can be recognized on the public [Simp Board](https://www.getdasha.com/simp):
 
 | Label | Points |
 |---|---:|
@@ -66,8 +66,10 @@ public [Simp Board](https://www.getdasha.com/lobby):
 | `impact:large` | 100 |
 | `impact:critical` | 200 |
 
-A PR scores when it is merged, is not a draft, targets an allowed base branch, and has an approving
-review from **someone other than its author**. Bot accounts are rejected. There are caps — per
+A PR can score only after activation when it is merged, is not a draft, targets an allowed base
+branch, and has an approving review from **someone other than its author**. The maintainer applies
+exactly one `impact:` label to the PR before merge; the issue label previews the intended size, but
+the scorer reads the PR label. Contributors do not need label permissions. Bot accounts are rejected. There are caps — per
 season, per rolling seven days, and on total points per season — so the board measures contribution
 rather than volume, and so nobody can farm it by splitting one change into twenty.
 
@@ -76,8 +78,8 @@ airdrop, not a claim on anything, and not a statement about anyone's worth. They
 a name on a public page. If you want the change more than the number, you have understood it
 correctly. You do **not** need points (or a Board account) to open a PR.
 
-The scoring rules live in `dasha-simp-oss-scorer.mjs` in the operator's repo and are covered by
-tests. If a merged PR of yours is not scored and you think it should have been, say so on the issue.
+The prepared scoring rules live in `dasha-simp-oss-scorer.mjs` in the operator's repo and are covered
+by tests. Activation, season dates and any qualifying awards will be stated here before points begin.
 
 ## Guardrails
 

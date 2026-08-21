@@ -20,6 +20,7 @@
   var GITHUB_OAUTH_WINDOW = 'dasha_gh';
   var SIMP_ME = LOBBY_URL + '/simp/me';
   var USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+  var SYSTEM_PROGRAM = '11111111111111111111111111111111';
   var CHAIN = 'solana';
   var CURRENCY = 'USDC';
   var EXTRA_SEED_URLS = [
@@ -145,11 +146,13 @@
   function normalizePayTo(raw) {
     var s = String(raw || '').trim();
     if (!s) return null;
-    var solana = s.match(/^solana:([1-9A-HJ-NP-Za-km-z]{32,44})/i);
-    if (solana) return solana[1];
-    if (isSolanaAddress(s)) return s;
-    var m = s.match(/[1-9A-HJ-NP-Za-km-z]{32,44}/);
-    return m && isSolanaAddress(m[0]) ? m[0] : null;
+    var solana = s.match(/^solana:([1-9A-HJ-NP-Za-km-z]{32,44})(?:\?.*)?$/i);
+    var dest = solana ? solana[1] : isSolanaAddress(s) ? s : null;
+    return dest && dest !== SYSTEM_PROGRAM ? dest : null;
+  }
+
+  function canList(listing) {
+    return Boolean(listing && normalizePayTo(listing.payTo));
   }
 
   function payRail(listing) {
@@ -267,6 +270,15 @@
       }
     }
     return null;
+  }
+
+  function issueField(text, label) {
+    var marker = '### ' + label;
+    var src = String(text || '');
+    var start = src.indexOf(marker);
+    if (start < 0) return '';
+    var value = src.slice(start + marker.length).split(/\n###\s/)[0].trim();
+    return value === '_No response_' ? '' : value;
   }
 
   function normalizePayout(raw) {
@@ -454,12 +466,15 @@
     if (!isBountyIssue(issue)) return null;
     var parsed = extractJsonObject(issue.body);
     if (!parsed) return null;
-    return normalizeListing(parsed, {
+    var payTo = issueField(issue.body, 'Pay to');
+    if (payTo) parsed.payTo = payTo;
+    var listing = normalizeListing(parsed, {
       origin: 'issue',
       issueNumber: issue.number,
       issueUrl: issue.html_url,
       createdAt: issue.created_at,
     });
+    return canList(listing) ? listing : null;
   }
 
   function listingsFromIssues(issues) {
@@ -486,6 +501,7 @@
     var order = [];
     Array.prototype.slice.call(arguments).forEach(function (group) {
       (group || []).forEach(function (listing) {
+        if (!canList(listing)) return;
         var key = listing.id;
         if (!byId[key]) order.push(key);
         byId[key] = listing;
@@ -624,7 +640,7 @@
         schema: FEED_SCHEMA,
         note: 'USDC on Solana. We don\'t hold it.',
         url: BOARD_URL,
-        listings: (listings || []).map(toFeedEntry),
+        listings: (listings || []).filter(canList).map(toFeedEntry),
       },
       extra || {},
     );
@@ -771,12 +787,13 @@
       },
       { origin: 'form' },
     );
-    if (!listing) return { ok: false, error: 'Could not build a listing from that form.' };
+    if (!canList(listing)) return { ok: false, error: 'Pay to must be a usable Solana address.' };
     var params = new URLSearchParams();
     params.set('template', 'bounty-project.yml');
     params.set('title', TITLE_PREFIX + ' ' + name);
     params.set('labels', ISSUE_LABEL);
     params.set('listing', JSON.stringify(listingPayload(listing), null, 2));
+    params.set('payTo', payTo);
     return {
       ok: true,
       url: 'https://github.com/' + LISTING_REPO + '/issues/new?' + params.toString(),
@@ -980,9 +997,10 @@
         esc(listing.name) +
         '</a>'
       : '<span class="bb-title">' + esc(listing.name) + '</span>';
-    var payUrl = isUsdc(listing.currency) ? solanaPayUrl(listing.amount, listing.payTo, listing.name) : '';
+    var payable = canList(listing);
+    var payUrl = payable && isUsdc(listing.currency) ? solanaPayUrl(listing.amount, listing.payTo, listing.name) : '';
     var copy = payClipboardText(listing);
-    var dest = normalizePayTo(listing.payTo);
+    var dest = payable ? normalizePayTo(listing.payTo) : null;
     var pay =
       !dest
         ? '<span class="bb-pay-na" aria-hidden="true">—</span>'
@@ -1524,6 +1542,7 @@
     solanaPayUrl: solanaPayUrl,
     phantomBrowseUrl: phantomBrowseUrl,
     normalizePayTo: normalizePayTo,
+    canList: canList,
     payClipboardText: payClipboardText,
     identityFromLobbyMe: identityFromLobbyMe,
     normalizeIdentity: normalizeIdentity,

@@ -1,18 +1,18 @@
 name: Idea / feature
-description: Propose a focused improvement to the Desk.
+description: Propose a focused improvement to Dasha's open-source tools.
 title: "[Idea]: "
 labels: [enhancement]
 body:
   - type: markdown
     attributes:
       value: |
-        What small change would make the Desk clearer, safer, or more reliable?
+        What small change would make Dasha clearer, more useful, or more reliable?
   - type: textarea
     id: dream
     attributes:
       label: The idea
       description: Describe the smallest useful version.
-      placeholder: The Desk should…
+      placeholder: Dasha should…
     validations:
       required: true
   - type: textarea
@@ -26,6 +26,9 @@ body:
       label: Rough category (optional)
       options:
         - Not sure
+        - Studio / creative tools
+        - Simp / community
+        - Contribution / bounties
         - Verification / data
         - Accessibility / UX
         - Performance / reliability

@@ -11,7 +11,7 @@ body:
     id: listing
     attributes:
       label: Listing JSON
-      description: Keep this valid JSON. GitHub URL required. payTo is a Solana address or empty.
+      description: Keep this valid JSON. GitHub URL required. Pay to is required below.
       render: json
       value: |
         {
@@ -20,13 +20,20 @@ body:
           "amount": 25,
           "currency": "USDC",
           "chain": "solana",
-          "payTo": "",
           "tokenMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
           "github": "",
           "x": "",
           "createdAt": "2026-08-13T00:00:00.000Z",
           "outcomes": []
         }
+    validations:
+      required: true
+  - type: input
+    id: payTo
+    attributes:
+      label: Pay to
+      description: Solana wallet that receives this USDC bounty. Required; the board does not hold funds.
+      placeholder: Solana address
     validations:
       required: true
   - type: textarea
