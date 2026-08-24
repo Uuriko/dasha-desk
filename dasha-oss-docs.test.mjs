@@ -40,6 +40,10 @@ assert.match(readme, /getdasha\.com\/simp/, 'README must link the Simp Board');
 assert.match(readme, /getdasha\.com\/privacy/, 'README must link privacy');
 assert.match(readme, /getdasha\.com\/bounties/, 'README must link the bounties board');
 assert.doesNotMatch(readme, /getdasha\.com\/#oss/, 'README must not link the retired #oss anchor');
+assert.match(readme, /Worker-first getdasha\.com/, 'README must say this is Worker-first getdasha.com');
+assert.match(readme, /same product as the static desk files already here/, 'README must say Worker and static desk are the same product');
+assert.ok(existsSync(join(root, 'worker/wrangler.jsonc.example')), 'worker wrangler example missing');
+assert.doesNotMatch(read('worker/wrangler.jsonc.example'), /"account_id"/, 'wrangler example must not ship account_id');
 assert.match(readme, /desk-demo\.(gif|png)/, 'README must embed demo visual');
 assert.match(readme, /Uploaded or\s+externally sourced images keep their own rights/i, 'README must bound Studio image rights');
 

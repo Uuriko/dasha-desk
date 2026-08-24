@@ -2,6 +2,9 @@
 node_modules/
 .dist/
 .env
+.dev.vars
+.wrangler/
+worker/wrangler.jsonc
 *.log
 .idea/
 .vscode/

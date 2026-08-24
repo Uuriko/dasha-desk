@@ -1,0 +1,16 @@
+{
+  // Copy to wrangler.jsonc locally. This example is secrets-free.
+  // Do NOT add a Cloudflare account field, API tokens, or wrangler login state.
+  "name": "getdasha",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-24",
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+  // Optional non-secret origin for home rewrite (Webflow / static host).
+  // Uncomment locally. Never point this at a private ops host in git.
+  // "vars": {
+  //   "ORIGIN": "https://example.com"
+  // }
+}

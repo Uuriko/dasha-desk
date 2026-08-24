@@ -31,6 +31,14 @@ externally sourced images keep their own rights.
 
 ![Dasha desk — mint, sources, buy rails](assets/desk-demo.gif)
 
+## Worker-first getdasha.com
+
+This is **Worker-first getdasha.com**, the same product as the static desk files already here — one `$dasha` / dash_eats site, not a second coin.
+
+Live [www.getdasha.com](https://www.getdasha.com/) is served by a Cloudflare Worker that owns the public contract (home rewrite, `/bag`, `/which`, `/llms.txt`, sitemap, robots, and 308s). The static desk, Studio, lobby, privacy, and bounties files in this repo stay the pasteable / GitHub Pages sources. See [`worker/`](worker/).
+
+That Worker tree is secrets-free: no faucet signer, no treasury dest, no Cloudflare `account_id`, no tokens.
+
 ## Start contributing (open-source project)
 
 This is **code and docs contribution** to the public MIT repo — not a payment, bag check, or paid program. Open a pull request and you are a project contributor. No invite. **Maintainer:** [@Uuriko](https://github.com/Uuriko).
