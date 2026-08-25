@@ -1,345 +1,481 @@
 #!/usr/bin/env node
 /**
- * Watches the live site. Runs on a schedule in GitHub Actions, so it does not depend on anyone's
- * laptop being open.
+ * Watches the live getdasha.com Worker contract.
  *
- * Why this exists: the Studio's public-domain dedication has disappeared from production four
- * times. Every time it stayed gone for hours, and every time it was found by accident. Every gate
- * in this project passed throughout, because gates read files in a repo and the failure was between
- * the repo and the site — a stale draft published over the good one, an asset that rotted on a CDN,
- * a republish that dropped a block. Nothing was looking at what visitors actually got.
+ * Live owner is Cloudflare Worker dasha-lobby (www + lobby routes). Source ships from the
+ * operator Worker tree — not this GitHub repo, not GitHub Pages, not Designer-publish.
+ * This file does not implement that Worker. It asserts what visitors must get.
  *
- * The split matters. FAILURES are things that mislead someone or cost them money, and they should
- * wake somebody up. WARNINGS are things that are merely worse than they should be. A monitor that
- * is permanently amber gets muted within a week, and a muted monitor is worse than none, because it
- * looks like coverage.
+ * Do not restore Studio. /studio is retired (308 home). Do not treat privacy 308-as-home
+ * as success. Do not treat /compute as a product page. Do not weaken blank-page, mint,
+ * plugin.jup.ag, stale SRI, missing H1, or broken OAuth start checks.
  *
- *   node watch.mjs            # check production
- *   node watch.mjs --json     # machine-readable
+ *   node watch.mjs              # production
+ *   node watch.mjs --fixture    # local fixtures (verify)
+ *   node watch.mjs --json
  */
-const ORIGIN = 'https://www.getdasha.com';
-const PAGES = 'https://uuriko.github.io/dasha-desk/';
-const MINT = '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
-/* Scrapped products. If one is live again, something republished an archived source — the same
-   class of accident that took out the CC0 dedication. */
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+export const MINT = '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
+export const ORIGIN = 'https://www.getdasha.com';
+export const LOBBY = 'https://lobby.getdasha.com';
+export const PAGES = 'https://uuriko.github.io/dasha-desk/';
 const RETIRED = /\b(thesis card|conviction receipt|forecasting)\b/i;
+const GONE = [
+  /can go to zero/i,
+  /not financial advice/i,
+  /association is not endorsement/i,
+  /not affiliated with dasha/i,
+];
+const HOME_308 = ['/studio', '/verse', '/learn', '/graph'];
+const BUY_308 = ['/dasha', '/desk'];
+const SITEMAP_REQUIRED = ['/privacy', '/lobby', '/chess', '/faucet', '/bag', '/how-to-buy', '/simp'];
+const SITEMAP_NOT_INDEXABLE = ['/studio', '/dasha', '/desk', '/verse', '/learn', '/graph', '/compute'];
 
-const json = process.argv.includes('--json');
-const failures = [];
-const warnings = [];
-const fail = (ok, msg) => { if (!ok) failures.push(msg); };
-const warn = (ok, msg) => { if (!ok) warnings.push(msg); };
+const here = dirname(fileURLToPath(import.meta.url));
 
-/* Retry before reporting. A single dropped connection is not a regression, and a monitor that cries
-   wolf at transient network noise is one nobody reads. */
-async function get(url, tries = 3) {
+const fail = (bag, ok, msg) => { if (!ok) bag.failures.push(msg); };
+const warn = (bag, ok, msg) => { if (!ok) bag.warnings.push(msg); };
+
+function decodeEscapes(html) {
+  return html + '\n' + html.replace(/%([0-9a-f]{2})/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
+function visibleText(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isBlank(html) {
+  if (/Loading studio/i.test(html)) return true;
+  const text = visibleText(html);
+  if (hasHeading(html)) return text.length < 8;
+  return text.length < 80;
+}
+
+function hasHeading(html) {
+  return /<h[1-6][\s>]/i.test(html);
+}
+
+function locationOf(res) {
+  const headers = res.headers || {};
+  if (typeof headers.get === 'function') return String(headers.get('location') || '');
+  return String(headers.location || headers.Location || '');
+}
+
+function isHomeLoc(loc) {
+  return /^https:\/\/www\.getdasha\.com\/?(?:\?.*)?$/.test(loc);
+}
+
+function isHowToBuyLoc(loc) {
+  return /^https:\/\/www\.getdasha\.com\/how-to-buy\/?(?:\?.*)?$/.test(loc);
+}
+
+function isLobbyLoc(loc) {
+  return loc.startsWith('https://www.getdasha.com/lobby');
+}
+
+function isOauthXLoc(loc) {
+  return /^https:\/\/lobby\.getdasha\.com\/oauth\/x\/start\/?(?:\?.*)?$/.test(loc);
+}
+
+function header(res, name) {
+  const headers = res.headers || {};
+  if (typeof headers.get === 'function') return String(headers.get(name) || '');
+  return String(headers[name] || headers[name.toLowerCase()] || '');
+}
+
+function scanMint(bag, label, html, { required = false } = {}) {
+  for (const found of html.match(/[1-9A-HJ-NP-Za-km-z]{32,44}pump/g) || []) {
+    fail(bag, found.endsWith(MINT), `${label}: shows an address that is not our mint — ${found}`);
+  }
+  if (required) fail(bag, html.includes(MINT), `${label}: the mint is not shown at all`);
+}
+
+function scanRetiredCopy(bag, label, html) {
+  const searchable = decodeEscapes(html);
+  fail(bag, !RETIRED.test(html), `${label}: a retired product is live again`);
+  for (const gone of GONE) {
+    fail(bag, !gone.test(searchable), `${label}: copy the operator removed is live again — ${gone.source}`);
+  }
+  fail(bag, !/\bNFA\b/i.test(searchable), `${label}: copy the operator removed is live again — NFA`);
+  fail(bag, !/plugin\.jup\.ag/i.test(html), `${label}: plugin.jup.ag is live`);
+}
+
+async function checkSri(bag, probe, label, html) {
+  for (const script of new Set(html.match(/https:\/\/lobby\.getdasha\.com\/[^"'\s)]+\.js/g) || [])) {
+    const at = html.indexOf(script);
+    let pin = null;
+    let nearest = Infinity;
+    for (const m of html.matchAll(/sha384-[A-Za-z0-9+/=]+/g)) {
+      const d = Math.abs(m.index - at);
+      if (d < nearest) {
+        nearest = d;
+        pin = m[0];
+      }
+    }
+    if (!pin || nearest > 2000) continue;
+    const asset = await probe(script, { redirect: 'follow' });
+    if (!asset.ok) {
+      fail(bag, false, `${label}: ${script} is unreachable but the page pins it`);
+      continue;
+    }
+    const bytes = new Uint8Array(await asset.arrayBuffer());
+    const digest = createHash('sha384').update(bytes).digest('base64');
+    const served = 'sha384-' + digest;
+    fail(
+      bag,
+      served === pin,
+      `${label}: pins ${pin.slice(0, 20)}… but ${script} serves ${served.slice(0, 20)}… — the browser is refusing that script`,
+    );
+  }
+}
+
+function chessApi(html) {
+  const m = html.match(/\bvar\s+API\s*=\s*(['"])(.*?)\1/);
+  return m ? m[2] : null;
+}
+
+function playFindSurfacesBadResponse(html) {
+  for (const m of html.matchAll(/<(button|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi)) {
+    const attrs = m[2];
+    const inner = m[3];
+    const isPlayFind = /id=["'](gate-action|gate-find)["']/.test(attrs)
+      || />\s*Play\s*</i.test(m[0])
+      || />\s*Find\s*</i.test(m[0])
+      || /Play|Find/.test(inner);
+    if (isPlayFind && /bad response/i.test(inner)) return true;
+  }
+  return false;
+}
+
+export function loadFixtureProbe(dir = join(here, 'fixtures', 'watch')) {
+  const routes = JSON.parse(readFileSync(join(dir, 'routes.json'), 'utf8'));
+  const resolve = (url) => {
+    const u = new URL(url);
+    const path = u.pathname === '/' ? '/' : u.pathname.replace(/\/+$/, '');
+    const key = `${u.origin}${path}`;
+    return routes[key] || routes[`${u.origin}${u.pathname}`] || null;
+  };
+  const materialize = (entry) => {
+    if (!entry) {
+      return {
+        ok: false,
+        status: 0,
+        error: 'unmapped fixture',
+        headers: { get: () => '' },
+        text: async () => '',
+        json: async () => null,
+        arrayBuffer: async () => new ArrayBuffer(0),
+      };
+    }
+    let body = '';
+    if (entry.file) body = readFileSync(join(dir, entry.file));
+    else if (entry.body != null) body = Buffer.from(String(entry.body));
+    else if (entry.json != null) body = Buffer.from(JSON.stringify(entry.json));
+    else body = Buffer.alloc(0);
+    const location = entry.location || '';
+    const extra = entry.headers || {};
+    return {
+      ok: entry.status >= 200 && entry.status < 300,
+      status: entry.status,
+      headers: {
+        get: (name) => {
+          const key = String(name).toLowerCase();
+          if (key === 'location') return location;
+          return extra[key] || extra[name] || '';
+        },
+      },
+      text: async () => body.toString('utf8'),
+      json: async () => (entry.json != null ? entry.json : JSON.parse(body.toString('utf8'))),
+      arrayBuffer: async () => body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength),
+    };
+  };
+  return async (url, { redirect = 'follow' } = {}) => {
+    const hop = resolve(url);
+    if (hop && hop.status >= 300 && hop.status < 400 && hop.location && redirect === 'follow') {
+      return materialize(resolve(hop.location) || hop);
+    }
+    return materialize(hop);
+  };
+}
+
+export async function liveProbe(url, { redirect = 'follow', tries = 3 } = {}) {
   let last;
   for (let i = 1; i <= tries; i++) {
     try {
-      const res = await fetch(url, { redirect: 'follow', headers: { 'user-agent': 'dasha-watch' } });
-      if (res.ok) return res;
+      const res = await fetch(url, { redirect, headers: { 'user-agent': 'dasha-watch' } });
+      if (res.ok || (res.status >= 300 && res.status < 400) || (res.status < 500 && res.status !== 429)) {
+        return res;
+      }
       last = `HTTP ${res.status}`;
-      if (res.status < 500 && res.status !== 429) return res;
-    } catch (e) { last = e.message; }
+    } catch (e) {
+      last = e.message;
+    }
     if (i < tries) await new Promise((r) => setTimeout(r, i * 3000));
   }
-  return { ok: false, status: 0, error: last, text: async () => '', arrayBuffer: async () => new ArrayBuffer(0) };
+  return {
+    ok: false,
+    status: 0,
+    error: last,
+    headers: { get: () => '' },
+    text: async () => '',
+    json: async () => null,
+    arrayBuffer: async () => new ArrayBuffer(0),
+  };
 }
 
-/* /how-to-buy is served by a Cloudflare edge worker (it answers with x-dasha-edge: howto), not by
-   Webflow — it is absent from the Webflow page list entirely, and staging 404s it. That is why every
-   sweep missed it: it is a live public page that no publish path here touches and no gate knew
-   about. It was still serving copy the operator removed hours after every other surface was clean.
-   A surface nobody watches is a surface that drifts, so it is watched here now. */
-for (const route of ['/', '/studio', '/dasha', '/how-to-buy', '/bounties']) {
-  const res = await get(ORIGIN + route);
-  fail(res.ok, `${route}: unreachable — ${res.error || 'HTTP ' + res.status}`);
-  if (!res.ok) continue;
+async function page200(bag, probe, route, check) {
+  const res = await probe(ORIGIN + route, { redirect: 'follow' });
+  fail(bag, res.ok, `${route}: unreachable — ${res.error || 'HTTP ' + res.status}`);
+  if (!res.ok) return;
   const html = await res.text();
-  const searchable = html + '\n' + html.replace(
-    /%([0-9a-f]{2})/gi,
-    (_, hex) => String.fromCharCode(parseInt(hex, 16)),
-  );
-
-  /* The mint. Any pump-suffixed address on our own pages must be ours; this is the single string
-     where being wrong takes money from someone who trusted the page. */
-  /* endsWith, not equality. This scans raw HTML rather than rendered text, so the character before
-     an address can be anything: `%0AMint%3A%0A<mint>` in a share URL put an "A" (from "%0A")
-     immediately before ours, and since "0" is not a base58 character no amount of boundary-guarding
-     excludes it — the over-match is a legitimate read of the bytes. Two 44-character addresses
-     cannot contain one another, so ending with our mint is proof it IS our mint. Getting this wrong
-     means the watcher shouts its loudest alarm about a page whose mint is perfectly correct, and
-     the second time that happens nobody reads it again. */
-  for (const found of html.match(/[1-9A-HJ-NP-Za-km-z]{32,44}pump/g) || []) {
-    fail(found.endsWith(MINT), `${route}: shows an address that is not our mint — ${found}`);
+  fail(bag, !isBlank(html), `${route}: blank page`);
+  scanMint(bag, route, html, { required: check.mintRequired });
+  scanRetiredCopy(bag, route, html);
+  if (check.h1) fail(bag, /<h1[\s>]/i.test(html), `${route}: missing H1`);
+  if (check.heading) fail(bag, hasHeading(html), `${route}: missing H1 or section heading`);
+  if (check.match) {
+    for (const [re, msg] of check.match) fail(bag, re.test(html), msg);
   }
-  if (route === '/' || route === '/dasha' || route === '/how-to-buy') {
-    fail(html.includes(MINT), `${route}: the mint is not shown at all`);
+  if (check.forbid) {
+    for (const [re, msg] of check.forbid) fail(bag, !re.test(html), msg);
   }
-
-  /* A page that answers 404 to HEAD and 200 to GET is a page many crawlers and link unfurlers treat
-     as missing — they ask HEAD first. /how-to-buy does exactly this today. */
-  if (route === '/how-to-buy') {
-    try {
-      const head = await fetch(ORIGIN + route, { method: 'HEAD', redirect: 'follow' });
-      warn(head.ok, `${route}: HEAD says ${head.status} while GET says 200 — crawlers that HEAD first will treat it as missing`);
-    } catch { /* a failed HEAD is not worth waking anyone for */ }
-  }
-
-  fail(!RETIRED.test(html), `${route}: a retired product is live again`);
-
-  if (route === '/') {
-    warn(!/simp-board|simp-row|Simp board/i.test(html), `${route}: Simp board is Lobby, not Home`);
-    warn(!/START QUIZ|LET'S GO/i.test(html), `${route}: quiz pills came back — they were already gone`);
-    warn((html.match(/<h1[\s>]/gi) || []).length <= 1, `${route}: Home should have one H1`);
-  }
-  if (route === '/studio') {
-    warn(!/\bdgnav\b|\.dgnav\b/.test(html), `${route}: Demigod nav class is live — drop .dgnav`);
-    warn(!/#3b6bff|#3B6BFF|#c4a5ff/.test(html), `${route}: host chrome is recoloring type off the five tokens`);
-  }
-  if (route === '/bounties') {
-    warn(!/<iframe/i.test(html), `${route}: is an iframe — paste bounties/app.html, do not wrap the board`);
-  }
-
-  /* Copy the operator removed. On 2026-08-08 the instruction was "no disclaimers anywhere"; it was
-     taken out of every source, gated, and published verified on all nine surfaces — and by the
-     evening it was back on two live pages, because a publish landed from a tree that still had it.
-     A decision is only as durable as the thing watching for its reversal, so this watches. */
-  for (const gone of [/can go to zero/i, /not financial advice/i, /association is not endorsement/i,
-                      /not affiliated with dasha/i]) {
-    fail(!gone.test(searchable), `${route}: copy the operator removed is live again — ${gone.source}`);
-  }
-  fail(!/\bNFA\b/i.test(searchable), `${route}: copy the operator removed is live again — NFA`);
-
-  /* The promises. Losing these silently is the specific failure this file was written for. */
-  if (route === '/studio') {
-    fail(/CC0/.test(html), '/studio: the public-domain dedication is gone — makers have no statement of their rights');
-    fail(/name or likeness/i.test(html), '/studio: the likeness carve-out is gone; CC0 alone overstates what we can grant');
-    fail(!/not affiliated with dasha/i.test(html), '/studio: claims no affiliation, which is false');
-  }
-  if (route === '/bounties') {
-    fail(/we don['’]t hold it|declared bounties, not escrow/i.test(html), '/bounties: lost the no-custody line');
-  }
-
-  /* The share card is a separate binary on a CDN. It can rot with nothing in any repo changing,
-     and the only place anyone would notice is someone else's timeline. */
-  const image = html.match(/<meta[^>]*og:image[^>]*>/)?.[0]?.match(/content="([^"]+)"/)?.[1];
-  if (!image) {
-    warn(false, `${route}: no og:image — shared links unfurl bare`);
-  } else {
-    const card = await get(image);
-    fail(card.ok, `${route}: the share card is ${card.error || 'HTTP ' + card.status} — every shared link unfurls broken`);
-    if (card.ok) {
-      const bytes = Buffer.from(await card.arrayBuffer());
-      const isPng = bytes.subarray(1, 4).toString() === 'PNG';
-      fail(isPng, `${route}: the share card is not a PNG`);
-      if (isPng) {
-        const [w, h] = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
-        warn(w === 1200 && h === 630, `${route}: share card is ${w}x${h}, not 1200x630`);
-      }
-    }
-  }
-
-  const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
-  warn(canonical?.startsWith(ORIGIN), `${route}: canonical is ${canonical || 'missing'}`);
-
-  const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
-  if (route === '/') warn(ld.length > 0, `${route}: no identity structured data`);
-  for (const [, raw] of ld) {
-    try { JSON.parse(raw); } catch { fail(false, `${route}: structured data is malformed JSON`); }
-  }
+  await checkSri(bag, probe, route === '/' ? 'home' : route.slice(1), html);
+  if (check.after) await check.after(bag, html, res);
 }
 
-/* The second public deployment. A visitor cannot tell which one they landed on, so it gets the same
-   standard rather than a shallower one — Codex's review pointed out that this was checking the mint
-   and then merely confirming the Studio answered at all, which left the alternate public copy
-   materially less watched than the primary. Same invariants, both copies. */
-for (const [label, url] of [['pages', PAGES], ['pages /studio/', PAGES + 'studio/'], ['pages /bounties/', PAGES + 'bounties/']]) {
-  const res = await get(url);
-  fail(res.ok, `${label}: unreachable — ${res.error || 'HTTP ' + res.status}`);
-  if (!res.ok) continue;
-  const html = await res.text();
-
-  for (const found of html.match(/[1-9A-HJ-NP-Za-km-z]{32,44}pump/g) || []) {
-    fail(found.endsWith(MINT), `${label}: shows an address that is not our mint — ${found}`);
-  }
-  fail(!RETIRED.test(html), `${label}: a retired product is live again`);
-  for (const gone of [/can go to zero/i, /not financial advice/i, /association is not endorsement/i,
-                      /not affiliated with dasha/i]) {
-    fail(!gone.test(html), `${label}: copy the operator removed is live again — ${gone.source}`);
-  }
-  if (label.includes('studio')) {
-    fail(/CC0/.test(html), `${label}: the public-domain dedication is gone`);
-    fail(/name or likeness/i.test(html), `${label}: the likeness carve-out is gone`);
-  } else if (label.includes('bounties')) {
-    fail(/we don['’]t hold it|declared bounties, not escrow/i.test(html), `${label}: lost the no-custody line`);
-  } else {
-    fail(html.includes(MINT), `${label}: the mint is not shown`);
-  }
-}
-
-for (const [label, url] of [['pages /lobby/', PAGES + 'lobby/'], ['pages /privacy/', PAGES + 'privacy/']]) {
-  const res = await get(url);
-  warn(res.ok, `${label}: unreachable until Pages deploys this tree`);
-  if (!res.ok) continue;
-  const html = await res.text();
-  if (label.includes('lobby')) warn(/dasha-simp-board|simp-board/i.test(html), `${label}: Simp board is missing`);
-  if (label.includes('privacy')) warn(/we don['’]t hold it/i.test(html), `${label}: lost the no-custody line`);
-}
-
-/* ---- freshness ------------------------------------------------------------------
-   Everything above asks "is it reachable and does it say the right things". None of it can see the
-   failure that actually happened: the GitHub Pages deploy workflow broke, Pages froze, and for
-   weeks it served a 65 KB embed against a 114 KB source. It was reachable throughout. It showed the
-   right mint throughout. This monitor ran green every six hours throughout, and nobody found it
-   until someone went looking for something else.
-
-   Staleness is invisible to a reachability check by construction, so it needs its own questions.
-   All three below are answerable from public URLs alone, which is what lets them run here. */
-
-/* 1. Every page pin must match the bytes the Worker serves.
-      An integrity attribute naming bytes that are no longer there does not degrade — the browser
-      refuses the script outright, so the surface is simply blank, with no console error anyone sees
-      and no failing gate. Checked live because that is the only place the two can disagree. */
-for (const [label, url] of [['home', ORIGIN + '/'], ['lobby', ORIGIN + '/lobby'], ['studio', ORIGIN + '/studio']]) {
-  const res = await get(url);
-  if (!res.ok) continue;
-  const html = await res.text();
-  for (const script of new Set(html.match(/https:\/\/lobby\.getdasha\.com\/[^"'\s)]+\.js/g) || [])) {
-    /* Nearest pin in either direction. The loaders spell it `integrity=` or bind it to a const, so
-       keying on a keyword picks up the wrong hash — and the pin sits AFTER its own URL, so scanning
-       only backwards finds nothing and reads as "no pin, nothing to check". */
-    const at = html.indexOf(script);
-    let pin = null, nearest = Infinity;
-    for (const m of html.matchAll(/sha384-[A-Za-z0-9+/=]+/g)) {
-      const d = Math.abs(m.index - at);
-      if (d < nearest) { nearest = d; pin = m[0]; }
-    }
-    if (!pin || nearest > 2000) continue;
-    const asset = await get(script);
-    if (!asset.ok) { fail(false, `${label}: ${script} is unreachable but the page pins it`); continue; }
-    const bytes = new Uint8Array(await asset.arrayBuffer());
-    const digest = await crypto.subtle.digest('SHA-384', bytes);
-    const served = 'sha384-' + Buffer.from(digest).toString('base64');
-    fail(served === pin,
-      `${label}: pins ${pin.slice(0, 20)}… but ${script} serves ${served.slice(0, 20)}… — the browser is refusing that script`);
-  }
-}
-
-/* 2. The pasteable embed must be the bytes its own snippet pins.
-      This is the check that would have caught Pages freezing. Both halves are public: the README
-      carries the snippet other people paste, and the file it names is served next to it. */
-{
-  const readme = await get(PAGES + 'studio/README.md');
-  if (readme.ok) {
-    const doc = await readme.text();
-    const src = (doc.match(/src="(https:\/\/uuriko\.github\.io\/dasha-desk\/studio\/embed-[a-f0-9]+\.js)"/) || [])[1];
-    const pin = (doc.match(/integrity="(sha384-[A-Za-z0-9+/=]+)"/) || [])[1];
-    if (src && pin) {
-      const hosted = await get(src);
-      if (!hosted.ok) fail(false, `pages: the snippet points at ${src}, which is unreachable — every site that pasted it is broken`);
-      else {
-        const digest = await crypto.subtle.digest('SHA-384', new Uint8Array(await hosted.arrayBuffer()));
-        fail('sha384-' + Buffer.from(digest).toString('base64') === pin,
-          `pages: ${src} does not match the integrity its own README publishes — adopters are loading a script their browser will refuse`);
-      }
-    } else {
-      warn(false, 'pages: the README snippet no longer carries a fingerprinted src and an integrity pin');
-    }
-  }
-}
-
-/* 3. The price must be current.
-      A 200 from /price says the endpoint answers, not that the number is real. It reports how long
-      it has been serving a last-good reading, so ask that instead. Thirty minutes is generous —
-      the TTL is thirty seconds — because the upstream rate-limits our egress and brief staleness is
-      normal; half an hour means it has genuinely stopped refreshing. */
-{
-  const res = await get('https://lobby.getdasha.com/price');
-  if (!res.ok) warn(false, 'price: /price is unreachable — the homepage chart will be missing');
-  else {
-    const price = await res.json().catch(() => null);
-    warn(price && price.priceUsd > 0, 'price: /price returned no usable number');
-    if (price) {
-      /* The age field has to exist for the age check to mean anything. If /price stops reporting it,
-         Number(undefined) is NaN, every comparison against it is false, and this check passes
-         forever while seeing nothing — the exact shape of the failure this whole section was added
-         to catch. So a stale reading with no age is itself a finding. */
-      const age = Number(price.staleForMs);
-      if (price.stale) {
-        fail(Number.isFinite(age),
-          'price: reports itself stale but gives no age — the freshness check cannot see how bad it is');
-        fail(!(age > 30 * 60_000),
-          `price: serving a reading ${Math.round(age / 60000)} minutes old — the chart is showing a stale number as current`);
-      }
-    }
-  }
-}
-
-{
-  const feed = await get(ORIGIN + '/bounties.json');
-  if (!feed.ok) warn(false, '/bounties.json: unreachable');
-  else {
-    const text = await feed.text();
-    warn(/dasha-bounties-feed/.test(text), '/bounties.json: reachable but not the listings feed');
-  }
-}
-
-{
-  let apex;
-  try {
-    apex = await fetch('https://getdasha.com/', { redirect: 'manual', headers: { 'user-agent': 'dasha-watch' } });
-  } catch { apex = null; }
-  const loc = apex && apex.headers && apex.headers.get('location') || '';
-  warn(apex && apex.status === 301 && /www\.getdasha\.com/.test(loc), 'apex getdasha.com should 301 to www');
-}
-
-{
-  const privacy = await get(ORIGIN + '/privacy');
-  const privacyHtml = privacy.ok ? await privacy.text() : '';
-  warn(privacy.ok && !/404 - Page not found/i.test(privacyHtml), '/privacy: missing or still the host 404 — paste privacy/index.html');
-}
-
-{
-  let desk;
-  try {
-    desk = await fetch(ORIGIN + '/desk', { redirect: 'manual', headers: { 'user-agent': 'dasha-watch' } });
-  } catch { desk = null; }
-  const loc = desk && desk.headers && desk.headers.get('location') || '';
-  const followed = await get(ORIGIN + '/desk');
-  const deskHtml = followed.ok ? await followed.text() : '';
-  warn(
-    (desk && (desk.status === 301 || desk.status === 302) && /\/dasha/.test(loc)) ||
-      (followed.ok && /dd-app|Check the mint/i.test(deskHtml)),
-    '/desk should go to /dasha — paste desk/index.html or set a 301',
+async function expect308(bag, probe, route, okLoc, label) {
+  const res = await probe(ORIGIN + route, { redirect: 'manual' });
+  const loc = locationOf(res);
+  fail(
+    bag,
+    res.status === 308 && okLoc(loc),
+    `${route}: expected 308 → ${label} (got HTTP ${res.status || 0} ${loc || 'no location'})`,
   );
 }
 
-{
-  const lobby = await get(ORIGIN + '/lobby');
-  if (lobby.ok) {
-    const html = await lobby.text();
-    warn(/dasha-simp-board|simp-board/i.test(html), '/lobby: Simp paste is not live yet');
+export async function runWatch({ probe, skipPages = false } = {}) {
+  const bag = { failures: [], warnings: [] };
+
+  await page200(bag, probe, '/', {
+    mintRequired: true,
+    h1: true,
+    match: [
+      [/\$dasha/i, '/: missing $dasha'],
+      [/\bChat\b/, '/: missing Chat'],
+      [/\bBuy\b/, '/: missing Buy'],
+      [/jup\.ag/, '/: missing jup.ag'],
+      [/id=["']chat-door["']|class=["'][^"']*chat-door/, '/: missing chat-door'],
+      [/faucet/i, '/: missing faucet'],
+      [/grwm/i, '/: missing grwm'],
+    ],
+    forbid: [
+      [/chess-door/i, '/: chess-door is on Home'],
+      [/\bVVAIFU\b/i, '/: VVAIFU is first paint — that copy belongs on /which'],
+    ],
+    after: async (b, html) => {
+      warn(b, (html.match(/<h1[\s>]/gi) || []).length <= 1, '/: Home should have one H1');
+    },
+  });
+
+  await page200(bag, probe, '/how-to-buy', {
+    mintRequired: true,
+    h1: true,
+    match: [
+      [/how to buy/i, '/how-to-buy: missing beginner buy copy'],
+      [/mint/i, '/how-to-buy: missing mint checker'],
+    ],
+  });
+
+  await page200(bag, probe, '/which', {
+    mintRequired: true,
+    h1: true,
+    match: [[/VVAIFU|other (dasha|coin)/i, '/which: missing other-coin page']],
+  });
+
+  await page200(bag, probe, '/bag', {
+    mintRequired: true,
+    h1: true,
+    match: [[/mint-dead|freeze-dead|burned/i, '/bag: missing on-chain facts']],
+  });
+
+  await page200(bag, probe, '/simp', {
+    h1: true,
+    match: [[/quiz|board|simp/i, '/simp: missing quiz/board']],
+  });
+
+  await page200(bag, probe, '/lobby', {
+    h1: true,
+    match: [[/lobby|chat|forum|community|simp/i, '/lobby: missing community room']],
+  });
+
+  await page200(bag, probe, '/chess', {
+    heading: true,
+    after: async (b, html) => {
+      const api = chessApi(html);
+      fail(b, api !== null, '/chess: var API is missing');
+      fail(b, Boolean(api), '/chess: var API is empty');
+      if (api) {
+        fail(
+          b,
+          api === LOBBY || api === `${LOBBY}/`,
+          `/chess: var API must be ${LOBBY} (got ${JSON.stringify(api)})`,
+        );
+      }
+      fail(b, !playFindSurfacesBadResponse(html), '/chess: Play/Find surfaced "bad response"');
+    },
+  });
+
+  await page200(bag, probe, '/faucet', { heading: true });
+  await page200(bag, probe, '/contribute', { heading: true });
+  await page200(bag, probe, '/digest', {
+    heading: true,
+    match: [[/tape|digest/i, '/digest: missing branded tape']],
+  });
+
+  {
+    const privacyHead = await probe(ORIGIN + '/privacy', { redirect: 'manual' });
+    const loc = locationOf(privacyHead);
+    fail(
+      bag,
+      privacyHead.status !== 308 || !isHomeLoc(loc),
+      '/privacy: 308 home — Privacy must be a real 200 page',
+    );
   }
-}
+  await page200(bag, probe, '/privacy', {
+    h1: true,
+    match: [[/<h1[^>]*>\s*Privacy\s*<\/h1>/i, '/privacy: H1 must be Privacy']],
+  });
 
-{
-  const miss = await get(ORIGIN + '/not-a-dasha-page-404-check');
-  if (!miss.ok) {
-    const html = await miss.text();
-    warn(/This page isn’t here|This page isn't here|#070608/.test(html), '404: still the generic host page — paste 404.html');
+  {
+    const feed = await probe(ORIGIN + '/bounties.json', { redirect: 'follow' });
+    let listings = 0;
+    if (feed.ok) {
+      const text = await feed.text();
+      warn(bag, /dasha-bounties-feed/.test(text), '/bounties.json: reachable but not the listings feed');
+      try {
+        const data = JSON.parse(text);
+        listings = Array.isArray(data.items) ? data.items.length : 0;
+      } catch { /* feed shape is a warning above */ }
+    }
+    if (listings > 0 || feed.ok) {
+      await page200(bag, probe, '/bounties', {
+        h1: true,
+        match: [[/bount/i, '/bounties: missing bounty page']],
+      });
+    }
   }
+
+  for (const route of HOME_308) {
+    await expect308(bag, probe, route, isHomeLoc, 'https://www.getdasha.com/');
+  }
+  for (const route of BUY_308) {
+    await expect308(bag, probe, route, isHowToBuyLoc, 'https://www.getdasha.com/how-to-buy');
+  }
+  await expect308(bag, probe, '/forum', isLobbyLoc, 'https://www.getdasha.com/lobby');
+  await expect308(bag, probe, '/oauth/x/start', isOauthXLoc, `${LOBBY}/oauth/x/start`);
+
+  {
+    const compute = await probe(ORIGIN + '/compute', { redirect: 'manual' });
+    const html = compute.status ? await compute.text() : '';
+    const robots = `${header(compute, 'x-robots-tag')} ${html}`;
+    const noindex = /noindex/i.test(robots);
+    const branded = /This page isn’t here|This page isn't here|Not this page|#070608/i.test(html);
+    const product = compute.ok && /<title>[^<]*Compute/i.test(html);
+    fail(
+      bag,
+      (compute.status === 410 || compute.status === 404) && !product,
+      `/compute: retired — expected 410 or branded 404, not a product page (HTTP ${compute.status || 0})`,
+    );
+    if (compute.status === 410 || compute.status === 404) {
+      fail(bag, noindex || branded, '/compute: miss page must be noindex or branded 404');
+    }
+    if (compute.status === 404) fail(bag, noindex, '/compute: branded 404 must be noindex');
+  }
+
+  {
+    const sitemap = await probe(`${ORIGIN}/sitemap.xml`, { redirect: 'follow' });
+    fail(bag, sitemap.ok, 'sitemap.xml is missing — search engines have no route list');
+    if (sitemap.ok) {
+      const xml = await sitemap.text();
+      fail(bag, !/lobby\?/.test(xml), 'sitemap: lobby? query must not be listed');
+      for (const path of SITEMAP_REQUIRED) {
+        fail(bag, xml.includes(`${ORIGIN}${path}`), `sitemap: missing ${path}`);
+      }
+      for (const path of SITEMAP_NOT_INDEXABLE) {
+        fail(bag, !xml.includes(`${ORIGIN}${path}`), `sitemap: ${path} must not be an indexable 200`);
+      }
+    }
+  }
+
+  {
+    const robots = await probe(`${ORIGIN}/robots.txt`, { redirect: 'follow' });
+    warn(bag, robots.ok && (await robots.text()).trim().length > 0, 'robots.txt is empty — no rules and no Sitemap line');
+  }
+
+  {
+    const price = await probe(`${LOBBY}/price`, { redirect: 'follow' });
+    if (!price.ok) warn(bag, false, 'price: /price is unreachable — the homepage chart will be missing');
+    else {
+      const data = await price.json().catch(() => null);
+      warn(bag, data && data.priceUsd > 0, 'price: /price returned no usable number');
+      if (data) {
+        const age = Number(data.staleForMs);
+        if (data.stale) {
+          fail(bag, Number.isFinite(age), 'price: reports itself stale but gives no age — the freshness check cannot see how bad it is');
+          fail(bag, !(age > 30 * 60_000), `price: serving a reading ${Math.round(age / 60000)} minutes old — the chart is showing a stale number as current`);
+        }
+      }
+    }
+  }
+
+  {
+    const apex = await probe('https://getdasha.com/', { redirect: 'manual' });
+    const loc = locationOf(apex);
+    warn(bag, apex.status === 301 && /www\.getdasha\.com/.test(loc), 'apex getdasha.com should 301 to www');
+  }
+
+  if (!skipPages) {
+    for (const [label, url] of [['pages', PAGES], ['pages /bounties/', PAGES + 'bounties/']]) {
+      const res = await probe(url, { redirect: 'follow' });
+      if (!res.ok) {
+        warn(bag, false, `${label}: unreachable`);
+        continue;
+      }
+      const html = await res.text();
+      scanMint(bag, label, html, { required: label === 'pages' });
+      fail(bag, !RETIRED.test(html), `${label}: a retired product is live again`);
+    }
+  }
+
+  return bag;
 }
 
-const robots = await get(`${ORIGIN}/robots.txt`);
-warn(robots.ok && (await robots.text()).trim().length > 0, 'robots.txt is empty — no rules and no Sitemap line');
-warn((await get(`${ORIGIN}/sitemap.xml`)).ok, 'sitemap.xml is missing — search engines have no route list');
-
-if (json) {
-  console.log(JSON.stringify({ ok: failures.length === 0, failures, warnings }, null, 2));
-} else {
-  for (const w of warnings) console.log('  warn  ' + w);
-  for (const f of failures) console.error('  FAIL  ' + f);
-  console.log(`\n${failures.length} failure(s), ${warnings.length} warning(s) on ${ORIGIN}`);
+function printReport(bag, json) {
+  if (json) {
+    console.log(JSON.stringify({ ok: bag.failures.length === 0, failures: bag.failures, warnings: bag.warnings }, null, 2));
+    return;
+  }
+  for (const w of bag.warnings) console.log('  warn  ' + w);
+  for (const f of bag.failures) console.error('  FAIL  ' + f);
+  const target = process.argv.includes('--fixture') ? 'fixtures/watch' : ORIGIN;
+  console.log(`\n${bag.failures.length} failure(s), ${bag.warnings.length} warning(s) on ${target}`);
 }
-process.exit(failures.length ? 1 : 0);
+
+const isMain = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  const json = process.argv.includes('--json');
+  const fixture = process.argv.includes('--fixture');
+  const probe = fixture ? loadFixtureProbe() : liveProbe;
+  const bag = await runWatch({ probe, skipPages: fixture });
+  printReport(bag, json);
+  process.exit(bag.failures.length ? 1 : 0);
+}

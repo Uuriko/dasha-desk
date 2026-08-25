@@ -7,7 +7,7 @@ last_verified: 2026-08-14
 # Dasha bible — culture, design, product truth
 
 **Updated:** 2026-08-14  
-**Owner surfaces:** getdasha.com · `/` · `/lobby` · `/studio` · lobby.getdasha.com · `/dasha` · `/desk` → `/dasha` · `/bounties` · `/privacy` · `/how-to-buy` · `dasha-landing.html` · `dasha-desk` · `dasha-meme-studio.html` · `dasha-how-to-buy.html`  
+**Owner surfaces:** getdasha.com (Worker dasha-lobby) · `/` · `/lobby` · `/how-to-buy` · `/bag` · `/which` · `/simp` · `/chess` · `/faucet` · `/bounties` · `/privacy` · `/contribute` · `/digest` · lobby.getdasha.com. `/studio` `/verse` `/learn` `/graph` 308 home. `/dasha` `/desk` 308 `/how-to-buy`. `/compute` retired. `/forum` 308 `/lobby`.  
 **Hard rule:** **Association is not endorsement.** Public posts ≠ brand deal, safety, or legal control of any mint.
 
 This doc is the shared design + culture spine for agents and humans shipping getdasha. Prefer primary sources linked below over vibes.
@@ -214,10 +214,10 @@ Use these as **aesthetic references**, not product pledges:
 
 | Surface | Job | Culture hooks |
 |---------|-----|----------------|
-| Home `/` | Ticker + one H1 + Studio CTA + mint/buy + one optional culture still. **No Simp.** Live still has `#simp` until the paste. Quiz pills already gone (0 hits, 2026-08-13 ~20:19 ET). | Sparse. `@dash_eats` in nav. `#simp` sends to `/lobby`. |
-| Studio `/studio` | Meme and image editor. Live 200. | Procedural looks plus local upload and a sourced Dasha image gallery |
-| Lobby `/lobby` | Simp Board (quiz that ships inside the board client). Live 200. Forum remains `lobby.getdasha.com/forum`. | Few clicks. No promises. Not Demigod status/black-hole. |
-| Desk `/dasha` | Mint, chart, neutral share pack. `/desk` goes here. | Five tokens only — not lavender glass. Source-linked culture stills and token references. |
+| Home `/` | `$dasha` + Chat + Buy. chat-door + faucet + grwm. **No Studio. No chess-door. No VVAIFU. No Simp.** | Sparse. `@dash_eats` in nav. |
+| Studio `/studio` | **Retired.** www 308 → `/`. Do not restore. Local/Pages copy may remain in this repo. | — |
+| Lobby `/lobby` | The one community room. `/forum` 308s here. | Few clicks. No promises. Not Demigod status/black-hole. |
+| Buy `/how-to-buy` | Beginner buy + mint checker. `/dasha` and `/desk` 308 here. | Five tokens. Exact `jup.ag` + mint. |
 | Board `/bounties` | **First-class.** Anybody with GitHub can list or claim a USDC bounty on Solana. Native mount — iframe is not the product. | GitHub required to list/claim. X optional (same lobby session as Simp Board). USDC declared. We don't hold it. Require `payTo`. Solana Pay URL must include a `reference`. |
 | Privacy `/privacy` | What the browser stores. No wallet. We don't hold it. | Minimal. No Telegram. |
 | 404 | Branded miss page in the five tokens | Not the generic host 404 |
@@ -229,15 +229,15 @@ Board is not a widget on Home. Ship it as its own route with `bounties/board.css
 
 ## 8. Design checklist (ship gate)
 
-- [ ] Home acid band / ticker is **live** (repeating uppercase on acid). Empty markup plus `animation: none` fails.
+- [ ] Home first paint is `$dasha` + Chat + Buy. No Studio CTA. No chess-door.
 - [ ] At most **one** optional culture still on home (twimg/dex), with source + honest alt + caption. Not a gallery.
 - [ ] No Nekrasova likeness as logo, favicon, or Desk mark. Cherries on ink.
-- [ ] `@dash_eats` in **nav** on home + studio + desk + board + how-to-buy — not only footer.
+- [ ] `@dash_eats` in **nav** on home + lobby + board + how-to-buy — not only footer.
 - [ ] Desk uses the five tokens (ink/paper/acid/hot/violet) — not lavender glass (`#c4a5ff`, `#f6f1ff`, soft `0 8px 24px`, `backdrop-filter` as the look, `system-ui` as display, gradient CTA `#7c3aed`).
 - [ ] No Exo / Bangers / Raleway (Webflow must not load a second font stack).
 - [ ] No Demigod `.dgnav` class names on Dasha surfaces.
 - [ ] No gradient behind body text.
-- [ ] Direct link to `https://x.com/dash_eats` on home + studio + desk + board.
+- [ ] Direct link to `https://x.com/dash_eats` on home + lobby + board + how-to-buy.
 - [ ] Mint source post URL present.
 - [ ] No catbox casino hero on home.
 - [ ] No thesis/receipt language on home.
@@ -246,7 +246,7 @@ Board is not a widget on Home. Ship it as its own route with `bounties/board.css
 - [ ] Buy CTAs = exact Jupiter + mint.
 - [ ] Board: GitHub required to list/claim; X optional; USDC declared; we don't hold it; `payTo` required; Solana Pay `reference` present; native mount (no iframe as the product).
 - [ ] Board GitHub CTA says **GitHub soon** when lobby OAuth is unconfigured.
-- [ ] **Published** on live Webflow (blocked without current-request re-auth).
+- [ ] **Shipped** from the operator dasha-lobby Worker. Not Designer-publish. Not GitHub Pages.
 
 Dropped 2026-08-13: “≥4 culture images on home.” That gate produced a likeness collage. Wrong.
 
@@ -263,7 +263,8 @@ Dropped 2026-08-13: “≥4 culture images on home.” That gate produced a like
 | 2026-08-08 | Internet bio sweep | Wikipedia, Vulture, Red Scare Cut, Spotify |
 | 2026-08-08 | Site wiring | Home tape + @dash_eats nav; desk avatar→pbs; studio/howto X links |
 | 2026-08-13 | Visual-spine overhaul | Board first-class; ticker required; likeness out of the mark; Desk must match landing tokens; GitHub-soon honesty |
-| 2026-08-13 ~20:19 ET | Live curl (www) | `/` 200 + Simp still on home, quiz 0 hits; `/lobby` `/bounties` `/studio` `/dasha` 200; `/privacy` `/desk` 404; `/bounties.json` 200 edge feed; apex 301 → www; unknown paths real host 404s |
+| 2026-08-13 ~20:19 ET | Live curl (www) | then-current: `/studio` `/dasha` 200; `/privacy` `/desk` 404 — **stale**. See 2026-08-25. |
+| 2026-08-25 | Intended Worker contract | `/` Chat+Buy; `/studio` `/verse` `/learn` `/graph` 308 `/`; `/dasha` `/desk` 308 `/how-to-buy`; `/privacy` 200 H1 Privacy; `/forum` 308 `/lobby`; `/compute` retired; sitemap omits those 308s |
 
 ---
 
@@ -273,6 +274,6 @@ Dropped 2026-08-13: “≥4 culture images on home.” That gate produced a like
 2. Prefer weakest sufficient claim (public post / association).
 3. When adding optional tape: hotlink + `referrerpolicy="no-referrer"` + alt text + culture caption. Do not make it the logo.
 4. Do not invent a sixth colour. Do not load Exo/Bangers/Raleway. Do not put Demigod status/black-hole on Dasha home.
-5. Publish still requires current-request Webflow auth.
+5. Live ships from the operator Worker. Do not Designer-publish. Do not invent a Worker in dasha-desk.
 
 **Primary outbound culture link:** [x.com/dash_eats](https://x.com/dash_eats)

@@ -39,9 +39,8 @@ Strong, and better than it looks. There is a committed palette, one type voice, 
 motifs, and — the part most projects lack — the Studio, which is already the generator layer. Most
 projects have to *build* the thing that lets a community produce on-brand work. Ours ships.
 
-Desk source (`src/styles.css`) is on the five tokens below. Lavender glass on `/dasha` is a
-regression, not a variant. Live Webflow `/`, `/studio`, and `/bounties` still need the pastes
-in this file.
+Desk source (`src/styles.css`) is on the five tokens below. Lavender glass on a desk surface is a
+regression, not a variant. Live www is Worker-first. `/studio` is retired.
 
 ## The system
 
@@ -61,18 +60,16 @@ Acid on paper fails contrast at small sizes. Acid belongs on ink.
 
 ### Every live surface
 
-Home, Studio, Lobby, Desk, Board — all of them sit on **ink**, set type in **paper**, put the
+Home, Lobby, Buy, Board — all of them sit on **ink**, set type in **paper**, put the
 primary action in **acid**, and offset it **4px hard, usually hot**. Display type is **Arial Black /
 Helvetica 900**, uppercase. Violet is never type.
 
 A soft shadow is a bug. `0 8px 24px` is a bug. `backdrop-filter` as the look is a bug.
 
-Webflow pastes from this repo: Home is `home/index.html` (live ticker, one H1, one Studio CTA, mint +
-buy, one still — no Simp board). Lobby is `lobby/index.html` (Simp). Studio is
-`studio/loader.html` or `studio/index.html` (paper H1 on ink, drop `.dgnav`). Bounties is
-`bounties/app.html` as an HTML embed, not an iframe; empty state is “We don't hold it.” plus the
-list form. Privacy is `privacy/index.html`. Desk is `src/app.html` on `/dasha`; `/desk` is
-`desk/index.html` (redirect). 404 is `404.html`.
+In-repo pastes: Home is `home/index.html` (`$dasha` + Chat + Buy — no Studio, no chess-door, no Simp).
+Lobby is `lobby/index.html` (the one room). Bounties is `bounties/app.html`. Privacy is
+`privacy/index.html` (live `/privacy` must 200). `/desk` and `/dasha` 308 `/how-to-buy`. 404 is
+`404.html`. Studio files here are local/Pages only.
 
 ### Type
 

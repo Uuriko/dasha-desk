@@ -8,8 +8,8 @@ A first-export checklist (line → share/save → copy link) dismisses itself on
 Product ambition (factory + growth + social, Phase A+): operator doc
 `DASHA-CULTURE-STUDIO-PRODUCT.md` on the main Dasha tree — not required to use the Studio.
 
-**[Use it →](https://www.getdasha.com/studio)** ·
-[GitHub Pages edition](https://uuriko.github.io/dasha-desk/studio/)
+www `/studio` is **retired** (308 home). Do not treat getdasha.com/studio as a live product.
+This folder is the local / [GitHub Pages](https://uuriko.github.io/dasha-desk/studio/) copy.
 
 No account or wallet. Local uploads stay in your browser. The procedural looks work offline; the
 sourced Dasha gallery fetches registered public images when selected. Those photographs are not

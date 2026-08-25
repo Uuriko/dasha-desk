@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Hunt for this-week getdasha surfaces in-repo: lobby, privacy, desk→dasha, branded 404.
+ * Hunt for this-week getdasha surfaces in-repo: lobby, privacy, desk→how-to-buy, branded 404.
  */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -39,8 +39,10 @@ assert.match(lobby, /id="dasha-simp-board"/);
 assert.match(privacy, /<h1>\s*Privacy\s*<\/h1>/i);
 assert.match(privacy, /We don't hold it/);
 assert.match(desk, /location\.replace/);
-assert.match(desk, /\/dasha/);
-assert.match(desk, /rel="canonical" href="https:\/\/www\.getdasha\.com\/dasha"/);
+assert.match(desk, /\/how-to-buy/);
+assert.match(desk, /rel="canonical" href="https:\/\/www\.getdasha\.com\/how-to-buy"/);
+assert.doesNotMatch(home, /getdasha\.com\/studio/);
+assert.doesNotMatch(lobby, /getdasha\.com\/studio/);
 assert.match(notFound, /This page isn’t here|This page isn't here/);
 assert.match(notFound, /--ink:#070608/);
 assert.match(notFound, /--acid:#dfff00/);
