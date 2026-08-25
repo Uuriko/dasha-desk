@@ -34,8 +34,11 @@ assert.match(readme, /open-source project|project contributor|open a pull reques
 assert.match(readme, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'README must link GitHub /contribute');
 assert.match(readme, /\$dasha|dasha/i, 'README must name the product');
 assert.match(readme, /src\/body\.html|src\/app\.js|generated/i, 'README should point at sources or generated surfaces');
-assert.match(readme, /getdasha\.com\/dasha/, 'README must link live desk');
-assert.match(readme, /`\/desk` (goes to|redirects to) `\/dasha`/, 'README must say /desk goes to /dasha');
+assert.match(readme, /Worker-first getdasha\.com/, 'README must say this is Worker-first getdasha.com');
+assert.match(readme, /same product as the static desk files already here/, 'README must say Worker and static desk are the same product');
+assert.match(readme, /getdasha\.com\/how-to-buy/, 'README must link live how-to-buy');
+assert.match(readme, /`\/desk` and `\/dasha` (go|308|redirect)/, 'README must say /desk and /dasha go to /how-to-buy');
+assert.doesNotMatch(readme, /\[Use it ↗\]\(https:\/\/www\.getdasha\.com\/studio\)/, 'README must not advertise live /studio');
 assert.match(readme, /getdasha\.com\/simp/, 'README must link the Simp Board');
 assert.match(readme, /getdasha\.com\/privacy/, 'README must link privacy');
 assert.match(readme, /getdasha\.com\/bounties/, 'README must link the bounties board');
@@ -91,7 +94,10 @@ assert.ok(
   'community idea path missing (issue template or COMMUNITY.md)',
 );
 assert.ok(existsSync(join(root, '.github/workflows/verify.yml')) || existsSync(join(root, '.github/workflows/pages.yml')), 'CI workflow missing');
-assert.match(watch, /if \(route === '\/'\) warn\(ld\.length > 0/, 'watcher must require identity schema only on Home');
+assert.match(watch, /HOME_308/, 'watcher must 308 retired Studio/verse/learn/graph home');
+assert.match(watch, /\/privacy: 308 home/, 'watcher must fail privacy 308-as-home');
+assert.match(watch, /var API/, 'watcher must require chess var API');
+assert.doesNotMatch(watch, /\/studio: the public-domain dedication is gone/, 'watcher must not treat retired Studio as a CC0 product page');
 
 for (const workflow of workflows) {
   for (const line of workflow.match(/^\s*-?\s*uses:\s*.+$/gm) || []) {

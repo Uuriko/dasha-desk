@@ -142,7 +142,7 @@ export function studioLoaderHtml() {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
       name: 'Dasha Meme Studio',
-      url: 'https://www.getdasha.com/studio',
+      url: 'https://uuriko.github.io/dasha-desk/studio/',
       description: 'Make a $dasha image in the browser. Six looks, three formats, PNG and animated GIF export. No account, no wallet, no upload — everything is drawn locally.',
       applicationCategory: 'DesignApplication',
       operatingSystem: 'Any modern web browser',

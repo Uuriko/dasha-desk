@@ -6,7 +6,7 @@ It is not a payment, airdrop, bag check, or paid program.
 There is nothing to join. Open a pull request and you are a contributor — no invite, no org access,
 no application. Holder status and Board points are **never** required to contribute.
 
-**Product context:** [getdasha.com](https://www.getdasha.com/) · live desk [getdasha.com/dasha](https://www.getdasha.com/dasha)
+**Product context:** [getdasha.com](https://www.getdasha.com/) · live buy [getdasha.com/how-to-buy](https://www.getdasha.com/how-to-buy)
 
 **Start here:** [good first issues](https://github.com/Uuriko/dasha-desk/contribute) · [Ideas welcome](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions)
 

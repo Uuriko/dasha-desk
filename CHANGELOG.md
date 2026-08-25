@@ -2,7 +2,8 @@
 
 ## v0.1.1 — unreleased (main)
 
-- **This-week surfaces:** Home is ticker + stills (no Simp). Simp on `/lobby`. Native `/bounties` (List needs USDC + `payTo`). `/privacy`. `/desk` goes to `/dasha`. In-repo `404.html` (Webflow 404 is a separate paste). Live `/bounties.json` is the edge feed.
+- **Watch / Worker contract:** `watch.mjs` asserts live dasha-lobby, not a fantasy product. Studio/verse/learn/graph 308 home. `/dasha` `/desk` 308 `/how-to-buy`. `/privacy` 200 H1 Privacy. `/compute` retired. Chess `var API` must be the lobby host. Local `node watch.mjs --fixture`. Do not invent a Worker in this repo. Supersedes the Studio-live Watch contract.
+- **This-week surfaces:** Home is ticker + stills (no Simp). Simp on `/lobby`. Native `/bounties` (List needs USDC + `payTo`). `/privacy`. `/desk` and `/dasha` go to `/how-to-buy`. In-repo `404.html` (host 404 is a separate paste). Live `/bounties.json` is the edge feed.
 - **Desk on the five-token poster spine:** ink / paper / acid / hot / violet. Hard 4px offsets, acid CTAs, no lavender glass dashboard.
 - **Home / Studio / Bounties paste:** Home is ticker + one H1 + one Studio CTA (no Simp board). Studio loader is paper on ink and pins the Pages embed. Bounties paste is `app.html`, not an iframe.
 - **Leftover QA:** empty `payTo` hides Pay (em dash, not a dead button). README notes `/desk` 404s — desk is `/dasha`.

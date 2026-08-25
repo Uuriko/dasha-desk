@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Home is band + one H1 + one Studio CTA + mint/buy + optional still.
- * Simp board does not belong on `/`. Quiz pills are already gone from live home.
+ * Home is $dasha + Chat + Buy. No Studio. No chess-door. No VVAIFU. No Simp.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -17,8 +16,15 @@ assert.match(html, /--hot:#ff3b81/);
 assert.match(html, /--violet:#7c4dff/);
 assert.match(html, /"Arial Black",Arial,Helvetica/);
 assert.equal((html.match(/<h1\b/g) || []).length, 1, 'Home must have exactly one H1');
-assert.match(html, /Make something/);
-assert.match(html, /getdasha\.com\/studio/);
+assert.match(html, />Chat</);
+assert.match(html, />Buy</);
+assert.match(html, /id="chat-door"/);
+assert.match(html, /faucet/i);
+assert.match(html, /grwm/i);
+assert.doesNotMatch(html, /getdasha\.com\/studio/);
+assert.doesNotMatch(html, /chess-door/);
+assert.doesNotMatch(html, /plugin\.jup\.ag/);
+assert.doesNotMatch(html, /VVAIFU/);
 assert.match(html, /getdasha\.com\/lobby/);
 assert.match(html, /x\.com\/dash_eats/);
 assert.match(html, /53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump/);

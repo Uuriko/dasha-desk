@@ -1,31 +1,40 @@
 # dasha
 
-Open-source tools for `$dasha` on Solana — static, honest, remixable. Three of them live here.
+Open-source tools for `$dasha` on Solana — static, honest, remixable.
 
-**[studio/](studio/)** — the Meme Studio: procedural looks, local uploads, a registered Dasha image
-gallery, three formats, PNG and animated GIF out. No account or wallet.
-[Use it ↗](https://www.getdasha.com/studio)
+## Worker-first getdasha.com
+
+This is **Worker-first getdasha.com**, the same product as the static desk files already here — one `$dasha` / dash_eats site, not a second coin.
+
+Live [www.getdasha.com](https://www.getdasha.com/) is owned by Cloudflare Worker **dasha-lobby** (www + lobby routes). Source ships from the operator Worker tree. This repo is pastes, docs, and Watch. **Do not invent a Worker here. Do not wrangler-deploy from here. Do not Designer-publish.**
+
+Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Watch: `node watch.mjs` (production) or `node watch.mjs --fixture` (local).
+
+**[Use the site ↗](https://www.getdasha.com)** ·
+[How to buy](https://www.getdasha.com/how-to-buy) ·
+[Lobby](https://www.getdasha.com/lobby) ·
+[Simp](https://www.getdasha.com/simp) ·
+[Bounties](https://www.getdasha.com/bounties) ·
+[Privacy](https://www.getdasha.com/privacy)
+
+`/dasha` and `/desk` 308 to `/how-to-buy`. `/studio` is retired (308 home). Do not restore Meme Studio on www.
 
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
-Jupiter route. Live URL is `/dasha` — [Use it ↗](https://www.getdasha.com/dasha). `/desk` goes to `/dasha`.
+Jupiter route. Local / GitHub Pages copy. Not a live www pretty URL.
 
 **[bounties/](bounties/)** — USDC bounties on Solana. GitHub connect is coming (lobby
 `/oauth/github/status` is `configured: false` until worker secrets exist); listings still
-open as GitHub issues. X is optional (same lobby session as Simp Board). Canonical feed (live, `x-dasha-edge: bounties-feed`, curled 2026-08-13 ~20:19 ET):
+open as GitHub issues. X is optional (same lobby session as Simp Board). Canonical feed:
 [www.getdasha.com/bounties.json](https://www.getdasha.com/bounties.json)
 ([Pages](https://uuriko.github.io/dasha-desk/bounties.json),
 [feed.json](https://uuriko.github.io/dasha-desk/bounties/feed.json),
 [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)).
 We don't hold it.
-[Use it ↗](https://www.getdasha.com/bounties)
 
-**simp** — the public Simp Board, quiz, earned profile Spotlight and contribution points.
-[Use it ↗](https://www.getdasha.com/simp)
+**[studio/](studio/)** — local / Pages Meme Studio only. www `/studio` 308s home.
+Original drawings are public domain. Uploaded or externally sourced images keep their own rights.
 
-**privacy** — [www.getdasha.com/privacy](https://www.getdasha.com/privacy)
-
-None of them connects a wallet or moves anything. Original drawings are public domain. Uploaded or
-externally sourced images keep their own rights.
+None of the static tools here connects a wallet or moves anything.
 
 [GitHub Pages demo](https://uuriko.github.io/dasha-desk/) · [Website](https://www.getdasha.com)
 
@@ -51,7 +60,7 @@ PR earns points. The maintainer will apply the PR's `impact:` label; contributor
 permissions. [How that works](CONTRIBUTING.md#prepared-simp-points-lane). Points are recognition on a
 page, not payment or a token allocation. You never need points to open a PR.
 
-CI runs the complete build, mint, share, docs, and browser-resilience gate on every PR.
+CI runs the complete build, mint, share, docs, Watch-fixture, and browser-resilience gate on every PR.
 
 ## What it does
 
@@ -62,7 +71,7 @@ CI runs the complete build, mint, share, docs, and browser-resilience gate on ev
 - links explorers, chart, and one neutral Jupiter route
 - ships as static HTML, CSS, and JavaScript (no wallet connect)
 
-**Roadmap is community input** — open an issue and propose what to build next (infra, consumer, creative). Adding a new Studio look is the most self-contained change here; [studio/README.md](studio/README.md) walks through it.
+**Roadmap is community input** — open an issue and propose what to build next (infra, consumer, creative). Adding a new Studio look is the most self-contained local change here; [studio/README.md](studio/README.md) walks through it. That does not put Studio back on www.
 
 ## Run it
 
@@ -75,10 +84,10 @@ python3 -m http.server 8766
 # → http://127.0.0.1:8766/lobby/
 # → http://127.0.0.1:8766/bounties/
 # → http://127.0.0.1:8766/privacy/
-# → http://127.0.0.1:8766/studio/
+# → http://127.0.0.1:8766/studio/    local only
 ```
 
-Production desk is `/dasha`. `/desk` goes to `/dasha`.
+Production buy path is `/how-to-buy`. `/desk` and `/dasha` go to `/how-to-buy`.
 
 After changing sources:
 

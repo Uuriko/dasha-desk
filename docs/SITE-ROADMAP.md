@@ -9,7 +9,7 @@ last_verified: 2026-08-13
 **Laptop canonical:** `/home/potter/DASHA-ROADMAP.md`
 **This file** is the Desk-repo copy of the 2026-08-13 site + automation slice. It does **not** replace [ROADMAP.md](ROADMAP.md) (Desk product history: mint desk, a11y, bounties-as-static-board). A short pointer also sits at the top of ROADMAP.md.
 
-Visual tokens in this repo: [DASHA-ART-DIRECTION.md](DASHA-ART-DIRECTION.md). Culture: [DASHA-BIBLE.md](DASHA-BIBLE.md). Deploy notes: [DEPLOY.md](DEPLOY.md).
+Visual tokens in this repo: [DASHA-ART-DIRECTION.md](DASHA-ART-DIRECTION.md). Culture: [DASHA-BIBLE.md](DASHA-BIBLE.md). Deploy notes: [DEPLOY.md](DEPLOY.md). Live route contract: [ROUTES.md](ROUTES.md) — `/studio` is retired (308 home); do not follow older Studio-as-live tasks in this file.
 
 Do not dispatch Claude, TUI, or eliza from this file.
 
