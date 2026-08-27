@@ -276,6 +276,10 @@ export async function runWatch({ probe, skipPages = false } = {}) {
       [/id=["']chat-door["']|class=["'][^"']*chat-door/, '/: missing chat-door'],
       [/faucet/i, '/: missing faucet'],
       [/grwm/i, '/: missing grwm'],
+      // Must be a real <a> element. The bare href pattern also matched the
+      // CSS selector `a[href="/compute"]` inside the stylesheet that HIDES
+      // Compute, so this check passed while the link was invisible.
+      [/<a\b[^>]*\bhref=["'](?:https:\/\/(?:www\.)?getdasha\.com)?\/compute\/?["'][^>]*>/i, '/: missing Compute link'],
     ],
     forbid: [
       [/chess-door/i, '/: chess-door is on Home'],
@@ -283,6 +287,8 @@ export async function runWatch({ probe, skipPages = false } = {}) {
     ],
     after: async (b, html) => {
       warn(b, (html.match(/<h1[\s>]/gi) || []).length <= 1, '/: Home should have one H1');
+      const hidesCompute = /[^{}]*(?:a\[href[^\]]*compute[^\]]*\]|\.compute\b)[^{}]*\{[^{}]*display\s*:\s*none[^{}]*\}/i.test(html);
+      fail(b, !hidesCompute, '/: Compute link is hidden by a display:none rule');
     },
   });
 
