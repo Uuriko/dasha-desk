@@ -6,7 +6,7 @@ It is not a payment, airdrop, bag check, or paid program.
 There is nothing to join. Open a pull request and you are a contributor — no invite, no org access,
 no application. Holder status and Board points are **never** required to contribute.
 
-**Product context:** [getdasha.com](https://www.getdasha.com/) · live buy [getdasha.com/how-to-buy](https://www.getdasha.com/how-to-buy)
+**Product context:** [getdasha.com](https://www.getdasha.com/) · [Dasha Compute](https://www.getdasha.com/compute) · live buy [getdasha.com/how-to-buy](https://www.getdasha.com/how-to-buy)
 
 **Start here:** [good first issues](https://github.com/Uuriko/dasha-desk/contribute) · [Ideas welcome](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions)
 
@@ -38,7 +38,7 @@ If you get stuck, comment with what you tried. Mentorship is welcome — ask ear
 ## Make a code change
 
 1. Branch from `main`.
-2. Edit **`src/`** (or docs / `studio/` / `bounties/` as relevant). Do **not** hand-edit generated `index.html`, `dist/`, or `src/app.html`.
+2. Edit **`src/`** (or docs / `studio/` / `bounties/` / `compute/` as relevant). Do **not** hand-edit generated `index.html`, `dist/`, or `src/app.html`.
 3. Regenerate and check:
 
    ```bash
@@ -49,7 +49,7 @@ If you get stuck, comment with what you tried. Mentorship is welcome — ask ear
 
 4. Open a pull request that says what changed and how it was checked.
 
-Good first contributions include keyboard and screen-reader fixes, clearer loading or error states, dead-link fixes, performance work, tests, and documentation.
+Good first contributions include keyboard and screen-reader fixes, clearer loading or error states, dead-link fixes, performance work, Compute provider diagnostics and tests, and documentation. Compute changes must preserve its explicit alpha and privacy limitations.
 
 For a larger idea, [open an issue](https://github.com/Uuriko/dasha-desk/issues/new/choose) or post in [Discussions](https://github.com/Uuriko/dasha-desk/discussions) with the smallest useful first slice — crypto infra, consumer UX, or creative tools are all fair game.
 

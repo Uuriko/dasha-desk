@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+APP_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+. "$APP_DIR/provider.env"
+DASHA_PROVIDER_KEY=$(/usr/bin/security find-generic-password -a "$DASHA_PROVIDER_ID" -s com.getdasha.compute.provider -w)
+export DASHA_COORDINATOR_URL DASHA_PROVIDER_ID DASHA_PROVIDER_KEY DASHA_MODEL_MAP DASHA_BENCHMARK_PATH
+exec "$DASHA_PYTHON" "$APP_DIR/agent.py"
