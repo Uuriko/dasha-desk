@@ -62,6 +62,22 @@
     text-decoration:none;box-shadow:4px 4px 0 var(--hot);
   }
   .cta:hover{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--hot)}
+  .cta-ghost{
+    background:transparent;border:1px solid var(--line);color:var(--paper);
+    box-shadow:4px 4px 0 var(--violet);
+  }
+  .cta-ghost:hover{color:var(--acid);border-color:var(--acid)}
+  .compute{
+    margin:28px 0 0;padding:20px 0 0;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;gap:10px;max-width:40rem;
+  }
+  .compute h2{
+    margin:0;font-size:clamp(22px,4vw,28px);line-height:1;
+    letter-spacing:-.04em;text-transform:uppercase;
+    font-family:"Arial Black",Arial,Helvetica,sans-serif;
+  }
+  .compute p{margin:0;color:var(--muted);font-size:15px;line-height:1.5;font-weight:700}
+  .compute .bound{color:var(--paper)}
   .mint{
     margin:22px 0 0;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;
   }
@@ -109,6 +125,7 @@
   <a href="https://www.getdasha.com/" aria-current="page">Home</a>
   <a href="https://www.getdasha.com/lobby">Lobby</a>
   <a href="https://www.getdasha.com/bounties">Bounties</a>
+  <a href="https://www.getdasha.com/compute">Compute</a>
   <a href="https://www.getdasha.com/how-to-buy">Buy</a>
   <a href="https://x.com/dash_eats" target="_blank" rel="noopener noreferrer">@dash_eats</a>
 </nav>
@@ -122,13 +139,22 @@
   <h1>It’s time $dasha.</h1>
   <p>
     <a class="cta" id="chat-door" href="https://www.getdasha.com/lobby">Chat</a>
-    <a class="cta" id="go" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&amp;buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump" target="_blank" rel="noopener noreferrer">Buy</a>
+    <a class="cta" id="go" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump" target="_blank" rel="noopener noreferrer">Buy</a>
   </p>
   <p class="mint">
     <code class="ca">53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump</code>
-    <a class="buy" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&amp;buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump" target="_blank" rel="noopener noreferrer">Buy $dasha ↗</a>
+    <a class="buy" href="https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump" target="_blank" rel="noopener noreferrer">Buy $dasha ↗</a>
   </p>
   <p id="dasha-home-faucet"><a href="https://www.getdasha.com/faucet">Faucet</a></p>
+  <section class="compute" id="compute-door" aria-labelledby="compute-title">
+    <h2 id="compute-title">Compute</h2>
+    <p>Route OpenAI-shaped test prompts to participating Macs.</p>
+    <p class="bound">Open alpha · providers can read prompts · no billing yet.</p>
+    <p>
+      <a class="cta" href="https://www.getdasha.com/compute">Try the console</a>
+      <a class="cta cta-ghost" href="https://github.com/Uuriko/dasha-desk/tree/main/compute">Review source</a>
+    </p>
+  </section>
   <p id="grwm">grwm</p>
   <figure class="still">
     <a href="https://x.com/dash_eats/status/2072126740206375093" target="_blank" rel="noopener noreferrer" aria-label="Open the @dash_eats still on X">
@@ -137,6 +163,6 @@
     <figcaption>@dash_eats. Not endorsement.</figcaption>
   </figure>
 </main>
-<p class="foot"><a href="https://www.getdasha.com/privacy">Privacy</a></p>
+<p class="foot"><a href="https://www.getdasha.com/compute">Compute</a> · <a href="https://www.getdasha.com/privacy">Privacy</a></p>
 </body>
 </html>
