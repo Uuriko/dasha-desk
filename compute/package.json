@@ -1,0 +1,15 @@
+{
+  "name": "dasha-compute-open-alpha",
+  "version": "0.3.0",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "description": "Clean-room, local-first community inference coordinator and provider agent.",
+  "scripts": {
+    "start": "node coordinator/server.mjs",
+    "test": "node --test tests/e2e.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

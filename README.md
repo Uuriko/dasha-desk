@@ -15,6 +15,7 @@ Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Watch: `node watch.mjs` (producti
 [Lobby](https://www.getdasha.com/lobby) ·
 [Simp](https://www.getdasha.com/simp) ·
 [Bounties](https://www.getdasha.com/bounties) ·
+[Compute](https://www.getdasha.com/compute) ·
 [Privacy](https://www.getdasha.com/privacy)
 
 `/dasha` and `/desk` 308 to `/how-to-buy`. `/studio` is retired (308 home). Do not restore Meme Studio on www.
@@ -33,6 +34,11 @@ We don't hold it.
 
 **[studio/](studio/)** — local / Pages Meme Studio only. www `/studio` 308s home.
 Original drawings are public domain. Uploaded or externally sourced images keep their own rights.
+
+**[compute/](compute/)** — browseable MIT source for the Dasha Compute open alpha: the
+local coordinator, outbound macOS/Ollama provider, console states, protocol tests, security policy,
+and threat model. The live product is [getdasha.com/compute](https://www.getdasha.com/compute).
+It is experimental, provider operators can read prompts, and it must not receive secrets.
 
 None of the static tools here connects a wallet or moves anything.
 
@@ -60,7 +66,7 @@ PR earns points. The maintainer will apply the PR's `impact:` label; contributor
 permissions. [How that works](CONTRIBUTING.md#prepared-simp-points-lane). Points are recognition on a
 page, not payment or a token allocation. You never need points to open a PR.
 
-CI runs the complete build, mint, share, docs, Watch-fixture, and browser-resilience gate on every PR.
+CI runs the complete build, mint, share, docs, Watch-fixture, browser-resilience, and Compute protocol gates on every PR.
 
 ## What it does
 
@@ -100,7 +106,7 @@ npm test
 The site itself has no install step or runtime dependencies. Tests use one development-only package
 and an installed Chrome/Chromium browser so the failure paths run in a real page.
 
-Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json) · [`bounties/`](bounties/) · [`studio/`](studio/)
+Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json) · [`bounties/`](bounties/) · [`studio/`](studio/) · [`compute/`](compute/)
 
 `src/app.html`, `index.html`, and `dist/index.html` are **generated** — do not edit by hand.
 
