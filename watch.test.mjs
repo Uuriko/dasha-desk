@@ -204,6 +204,16 @@ assert.equal(baseline.failures.length, 0, `good fixtures must pass:\n${baseline.
   assert.ok(bag.failures.some((f) => /\/compute: missing product explanation/.test(f)), bag.failures.join('\n'));
 }
 
+{
+  const bag = await runWatch({
+    probe: overlay(good, {
+      [`${ORIGIN}/dasha-compute-open-alpha.tar.gz`]: { status: 404, body: '' },
+    }),
+    skipPages: true,
+  });
+  assert.ok(bag.failures.some((f) => /dasha-compute-open-alpha\.tar\.gz: missing provenance archive/.test(f)), bag.failures.join('\n'));
+}
+
 const cli = spawnSync(process.execPath, ['watch.mjs', '--fixture', '--json'], {
   cwd: here,
   encoding: 'utf8',
