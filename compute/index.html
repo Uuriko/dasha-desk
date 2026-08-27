@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dasha Compute · open source</title>
+  <meta name="description" content="The public source, protocol, provider agent, console, examples and release artifacts for Dasha Compute.">
+  <meta name="theme-color" content="#08070a">
+  <style>
+    :root{--ink:#08070a;--panel:#141116;--paper:#f5eedb;--muted:#b4aabd;--line:#403844;--acid:#dcff00;--hot:#ff3b81}
+    *{box-sizing:border-box}html{background:var(--ink);color:var(--paper);font:16px/1.5 Arial,Helvetica,sans-serif}body{margin:0}a{color:inherit}.wrap{width:min(1080px,calc(100% - 32px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:72px;border-bottom:1px solid var(--line)}.brand{font-weight:950;letter-spacing:-.04em;text-decoration:none}.brand b{color:var(--acid)}.top nav{display:flex;gap:18px}.top nav a{font-size:14px;font-weight:800;text-underline-offset:4px}.hero{padding:76px 0 56px}.kicker{margin:0 0 12px;color:var(--acid);font-size:13px;font-weight:950;letter-spacing:.12em;text-transform:uppercase}h1{max-width:850px;margin:0;font-size:clamp(54px,10vw,118px);line-height:.87;letter-spacing:-.07em}h1 em{color:var(--hot);font-style:normal}.lede{max-width:680px;margin:24px 0 0;color:var(--muted);font-size:clamp(18px,2.4vw,24px)}.actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 20px;border:1px solid var(--paper);border-radius:999px;font-weight:950;text-decoration:none}.button.primary{border-color:var(--acid);background:var(--acid);color:var(--ink);box-shadow:4px 4px 0 var(--hot)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:22px 0 70px}.card{min-height:220px;padding:24px;border:1px solid var(--line);background:var(--panel)}.card span{color:var(--hot);font-size:12px;font-weight:950;letter-spacing:.1em}.card h2{margin:40px 0 8px;font-size:24px}.card p{margin:0;color:var(--muted)}.card a{display:inline-flex;margin-top:18px;color:var(--acid);font-weight:900;text-underline-offset:4px}.run{padding:42px 0 72px;border-top:1px solid var(--line)}.run h2{font-size:clamp(34px,5vw,58px);letter-spacing:-.05em}.run pre{overflow:auto;margin:20px 0 0;padding:22px;border:1px solid var(--line);background:#050406;color:var(--acid);font:14px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}.foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:28px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}:focus-visible{outline:3px solid var(--acid);outline-offset:4px}@media(max-width:760px){.top nav a:first-child{display:none}.grid{grid-template-columns:1fr}.hero{padding-top:54px}.card{min-height:180px}}
+  </style>
+</head>
+<body>
+  <header class="wrap top"><a class="brand" href="https://www.getdasha.com/compute">$<b>DASHA</b> COMPUTE</a><nav aria-label="Project"><a href="https://github.com/Uuriko/dasha-desk/blob/main/compute/README.md">README</a><a href="https://github.com/Uuriko/dasha-desk/blob/main/compute/SOURCE_MAP.md">Source map</a><a href="https://github.com/Uuriko/dasha-desk/tree/main/compute">GitHub ↗</a></nav></header>
+  <main>
+    <section class="wrap hero"><p class="kicker">MIT-licensed open alpha</p><h1>Make the Macs <em>do something.</em></h1><p class="lede">Public source for the Dasha Compute protocol, Ollama provider, product console, examples, tests and deterministic release tooling.</p><div class="actions"><a class="button primary" href="https://www.getdasha.com/compute">Open Dasha Compute</a><a class="button" href="https://github.com/Uuriko/dasha-desk/tree/main/compute">Browse every file</a><a class="button" href="https://www.getdasha.com/dasha-compute-open-alpha.tar.gz">Download source</a></div></section>
+    <section class="wrap grid" aria-label="Project areas">
+      <article class="card"><span>01 / RUN</span><h2>Provider agent</h2><p>Connect a local Ollama model to the community queue using outbound HTTPS.</p><a href="https://github.com/Uuriko/dasha-desk/tree/main/compute/provider">Browse provider source →</a></article>
+      <article class="card"><span>02 / BUILD</span><h2>OpenAI-shaped API</h2><p>Use complete responses or streamed SSE through the public protocol.</p><a href="https://github.com/Uuriko/dasha-desk/tree/main/compute/coordinator">Browse coordinator source →</a></article>
+      <article class="card"><span>03 / VERIFY</span><h2>Reproducible release</h2><p>Build a normalized source archive with an embedded manifest and external checksum.</p><a href="https://github.com/Uuriko/dasha-desk/tree/main/compute/scripts">Browse release tooling →</a></article>
+    </section>
+    <section class="wrap run"><p class="kicker">Local quick start</p><h2>Three terminals. One model.</h2><pre><code>git clone https://github.com/Uuriko/dasha-desk.git
+cd dasha-desk/compute
+
+# terminal 1
+DASHA_API_KEY=consumer-secret DASHA_PROVIDER_KEY=provider-secret npm start
+
+# terminal 2
+ollama pull qwen3:8b
+DASHA_PROVIDER_KEY=provider-secret DASHA_MODEL_MAP=qwen3-8b=qwen3:8b python3 provider/agent.py
+
+# terminal 3
+DASHA_API_KEY=consumer-secret python3 examples/chat.py</code></pre></section>
+  </main>
+  <footer class="wrap foot"><span>Dasha Compute · open source</span><span><a href="https://github.com/Uuriko/dasha-desk/blob/main/compute/LICENSE">MIT</a> · <a href="https://www.getdasha.com/compute">Live product</a> · <a href="https://github.com/Uuriko/dasha-desk/issues">Issues</a></span></footer>
+</body>
+</html>
