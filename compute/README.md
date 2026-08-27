@@ -65,6 +65,30 @@ The doctor exits nonzero when the coordinator, Ollama, or any configured model i
 
 Measure actual model throughput with `python3 provider/agent.py --benchmark`. Set `DASHA_BENCHMARK_TOKENS` between 16 and 256 to trade speed for a longer calibrated run.
 
+## Verify or build the source archive
+
+The repository builds the download from an explicit source allowlist. Every archive
+uses normalized paths, ownership, modes and timestamps; contains a
+`SOURCE-MANIFEST.sha256` for its extracted files; and ships beside an external archive
+checksum and deterministic `release.json`.
+
+```bash
+npm run release:build
+(cd dist && shasum -a 256 -c dasha-compute-open-alpha.tar.gz.sha256)
+tar -tzf dist/dasha-compute-open-alpha.tar.gz
+```
+
+Main-branch builds are also linked to GitHub build provenance. After downloading the
+tarball from the **Compute release** workflow, verify that provenance with:
+
+```bash
+gh attestation verify dasha-compute-open-alpha.tar.gz --repo Uuriko/dasha-desk
+```
+
+Provenance connects bytes to a repository workflow and commit; it does not prove that
+the software is secure. Review this source, `SECURITY.md`, and `THREAT_MODEL.md` before
+running an alpha provider.
+
 ## API
 
 | Method | Route | Purpose |
@@ -116,7 +140,7 @@ The live queue already uses durable storage, hashed account-bound credentials an
 npm test
 ```
 
-The end-to-end tests start isolated coordinators, simulate providers, and verify both complete responses and OpenAI-compatible SSE chunks through `[DONE]`.
+The tests start isolated coordinators, simulate providers, verify both complete responses and OpenAI-compatible SSE chunks through `[DONE]`, and prove that two clean release builds have identical bytes and complete source manifests.
 
 ## License
 
