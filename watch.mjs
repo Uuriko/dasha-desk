@@ -18,6 +18,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { checkComputeRelease } from './watch-compute-release.mjs';
 
 export const MINT = '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
 export const ORIGIN = 'https://www.getdasha.com';
@@ -397,6 +398,8 @@ export async function runWatch({ probe, skipPages = false } = {}) {
       [/OpenAI-compatible|Ollama|idle Macs/i, '/compute: missing product explanation'],
     ],
   });
+
+  await checkComputeRelease(bag, probe, { origin: ORIGIN, fail });
 
   {
     const sitemap = await probe(`${ORIGIN}/sitemap.xml`, { redirect: 'follow' });
