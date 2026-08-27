@@ -166,6 +166,32 @@ assert.equal(baseline.failures.length, 0, `good fixtures must pass:\n${baseline.
 {
   const bag = await runWatch({
     probe: overlay(good, {
+      [`${ORIGIN}/`]: {
+        status: 200,
+        body: `<!doctype html><title>$dasha</title><link rel="canonical" href="${ORIGIN}/"><h1>It’s time $dasha.</h1><a id="chat-door" href="${ORIGIN}/lobby">Chat</a><a href="https://jup.ag/swap">Buy</a><code>${MINT}</code><section id="dasha-home-faucet">faucet</section><section id="grwm">grwm</section>`,
+      },
+    }),
+    skipPages: true,
+  });
+  assert.ok(bag.failures.some((f) => /\/: missing Compute link/.test(f)), bag.failures.join('\n'));
+}
+
+{
+  const pin = readFileSync(join(fixtureDir, 'home.html'), 'utf8');
+  const hidden = pin.replace(
+    '</head>',
+    '<style id="dasha-home-chrome-hide">a[href="/compute"],.compute{display:none!important}</style></head>',
+  );
+  const bag = await runWatch({
+    probe: overlay(good, { [`${ORIGIN}/`]: { status: 200, body: hidden } }),
+    skipPages: true,
+  });
+  assert.ok(bag.failures.some((f) => /hidden by a display:none/.test(f)), bag.failures.join('\n'));
+}
+
+{
+  const bag = await runWatch({
+    probe: overlay(good, {
       [`${ORIGIN}/compute`]: {
         status: 200,
         body: '<!doctype html><title>Worker room</title><h1>Machines</h1><p>Nothing here explains the product or its canonical URL.</p>',
