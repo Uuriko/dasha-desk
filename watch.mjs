@@ -7,7 +7,7 @@
  * This file does not implement that Worker. It asserts what visitors must get.
  *
  * Do not restore Studio. /studio is retired (308 home). Do not treat privacy 308-as-home
- * as success. Do not treat /compute as a product page. Do not weaken blank-page, mint,
+ * as success. /compute is a first-class product page. Do not weaken blank-page, mint,
  * plugin.jup.ag, stale SRI, missing H1, or broken OAuth start checks.
  *
  *   node watch.mjs              # production
@@ -32,8 +32,8 @@ const GONE = [
 ];
 const HOME_308 = ['/studio', '/verse', '/learn', '/graph'];
 const BUY_308 = ['/dasha', '/desk'];
-const SITEMAP_REQUIRED = ['/privacy', '/lobby', '/chess', '/faucet', '/bag', '/how-to-buy', '/simp'];
-const SITEMAP_NOT_INDEXABLE = ['/studio', '/dasha', '/desk', '/verse', '/learn', '/graph', '/compute'];
+const SITEMAP_REQUIRED = ['/privacy', '/lobby', '/chess', '/faucet', '/bag', '/how-to-buy', '/simp', '/compute'];
+const SITEMAP_NOT_INDEXABLE = ['/studio', '/dasha', '/desk', '/verse', '/learn', '/graph'];
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -383,23 +383,14 @@ export async function runWatch({ probe, skipPages = false } = {}) {
   await expect308(bag, probe, '/forum', isLobbyLoc, 'https://www.getdasha.com/lobby');
   await expect308(bag, probe, '/oauth/x/start', isOauthXLoc, `${LOBBY}/oauth/x/start`);
 
-  {
-    const compute = await probe(ORIGIN + '/compute', { redirect: 'manual' });
-    const html = compute.status ? await compute.text() : '';
-    const robots = `${header(compute, 'x-robots-tag')} ${html}`;
-    const noindex = /noindex/i.test(robots);
-    const branded = /This page isn’t here|This page isn't here|Not this page|#070608/i.test(html);
-    const product = compute.ok && /<title>[^<]*Compute/i.test(html);
-    fail(
-      bag,
-      (compute.status === 410 || compute.status === 404) && !product,
-      `/compute: retired — expected 410 or branded 404, not a product page (HTTP ${compute.status || 0})`,
-    );
-    if (compute.status === 410 || compute.status === 404) {
-      fail(bag, noindex || branded, '/compute: miss page must be noindex or branded 404');
-    }
-    if (compute.status === 404) fail(bag, noindex, '/compute: branded 404 must be noindex');
-  }
+  await page200(bag, probe, '/compute', {
+    h1: true,
+    match: [
+      [/<title>[^<]*Compute/i, '/compute: title must name Compute'],
+      [/<link[^>]+rel=["']canonical["'][^>]+href=["']https:\/\/www\.getdasha\.com\/compute["']/i, '/compute: missing www canonical'],
+      [/OpenAI-compatible|Ollama|idle Macs/i, '/compute: missing product explanation'],
+    ],
+  });
 
   {
     const sitemap = await probe(`${ORIGIN}/sitemap.xml`, { redirect: 'follow' });

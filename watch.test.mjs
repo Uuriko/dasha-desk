@@ -168,20 +168,14 @@ assert.equal(baseline.failures.length, 0, `good fixtures must pass:\n${baseline.
     probe: overlay(good, {
       [`${ORIGIN}/compute`]: {
         status: 200,
-        body: '<!doctype html><title>Compute — $dasha</title><link rel="canonical" href="https://www.getdasha.com/compute"><h1>Compute</h1>',
-      },
-      [`${ORIGIN}/sitemap.xml`]: {
-        status: 200,
-        body: readFileSync(join(fixtureDir, 'sitemap.xml'), 'utf8').replace(
-          '</urlset>',
-          '<url><loc>https://www.getdasha.com/compute</loc></url></urlset>',
-        ),
+        body: '<!doctype html><title>Worker room</title><h1>Machines</h1><p>Nothing here explains the product or its canonical URL.</p>',
       },
     }),
     skipPages: true,
   });
-  assert.ok(bag.failures.some((f) => f.startsWith('/compute:')), bag.failures.join('\n'));
-  assert.ok(bag.failures.some((f) => /sitemap: \/compute/.test(f)), bag.failures.join('\n'));
+  assert.ok(bag.failures.some((f) => /\/compute: title must name Compute/.test(f)), bag.failures.join('\n'));
+  assert.ok(bag.failures.some((f) => /\/compute: missing www canonical/.test(f)), bag.failures.join('\n'));
+  assert.ok(bag.failures.some((f) => /\/compute: missing product explanation/.test(f)), bag.failures.join('\n'));
 }
 
 const cli = spawnSync(process.execPath, ['watch.mjs', '--fixture', '--json'], {
