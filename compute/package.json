@@ -6,8 +6,9 @@
   "license": "MIT",
   "description": "Clean-room, local-first community inference coordinator and provider agent.",
   "scripts": {
+    "release:build": "node scripts/build-release.mjs",
     "start": "node coordinator/server.mjs",
-    "test": "node --test tests/e2e.test.mjs"
+    "test": "node --test tests/*.test.mjs"
   },
   "engines": {
     "node": ">=20"

@@ -15,6 +15,8 @@ Before import, all eight upstream end-to-end tests passed with Node 20+ and Pyth
 coordinator URLs written into the shell-sourced macOS service configuration reject
 shell metacharacters. The resulting suite has nine passing tests.
 
-The live downloadable archive should be regenerated from reviewed repository source
-after this change is merged. Until then, treat this directory as the review source and
-the live archive as the currently distributed artifact.
+Repository source is now canonical. `npm run release:build` creates a deterministic
+archive, external SHA-256 file, and release manifest from the reviewed allowlist in
+`release-files.json`. The main-branch GitHub workflow uploads those files and creates
+build provenance for the archive. The live download remains a separate deployment and
+must not be described as updated until its bytes match a reviewed repository artifact.

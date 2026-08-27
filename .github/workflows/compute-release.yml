@@ -1,0 +1,54 @@
+name: Compute release
+
+on:
+  pull_request:
+    paths:
+      - "compute/**"
+      - ".github/workflows/compute-release.yml"
+  push:
+    branches: [main]
+    paths:
+      - "compute/**"
+      - ".github/workflows/compute-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+      - name: Protocol and release tests
+        working-directory: compute
+        run: npm test
+      - name: Build deterministic archive
+        working-directory: compute
+        run: npm run release:build
+      - name: Verify archive checksum
+        working-directory: compute/dist
+        run: sha256sum --check dasha-compute-open-alpha.tar.gz.sha256
+      - name: Upload release candidate
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: dasha-compute-open-alpha-${{ github.sha }}
+          path: |
+            compute/dist/dasha-compute-open-alpha.tar.gz
+            compute/dist/dasha-compute-open-alpha.tar.gz.sha256
+            compute/dist/release.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Attest main-branch archive provenance
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: compute/dist/dasha-compute-open-alpha.tar.gz

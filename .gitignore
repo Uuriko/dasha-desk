@@ -5,6 +5,7 @@ node_modules/
 *.log
 .idea/
 .vscode/
+compute/dist/
 
 # Local experiment receipts — never publish (FOMO/raid eras)
 receipts/
