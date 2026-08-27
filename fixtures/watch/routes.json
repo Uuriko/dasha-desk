@@ -22,7 +22,7 @@
   "https://www.getdasha.com/desk": { "status": 308, "location": "https://www.getdasha.com/how-to-buy" },
   "https://www.getdasha.com/forum": { "status": 308, "location": "https://www.getdasha.com/lobby" },
   "https://www.getdasha.com/oauth/x/start": { "status": 308, "location": "https://lobby.getdasha.com/oauth/x/start" },
-  "https://www.getdasha.com/compute": { "status": 410, "file": "compute.html", "headers": { "x-robots-tag": "noindex, nofollow" } },
+  "https://www.getdasha.com/compute": { "status": 200, "file": "compute.html" },
   "https://lobby.getdasha.com/oauth/x/start": { "status": 200, "body": "<h1>Connect X</h1>" },
   "https://lobby.getdasha.com/client/pin.js": { "status": 200, "file": "pin.js" },
   "https://lobby.getdasha.com/price": { "status": 200, "json": { "priceUsd": 1.25, "stale": false, "staleForMs": 0 } },

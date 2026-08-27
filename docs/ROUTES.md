@@ -27,6 +27,7 @@ broken OAuth start, and a wrong mint are failures.
 | `/contribute` | Contribute. |
 | `/bounties` | 200 when listings exist. |
 | `/digest` | Branded tape with an H1 or section heading. |
+| `/compute` | Dasha Compute. Branded product page with a www canonical and a clear open-model/Ollama explanation. |
 
 ## 308
 
@@ -41,14 +42,13 @@ broken OAuth start, and a wrong mint are failures.
 
 | Route | Job |
 | --- | --- |
-| `/compute` | 410 or branded 404, noindex. Not a product page. Not in the sitemap. |
 | `/studio` | Retired. Do not restore Meme Studio on www. |
 
 ## Sitemap
 
-Must include `/privacy` `/lobby` `/chess` `/faucet` `/bag` `/how-to-buy` `/simp`.
+Must include `/privacy` `/lobby` `/chess` `/faucet` `/bag` `/how-to-buy` `/simp` `/compute`.
 
-Must not list a `lobby?` query, and must not list `/studio` `/dasha` `/desk` `/verse` `/learn` `/graph` `/compute` as indexable 200s.
+Must not list a `lobby?` query, and must not list `/studio` `/dasha` `/desk` `/verse` `/learn` `/graph` as indexable 200s.
 
 ## Chess off Home
 
