@@ -7,6 +7,8 @@ import test from "node:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+const python = process.env.DASHA_TEST_PYTHON || "python3";
+
 async function freePort() {
   return await new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -95,7 +97,7 @@ test("provider doctor fails when a configured Ollama model is missing", async (c
   });
   await new Promise((resolve) => server.listen(port, "127.0.0.1", resolve));
   context.after(() => server.close());
-  const child = spawn("python3", ["provider/agent.py", "--doctor"], {
+  const child = spawn(python, ["provider/agent.py", "--doctor"], {
     cwd: new URL("..", import.meta.url),
     env: { ...process.env, DASHA_COORDINATOR_URL: `http://127.0.0.1:${port}`, OLLAMA_URL: `http://127.0.0.1:${port}`, DASHA_MODEL_MAP: "qwen3-8b=qwen3:8b" },
   });
@@ -125,7 +127,7 @@ test("provider advertises only installed Ollama models", async (context) => {
   });
   await new Promise((resolve) => server.listen(port, "127.0.0.1", resolve));
   context.after(() => server.close());
-  const child = spawn("python3", ["provider/agent.py", "--once"], {
+  const child = spawn(python, ["provider/agent.py", "--once"], {
     cwd: new URL("..", import.meta.url),
     env: { ...process.env, DASHA_COORDINATOR_URL: `http://127.0.0.1:${port}`, OLLAMA_URL: `http://127.0.0.1:${port}`, DASHA_PROVIDER_KEY: "provider-test", DASHA_PROVIDER_ID: "test-mac", DASHA_MODEL_MAP: "qwen3-8b=qwen3:8b,gemma3-12b=gemma3:12b" },
   });
@@ -164,7 +166,7 @@ sys.argv = ["agent.py", "--once"]
 agent.main()
 assert reported == [], reported
 `;
-  const output = execFileSync("python3", ["-B", "-c", probe], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
+  const output = execFileSync(python, ["-B", "-c", probe], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
   assert.match(output, /cancelled job_stream/);
 });
 
@@ -199,7 +201,7 @@ agent.request_json = lambda url, **_kwargs: {"job": {"id": "job_truncated", "mod
 agent.main()
 assert reported == [{"delta": "partial"}, {"error": "provider inference failed: RuntimeError"}], reported
 `;
-  const output = execFileSync("python3", ["-B", "-c", probe], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
+  const output = execFileSync(python, ["-B", "-c", probe], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
   assert.doesNotMatch(output, /completed job_(?:error|truncated)/);
 });
 
@@ -214,7 +216,7 @@ test("provider benchmark reports measured model throughput", async (context) => 
   });
   await new Promise((resolve) => server.listen(port, "127.0.0.1", resolve));
   context.after(() => server.close());
-  const child = spawn("python3", ["provider/agent.py", "--benchmark"], {
+  const child = spawn(python, ["provider/agent.py", "--benchmark"], {
     cwd: new URL("..", import.meta.url),
     env: { ...process.env, OLLAMA_URL: `http://127.0.0.1:${port}`, DASHA_MODEL_MAP: "qwen3-8b=qwen3:8b", DASHA_BENCHMARK_PATH: benchmarkPath },
   });
