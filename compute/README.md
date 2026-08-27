@@ -1,5 +1,10 @@
 # Dasha Compute · open alpha
 
+**[Live product](https://www.getdasha.com/compute)** ·
+**[Project index](https://uuriko.github.io/dasha-desk/compute/)** ·
+**[Source map](SOURCE_MAP.md)** ·
+**[Download source](https://www.getdasha.com/dasha-compute-open-alpha.tar.gz)**
+
 An independently written, local-first proof of concept for routing OpenAI-shaped chat requests to community-run model providers. It is designed to become the compute surface at `getdasha.com/compute` without copying Darkbloom code, branding, prose or private protocols.
 
 Version 0.3 supports both a local coordinator and the live getdasha.com community queue. The bundled local coordinator works as follows:
