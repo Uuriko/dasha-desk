@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.getdasha.com/build/accepted-work.schema.json",
+  "title": "Dasha accepted work record",
+  "type": "object",
+  "required": ["schema", "id", "project", "contributor", "source", "acceptedAt", "summary", "reward"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "dasha-accepted-work/v1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,80}$" },
+    "project": { "const": "dasha" },
+    "contributor": {
+      "type": "object",
+      "required": ["githubLogin"],
+      "additionalProperties": false,
+      "properties": { "githubLogin": { "type": "string", "minLength": 1, "maxLength": 39 } }
+    },
+    "source": {
+      "type": "object",
+      "required": ["pullRequest", "mergedHeadSha"],
+      "additionalProperties": false,
+      "properties": {
+        "pullRequest": { "type": "string", "pattern": "^https://github\\.com/Uuriko/dasha-desk/pull/[0-9]+$" },
+        "mergedHeadSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "acceptedAt": { "type": "string", "format": "date-time" },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "evidence": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "reward": {
+      "type": "object",
+      "required": ["state"],
+      "additionalProperties": false,
+      "properties": {
+        "state": { "enum": ["unlisted", "projected", "under_review", "approved", "scheduled", "paid", "held", "excluded"] },
+        "amount": { "type": ["number", "null"], "minimum": 0 },
+        "currency": { "type": ["string", "null"] },
+        "settlementEvidence": { "type": ["string", "null"] }
+      }
+    }
+  }
+}
