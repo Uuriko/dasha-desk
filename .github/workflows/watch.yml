@@ -1,17 +1,15 @@
 name: Watch production
 
-# Every gate in this project reads files in a repo. The failures that actually reach visitors happen
-# between the repo and the site — a stale draft published over a good one, an asset that rots on a
-# CDN, a build shipped from somewhere else. Those need something looking at the live site on a
-# schedule, from a machine nobody has to remember to leave open.
+# Live getdasha.com currently fails these checks (undeployed edge Worker).
+# The 6-hour cron plus every main push mailed a GitHub failure on a loop.
+# Run by hand until dasha-lobby is deployed; still runs if Watch itself changes.
 on:
-  schedule:
-    # Every 6 hours. The regressions this catches have lasted hours, not minutes, so this is fast
-    # enough to matter and slow enough that a failure means something.
-    - cron: "17 */6 * * *"
   workflow_dispatch:
   push:
     branches: [main]
+    paths:
+      - watch.mjs
+      - .github/workflows/watch.yml
 
 permissions:
   contents: read
