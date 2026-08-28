@@ -20,7 +20,7 @@ Boundaries this directory keeps, deliberately:
 | `watch.mjs` | Asserts live `www.getdasha.com` routes and sitemap. OCM lives on its **own subdomain**, so it is invisible to Watch. |
 | The Worker | No new `www` path, no new sitemap entry, no `wrangler` anything. |
 | `compute/` | Untouched. It has its own release build, provenance chain and CI. See [`docs/OVERLAP.md`](docs/OVERLAP.md). |
-| GitHub Pages | `pages.yml` uploads the repo root, so `ocm/` is mirrored to the project's Pages site. Harmless — nothing links to it — but the repository is public, so **never commit a credential here**. |
+| GitHub Pages | `pages.yml` uploads the repo root, so `ocm/` is mirrored to `uuriko.github.io/dasha-desk/ocm/`. Harmless — nothing links to it — but the repository is public, so **never commit a credential here**. |
 
 ## Relationship to `compute/`
 
