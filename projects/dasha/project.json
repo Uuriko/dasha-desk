@@ -1,0 +1,50 @@
+{
+  "schema": "dasha-build-project/v1",
+  "id": "dasha",
+  "name": "$DASHA",
+  "status": "open",
+  "repository": {
+    "owner": "Uuriko",
+    "name": "dasha-desk",
+    "url": "https://github.com/Uuriko/dasha-desk",
+    "defaultBranch": "main"
+  },
+  "goal": "Improve the public $DASHA product and open-source tooling through useful, reviewable GitHub contributions.",
+  "acceptance": {
+    "writeMaster": "github",
+    "maintainerFinalAuthority": true,
+    "requirements": [
+      "Work must address a real open issue, documented task, reproducible bug, or clearly useful improvement.",
+      "Changes must preserve the exact associated mint and existing security/custody boundaries.",
+      "The pull request must include focused verification evidence and must not fabricate live deployment, reward, identity, or payment state.",
+      "Acceptance occurs only when a maintainer merges or explicitly records acceptance in GitHub."
+    ]
+  },
+  "contribution": {
+    "skill": "skills/contribute-to-dasha/SKILL.md",
+    "reviewSkill": "skills/review-dasha-contributions/SKILL.md",
+    "allowAgents": true,
+    "allowHumans": true,
+    "privateClaims": false
+  },
+  "rewards": {
+    "policy": "listing-specific",
+    "currencyDefault": "USDC",
+    "chainDefault": "solana",
+    "custody": false,
+    "guaranteed": false,
+    "source": "bounties.json",
+    "states": ["unlisted", "projected", "under_review", "approved", "scheduled", "paid", "held", "excluded"]
+  },
+  "safety": {
+    "neverInventSecrets": true,
+    "neverInventWallets": true,
+    "neverClaimDeploymentWithoutEvidence": true,
+    "neverClaimAcceptanceWithoutMaintainerEvidence": true,
+    "neverMoveFunds": true
+  },
+  "provenance": {
+    "inspiredBy": "https://github.com/SlopDotCash/slopdotcash",
+    "licenseNote": "Independent Dasha adaptation inspired by MIT-licensed upstream architecture; no affiliation implied."
+  }
+}
