@@ -1,21 +1,17 @@
 name: Watch production
 
-# Live getdasha.com currently fails these checks (undeployed edge Worker).
-# The 6-hour cron plus every main push mailed a GitHub failure on a loop.
-# Run by hand until dasha-lobby is deployed; still runs if Watch itself changes.
+# Manual only. Live getdasha.com currently fails these checks.
+# Cron, every-main-push, and watch.mjs edits all mailed a GitHub failure.
+# Restore a push trigger only after dasha-lobby is deployed and Watch is green.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - watch.mjs
-      - .github/workflows/watch.yml
 
 permissions:
   contents: read
 
 jobs:
   watch:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
