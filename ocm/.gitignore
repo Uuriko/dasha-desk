@@ -1,0 +1,125 @@
+# OCM — protective ignore rules.
+#
+# This directory is intended to be open-sourced, so the posture is deliberately
+# excessive: it is cheap to un-ignore a file later, and impossible to un-publish a
+# secret. Anything describing THIS deployment (account ids, endpoints, instance ids)
+# is treated as sensitive even when it is not strictly a credential.
+#
+# Note: ignoring a file does not protect a secret written INSIDE a committed file.
+# `tests/no-secrets.test.mjs` enforces that part.
+
+# ---- credentials, keys, tokens ------------------------------------------------
+.env
+.env.*
+*.env
+.envrc
+.envrc.*
+.direnv/
+# Templates are the exception: placeholders only, and the secret scan enforces that.
+!.env.example
+!.envrc.example
+!.deploy.env.example
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ecdsa*
+id_ed25519*
+*.ppk
+.ssh/
+.aws/
+.gnupg/
+credentials
+credentials.*
+*credential*.csv
+*accessKeys*.csv
+*.csv
+secrets/
+private/
+kubeconfig*
+.netrc
+
+# ---- deployment-specific state ------------------------------------------------
+# Account ids, instance ids and endpoints identify our infrastructure.
+.deploy.env
+deployment.json
+inventory.json
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+cdk.out/
+.serverless/
+.pulumi/
+
+# ---- runtime data -------------------------------------------------------------
+# The ledger holds account ids and usage.
+.data/
+*.jsonl
+*.sqlite
+*.sqlite3
+*.db
+dump.rdb
+
+# ---- documentation ------------------------------------------------------------
+# docs/ is the operator's notebook: live account ids, hostnames, instance ids,
+# emails. It is written for us, not for readers, and is excluded wholesale.
+docs/
+# Everything else defaults to excluded, with the conventional public set allowed
+# back in. Those files are written deliberately for publication; anything new is
+# excluded until someone decides otherwise.
+*.md
+!README.md
+!LICENSE.md
+!CONTRIBUTING.md
+!SECURITY.md
+!CODE_OF_CONDUCT.md
+!CHANGELOG.md
+
+# ---- captured output ----------------------------------------------------------
+# Browser-driver screenshots can contain a logged-in AWS console.
+shots/
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.har
+*.pcap
+
+# ---- build and local noise ----------------------------------------------------
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+*.log
+logs/
+*.tar.gz
+*.tgz
+*.zip
+tmp/
+.tmp/
+.cache/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.bak
+*.orig
+*~

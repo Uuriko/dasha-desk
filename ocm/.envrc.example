@@ -1,0 +1,13 @@
+# Copy to .envrc (gitignored) and run `direnv allow`.
+# Placeholders only — .envrc is ignored precisely so nobody has to think about
+# whether it is safe to put a token in it. It is not.
+
+export AWS_PROFILE=ocm
+export AWS_REGION=us-west-2
+export AWS_SDK_LOAD_CONFIG=1
+
+export OCM_ROOT="$(expand_path .)"
+export OCM_PROJECT_TAG=ocm
+PATH_add "$OCM_ROOT/scripts"
+
+source_env_if_exists .envrc.local
