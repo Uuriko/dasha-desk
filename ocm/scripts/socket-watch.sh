@@ -6,12 +6,39 @@
 # event we actually care about. Read-only; costs nothing.
 #
 #   ./scripts/socket-watch.sh [minutes] [interval_seconds]
+#
+# Two hard-won guards:
+#   - A lockfile, because several overlapping instances poll the same endpoint and
+#     produce a log nobody can interpret.
+#   - It re-execs from a snapshot of itself. Bash reads a script lazily by byte
+#     offset, so editing this file while it runs makes the live instance resume at
+#     the wrong offset and die on garbage. The snapshot makes edits harmless.
 set -uo pipefail
-MINUTES="${1:-240}"; INTERVAL="${2:-60}"
-LOG="${OCM_SOCKET_LOG:-/tmp/ocm-socket-watch.log}"
-_here="$(cd "$(dirname "$0")/.." && pwd)"
+
+if [ -z "${OCM_WATCH_SNAPSHOT:-}" ]; then
+  # Resolve the real project directory BEFORE re-exec: afterwards $0 is the snapshot
+  # in a temp dir and .deploy.env would no longer be findable from it.
+  _home="$(cd "$(dirname "$0")/.." && pwd)"
+  _snap=$(mktemp -t ocm-socket-watch); cp "$0" "$_snap"; chmod +x "$_snap"
+  OCM_WATCH_SNAPSHOT="$_snap" OCM_WATCH_HOME="$_home" exec "$_snap" "$@"
+fi
+trap 'rm -f "$OCM_WATCH_SNAPSHOT" "$LOCK" 2>/dev/null' EXIT
+
+LOCK=/tmp/ocm-socket-watch.lock
+if [ -e "$LOCK" ] && kill -0 "$(cat "$LOCK" 2>/dev/null)" 2>/dev/null; then
+  echo "another socket-watch is already running (pid $(cat "$LOCK")) — refusing to start a second"
+  exit 3
+fi
+echo $$ > "$LOCK"
+
+_here="${OCM_WATCH_HOME:-$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)}"
 [ -f "$_here/.deploy.env" ] && . "$_here/.deploy.env"
 API="${OCM_API:?set OCM_API in ocm/.deploy.env}"
+MINUTES="${1:-240}"; INTERVAL="${2:-60}"
+# One log per run: a shared path means concurrent runs overwrite each other's data.
+LOG="${OCM_SOCKET_LOG:-/tmp/ocm-socket-watch-$(date -u +%Y%m%dT%H%M%SZ).log}"
+ln -sf "$LOG" /tmp/ocm-socket-watch-latest.log 2>/dev/null
+PREV=-1; DROPS=0; SAMPLES=0; MISSING=0
 DEADLINE=$(( $(date +%s) + MINUTES * 60 ))
 PREV=-1; DROPS=0; SAMPLES=0; MISSING=0
 
