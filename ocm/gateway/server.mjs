@@ -302,12 +302,21 @@ ${granted
           const kind = f.kind === 'provider_token' ? 'provider_token' : 'developer_key';
           const cred = await accounts.issue(account.id, kind, f.label || null);
           const isProvider = kind === 'provider_token';
+          // The label the person just typed is the obvious name for the machine, so
+          // put it in the command as OCM_AGENT_ID. Without it the installer falls
+          // back to `hostname -s`, and a household with three Macs all called
+          // Jonathans-MacBook-Air registers duplicates. Slugged, not escaped: the
+          // result is [a-z0-9-] only, so it cannot break out of the quotes.
+          const agentId = (f.label || '').toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
           return html(res, 200, renderSecret({
             title: isProvider ? 'Your provider token' : 'Your developer key',
             secret: cred.secret,
             whatNext: isProvider
               ? `<p>Install the agent on the Mac you want to contribute:</p>
-<pre>OCM_HOST_TOKEN="${cred.secret}" sh install.sh</pre>
+<pre>OCM_HOST_TOKEN="${cred.secret}"${agentId ? ` OCM_AGENT_ID="${agentId}"` : ''} sh install.sh</pre>
+${agentId ? `<p class="muted">Keep <code>OCM_AGENT_ID</code> the same on every reinstall of this
+machine — a different name registers a second provider instead of recovering this one.</p>` : ''}
 <p class="muted">See <a href="/provider">Run a provider</a> for the full guide.</p>`
               : `<pre>export OPENAI_BASE_URL="https://${apiHost}/v1"
 export OPENAI_API_KEY="${cred.secret}"</pre>`,

@@ -141,8 +141,22 @@ cat > /Library/LaunchDaemons/com.ocm.agent.plist <<PLIST
 PLIST
 chmod 644 /Library/LaunchDaemons/com.ocm.agent.plist
 
+# bootout is ASYNCHRONOUS. Bootstrapping while teardown is still in flight fails
+# with "Bootstrap failed: 5: Input/output error", and under `set -eu` the script
+# then dies having ALREADY removed the working daemon — a reinstall took a healthy
+# provider offline and left it that way. Wait for the old job to actually go.
 launchctl bootout system/com.ocm.agent 2>/dev/null || true
-launchctl bootstrap system /Library/LaunchDaemons/com.ocm.agent.plist
+n=0
+while launchctl print system/com.ocm.agent >/dev/null 2>&1 && [ "$n" -lt 50 ]; do
+  sleep 0.2; n=$((n + 1))
+done
+if ! launchctl bootstrap system /Library/LaunchDaemons/com.ocm.agent.plist; then
+  # Never exit quietly here: at this point the old daemon is gone, so a silent
+  # failure means the machine is left with no agent at all.
+  die "the daemon could not be loaded, and this machine now has NO agent running.
+  Retry:  sudo launchctl bootstrap system /Library/LaunchDaemons/com.ocm.agent.plist
+  Then:   sudo $PREFIX/bin/ocm-agent-run --doctor"
+fi
 
 cat <<DONE
 
