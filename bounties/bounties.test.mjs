@@ -679,4 +679,16 @@ assert.match(app, /We don't hold it\./);
 assert.match(app, /--ink:#070608/);
 assert.equal(read('bounties/app.html'), app, 'bounties/app.html is stale — run: node bounties/embed-build.mjs');
 
+const liveShaped = {
+  name: 'dasha bounties',
+  schema: 'dasha-bounties-feed/v1',
+  note: "USDC on Solana. We don't hold it.",
+  url: 'https://www.getdasha.com/bounties',
+  listings: [],
+};
+assert.deepEqual(B.listingsFromSeed(liveShaped), []);
+assert.deepEqual(B.listingsFromSeed({ schema: 'dasha-bounties-feed/v1', items: [] }), []);
+assert.equal(B.isCommonsBounty({ schema: 'commons.bounty/v1', id: 'x', title: 't', reward: {}, state: 'open' }), true);
+assert.equal(B.isCommonsBounty(feed.listings[0]), false);
+
 console.log('dasha-bounties: PASS');

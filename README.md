@@ -32,6 +32,8 @@ open as GitHub issues. X is optional (same lobby session as Simp Board). Canonic
 [raw GitHub](https://raw.githubusercontent.com/Uuriko/dasha-desk/main/bounties/feed.json)).
 We don't hold it.
 
+**[commons/](commons/)** — token-agnostic bounty schemas + state machine + adapter for `dasha-bounties-feed/v1`. Not a second board. Live www still comes from the Worker.
+
 **[studio/](studio/)** — local / Pages Meme Studio only. www `/studio` 308s home.
 Original drawings are public domain. Uploaded or externally sourced images keep their own rights.
 

@@ -370,7 +370,8 @@ export async function runWatch({ probe, skipPages = false } = {}) {
       warn(bag, /dasha-bounties-feed/.test(text), '/bounties.json: reachable but not the listings feed');
       try {
         const data = JSON.parse(text);
-        listings = Array.isArray(data.items) ? data.items.length : 0;
+        if (Array.isArray(data.listings)) listings = data.listings.length;
+        else if (Array.isArray(data.items)) listings = data.items.length;
       } catch { /* feed shape is a warning above */ }
     }
     if (listings > 0 || feed.ok) {
