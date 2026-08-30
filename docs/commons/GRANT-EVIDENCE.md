@@ -18,7 +18,8 @@ Trust model v1: creator funds → submit work → creator selects → winner pai
 - Signed loop (this follow-up PR): `commons/loop.mjs` + simulated `Tx` port. Tests walk create→fund→submit→select→pay plus reject / sim fail / timeout / duplicate funding / double settlement / retry. Board “This device” is local only. Live `listings: []` stays honest.
 - Activity Tape (follow-up): human kinds created/funded/submitted/selected/paid/cancelled from the commons event model. Duplicate webhook and idempotent ingest. Board Tape is not `/digest`. No Helius SDK.
 - Consume path (follow-up): `docs/commons/CONSUME.md` + `example-community` fixture. Loop no longer imports the getdasha adapter. No monorepo.
+- Pocket spike (this follow-up): created [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket) ([PR #1](https://github.com/Uuriko/dasha-pocket/pull/1)). Android/Kotlin seed there (MWA connect, Tape, public feed, Fund after tap, vendored Commons leaf files). dasha-desk only points at it. Live leftover Simp lecture is gone (measured 2026-08-30 ~1:15 AM PT). `verify.yml` still does not build Android.
 
 ## Not claimed
 
-Wallet UI, live Worker mount, escrow, Helius, Pocket APK, faucet rewrite, Community Starter Kit, metrics, Colosseum demo video, "decentralized task liquidity."
+Wallet UI on www, live Worker mount, escrow, Helius, Pocket APK, Seeker hardware, push, camera/IRL drops, SKR perks, faucet rewrite, Community Starter Kit, metrics, Colosseum demo video, "decentralized task liquidity."

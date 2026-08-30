@@ -28,7 +28,7 @@ commons/                token-agnostic bounty schemas + state machine + v1 feed 
 docs/commons/           production map, Helius note, grant-evidence skeleton
 ```
 
-Commons map (Worker vs this repo, trust model, Pocket, faucet seam): [commons/ARCHITECTURE.md](commons/ARCHITECTURE.md). Other projects: [commons/CONSUME.md](commons/CONSUME.md).
+Commons map (Worker vs this repo, trust model, Pocket, faucet seam): [commons/ARCHITECTURE.md](commons/ARCHITECTURE.md). Other projects: [commons/CONSUME.md](commons/CONSUME.md). Pocket: [commons/POCKET.md](commons/POCKET.md) → [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket).
 
 Edit the four on the left. Never edit the four on the right — `node build.mjs --check` fails if they
 drift, and CI runs it on every pull request.

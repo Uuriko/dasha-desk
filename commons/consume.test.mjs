@@ -39,6 +39,15 @@ assert.equal(example.reward.mint, USDC_MINT);
   assert.doesNotMatch(consume, /plugin\.jup\.ag/);
 }
 
+{
+  const pocket = read('../docs/commons/POCKET.md');
+  assert.match(pocket, /Uuriko\/dasha-pocket/);
+  assert.match(pocket, /Mobile Wallet Adapter|MWA/);
+  assert.match(pocket, /bounties\.json/);
+  assert.match(pocket, /Not a WebView/);
+  assert.doesNotMatch(pocket, /plugin\.jup\.ag/);
+}
+
 const tx = createSimulatedTx();
 let bounty = createOpenBounty({
   id: 'example-7',
