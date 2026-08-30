@@ -28,6 +28,30 @@ const JOB_TIMEOUT_MS = 120_000;
 // warm a longer leash, rather than timing out a machine that is working correctly.
 const COLD_JOB_TIMEOUT_MS = 300_000;
 const MAX_ROUTE_ATTEMPTS = 3;
+// Public alias -> the local builds that satisfy it.
+//
+// A provider advertises whatever its runtime reports. An MLX host that never set
+// OCM_MODEL_MAP advertises `mlx-community/Qwen2.5-Coder-7B-Instruct-4bit`, while
+// every doc, example and console snippet tells consumers to ask for `ocm-coder` —
+// so that provider was unreachable by the documented call and earned nothing.
+// Fixing it only in the installer would leave every already-running host stranded
+// and require someone with root on each machine. Resolving the alias here fixes
+// them all at once, and the gateway still dispatches under the name the HOST
+// advertises, so nothing is asked to serve a name it does not know.
+const DEFAULT_MODEL_ALIASES = 'ocm-coder=mlx-community/Qwen2.5-Coder-7B-Instruct-4bit';
+
+function parseAliases(spec) {
+  const map = new Map();
+  for (const pair of String(spec || '').split(',')) {
+    const [pub, local] = pair.split('=');
+    if (!pub || !local) continue;
+    const key = pub.trim();
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(local.trim());
+  }
+  return map;
+}
+
 // How long after serving a model we still believe a host has it resident.
 const WARM_TTL_MS = 20 * 60_000;
 // MLX serialises on the GPU, so piling work on one host only grows latency. Past
@@ -56,7 +80,21 @@ export function countTokens(text) {
 }
 
 class Registry {
-  constructor() { this.hosts = new Map(); }
+  constructor(aliases = new Map()) { this.hosts = new Map(); this.aliases = aliases; }
+
+  /**
+   * The name to put on the wire for this host, or null if it cannot serve the model.
+   * A host that advertises the requested name gets it verbatim; otherwise we send the
+   * local build it actually advertises, so the alias never reaches a runtime that
+   * would try to load a model by that name and fail.
+   */
+  wireName(host, model) {
+    if (host.models.has(model)) return model;
+    for (const local of this.aliases.get(model) || []) {
+      if (host.models.has(local)) return local;
+    }
+    return null;
+  }
 
   add(hostId, conn, caps) {
     this.hosts.set(hostId, {
@@ -100,7 +138,7 @@ class Registry {
   pick(model, exclude = new Set()) {
     const fresh = Date.now() - HOST_TIMEOUT_MS;
     const candidates = this.online().filter((h) =>
-      !exclude.has(h.id) && h.lastSeen > fresh && h.models.has(model) && !h.conn.closed);
+      !exclude.has(h.id) && h.lastSeen > fresh && !h.conn.closed && this.wireName(h, model));
     if (!candidates.length) return null;
     const rank = (h) => {
       if (h.inflight.size >= MAX_INFLIGHT_PER_HOST) return 2;
@@ -110,9 +148,16 @@ class Registry {
     return candidates[0];
   }
 
+  /**
+   * What consumers may ask for. A host advertising a local build that an alias
+   * covers is published under the PUBLIC name, so the catalogue matches the docs
+   * rather than exposing whichever raw id a provider happened to configure.
+   */
   models() {
+    const publicOf = new Map();
+    for (const [pub, locals] of this.aliases) for (const l of locals) publicOf.set(l, pub);
     const all = new Set();
-    for (const h of this.online()) for (const m of h.models) all.add(m);
+    for (const h of this.online()) for (const m of h.models) all.add(publicOf.get(m) || m);
     return [...all].sort();
   }
 }
@@ -156,6 +201,7 @@ export async function createGateway({
   // Console accounts allowed to see the network-wide view. Comma-separated emails;
   // empty means nobody, which is the safe default for a page that lists every user.
   adminEmails = process.env.OCM_ADMIN_EMAILS || '',
+  modelAliases = process.env.OCM_MODEL_ALIASES ?? DEFAULT_MODEL_ALIASES,
   databaseUrl = process.env.DATABASE_URL || '',
   consoleHost = process.env.OCM_CONSOLE_HOST || 'ocm.getdasha.com',
   apiHost = process.env.OCM_API_HOST || 'api.ocm.getdasha.com',
@@ -166,7 +212,7 @@ export async function createGateway({
   ledgerPath = 'ocm/.data/usage.jsonl',
   grantTokens = Number(process.env.OCM_GRANT_TOKENS || 1_000_000),
 } = {}) {
-  const registry = new Registry();
+  const registry = new Registry(parseAliases(modelAliases));
   const admins = new Set(String(adminEmails).split(',').map((e) => e.trim().toLowerCase()).filter(Boolean));
   const isAdmin = (account) => !!account && admins.has(account.email.toLowerCase());
   // Postgres when DATABASE_URL is set, JSONL otherwise. Same async interface, so
@@ -635,7 +681,9 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
 
       res.on('close', onClientGone);
 
-      const sent = host.conn.sendJson({ t: 'job', id: jobId, model, messages });
+      // The consumer's name may be an alias; the host only knows its own.
+      const sent = host.conn.sendJson({
+        t: 'job', id: jobId, model: registry.wireName(host, model) || model, messages });
       if (sent === false && !committed) finish({ ok: false, committed: false, message: 'host backpressure' });
     });
   }

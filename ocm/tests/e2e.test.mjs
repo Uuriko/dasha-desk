@@ -16,13 +16,17 @@ import { createGateway } from '../gateway/server.mjs';
 const HOST_TOKEN = 'host-test-token';
 const API_KEY = 'ocm_test_key';
 
-async function startGateway() {
+async function startGateway(opts = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'ocm-'));
   const gw = await createGateway({
     hostToken: HOST_TOKEN,
     keys: new Map([[API_KEY, 'test-dev']]),
     ledgerPath: join(dir, 'usage.jsonl'),
     grantTokens: 10_000,
+    // No aliases unless a test asks for them, so the rest of the suite keeps
+    // exercising plain exact-name routing.
+    modelAliases: '',
+    ...opts,
   });
   return new Promise((resolve) => {
     gw.server.listen(0, '127.0.0.1', () => {
@@ -754,6 +758,46 @@ test('the installer waits for launchd teardown before bootstrapping', () => {
   assert.match(boot.slice(0, boot.indexOf('PLIST') > 0 ? undefined : undefined),
     /NO agent running/,
     'a failed bootstrap must say the machine is left with no agent, not exit quietly');
+});
+
+test('a public alias reaches a host that advertises only the raw build', async () => {
+  const gw = await startGateway({ modelAliases: 'ocm-coder=raw-build-7b' });
+  try {
+    // This host never set OCM_MODEL_MAP, so it advertises its runtime's own id —
+    // the situation every MLX provider our installer created was in.
+    await connectHost(gw, { id: 'raw-host', models: ['raw-build-7b'], behaviour: echoHost });
+
+    assert.equal(gw.registry.pick('ocm-coder').id, 'raw-host',
+      'the alias must find a host advertising the underlying build');
+    assert.equal(gw.registry.pick('raw-build-7b').id, 'raw-host',
+      'the raw name must keep working for anyone already using it');
+
+    // The catalogue publishes the documented name, not the raw id.
+    const models = (await (await fetch(`${gw.base}/v1/models`)).json()).data.map((m) => m.id);
+    assert.deepEqual(models, ['ocm-coder']);
+
+    // And the host is asked for the name it actually knows.
+    const host = gw.registry.get('raw-host');
+    assert.equal(gw.registry.wireName(host, 'ocm-coder'), 'raw-build-7b');
+    assert.equal(gw.registry.wireName(host, 'raw-build-7b'), 'raw-build-7b');
+    assert.equal(gw.registry.wireName(host, 'something-else'), null);
+
+    const r = await (await post(gw, { model: 'ocm-coder',
+      messages: [{ role: 'user', content: 'hi' }] })).json();
+    assert.ok(r.choices[0].message.content, 'a request under the alias must be served');
+  } finally { await gw.close(); }
+});
+
+test('a host advertising the public name is dispatched under it unchanged', async () => {
+  const gw = await startGateway({ modelAliases: 'ocm-coder=raw-build-7b' });
+  try {
+    await connectHost(gw, { id: 'mapped-host', models: ['ocm-coder'], behaviour: echoHost });
+    const host = gw.registry.get('mapped-host');
+    assert.equal(gw.registry.wireName(host, 'ocm-coder'), 'ocm-coder',
+      'a host that already publishes the alias must not be rewritten');
+    assert.equal(gw.registry.wireName(host, 'raw-build-7b'), null,
+      'it does not advertise the raw build, so it must not be offered it');
+  } finally { await gw.close(); }
 });
 
 test('routing prefers a warm host, but lets a cold one warm up', async () => {
