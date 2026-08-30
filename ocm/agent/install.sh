@@ -19,6 +19,9 @@
 #   OCM_AGENT_ID="my-mac"   the name this machine registers under; defaults to the
 #                           hostname. Keep it stable, or a reinstall registers a
 #                           second host instead of recovering the first.
+#   OCM_MODEL_MAP="public=local,…"  what this machine advertises. Defaults to
+#                           ocm-coder=<the MLX coder model>, which is the name
+#                           consumers actually request.
 set -eu
 
 GATEWAY="${OCM_GATEWAY_URL:-wss://api.ocm.getdasha.com}"
@@ -27,6 +30,13 @@ SOURCE="${OCM_SOURCE_URL:-https://api.ocm.getdasha.com}"
 # this defaults to the hostname, and a reinstall that produces a different name
 # registers a SECOND host rather than recovering the existing one.
 AGENT_ID="${OCM_AGENT_ID:-$(hostname -s)}"
+# What this machine ADVERTISES to consumers. Without a map an MLX host advertises
+# the raw model id, which no consumer asks for — the docs, the console and every
+# example say `ocm-coder`, so a provider installed by this script was invisible to
+# the people it was meant to serve. `ocm-coder` is a public alias for the coder
+# model, which is exactly what OCM_MODEL_MAP exists to express.
+MLX_MODEL="${OCM_MLX_MODEL:-mlx-community/Qwen2.5-Coder-7B-Instruct-4bit}"
+MODEL_MAP="${OCM_MODEL_MAP:-ocm-coder=$MLX_MODEL}"
 PREFIX=/opt/ocm
 
 die() { printf '\nerror: %s\n' "$1" >&2; exit 1; }
@@ -48,8 +58,8 @@ VERIFY=$(curl -fsS -H "Authorization: Bearer $OCM_HOST_TOKEN" "$SOURCE/v1/provid
 }
 printf '  token accepted\n'
 
-printf 'OCM provider install\n  host    %s (%s)\n  gateway %s\n\n' \
-  "$AGENT_ID" "$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo mac)" "$GATEWAY"
+printf 'OCM provider install\n  host    %s (%s)\n  gateway %s\n  serving %s\n\n' \
+  "$AGENT_ID" "$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo mac)" "$GATEWAY" "$MODEL_MAP"
 
 if ! command -v uv >/dev/null 2>&1 && [ ! -x /var/root/.local/bin/uv ]; then
   # Note, in a script whose preamble argues against exactly this: the next line pipes
@@ -73,6 +83,7 @@ cat > /etc/ocm/agent.env <<ENV
 OCM_HOST_TOKEN=$OCM_HOST_TOKEN
 OCM_GATEWAY_URL=$GATEWAY
 OCM_AGENT_ID=$AGENT_ID
+OCM_MODEL_MAP=$MODEL_MAP
 ENV
 chmod 600 /etc/ocm/agent.env
 

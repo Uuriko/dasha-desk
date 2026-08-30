@@ -725,6 +725,22 @@ test('minting a provider token hands back a command that names the machine', asy
   } finally { await gw.close(); }
 });
 
+test('a freshly installed MLX provider advertises the name consumers request', () => {
+  // The console, the docs and every example tell a consumer to ask for `ocm-coder`.
+  // An MLX host with no OCM_MODEL_MAP advertises the raw model id instead, so a
+  // provider created by this installer was unreachable by the documented call.
+  const src = readFileSync(new URL('../agent/install.sh', import.meta.url), 'utf8');
+  assert.match(src, /MODEL_MAP="\$\{OCM_MODEL_MAP:-ocm-coder=\$MLX_MODEL\}"/,
+    'the installer must default the model map to the public alias');
+  assert.match(src, /^OCM_MODEL_MAP=\$MODEL_MAP$/m,
+    'the map must be written into agent.env');
+  // Between the heredoc opener and its closing delimiter (a line that is just ENV).
+  const openAt = src.indexOf('cat > /etc/ocm/agent.env <<ENV');
+  const body = src.slice(openAt, src.indexOf('\nENV\n', openAt));
+  assert.match(body, /OCM_MODEL_MAP=\$MODEL_MAP/,
+    'the map must be written inside the agent.env heredoc');
+});
+
 test('the installer waits for launchd teardown before bootstrapping', () => {
   // bootout is asynchronous. Bootstrapping into a half-torn-down job fails, and
   // under `set -eu` the script died having already removed the working daemon —
