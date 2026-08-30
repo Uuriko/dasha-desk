@@ -32,6 +32,8 @@ assert.match(html, /id="bb-form"/);
 assert.match(html, /id="bb-loop"/);
 assert.match(html, /id="bb-loop-start"/);
 assert.match(html, />This device</);
+assert.match(html, /id="bb-tape"/);
+assert.match(html, /id="bb-tape-list"/);
 assert.match(html, /id="bb-item"/);
 assert.match(html, /id="bb-payto"/);
 assert.match(html, /id="bb-github"/);
@@ -58,6 +60,8 @@ assert.match(html, /href="https:\/\/github\.com\/Uuriko\/dasha-desk\/contribute"
 assert.match(html, /Pick a good first issue/);
 assert.doesNotMatch(copy, /holder status|Simp Points|need no wallet/i);
 assert.equal(B.EMPTY_HUNT, 'No funded bounties right now.');
+assert.equal(B.EMPTY_TAPE, 'Nothing on the tape.');
+assert.match(B.renderTape([]), /Nothing on the tape/);
 assert.match(B.renderHunt([]), /No funded bounties right now\./);
 assert.doesNotMatch(B.renderHunt([]), /holder status|Simp Points/);
 assert.match(html, /rel="alternate"[^>]*feed\.json/);

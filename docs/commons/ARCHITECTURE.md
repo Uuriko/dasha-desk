@@ -101,7 +101,9 @@ Remote `bounty-github-cta-honesty` has no open PR against current main.
 
 `board.js` now ingests `listings`, `items`, or Commons `bounties` without changing published seed JSON or URLs.
 
-Signed loop (this follow-up): `commons/loop.mjs` + `commons/tx.mjs` walk create → fund → submit → select → pay. Wallet only on Fund/Pay after a click. Simulated signer for CI and `?demo=1`. Board “This device” is localStorage, not the live feed. Funding/settlement signatures are evidence, not custody. No escrow. No live listings written.
+Signed loop (PR #49): `commons/loop.mjs` + `commons/tx.mjs` walk create → fund → submit → select → pay. Wallet only on Fund/Pay after a click. Simulated signer for CI and `?demo=1`. Board “This device” is localStorage, not the live feed. Funding/settlement signatures are evidence, not custody. No escrow. No live listings written.
+
+Activity Tape (this follow-up): human kinds only — created, funded, submitted, selected, paid, cancelled — from the existing event model. Stable ids + idempotency. Chain-observed vs app-generated. Lives on `/bounties`, not `/digest`. Observers later call `eventFromWebhook`. No Helius SDK.
 
 Out of this PR: live Worker deploy, Community Starter Kit, Helius integration, Pocket app, faucet rewrite, a real wallet adapter.
 

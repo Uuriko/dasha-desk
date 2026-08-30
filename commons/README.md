@@ -19,7 +19,7 @@ The live getdasha board today is **declared, not escrow**: a listing with `payTo
 | `schema.mjs` | bounty / submission / event / tx records |
 | `machine.mjs` | state transitions |
 | `adapter.mjs` | `dasha-bounties-feed/v1` ↔ Commons |
-| `tape.mjs` | Activity Tape events |
+| `tape.mjs` | Activity Tape: human kinds + webhook ingest + board lines |
 | `tx.mjs` | Signer port + simulated tx (no keys, no auto-sign) |
 | `loop.mjs` | create → fund → submit → select → pay |
 | `demo-loop.mjs` | `node commons/demo-loop.mjs` — local walk, no chain |

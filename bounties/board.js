@@ -34,6 +34,8 @@
   var EMPTY_OUTCOMES = 'No accepted outcomes in this cycle yet.';
   var EMPTY_HUNT = 'No funded bounties right now.';
   var LOOP_STORAGE_KEY = 'dasha-commons-loop-v1';
+  var TAPE_STORAGE_KEY = 'dasha-commons-tape-v1';
+  var EMPTY_TAPE = 'Nothing on the tape.';
   var PROOF_RE =
     /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/(issues|pull)\/(\d+)(?:#(?:issuecomment-\d+|pullrequestreview-\d+|discussion_r\d+))?$/i;
   var ITEM_RE =
@@ -1240,6 +1242,34 @@
       .join('');
   }
 
+  function renderTape(entries) {
+    var rows = entries || [];
+    if (!rows.length) return '<p class="bb-empty" role="status">' + EMPTY_TAPE + '</p>';
+    return (
+      '<ol class="bb-tape">' +
+      rows
+        .map(function (row) {
+          var origin = row.chainObserved ? 'chain' : row.origin || 'app';
+          var sig = row.tx ? '<code>' + esc(shortSig(row.tx)) + '</code>' : '';
+          return (
+            '<li class="bb-tape-line" data-kind="' +
+            esc(row.kind || '') +
+            '" data-origin="' +
+            esc(origin) +
+            '"><p>' +
+            esc(row.line || '') +
+            '</p>' +
+            (sig || origin
+              ? '<p class="bb-tape-meta">' + esc(origin) + (sig ? ' ' + sig : '') + '</p>'
+              : '') +
+            '</li>'
+          );
+        })
+        .join('') +
+      '</ol>'
+    );
+  }
+
   function loadLoop(storage) {
     var store = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
     if (!store) return [];
@@ -1681,6 +1711,7 @@
     filter: 'all',
     tx: null,
     commons: null,
+    tape: [],
     storage: null,
   };
 
@@ -1698,6 +1729,53 @@
     live.loop = next;
     saveLoop(next, live.storage);
     paintLoop();
+    refreshTape();
+  }
+
+  function paintTape() {
+    var el = $('bb-tape-list');
+    if (el) el.innerHTML = renderTape(live.tape);
+  }
+
+  function loadTape(storage) {
+    var store = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    if (!store) return [];
+    try {
+      var rows = JSON.parse(store.getItem(TAPE_STORAGE_KEY) || '[]');
+      return Array.isArray(rows) ? rows : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveTape(entries, storage) {
+    var store = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    if (!store) return false;
+    try {
+      store.setItem(TAPE_STORAGE_KEY, JSON.stringify(entries || []));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function refreshTape() {
+    var derived = [];
+    if (live.commons && live.commons.tapeFromBounties) {
+      derived = live.commons.tapeFromBounties(live.loop);
+    }
+    var stored = loadTape(live.storage);
+    var seen = {};
+    var merged = [];
+    stored.concat(derived).forEach(function (row) {
+      var key = (row && (row.idempotencyKey || row.id)) || '';
+      if (!key || seen[key]) return;
+      seen[key] = 1;
+      merged.push(row);
+    });
+    live.tape = merged;
+    saveTape(merged, live.storage);
+    paintTape();
   }
 
   function findLoop(id) {
@@ -1768,6 +1846,7 @@
       }
     }
     live.loop = loadLoop(ctx.storage);
+    live.tape = loadTape(ctx.storage);
     bindForm();
     bindIdentity(fetchImpl);
     bindPay();
@@ -1776,6 +1855,7 @@
     bindRouting();
     paintIdentity();
     paintLoop();
+    refreshTape();
 
     var seedListings = [];
     var issueListings = [];
@@ -1851,6 +1931,8 @@
     TITLE_PREFIX: TITLE_PREFIX,
     STORAGE_KEY: STORAGE_KEY,
     LOOP_STORAGE_KEY: LOOP_STORAGE_KEY,
+    TAPE_STORAGE_KEY: TAPE_STORAGE_KEY,
+    EMPTY_TAPE: EMPTY_TAPE,
     IDENTITY_KEY: IDENTITY_KEY,
     FEED_SCHEMA: FEED_SCHEMA,
     BOARD_URL: BOARD_URL,
@@ -1916,6 +1998,9 @@
     visibleState: visibleState,
     renderLoopCard: renderLoopCard,
     renderLoopBoard: renderLoopBoard,
+    renderTape: renderTape,
+    loadTape: loadTape,
+    saveTape: saveTape,
     loadLoop: loadLoop,
     saveLoop: saveLoop,
     renderRow: renderRow,

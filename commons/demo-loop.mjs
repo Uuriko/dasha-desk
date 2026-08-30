@@ -4,7 +4,7 @@
  * Uses the simulated signer. No wallet. No live listings written.
  */
 import { createSimulatedTx, fakeSignature } from './tx.mjs';
-import { createOpenBounty, fundBounty, submitWork, selectWinner, payBounty, visibleCopy, fundingTx, settlementTx } from './loop.mjs';
+import { createOpenBounty, fundBounty, submitWork, selectWinner, payBounty, visibleCopy, fundingTx, settlementTx, tapeFromBounties } from './loop.mjs';
 
 const CREATOR = 'DwpCrg5qfCMW11a9FYFsAR9ZYQUYKNhfLdnzpci7sYgb';
 const WORKER = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
@@ -44,4 +44,5 @@ console.log('4', visibleCopy(b).title);
 
 b = (await payBounty(b, tx)).bounty;
 console.log('5', visibleCopy(b).title, settlementTx(b).slice(0, 8) + '…');
+tapeFromBounties([b]).forEach((row) => console.log('tape', row.line));
 console.log('done. no escrow. we don\'t hold it.');
