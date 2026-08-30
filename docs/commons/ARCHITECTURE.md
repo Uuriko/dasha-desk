@@ -101,7 +101,9 @@ Remote `bounty-github-cta-honesty` has no open PR against current main.
 
 `board.js` now ingests `listings`, `items`, or Commons `bounties` without changing published seed JSON or URLs.
 
-Out of this PR: live Worker deploy, wallet create→fund→submit→select→pay UI, Community Starter Kit, Helius integration, Pocket app, faucet rewrite.
+Signed loop (this follow-up): `commons/loop.mjs` + `commons/tx.mjs` walk create → fund → submit → select → pay. Wallet only on Fund/Pay after a click. Simulated signer for CI and `?demo=1`. Board “This device” is localStorage, not the live feed. Funding/settlement signatures are evidence, not custody. No escrow. No live listings written.
+
+Out of this PR: live Worker deploy, Community Starter Kit, Helius integration, Pocket app, faucet rewrite, a real wallet adapter.
 
 ## Pocket (#45)
 

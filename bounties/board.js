@@ -33,6 +33,7 @@
   var GH_VERSION = '2022-11-28';
   var EMPTY_OUTCOMES = 'No accepted outcomes in this cycle yet.';
   var EMPTY_HUNT = 'No funded bounties right now.';
+  var LOOP_STORAGE_KEY = 'dasha-commons-loop-v1';
   var PROOF_RE =
     /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/(issues|pull)\/(\d+)(?:#(?:issuecomment-\d+|pullrequestreview-\d+|discussion_r\d+))?$/i;
   var ITEM_RE =
@@ -1128,6 +1129,139 @@
     return renderBoard(listings, 'all', identity);
   }
 
+  function visibleState(bounty) {
+    if (!bounty) return 'unfunded';
+    var s = bounty.state;
+    if (s === 'paid') return 'paid';
+    if (s === 'cancelled' || s === 'refund_pending' || s === 'refunded') return 'cancelled';
+    if (s === 'failed') return 'failed';
+    if (s === 'selected' || s === 'settlement_pending') return 'selected';
+    if (s === 'funded' || s === 'submission_open' || s === 'selection_pending') return 'funded';
+    if (bounty.funding && bounty.funding.state === 'declared') return 'declared';
+    return 'unfunded';
+  }
+
+  function shortSig(sig) {
+    var s = String(sig || '');
+    if (s.length < 12) return s;
+    return s.slice(0, 6) + '…' + s.slice(-4);
+  }
+
+  function renderLoopCard(bounty) {
+    if (!bounty) return '';
+    var vis = visibleState(bounty);
+    var amount = bounty.reward && bounty.reward.amount != null ? String(bounty.reward.amount) : '';
+    var symbol = (bounty.reward && bounty.reward.symbol) || 'USDC';
+    var headline =
+      vis === 'funded'
+        ? 'Submit work'
+        : vis === 'selected'
+          ? 'Winner selected'
+          : vis === 'paid'
+            ? 'Paid on Solana'
+            : amount
+              ? amount + ' ' + symbol + ' bounty'
+              : bounty.title || 'bounty';
+    var fundSig = bounty.funding && bounty.funding.tx && bounty.funding.tx.signature;
+    var paySig = bounty.settlement && bounty.settlement.tx && bounty.settlement.tx.signature;
+    var actions = '';
+    var fundingFailed = vis === 'failed' && bounty.funding && bounty.funding.state === 'failed';
+    if (vis === 'unfunded' || vis === 'declared' || fundingFailed) {
+      actions +=
+        '<button type="button" class="bb-btn bb-btn-primary" data-bb-loop="fund" data-id="' +
+        esc(bounty.id) +
+        '">Fund</button>';
+    }
+    if (vis === 'funded') {
+      actions +=
+        '<form class="bb-loop-submit" data-bb-loop-submit="' +
+        esc(bounty.id) +
+        '"><label class="bb-label" for="bb-proof-' +
+        esc(bounty.id) +
+        '">Proof</label><input class="bb-input" id="bb-proof-' +
+        esc(bounty.id) +
+        '" name="proof" type="url" required placeholder="https://github.com/owner/name/pull/1"/><label class="bb-label" for="bb-win-' +
+        esc(bounty.id) +
+        '">Winner wallet</label><input class="bb-input" id="bb-win-' +
+        esc(bounty.id) +
+        '" name="wallet" spellcheck="false" required placeholder="Solana address"/><button type="submit" class="bb-btn">Submit work</button></form>';
+      if (bounty.submissions && bounty.submissions.length) {
+        actions +=
+          '<button type="button" class="bb-btn bb-btn-primary" data-bb-loop="select" data-id="' +
+          esc(bounty.id) +
+          '">Winner selected</button>';
+      }
+    }
+    if (vis === 'selected' || (vis === 'failed' && bounty.settlement && bounty.settlement.state === 'failed')) {
+      actions +=
+        '<button type="button" class="bb-pay" data-bb-loop="pay" data-id="' +
+        esc(bounty.id) +
+        '">Pay</button>';
+    }
+    if (vis === 'unfunded' || vis === 'funded' || vis === 'selected') {
+      actions +=
+        '<button type="button" class="bb-btn" data-bb-loop="cancel" data-id="' +
+        esc(bounty.id) +
+        '">Cancel</button>';
+    }
+    var evidence = '';
+    if (fundSig) evidence += '<p class="bb-tx">Funded <code>' + esc(shortSig(fundSig)) + '</code></p>';
+    if (paySig) evidence += '<p class="bb-tx">Paid on Solana <code>' + esc(shortSig(paySig)) + '</code></p>';
+    return (
+      '<article class="bb-row bb-loop-row" data-bb-loop-id="' +
+      esc(bounty.id) +
+      '" data-state="' +
+      esc(vis) +
+      '">' +
+      '<p class="bb-amt">' +
+      esc(amount || '—') +
+      (symbol === 'USDC' ? ' <small>USDC</small>' : '') +
+      '</p>' +
+      '<div><p class="bb-title">' +
+      esc(headline) +
+      '</p><p class="bb-state">' +
+      esc(vis) +
+      '</p>' +
+      evidence +
+      '</div>' +
+      '<div class="bb-actions-inline">' +
+      actions +
+      '</div></article>'
+    );
+  }
+
+  function renderLoopBoard(bounties) {
+    var rows = bounties || [];
+    if (!rows.length) return '<p class="bb-empty" role="status">Nothing on this device.</p>';
+    return rows
+      .map(function (bounty) {
+        return renderLoopCard(bounty);
+      })
+      .join('');
+  }
+
+  function loadLoop(storage) {
+    var store = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    if (!store) return [];
+    try {
+      var rows = JSON.parse(store.getItem(LOOP_STORAGE_KEY) || '[]');
+      return Array.isArray(rows) ? rows : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveLoop(bounties, storage) {
+    var store = storage || (typeof localStorage !== 'undefined' ? localStorage : null);
+    if (!store) return false;
+    try {
+      store.setItem(LOOP_STORAGE_KEY, JSON.stringify(bounties || []));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function renderProjectCard(listing, identity) {
     return renderRow(listing, identity);
   }
@@ -1279,6 +1413,99 @@
         localBtn.textContent = 'Saved';
       });
     }
+
+    var loopStart = $('bb-loop-start');
+    if (loopStart) {
+      loopStart.addEventListener('click', function () {
+        if (!live.commons || !live.commons.createOpenBounty) {
+          showErr('Loop module missing.');
+          return;
+        }
+        var fields = readForm();
+        var dest = normalizePayTo(fields.payTo);
+        var amount = String(fields.amount || '').trim() || '25';
+        var item = fields.itemUrl ? parseGithubItem(fields.itemUrl) : null;
+        var title = item ? item.repo + '#' + item.number : amount + ' USDC bounty';
+        if (!dest) return showErr('Pay to is the creator wallet.');
+        var bounty = live.commons.createOpenBounty({
+          id: 'loop-' + Date.now(),
+          title: title,
+          amount: amount,
+          creator: { kind: 'wallet', id: dest, wallet: dest, handle: live.identity && live.identity.github && live.identity.github.login },
+          creatorWallet: dest,
+        });
+        clearErr();
+        upsertLoop(bounty);
+        toast(amount + ' USDC bounty');
+      });
+    }
+  }
+
+  function bindLoop() {
+    var box = $('bb-loop');
+    if (!box || box.dataset.bound) return;
+    box.dataset.bound = '1';
+    box.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('[data-bb-loop]');
+      if (!btn || !live.commons) return;
+      var id = btn.getAttribute('data-id');
+      var action = btn.getAttribute('data-bb-loop');
+      var bounty = findLoop(id);
+      if (!bounty) return;
+      e.preventDefault();
+      var C = live.commons;
+      if (action === 'cancel') {
+        var cancelled = C.cancelBounty(bounty, 'cancelled');
+        if (cancelled.ok) upsertLoop(cancelled.bounty);
+        else loopToast(cancelled.error);
+        return;
+      }
+      if (action === 'select') {
+        var sub = bounty.submissions && bounty.submissions[0];
+        if (!sub) return toast('Submit work');
+        var selected = C.selectWinner(bounty, sub.id, sub.submitter);
+        if (selected.ok) {
+          upsertLoop(selected.bounty);
+          toast('Winner selected');
+        } else loopToast(selected.error);
+        return;
+      }
+      if (action === 'fund' || action === 'pay') {
+        if (!live.tx) {
+          toast('Wallet');
+          return;
+        }
+        var run = action === 'fund' ? C.fundBounty(bounty, live.tx) : C.payBounty(bounty, live.tx);
+        Promise.resolve(run).then(function (result) {
+          if (result && result.bounty) upsertLoop(result.bounty);
+          if (!result || !result.ok) return loopToast(result && result.error);
+          toast(action === 'fund' ? 'Submit work' : 'Paid on Solana');
+        });
+      }
+    });
+    box.addEventListener('submit', function (e) {
+      var form = e.target.closest && e.target.closest('[data-bb-loop-submit]');
+      if (!form || !live.commons) return;
+      e.preventDefault();
+      var bounty = findLoop(form.getAttribute('data-bb-loop-submit'));
+      if (!bounty) return;
+      var proof = form.proof && form.proof.value;
+      var wallet = form.wallet && normalizePayTo(form.wallet.value);
+      if (!wallet) return toast('Winner wallet');
+      var submitted = live.commons.submitWork(bounty, {
+        schema: 'commons.submission/v1',
+        id: 'sub-' + Date.now(),
+        bountyId: bounty.id,
+        submitter: { kind: 'wallet', id: wallet, wallet: wallet, handle: null },
+        submittedAt: new Date().toISOString(),
+        format: /^https?:\/\/(?:www\.)?github\.com\//i.test(String(proof || '')) ? 'github_proof' : 'url',
+        proof: { url: String(proof || '').trim() },
+      });
+      if (submitted.ok) {
+        upsertLoop(submitted.bounty);
+        toast('Submit work');
+      } else loopToast(submitted.error);
+    });
   }
 
   function githubCtaLabel(configured, profile) {
@@ -1448,10 +1675,47 @@
     issues: [],
     shared: [],
     demigod: [],
+    loop: [],
     identity: emptyIdentity(),
     githubConfigured: false,
     filter: 'all',
+    tx: null,
+    commons: null,
+    storage: null,
   };
+
+  function paintLoop() {
+    var el = $('bb-loop-list');
+    if (el) el.innerHTML = renderLoopBoard(live.loop);
+  }
+
+  function upsertLoop(bounty) {
+    if (!bounty || !bounty.id) return;
+    var next = (live.loop || []).filter(function (row) {
+      return row.id !== bounty.id;
+    });
+    next.unshift(bounty);
+    live.loop = next;
+    saveLoop(next, live.storage);
+    paintLoop();
+  }
+
+  function findLoop(id) {
+    return (live.loop || []).filter(function (row) {
+      return row.id === id;
+    })[0] || null;
+  }
+
+  function loopToast(err) {
+    if (err === 'user_rejected') return toast('Rejected');
+    if (err === 'simulation_failed') return toast('Sim failed');
+    if (err === 'confirmation_timeout') return toast('Timeout');
+    if (err === 'duplicate_funding') return toast('Already funded');
+    if (err === 'double_settlement') return toast('Already paid');
+    if (err === 'malformed_submission') return toast('Bad proof');
+    if (err === 'expired') return toast('Expired');
+    toast(err || 'Failed');
+  }
 
   var routingBound = false;
   function parseHash() {
@@ -1483,12 +1747,35 @@
     var ctx = { fetchImpl: options.fetchImpl || fetch, storage: options.storage };
     var fetchImpl = ctx.fetchImpl || fetch;
     live.identity = options.identity ? normalizeIdentity(options.identity) : loadIdentity(ctx.storage);
+    live.storage = ctx.storage;
+    live.tx = options.tx || null;
+    live.commons = options.commons || null;
+    if (!live.commons) {
+      try {
+        live.commons = await import('../commons/loop.mjs');
+      } catch (e) {}
+    }
+    if (!live.tx) {
+      var demo = false;
+      try {
+        demo = /(?:\?|&)demo=1(?:&|$)/.test(String(location.search || ''));
+      } catch (e2) {}
+      if (demo) {
+        try {
+          var txMod = await import('../commons/tx.mjs');
+          live.tx = txMod.createSimulatedTx();
+        } catch (e3) {}
+      }
+    }
+    live.loop = loadLoop(ctx.storage);
     bindForm();
     bindIdentity(fetchImpl);
     bindPay();
     bindFilters();
+    bindLoop();
     bindRouting();
     paintIdentity();
+    paintLoop();
 
     var seedListings = [];
     var issueListings = [];
@@ -1563,6 +1850,7 @@
     ISSUE_LABEL: ISSUE_LABEL,
     TITLE_PREFIX: TITLE_PREFIX,
     STORAGE_KEY: STORAGE_KEY,
+    LOOP_STORAGE_KEY: LOOP_STORAGE_KEY,
     IDENTITY_KEY: IDENTITY_KEY,
     FEED_SCHEMA: FEED_SCHEMA,
     BOARD_URL: BOARD_URL,
@@ -1625,6 +1913,11 @@
     renderOutcomes: renderOutcomes,
     renderGlobalBoard: renderGlobalBoard,
     renderHunt: renderHunt,
+    visibleState: visibleState,
+    renderLoopCard: renderLoopCard,
+    renderLoopBoard: renderLoopBoard,
+    loadLoop: loadLoop,
+    saveLoop: saveLoop,
     renderRow: renderRow,
     renderBoard: renderBoard,
     renderProjectCard: renderProjectCard,

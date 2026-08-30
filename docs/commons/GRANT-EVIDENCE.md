@@ -15,6 +15,7 @@ Trust model v1: creator funds → submit work → creator selects → winner pai
 - Adapter: measured live `GET /bounties.json` (`listings: []`, pinned at `commons/fixtures/live-bounties.json`) consume/emit bit-identical. Empty listings is honest. 404s `/bounties/api` `/bounties/feed` `/api/bounties` `/bounties/feed.json` are not feeds. Pages seed and Watch `{ items }` still round-trip. No second URL.
 - Tests: transitions, duplicate funding, double settlement, settlement retry, cancel/refund, malformed submit, expiry, stale feed, idempotent replay, legacy compat.
 - Helius note (no integration). Pocket: separate repo. Faucet: inspect-only seam.
+- Signed loop (this follow-up PR): `commons/loop.mjs` + simulated `Tx` port. Tests walk create→fund→submit→select→pay plus reject / sim fail / timeout / duplicate funding / double settlement / retry. Board “This device” is local only. Live `listings: []` stays honest.
 
 ## Not claimed
 

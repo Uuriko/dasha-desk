@@ -154,6 +154,12 @@ html,body{margin:0;padding:0;background:var(--ink);color:var(--paper);min-height
 }
 .bb-title:hover{color:var(--acid)}
 .bb-empty{margin:8px 0;color:var(--muted);font-weight:800}
+.bb-lede{margin:8px 0 0;color:var(--muted);font-weight:800;max-width:36rem}
+.bb-state{margin:4px 0 0;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--acid)}
+.bb-tx{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:800}
+.bb-tx code{color:var(--paper);font:800 13px/1.3 Arial,Helvetica,sans-serif}
+.bb-loop-submit{display:grid;gap:6px;min-width:min(100%,18rem)}
+.bb-loop-row{align-items:start}
 #bb-hunt:empty{display:none}
 
 .bb-list{margin:16px 0 0;padding-top:16px;border-top:1px solid var(--line)}
