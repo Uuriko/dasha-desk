@@ -23,7 +23,16 @@ import { MemoryAccounts } from './accounts.mjs';
 const HEARTBEAT_MS = 30_000;
 const HOST_TIMEOUT_MS = 90_000;
 const JOB_TIMEOUT_MS = 120_000;
+// A cold MLX host spends ~75s loading a 7B-4bit model before its first token, so a
+// 120s budget leaves barely 45s to generate in. Give a host we have no evidence is
+// warm a longer leash, rather than timing out a machine that is working correctly.
+const COLD_JOB_TIMEOUT_MS = 300_000;
 const MAX_ROUTE_ATTEMPTS = 3;
+// How long after serving a model we still believe a host has it resident.
+const WARM_TTL_MS = 20 * 60_000;
+// MLX serialises on the GPU, so piling work on one host only grows latency. Past
+// this we would rather warm a second host than queue deeper on a fast one.
+const MAX_INFLIGHT_PER_HOST = 2;
 
 // The agent and its installer are served from the gateway so a provider fetches
 // exactly the code this deployment expects, rather than a version drifting in a repo.
@@ -54,6 +63,9 @@ class Registry {
       id: hostId, conn, caps,
       models: new Set(caps.models || []),
       inflight: new Map(),
+      // model -> when this host last actually produced tokens for it. Evidence the
+      // weights are resident, which is the difference between a 1s reply and 75s.
+      warm: new Map(),
       lastSeen: Date.now(),
       connectedAt: Date.now(),
     });
@@ -64,13 +76,37 @@ class Registry {
   get(hostId) { return this.hosts.get(hostId); }
   online() { return [...this.hosts.values()]; }
 
-  /** Least-busy healthy host with the model resident. Latency-aware routing is later (PDF §05). */
+  /** Is this host known to have the model loaded right now? */
+  isWarm(host, model) { return (host.warm.get(model) || 0) > Date.now() - WARM_TTL_MS; }
+
+  /**
+   * Choose a host for a model.
+   *
+   * Inflight count alone is not enough once hosts differ in speed: a COLD host with
+   * nothing to do outranks a warm one with a single job, and the consumer waits 75s
+   * for a model load while a machine that could have answered in a second sits
+   * nearly idle. So rank by warmth first.
+   *
+   * The tension is that preferring warm hosts forever would starve every new
+   * provider — a cold machine never gets the request that would warm it, so it never
+   * earns. The cap resolves it: warm hosts take work until they are saturated, and
+   * the next request goes to a cold host, which warms up and then competes on equal
+   * terms. Deep queueing is the last resort rather than the default.
+   *
+   *   0  warm, under the cap      — fast, and has room
+   *   1  cold, under the cap      — slow once, then it is warm and useful
+   *   2  saturated                — queue only when there is nowhere better
+   */
   pick(model, exclude = new Set()) {
     const fresh = Date.now() - HOST_TIMEOUT_MS;
     const candidates = this.online().filter((h) =>
       !exclude.has(h.id) && h.lastSeen > fresh && h.models.has(model) && !h.conn.closed);
     if (!candidates.length) return null;
-    candidates.sort((a, b) => a.inflight.size - b.inflight.size);
+    const rank = (h) => {
+      if (h.inflight.size >= MAX_INFLIGHT_PER_HOST) return 2;
+      return this.isWarm(h, model) ? 0 : 1;
+    };
+    candidates.sort((a, b) => rank(a) - rank(b) || a.inflight.size - b.inflight.size);
     return candidates[0];
   }
 
@@ -533,11 +569,14 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
         host.conn.sendJson({ t: 'cancel', id: jobId });
         if (committed) { void meter(); try { res.end(); } catch {} }
         finish({ ok: false, committed });
-      }, JOB_TIMEOUT_MS);
+      }, registry.isWarm(host, model) ? JOB_TIMEOUT_MS : COLD_JOB_TIMEOUT_MS);
 
       host.inflight.set(jobId, {
         onChunk(delta) {
           if (settled || !delta) return;
+          // First tokens are proof the weights are resident. Recording warmth here
+          // rather than on dispatch means it is evidence, never an assumption.
+          if (!text) host.warm.set(model, Date.now());
           text += delta;
           if (!stream) return;   // non-stream commits nothing until the end
           if (!committed) {

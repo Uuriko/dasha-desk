@@ -177,6 +177,11 @@ class MlxRuntime:
         self._model = None
         self._tokenizer = None
         self._loaded = None
+        # Jobs run in a thread pool, so two requests arriving before the first load
+        # finishes would both enter load() — roughly 9 GB instead of 4.5 for a 7B
+        # model, plus a torn read of _model/_tokenizer/_loaded. Cold start is exactly
+        # when a second request is most likely, because the first one is slow.
+        self._lock = threading.Lock()
 
     def _model_id(self, public_name):
         for pair in os.getenv("OCM_MODEL_MAP", "").split(","):
@@ -194,10 +199,15 @@ class MlxRuntime:
 
     def _ensure(self, model):
         target = self._model_id(model)
-        if self._loaded != target:
-            from mlx_lm import load
-            self._model, self._tokenizer = load(target)
-            self._loaded = target
+        if self._loaded == target:
+            return self._model, self._tokenizer
+        with self._lock:
+            # Re-check: another thread may have loaded it while we waited.
+            if self._loaded != target:
+                from mlx_lm import load
+                model_obj, tokenizer = load(target)
+                self._model, self._tokenizer = model_obj, tokenizer
+                self._loaded = target
         return self._model, self._tokenizer
 
     @staticmethod
