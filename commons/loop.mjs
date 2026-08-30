@@ -8,6 +8,7 @@
 import { apply, createBounty } from './machine.mjs';
 import { USDC_MINT } from './adapter.mjs';
 import { makeEvent } from './tape.mjs';
+export { ingestTape, tapeFromBounties, eventsFromBounty, renderTapeLine, eventFromWebhook } from './tape.mjs';
 import { nowIso } from './schema.mjs';
 import { TX_ERRORS } from './tx.mjs';
 

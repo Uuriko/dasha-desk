@@ -7,7 +7,7 @@ No Helius SDK, webhook, or API key lands here. Commons talks to a `ChainObserver
 | Job | Why a provider helps | What we would call |
 | --- | --- | --- |
 | Funding / settlement / refund observation | v1 must not mark `paid` from an app click. Need the signature, destination, mint, and amount. | Enhanced transactions / parsed tx, or raw RPC `getTransaction` |
-| Activity Tape | Human lines from wallet + bounty addresses without scraping RPC in the browser. | Webhooks or LaserStream on the bounty/treasury addresses |
+| Activity Tape | Human lines from wallet + bounty addresses without scraping RPC in the browser. Today the tape ingests commons events / `eventFromWebhook` (duplicate delivery is a no-op). Public RPC later is fine. | Webhooks or LaserStream on the bounty/treasury addresses |
 | Solana Pay `reference` | Today's board already puts a reference on Pay URLs. A watcher can `findReference`. | Address / memo / reference subscribe |
 | Submit path | **None.** User wallet signs. Helius must not become a proxy signer. | — |
 
