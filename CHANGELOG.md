@@ -2,6 +2,7 @@
 
 ## v0.1.1 — unreleased (main)
 
+- **Signed bounty loop:** create → fund → submit → select → pay on this-device board rows. Simulated tx port for CI. Wallet only on Fund/Pay. No escrow. Live feed unchanged.
 - **Commons bounty schemas:** token-agnostic records + state machine in `commons/`, adapter for `dasha-bounties-feed/v1`. Existing seed JSON and `/bounties` URLs unchanged. Live Worker still owns www. See `docs/commons/ARCHITECTURE.md`.
 - **Watch / Worker contract:** `watch.mjs` asserts live dasha-lobby, not a fantasy product. Studio/verse/learn/graph 308 home. `/dasha` `/desk` 308 `/how-to-buy`. `/privacy` 200 H1 Privacy. `/compute` retired. Chess `var API` must be the lobby host. Local `node watch.mjs --fixture`. Do not invent a Worker in this repo. Supersedes the Studio-live Watch contract.
 - **This-week surfaces:** Home is ticker + stills (no Simp). Simp on `/lobby`. Native `/bounties` (List needs USDC + `payTo`). `/privacy`. `/desk` and `/dasha` go to `/how-to-buy`. In-repo `404.html` (host 404 is a separate paste). Live `/bounties.json` is the edge feed.

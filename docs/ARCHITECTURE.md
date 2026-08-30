@@ -78,6 +78,7 @@ Each of these exists because of a specific failure, not as ceremony.
 | `studio/studio.test.mjs` | The Studio stays self-contained, every look id a remix URL can name still exists, and the embed is generated rather than hand-edited. |
 | `bounties/bounties.test.mjs` | Listing JSON parses (item + project), malformed issues are skipped, empty outcomes copy, proof URLs required, the form builds a GitHub `issues/new` URL, static feed matches root `bounties.json` and carries `schema: dasha-bounties-feed/v1`, seed has no fake leaderboard, extra Demigod feed merge/dedup is non-fatal. |
 | `commons/commons.test.mjs` | Bounty state machine + `dasha-bounties-feed/v1` adapter (legacy listings/items, live empty feed, seed rows). |
+| `commons/loop.test.mjs` | User-signed create→fund→submit→select→pay against a simulated tx port. |
 | `watch.mjs` | What the **live Worker** actually serves. Contract is [`ROUTES.md`](ROUTES.md): privacy 200, Studio/verse/learn/graph 308 home, desk/dasha 308 how-to-buy, `/compute` is a product page, chess `var API` = lobby host. Still fails on blank pages, wrong redirects, stale SRI, missing H1, broken OAuth start, wrong mint, `plugin.jup.ag`. Local: `node watch.mjs --fixture`. Do not invent the Worker here. |
 
 `watch.mjs` is the odd one out and the most important. Every other gate reads files in this repo, and
@@ -110,6 +111,7 @@ node build.mjs --write          # after changing anything in src/
 node build.mjs --check          # what CI runs
 node bounties/bounties.test.mjs # listing parse / no fabricated ranks
 node commons/commons.test.mjs   # state machine + feed adapter
+node commons/loop.test.mjs      # signed loop + simulated tx
 ```
 
 The site and build have no runtime dependencies or install step. The full test suite uses one
