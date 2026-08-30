@@ -2,7 +2,7 @@
 
 Native Solana Mobile / Seeker client. **Not a WebView of getdasha.com.**
 
-Repo: [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket). Seed PR: [Uuriko/dasha-pocket#1](https://github.com/Uuriko/dasha-pocket) (spike branch `cursor/pocket-spike-51b9`).
+Repo: [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket). Seed PR: [Uuriko/dasha-pocket#1](https://github.com/Uuriko/dasha-pocket/pull/1) (spike branch `cursor/pocket-spike-51b9`).
 
 dasha-desk does **not** build Android. `verify.yml` stays Node + embed checks. Pocket Gradle would tax every mint/docs PR.
 
