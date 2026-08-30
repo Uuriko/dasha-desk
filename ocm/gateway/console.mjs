@@ -63,7 +63,8 @@ h3{font-size:15px;margin:0 0 8px}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card)}
 table{border-collapse:collapse;width:100%;font-size:14px;min-width:480px}
 th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);padding:10px 14px;border-bottom:1px solid var(--line);font-weight:600}
-td{padding:11px 14px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+td{padding:11px 14px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+th{white-space:nowrap}
 tr:last-child td{border-bottom:0}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:middle}
 .on{background:var(--ok)} .off{background:var(--idle)}
@@ -81,8 +82,18 @@ button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line
 .secret{background:var(--card);border:1px solid var(--warn);border-radius:8px;padding:14px;margin:12px 0}
 .secret code{display:block;word-break:break-all;padding:9px 11px;font-size:13px;background:var(--bg)}
 .muted{color:var(--dim);font-size:13px}
-nav{display:flex;gap:16px;margin:0 0 18px;font-size:14px;align-items:center}
-nav .spacer{flex:1}
+nav{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 18px;font-size:14px;align-items:center;min-width:0}
+nav .links{display:flex;gap:16px;align-items:center;flex-wrap:wrap;min-width:0}
+nav .links a{white-space:nowrap}
+nav .who{display:flex;gap:10px;align-items:center;margin-left:auto;min-width:0;max-width:100%}
+nav .who .muted{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+nav .who button{flex:none}
+@media (max-width:520px){
+  .wrap{padding:24px 16px 56px}
+  nav .who{margin-left:0;width:100%;justify-content:space-between}
+  h1{font-size:20px}
+  .v{font-size:20px}
+}
 footer{margin-top:44px;color:var(--dim);font-size:12px;border-top:1px solid var(--line);padding-top:14px}
 `;
 
@@ -93,10 +104,17 @@ const page = (title, body) => `<!DOCTYPE html><html lang="en"><head><meta charse
 Prompts are visible in plaintext to whoever runs a provider — no confidentiality is
 claimed that the architecture cannot enforce.</footer></div></body></html>`;
 
-const nav = (email, admin = false) => `<nav><strong>OCM</strong>
-  <a href="/">Overview</a><a href="/provider">Run a provider</a>${admin ? '<a href="/network">Network</a>' : ''}
-  <span class="spacer"></span><span class="muted">${esc(email)}</span>
-  <form method="post" action="/signout"><button class="ghost" style="margin:0;padding:6px 12px">Sign out</button></form></nav>`;
+/**
+ * Two groups so the header degrades in order on a narrow screen: the identity
+ * group drops to its own row first, and the email truncates with an ellipsis
+ * rather than widening the page. Nothing here is hidden by overflow — every link
+ * and the button stay reachable at any width.
+ */
+const nav = (email, admin = false) => `<nav>
+  <div class="links"><strong>OCM</strong>
+    <a href="/">Overview</a><a href="/provider">Run a provider</a>${admin ? '<a href="/network">Network</a>' : ''}</div>
+  <div class="who"><span class="muted" title="${esc(email)}">${esc(email)}</span>
+    <form method="post" action="/signout"><button class="ghost" style="margin:0;padding:6px 12px">Sign out</button></form></div></nav>`;
 
 /** Shown exactly once — the plaintext is not recoverable afterwards. */
 export function renderSecret({ title, secret, whatNext }) {
