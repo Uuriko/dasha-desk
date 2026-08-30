@@ -71,3 +71,5 @@ Creator funds. Workers submit. Creator selects. Winner is paid. No escrow unless
 ## What you do not get from this folder
 
 A Worker. A Helius SDK. A faucet. getdasha.com. Pocket is [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket) — it vendors these leaf files.
+
+A community that is not getdasha: [EXTERNAL.md](EXTERNAL.md) + `commons/fixtures/external-community-feed.json`.

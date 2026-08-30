@@ -24,4 +24,4 @@ The live getdasha board today is **declared, not escrow**: a listing with `payTo
 | `loop.mjs` | create → fund → submit → select → pay |
 | `demo-loop.mjs` | `node commons/demo-loop.mjs` — local walk, no chain |
 
-Consume from another project (no getdasha import): [`docs/commons/CONSUME.md`](../docs/commons/CONSUME.md). Architecture: [`docs/commons/ARCHITECTURE.md`](../docs/commons/ARCHITECTURE.md). Pocket (separate repo): [`docs/commons/POCKET.md`](../docs/commons/POCKET.md).
+Consume from another project (no getdasha import): [`docs/commons/CONSUME.md`](../docs/commons/CONSUME.md). A community that is not getdasha: [`docs/commons/EXTERNAL.md`](../docs/commons/EXTERNAL.md). Architecture: [`docs/commons/ARCHITECTURE.md`](../docs/commons/ARCHITECTURE.md). Pocket (separate repo): [`docs/commons/POCKET.md`](../docs/commons/POCKET.md).
