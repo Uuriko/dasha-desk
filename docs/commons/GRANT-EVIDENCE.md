@@ -17,6 +17,7 @@ Trust model v1: creator funds → submit work → creator selects → winner pai
 - Helius note (no integration). Pocket: separate repo. Faucet: inspect-only seam.
 - Signed loop (this follow-up PR): `commons/loop.mjs` + simulated `Tx` port. Tests walk create→fund→submit→select→pay plus reject / sim fail / timeout / duplicate funding / double settlement / retry. Board “This device” is local only. Live `listings: []` stays honest.
 - Activity Tape (follow-up): human kinds created/funded/submitted/selected/paid/cancelled from the commons event model. Duplicate webhook and idempotent ingest. Board Tape is not `/digest`. No Helius SDK.
+- Consume path (follow-up): `docs/commons/CONSUME.md` + `example-community` fixture. Loop no longer imports the getdasha adapter. No monorepo.
 
 ## Not claimed
 

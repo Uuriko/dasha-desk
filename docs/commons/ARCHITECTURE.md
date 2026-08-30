@@ -103,7 +103,9 @@ Remote `bounty-github-cta-honesty` has no open PR against current main.
 
 Signed loop (PR #49): `commons/loop.mjs` + `commons/tx.mjs` walk create → fund → submit → select → pay. Wallet only on Fund/Pay after a click. Simulated signer for CI and `?demo=1`. Board “This device” is localStorage, not the live feed. Funding/settlement signatures are evidence, not custody. No escrow. No live listings written.
 
-Activity Tape (this follow-up): human kinds only — created, funded, submitted, selected, paid, cancelled — from the existing event model. Stable ids + idempotency. Chain-observed vs app-generated. Lives on `/bounties`, not `/digest`. Observers later call `eventFromWebhook`. No Helius SDK.
+Activity Tape (PR #50): human kinds only — created, funded, submitted, selected, paid, cancelled — from the existing event model. Stable ids + idempotency. Chain-observed vs app-generated. Lives on `/bounties`, not `/digest`. Observers later call `eventFromWebhook`. No Helius SDK.
+
+Consume (this follow-up): one folder. Import `schema.mjs` + `machine.mjs` + `loop.mjs` + `tape.mjs`. `adapter.mjs` is the getdasha profile and is optional. See [CONSUME.md](CONSUME.md). No npm workspace. No `exports` map — this repo does not have that pattern.
 
 Out of this PR: live Worker deploy, Community Starter Kit, Helius integration, Pocket app, faucet rewrite, a real wallet adapter.
 
