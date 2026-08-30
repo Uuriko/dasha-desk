@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { accept } from './ws.mjs';
 import { Ledger } from './ledger.mjs';
-import { stats, renderLanding, renderDashboard, renderProviderGuide, renderSecret } from './console.mjs';
+import { stats, renderLanding, renderDashboard, renderNetwork, renderProviderGuide, renderSecret } from './console.mjs';
 import { issueSession, readSession, cookieHeader, clearCookieHeader, readCookie, parseForm } from './session.mjs';
 import { MemoryAccounts } from './accounts.mjs';
 
@@ -117,6 +117,9 @@ export async function createGateway({
   sessionSecret = process.env.OCM_SESSION_SECRET || process.env.OCM_ADMIN_TOKEN || 'dev-session-secret',
   secureCookies = process.env.OCM_INSECURE_COOKIES !== '1',
   adminToken = process.env.OCM_ADMIN_TOKEN || '',
+  // Console accounts allowed to see the network-wide view. Comma-separated emails;
+  // empty means nobody, which is the safe default for a page that lists every user.
+  adminEmails = process.env.OCM_ADMIN_EMAILS || '',
   databaseUrl = process.env.DATABASE_URL || '',
   consoleHost = process.env.OCM_CONSOLE_HOST || 'ocm.getdasha.com',
   apiHost = process.env.OCM_API_HOST || 'api.ocm.getdasha.com',
@@ -128,6 +131,8 @@ export async function createGateway({
   grantTokens = Number(process.env.OCM_GRANT_TOKENS || 1_000_000),
 } = {}) {
   const registry = new Registry();
+  const admins = new Set(String(adminEmails).split(',').map((e) => e.trim().toLowerCase()).filter(Boolean));
+  const isAdmin = (account) => !!account && admins.has(account.email.toLowerCase());
   // Postgres when DATABASE_URL is set, JSONL otherwise. Same async interface, so
   // nothing below this line knows which store it has. The pg import is dynamic on
   // purpose: local runs and the test suite stay dependency-free, which is a property
@@ -192,6 +197,7 @@ export async function createGateway({
         if (req.method === 'GET' && consolePath === '/') {
           return account
             ? html(res, 200, await renderDashboard({ registry, ledger, accounts, account, apiHost,
+                admin: isAdmin(account),
                 redeemed: (await ledger.grantCount(account.id)) > 0,
                 inviteRequired: !!inviteCode,
                 notice: url.searchParams.get('notice'),
@@ -202,7 +208,15 @@ export async function createGateway({
 
         if (req.method === 'GET' && consolePath === '/provider') {
           if (!account) return redirect(res, '/');
-          return html(res, 200, renderProviderGuide({ account, apiHost, models: registry.models() }));
+          return html(res, 200, renderProviderGuide({ account, apiHost, models: registry.models(), admin: isAdmin(account) }));
+        }
+
+        // Network-wide view: every host, account and consumer. Admins only — the
+        // page is a user list, so a non-admin gets the same redirect as a stranger
+        // rather than a hint that the page exists.
+        if (req.method === 'GET' && consolePath === '/network') {
+          if (!isAdmin(account)) return redirect(res, '/');
+          return html(res, 200, await renderNetwork({ registry, ledger, accounts, account }));
         }
 
         if (req.method === 'POST' && consolePath === '/signup') {

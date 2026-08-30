@@ -35,8 +35,10 @@ grep -q '^DATABASE_URL=' /etc/ocm/gateway.env || printf 'DATABASE_URL=%s\n' "\$D
 ADM=\$(aws ssm get-parameter --name /ocm/gateway/admin_token --with-decryption --query Parameter.Value --output text --region us-west-2)
 INV=\$(aws ssm get-parameter --name /ocm/gateway/invite_code --query Parameter.Value --output text --region us-west-2)
 SES=\$(aws ssm get-parameter --name /ocm/gateway/session_secret --with-decryption --query Parameter.Value --output text --region us-west-2)
-sed -i '/^OCM_INVITE_CODE=/d;/^OCM_SESSION_SECRET=/d' /etc/ocm/gateway.env
+ADMINS=\$(aws ssm get-parameter --name /ocm/gateway/admin_emails --query Parameter.Value --output text --region us-west-2 2>/dev/null || true)
+sed -i '/^OCM_INVITE_CODE=/d;/^OCM_SESSION_SECRET=/d;/^OCM_ADMIN_EMAILS=/d' /etc/ocm/gateway.env
 printf 'OCM_INVITE_CODE=%s\n' "\$INV" >> /etc/ocm/gateway.env
+if [ -n "\$ADMINS" ] && [ "\$ADMINS" != "None" ]; then printf 'OCM_ADMIN_EMAILS=%s\n' "\$ADMINS" >> /etc/ocm/gateway.env; fi
 printf 'OCM_SESSION_SECRET=%s\n' "\$SES" >> /etc/ocm/gateway.env
 grep -q '^OCM_ADMIN_TOKEN=' /etc/ocm/gateway.env || printf 'OCM_ADMIN_TOKEN=%s\n' "\$ADM" >> /etc/ocm/gateway.env
 chmod 600 /etc/ocm/gateway.env

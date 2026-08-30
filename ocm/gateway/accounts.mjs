@@ -109,6 +109,18 @@ export class PgAccounts {
     const { rows } = await this.pool.query(`SELECT id, email FROM accounts WHERE id = $1`, [accountId]);
     return rows[0] || null;
   }
+
+  /** Every account, oldest first — for the admin network view only. */
+  async listAccounts() {
+    const { rows } = await this.pool.query(
+      `SELECT a.id, a.email, a.created_at,
+              COUNT(c.id) FILTER (WHERE c.kind='developer_key'  AND c.revoked_at IS NULL)::int AS developer_keys,
+              COUNT(c.id) FILTER (WHERE c.kind='provider_token' AND c.revoked_at IS NULL)::int AS provider_tokens,
+              MAX(c.last_used_at) AS last_used_at
+         FROM accounts a LEFT JOIN credentials c ON c.account_id = a.id
+        GROUP BY a.id ORDER BY a.created_at`);
+    return rows;
+  }
 }
 
 /** In-memory equivalent, so the test suite needs no database. */
@@ -162,4 +174,13 @@ export class MemoryAccounts {
   }
 
   async accountFor(accountId) { return this.accounts.get(accountId) || null; }
+
+  async listAccounts() {
+    return [...this.accounts.values()].map((a) => {
+      const creds = [...this.creds.values()].filter((c) => c.account_id === a.id);
+      const live = (kind) => creds.filter((c) => c.kind === kind && !c.revoked_at).length;
+      const used = creds.map((c) => c.last_used_at).filter(Boolean).sort((x, y) => y - x)[0] || null;
+      return { ...a, developer_keys: live('developer_key'), provider_tokens: live('provider_token'), last_used_at: used };
+    });
+  }
 }

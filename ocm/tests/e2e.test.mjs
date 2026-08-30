@@ -620,6 +620,35 @@ test('the gateway serves the agent and installer it expects', async () => {
   } finally { await gw.close(); }
 });
 
+test('the Network tab exists only for admin emails and lists every account', async () => {
+  const gw = await startConsole({ adminEmails: 'Boss@dev.io, other@dev.io' });
+  try {
+    const anon = await fetch(`${gw.base}/console/network`, { redirect: 'manual' });
+    assert.equal(anon.status, 302, 'anonymous must be redirected');
+
+    const u = await form(gw, '/signup', { email: 'user@dev.io', invite: 'potter' });
+    const uCookie = u.headers.get('set-cookie').split(';')[0];
+    const uHome = await (await fetch(`${gw.base}/console`, { headers: { cookie: uCookie } })).text();
+    assert.doesNotMatch(uHome, /href="\/network"/, 'non-admins must not see the tab');
+    const uNet = await fetch(`${gw.base}/console/network`, { redirect: 'manual', headers: { cookie: uCookie } });
+    assert.equal(uNet.status, 302, 'non-admins are redirected, not shown a 403');
+
+    const a = await form(gw, '/signup', { email: 'boss@dev.io', invite: 'potter' });
+    const aCookie = a.headers.get('set-cookie').split(';')[0];
+    const aHome = await (await fetch(`${gw.base}/console`, { headers: { cookie: aCookie } })).text();
+    assert.match(aHome, /href="\/network"/, 'admins see the tab (match is case-insensitive)');
+    const net = await fetch(`${gw.base}/console/network`, { headers: { cookie: aCookie } });
+    assert.equal(net.status, 200);
+    const html = await net.text();
+    assert.match(html, /user@dev\.io/, 'the network page lists other accounts');
+    assert.match(html, /boss@dev\.io/);
+
+    // The anonymous counters must not have grown an email column as a side effect.
+    const stats = JSON.stringify(await (await fetch(`${gw.base}/console/stats.json`)).json());
+    assert.doesNotMatch(stats, /@dev\.io/);
+  } finally { await gw.close(); }
+});
+
 test('revoking a key ends its console session immediately', async () => {
   const gw = await startConsole();
   try {

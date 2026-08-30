@@ -93,8 +93,8 @@ const page = (title, body) => `<!DOCTYPE html><html lang="en"><head><meta charse
 Prompts are visible in plaintext to whoever runs a provider — no confidentiality is
 claimed that the architecture cannot enforce.</footer></div></body></html>`;
 
-const nav = (email) => `<nav><strong>OCM</strong>
-  <a href="/">Overview</a><a href="/provider">Run a provider</a>
+const nav = (email, admin = false) => `<nav><strong>OCM</strong>
+  <a href="/">Overview</a><a href="/provider">Run a provider</a>${admin ? '<a href="/network">Network</a>' : ''}
   <span class="spacer"></span><span class="muted">${esc(email)}</span>
   <form method="post" action="/signout"><button class="ghost" style="margin:0;padding:6px 12px">Sign out</button></form></nav>`;
 
@@ -136,7 +136,7 @@ be refused — you can redeem one from the console later. Credits are not money;
 is no billing.</div>`);
 }
 
-export async function renderDashboard({ registry, ledger, accounts, account, apiHost, notice, error, redeemed, inviteRequired }) {
+export async function renderDashboard({ registry, ledger, accounts, account, apiHost, notice, error, redeemed, inviteRequired, admin = false }) {
   const s = await stats(registry, ledger);
   const mine = s.consumers.find((c) => c.consumer === account.id)
     || { granted: 0, used: 0, balance: 0, requests: 0 };
@@ -169,7 +169,7 @@ refused until an invite code is redeemed. One redemption per account.</div>
   <button type="submit">Redeem</button>
 </form>`;
 
-  return page('OCM console', `${nav(account.email)}
+  return page('OCM console', `${nav(account.email, admin)}
 ${notice ? `<div class="note">${esc(notice)}</div>` : ''}
 ${error ? `<div class="note warn">${esc(error)}</div>` : ''}
 ${redeemBlock}
@@ -210,8 +210,64 @@ export OPENAI_API_KEY="ocm_live_…"</pre>
 <p class="muted">Anything that speaks the OpenAI API works unmodified — no SDK of ours to install.</p>`);
 }
 
-export function renderProviderGuide({ account, apiHost, models }) {
-  return page('Run a provider', `${nav(account.email)}
+/** Admin-only: the whole network, with account emails. Never rendered to a non-admin. */
+export async function renderNetwork({ registry, ledger, accounts, account }) {
+  const s = await stats(registry, ledger);
+  const all = await accounts.listAccounts();
+  const emailOf = new Map(all.map((a) => [a.id, a.email]));
+  const who = (id) => id ? esc(emailOf.get(id) || id) : '—';
+  const day = (d) => d ? new Date(d).toISOString().slice(0, 10) : 'never';
+
+  const hostRows = s.hosts.map((h) => `<tr>
+    <td><span class="dot ${h.inflight ? 'on' : 'off'}"></span><code>${esc(h.id)}</code></td>
+    <td>${who(h.accountId)}</td><td>${esc(h.chip)}</td><td>${h.memory_gb} GiB</td>
+    <td>${esc(h.models.join(', ') || '—')}</td><td>${h.inflight}</td>
+    <td>${dur(h.uptime_s)}</td><td>${num(h.credited)}</td></tr>`).join('');
+
+  const byConsumer = new Map(s.consumers.map((c) => [c.consumer, c]));
+  const acctRows = all.map((a) => {
+    const c = byConsumer.get(a.id) || { granted: 0, used: 0, balance: 0, requests: 0 };
+    return `<tr><td>${esc(a.email)}</td><td>${day(a.created_at)}</td>
+    <td>${a.developer_keys}</td><td>${a.provider_tokens}</td>
+    <td>${num(c.balance)}</td><td>${num(c.used)}</td><td>${num(c.requests)}</td>
+    <td>${day(a.last_used_at)}</td></tr>`;
+  }).join('');
+
+  const recentRows = s.recent.map((r) => `<tr>
+    <td>${esc(new Date(r.at).toISOString().replace('T', ' ').slice(0, 19))}</td>
+    <td>${who(r.consumer)}</td><td><code>${esc(r.host || '—')}</code></td>
+    <td>${esc(r.model || '—')}</td><td>${num(r.promptTokens || 0)}</td><td>${num(r.completionTokens || 0)}</td></tr>`).join('');
+
+  return page('OCM network', `${nav(account.email, true)}
+<h1>Network</h1>
+<p class="sub">Everything the gateway knows, across every account. Visible to administrators only.</p>
+<div class="grid">
+  <div class="card"><div class="k">Providers online</div><div class="v">${s.hosts.length}</div></div>
+  <div class="card"><div class="k">Accounts</div><div class="v">${num(all.length)}</div></div>
+  <div class="card"><div class="k">Requests</div><div class="v">${num(s.totals.requests)}</div></div>
+  <div class="card"><div class="k">Prompt tokens</div><div class="v">${num(s.totals.prompt_tokens)}</div></div>
+  <div class="card"><div class="k">Completion tokens</div><div class="v">${num(s.totals.completion_tokens)}</div></div>
+</div>
+
+<h2>Providers</h2>
+<div class="tablewrap">${hostRows ? `<table>
+<thead><tr><th>Host</th><th>Owner</th><th>Chip</th><th>Memory</th><th>Models</th><th>In flight</th><th>Uptime</th><th>Credited</th></tr></thead>
+<tbody>${hostRows}</tbody></table>` : '<div class="empty">No providers connected.</div>'}</div>
+
+<h2>Accounts</h2>
+<div class="tablewrap">${acctRows ? `<table>
+<thead><tr><th>Email</th><th>Created</th><th>Dev keys</th><th>Host tokens</th><th>Balance</th><th>Used</th><th>Requests</th><th>Last used</th></tr></thead>
+<tbody>${acctRows}</tbody></table>` : '<div class="empty">No accounts.</div>'}</div>
+
+<h2>Recent requests</h2>
+<div class="tablewrap">${recentRows ? `<table>
+<thead><tr><th>When (UTC)</th><th>Consumer</th><th>Host</th><th>Model</th><th>Prompt</th><th>Completion</th></tr></thead>
+<tbody>${recentRows}</tbody></table>` : '<div class="empty">No requests yet.</div>'}</div>
+<p class="muted" style="margin-top:12px">Raw counters: <a href="/console/stats.json">stats.json</a> (anonymous, no emails).</p>`);
+}
+
+export function renderProviderGuide({ account, apiHost, models, admin = false }) {
+  return page('Run a provider', `${nav(account.email, admin)}
 <h1>Run a provider</h1>
 <p class="sub">Contribute an Apple Silicon Mac and earn credits for the tokens it serves.</p>
 
