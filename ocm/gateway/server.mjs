@@ -563,6 +563,18 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
     // so existing hosts keep running during migration.
     const owner = await accounts.resolve(presented, 'provider_token');
     if (!owner && !(hostToken && presented === hostToken)) {
+      // A rejected provider was previously invisible here: the socket was closed
+      // with no record, so "my Mac will not connect" had no server-side evidence
+      // at all. Log the token's SHAPE — never the token — which is enough to tell
+      // the common mistakes apart: a developer key used as a host token, an empty
+      // OCM_HOST_TOKEN, or a real ocm_host token that is revoked or unknown.
+      const shape = !presented ? 'absent'
+        : /^ocm_host_/.test(presented) ? 'ocm_host (unknown or revoked)'
+        : /^ocm_live_/.test(presented) ? 'ocm_live — a developer key, not a provider token'
+        : 'unrecognised prefix';
+      console.error(JSON.stringify({ level: 'warn', msg: 'provider socket rejected',
+        token: shape, ua: req.headers['user-agent'] || null,
+        ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || null }));
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
       return;

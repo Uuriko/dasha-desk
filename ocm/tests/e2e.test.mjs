@@ -342,6 +342,35 @@ test('a revoked key stops working immediately', async () => {
   } finally { await gw.close(); }
 });
 
+test('a valid developer key cannot open a provider socket, and the refusal is logged', async () => {
+  const gw = await startGatewayWithAdmin();
+  const errs = [];
+  const realError = console.error;
+  console.error = (...a) => errs.push(a.join(' '));
+  try {
+    const acct = await (await admin(gw, '/admin/accounts', { email: 'mixed@r.o' })).json();
+    const key = await (await admin(gw, '/admin/credentials',
+      { account_id: acct.id, kind: 'developer_key', label: 'laptop' })).json();
+    assert.match(key.secret, /^ocm_live_/);
+
+    // The mistake this guards: putting a developer key in OCM_HOST_TOKEN. The key
+    // is valid, so nothing about it looks wrong to whoever installed the agent.
+    const rejected = await new Promise((resolve) => {
+      const ws = new WebSocket(`${gw.wsBase}/host/connect?token=${encodeURIComponent(key.secret)}`);
+      ws.addEventListener('error', () => resolve(true));
+      ws.addEventListener('open', () => resolve(false));
+    });
+    assert.equal(rejected, true, 'a developer key must not authorise a host socket');
+
+    const line = errs.find((e) => e.includes('provider socket rejected'));
+    assert.ok(line, 'a rejected provider must leave a server-side record');
+    assert.match(line, /developer key, not a provider token/,
+      'the log must say which mistake was made');
+    assert.doesNotMatch(line, /ocm_live_[A-Za-z0-9_-]{8}/,
+      'the log must never contain the presented secret');
+  } finally { console.error = realError; await gw.close(); }
+});
+
 test('a host presenting an issued provider token connects; a bad one does not', async () => {
   const gw = await startGatewayWithAdmin();
   try {
