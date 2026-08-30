@@ -14,10 +14,18 @@
 #
 # Usage:
 #   OCM_HOST_TOKEN="ocm_host_…" sh install.sh
+#
+# Optional:
+#   OCM_AGENT_ID="my-mac"   the name this machine registers under; defaults to the
+#                           hostname. Keep it stable, or a reinstall registers a
+#                           second host instead of recovering the first.
 set -eu
 
 GATEWAY="${OCM_GATEWAY_URL:-wss://api.ocm.getdasha.com}"
 SOURCE="${OCM_SOURCE_URL:-https://api.ocm.getdasha.com}"
+# Set OCM_AGENT_ID to keep a machine's identity stable across reinstalls. Without it
+# this defaults to the hostname, and a reinstall that produces a different name
+# registers a SECOND host rather than recovering the existing one.
 AGENT_ID="${OCM_AGENT_ID:-$(hostname -s)}"
 PREFIX=/opt/ocm
 
@@ -44,7 +52,11 @@ printf 'OCM provider install\n  host    %s (%s)\n  gateway %s\n\n' \
   "$AGENT_ID" "$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo mac)" "$GATEWAY"
 
 if ! command -v uv >/dev/null 2>&1 && [ ! -x /var/root/.local/bin/uv ]; then
-  printf 'installing uv …\n'
+  # Note, in a script whose preamble argues against exactly this: the next line pipes
+  # a third party's installer into a root shell. It is the one place this script hands
+  # root to someone else. Install uv yourself first (`brew install uv`) and this is
+  # skipped entirely — which is the better choice if you are being careful.
+  printf 'installing uv (from astral.sh, as root) …\n'
   curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null
 fi
 UV="$(command -v uv || echo /var/root/.local/bin/uv)"
@@ -69,7 +81,7 @@ cat > "$PREFIX/bin/ocm-agent-run" <<RUN
 export PATH=/usr/local/bin:/var/root/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 export HOME=/var/root
 set -a; . /etc/ocm/agent.env; set +a
-exec "$UV" run --quiet --python 3.12 $PREFIX/agent/agent.py "$@"
+exec "$UV" run --quiet --python 3.12 $PREFIX/agent/agent.py "\$@"
 RUN
 chmod +x "$PREFIX/bin/ocm-agent-run"
 
