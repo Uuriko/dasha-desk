@@ -48,6 +48,17 @@ assert.equal(example.reward.mint, USDC_MINT);
   assert.doesNotMatch(pocket, /plugin\.jup\.ag/);
 }
 
+{
+  const helius = read('../docs/commons/HELIUS.md');
+  assert.match(helius, /Kehinde Yusuf/);
+  assert.match(helius, /transactionSubscribe/);
+  assert.match(helius, /getAssetsByOwner/);
+  assert.match(helius, /Sender/);
+  assert.match(helius, /startup-launchpad/);
+  assert.match(helius, /Do not apply from this PR/);
+  assert.doesNotMatch(helius, /helius-sdk|@helius-labs|plugin\.jup\.ag/i);
+}
+
 const tx = createSimulatedTx();
 let bounty = createOpenBounty({
   id: 'example-7',
@@ -56,6 +67,7 @@ let bounty = createOpenBounty({
   creator: example.creator,
   creatorWallet: example.creatorWallet,
   source: example.source,
+  createdAt: '2026-08-30T00:00:00.000Z',
 });
 assert.equal(bounty.source.community, 'example-community');
 assert.doesNotMatch(JSON.stringify(bounty), /dasha/i);

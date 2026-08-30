@@ -2,6 +2,7 @@
 
 ## v0.1.1 — unreleased (main)
 
+- **Helius note:** measured WSS / DAS / Sender steer from support (2026-08-30). No SDK. No keys. See `docs/commons/HELIUS.md`.
 - **External community:** hostable `commons.bounty-feed/v1` fixture (`harbor`) runs create → fund → submit → select → pay → tape with leaf imports only. Not a live community on www. See `docs/commons/EXTERNAL.md`.
 - **Pocket spike:** [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket) holds the Android seed. This repo documents the boundary (`docs/commons/POCKET.md`). Verify does not build Gradle.
 - **Commons consume:** other Solana projects import `commons/` leaf files. Adapter is optional. See `docs/commons/CONSUME.md`.
