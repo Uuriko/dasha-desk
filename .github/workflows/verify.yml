@@ -30,3 +30,4 @@ jobs:
       - name: Bounties embed drift
         working-directory: bounties
         run: node embed-build.mjs --check
+      # Pocket / Android lives in Uuriko/dasha-pocket. Do not add a Gradle job here.

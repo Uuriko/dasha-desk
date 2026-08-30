@@ -16,7 +16,7 @@ Measured Sun 2026-08-30 ~12:00 AM PT. One feed. Empty `listings` is honest, not 
 
 | Surface | What it actually is |
 | --- | --- |
-| `GET /bounties` | **200**, `x-dasha-edge: bounties`, `text/html`, ~2438 bytes. After style/script strip: `Bounties` / `USDC on Solana. We don’t hold it.` / `Pick a good first issue` / leftover lecture (see below) / footer Home · How to buy · Privacy. No `plugin.jup.ag`. **Does not load** this repo's `board.js`. Wallet not required. |
+| `GET /bounties` | **200**, `x-dasha-edge: bounties`, `text/html`. After style/script strip (measured Sun 2026-08-30 ~1:15 AM PT): `Bounties` / `USDC on Solana. We don’t hold it.` / `Pick a good first issue` / `No funded bounties right now.` / footer Home · How to buy · Privacy. No leftover Simp lecture. No `plugin.jup.ag`. **Does not load** this repo's `board.js`. Wallet not required. |
 | `GET /bounties.json` | **200** `application/json`, `x-dasha-edge: bounties-feed`. Exact body pinned at `commons/fixtures/live-bounties.json`: `{ name, schema: dasha-bounties-feed/v1, note, url, listings: [] }`. |
 | 404 (not feeds) | `/bounties/api` `/bounties/feed` `/api/bounties` `/bounties/feed.json`. Do not invent these. |
 | `bounties/feed.json` + root `bounties.json` | Same v1 schema on Pages. Two **unfunded** seed rows (`payTo: null`, `payoutStatus: "not_implemented"`). Live Worker correctly shows none. |
@@ -24,7 +24,7 @@ Measured Sun 2026-08-30 ~12:00 AM PT. One feed. Empty `listings` is honest, not 
 | GitHub issue workflow | `.github/ISSUE_TEMPLATE/bounty-project.yml`. Zero open `bounty-project` issues today. |
 | Watch fixture | Live shape (`listings`). Counts `listings` then `items`. Page fixture uses recommended empty copy, not the leftover lecture. |
 
-**Leftover lecture (Worker-ahead copy):** live HTML still says “Open-source contributions need no wallet, holder status, or Simp Points.” That is leftover. This PR does not wrangler-deploy. If we touch presentation here, the empty line is **No funded bounties right now.** Keep USDC + we don't hold it + the first-issue link. Do not paste the lecture back.
+**Leftover lecture:** measured Sun 2026-08-30 ~1:15 AM PT, live `/bounties` no longer carries “Open-source contributions need no wallet, holder status, or Simp Points.” Worker already patched. Empty line is **No funded bounties right now.** Keep USDC + we don't hold it + the first-issue link. Do not paste the lecture back. This repo still does not wrangler-deploy.
 
 **Hypothesis held:** live `/bounties` is a read-only listing. Commons **adapts** `dasha-bounties-feed/v1`. It does not fork a second board or a second URL.
 
@@ -111,7 +111,7 @@ Out of this PR: live Worker deploy, Community Starter Kit, Helius integration, P
 
 ## Pocket (#45)
 
-**Separate repo.** This tree is static pastes, Watch, Compute source, and schemas. Solana Mobile (MWA + Seed Vault) needs Android Gradle, Play signing, and Seeker hardware. Putting that toolchain in dasha-desk would drag mobile CI onto every mint/docs PR. A workspace package is still the same repo tax. Ship `Uuriko/dasha-pocket` (or similar) that vendors or depends on `commons/` and reads the public feed. Do not wrap getdasha.com in a WebView.
+**Separate repo: [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket).** This tree is static pastes, Watch, Compute source, and schemas. Solana Mobile (MWA + Seed Vault) needs Android Gradle, Play signing, and Seeker hardware. Putting that toolchain here would tax every mint/docs PR. Do not wrap getdasha.com in a WebView. See [POCKET.md](POCKET.md).
 
 ## Faucet / rewards seam (inspect only)
 

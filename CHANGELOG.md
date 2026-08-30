@@ -2,6 +2,7 @@
 
 ## v0.1.1 — unreleased (main)
 
+- **Pocket spike:** [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket) holds the Android seed. This repo documents the boundary (`docs/commons/POCKET.md`). Verify does not build Gradle.
 - **Commons consume:** other Solana projects import `commons/` leaf files. Adapter is optional. See `docs/commons/CONSUME.md`.
 - **Activity Tape:** created / funded / submitted / selected / paid / cancelled on `/bounties`. Commons events, not `/digest`. Dedupe by idempotency key. No Helius SDK.
 - **Signed bounty loop:** create → fund → submit → select → pay on this-device board rows. Simulated tx port for CI. Wallet only on Fund/Pay. No escrow. Live feed unchanged.
