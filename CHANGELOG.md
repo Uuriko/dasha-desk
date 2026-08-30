@@ -2,6 +2,7 @@
 
 ## v0.1.1 — unreleased (main)
 
+- **External community:** hostable `commons.bounty-feed/v1` fixture (`harbor`) runs create → fund → submit → select → pay → tape with leaf imports only. Not a live community on www. See `docs/commons/EXTERNAL.md`.
 - **Pocket spike:** [Uuriko/dasha-pocket](https://github.com/Uuriko/dasha-pocket) holds the Android seed. This repo documents the boundary (`docs/commons/POCKET.md`). Verify does not build Gradle.
 - **Commons consume:** other Solana projects import `commons/` leaf files. Adapter is optional. See `docs/commons/CONSUME.md`.
 - **Activity Tape:** created / funded / submitted / selected / paid / cancelled on `/bounties`. Commons events, not `/digest`. Dedupe by idempotency key. No Helius SDK.

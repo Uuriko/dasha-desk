@@ -1,0 +1,50 @@
+{
+  "name": "Harbor bounties",
+  "schema": "commons.bounty-feed/v1",
+  "schemaVersion": 1,
+  "note": "USDC on Solana. We don't hold it.",
+  "url": "https://harbor.example/bounties.json",
+  "community": "harbor",
+  "generatedAt": "2026-08-30T00:00:00.000Z",
+  "bounties": [
+    {
+      "schema": "commons.bounty/v1",
+      "schemaVersion": 1,
+      "id": "harbor-1",
+      "title": "25 USDC bounty",
+      "description": "Write the install note",
+      "creator": {
+        "kind": "wallet",
+        "id": "9ZnB2sP8kL4mQ7vR3tW6yC1nH5jF0dA8eG2uX4iJ7kM",
+        "wallet": "9ZnB2sP8kL4mQ7vR3tW6yC1nH5jF0dA8eG2uX4iJ7kM",
+        "handle": "mina"
+      },
+      "creatorWallet": "9ZnB2sP8kL4mQ7vR3tW6yC1nH5jF0dA8eG2uX4iJ7kM",
+      "reward": {
+        "asset": "spl",
+        "symbol": "USDC",
+        "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "amount": "25",
+        "chain": "solana"
+      },
+      "funding": { "state": "unfunded", "tx": null },
+      "createdAt": "2026-08-30T00:00:00.000Z",
+      "deadline": "2026-09-30T00:00:00.000Z",
+      "rules": { "eligibility": "", "submissionFormat": "url", "text": "" },
+      "submissions": [],
+      "winners": [],
+      "selectedAt": null,
+      "settlement": { "state": "none", "tx": null },
+      "cancellation": { "state": "none", "reason": null, "at": null },
+      "refund": { "state": "none", "tx": null, "reason": null },
+      "history": [],
+      "seenEventIds": [],
+      "state": "open",
+      "source": {
+        "kind": "app",
+        "community": "harbor",
+        "ref": "https://harbor.example/bounties/1"
+      }
+    }
+  ]
+}

@@ -105,9 +105,11 @@ Signed loop (PR #49): `commons/loop.mjs` + `commons/tx.mjs` walk create → fund
 
 Activity Tape (PR #50): human kinds only — created, funded, submitted, selected, paid, cancelled — from the existing event model. Stable ids + idempotency. Chain-observed vs app-generated. Lives on `/bounties`, not `/digest`. Observers later call `eventFromWebhook`. No Helius SDK.
 
-Consume (this follow-up): one folder. Import `schema.mjs` + `machine.mjs` + `loop.mjs` + `tape.mjs`. `adapter.mjs` is the getdasha profile and is optional. See [CONSUME.md](CONSUME.md). No npm workspace. No `exports` map — this repo does not have that pattern.
+Consume: one folder. Import `schema.mjs` + `machine.mjs` + `loop.mjs` + `tape.mjs`. `adapter.mjs` is the getdasha profile and is optional. See [CONSUME.md](CONSUME.md). No npm workspace. No `exports` map — this repo does not have that pattern.
 
-Out of this PR: live Worker deploy, Community Starter Kit, Helius integration, Pocket app, faucet rewrite, a real wallet adapter.
+External community (this follow-up): a hostable `commons.bounty-feed/v1` fixture (`harbor`) walks discover → fund → submit → select → pay → tape with leaf imports only. Not mounted on www. Empty `bounties` is honest. See [EXTERNAL.md](EXTERNAL.md).
+
+Out of this PR: live Worker deploy, Community Starter Kit, Helius integration, a live external community, faucet rewrite, a real wallet adapter.
 
 ## Pocket (#45)
 
