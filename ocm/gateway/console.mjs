@@ -306,7 +306,11 @@ provider never appears.</div>
 <h2>2 · Install the agent</h2>
 <pre>curl -fsSL https://${esc(apiHost)}/install.sh -o install.sh
 less install.sh          # read it before running it
-sudo OCM_HOST_TOKEN="ocm_host_…" sh install.sh</pre>
+sudo OCM_HOST_TOKEN="ocm_host_…" OCM_AGENT_ID="my-mac" sh install.sh</pre>
+<p class="muted"><code>OCM_AGENT_ID</code> is the name your machine registers under.
+It is optional and defaults to the hostname — but set it, and keep it the same on
+every reinstall. A machine that comes back under a different name registers as a
+<em>second</em> provider rather than recovering the one you already had.</p>
 <p class="muted">The installer checks your token against the gateway <em>before</em> it
 installs anything, so a token that would be refused fails here with the reason rather
 than after the fact. It then refuses to run on an Intel Mac, sets up an isolated

@@ -691,6 +691,8 @@ test('the provider guide is private and warns about plaintext prompts', async ()
       'the guide must give a supported way to rotate a token');
     assert.match(html, /Do not edit/i,
       'the guide must warn against hand-editing the run wrapper');
+    assert.match(html, /OCM_AGENT_ID/,
+      'the guide must name the identity variable, or a reinstall silently registers a second host');
   } finally { await gw.close(); }
 });
 
