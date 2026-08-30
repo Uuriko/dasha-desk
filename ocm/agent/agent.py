@@ -47,6 +47,37 @@ def _http_json(url, payload=None, timeout=30):
         return json.load(r)
 
 
+def _http_base():
+    """The HTTPS origin matching the WebSocket gateway URL."""
+    return GATEWAY_URL.rstrip("/").replace("wss://", "https://").replace("ws://", "http://")
+
+
+def verify_token(timeout=15):
+    """Ask the gateway whether this provider token is usable.
+
+    Returns (ok, message). A wrong token is the single most common reason a new
+    provider never appears, and until this existed the only symptom was a 401 on
+    the socket that looks exactly like the gateway being down.
+    """
+    if not HOST_TOKEN or HOST_TOKEN == "host-dev-token":
+        return False, "OCM_HOST_TOKEN is not set — put your provider token in /etc/ocm/agent.env"
+    req = urllib.request.Request(
+        f"{_http_base()}/v1/provider/verify",
+        headers={"Authorization": f"Bearer {HOST_TOKEN}"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            body = json.load(r)
+        return True, f"accepted for {body.get('email') or body.get('account_id')}"
+    except urllib.error.HTTPError as exc:
+        try:
+            detail = json.load(exc)["error"]["message"]
+        except Exception:                    # noqa: BLE001
+            detail = f"HTTP {exc.code}"
+        return False, detail
+    except Exception as exc:                 # noqa: BLE001
+        return False, f"could not reach {_http_base()}: {exc}"
+
+
 def capabilities(models):
     """The record advertised at handshake (PDF §03 step 4)."""
     mem = 0
@@ -290,12 +321,29 @@ async def session():
 async def forever():
     """Reconnect with exponential backoff and jitter. Dropping is expected."""
     delay = 1.0
+    complained = False
     while True:
         try:
             await session()
             delay = 1.0                      # a clean close is not a failure
+            complained = False
         except Exception as exc:             # noqa: BLE001
-            print(f"disconnected: {exc}; retrying in {delay:.1f}s", file=sys.stderr, flush=True)
+            # A 401 will never fix itself by waiting, so it must not be logged
+            # like a dropped socket. Retrying is still right — the operator may
+            # fix the token underneath us — but the log has to say what is wrong.
+            if "401" in str(exc):
+                if not complained:
+                    good, detail = verify_token()
+                    print(f"REFUSED BY GATEWAY: {detail}", file=sys.stderr, flush=True)
+                    print("  This is a credential problem, not a network problem. "
+                          "Retrying will not fix it.", file=sys.stderr, flush=True)
+                    print("  Fix: sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_...'  "
+                          "(issue one in the console under New provider token)",
+                          file=sys.stderr, flush=True)
+                    complained = True
+                delay = MAX_BACKOFF
+            else:
+                print(f"disconnected: {exc}; retrying in {delay:.1f}s", file=sys.stderr, flush=True)
             await asyncio.sleep(delay + random.uniform(0, delay * 0.3))
             delay = min(delay * 2, MAX_BACKOFF)
 
@@ -314,6 +362,16 @@ def doctor():
     if caps["arch"] != "arm64":
         print("          note: not Apple Silicon — MLX is unavailable on this machine")
     print(f"gateway   {GATEWAY_URL}")
+    # The check that matters. A local runtime that works proves nothing about
+    # whether this machine is allowed to join the network.
+    good, detail = verify_token()
+    print(f"token     {'ok — ' + detail if good else 'FAIL ' + detail}")
+    if not good:
+        print()
+        print("          Fix: issue a provider token in the console under")
+        print("          New provider token, then:")
+        print("            sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_…'")
+        ok = False
     return 0 if ok else 1
 
 

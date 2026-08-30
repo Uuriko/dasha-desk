@@ -178,10 +178,6 @@ export async function createGateway({
       const onConsole = reqHost === consoleHost.toLowerCase() || url.pathname.startsWith('/console');
       const consolePath = url.pathname.replace(/^\/console/, '') || '/';
 
-      if (req.method === 'GET' && url.pathname === '/console/stats.json') {
-        return json(res, 200, await stats(registry, ledger));
-      }
-
       if (onConsole) {
         // A session is only as valid as the credential that opened it: revoking a
         // key must sign out its browser session too, or "revoked" means one thing
@@ -204,6 +200,24 @@ export async function createGateway({
                 error: url.searchParams.get('error') }))
             : html(res, 200, renderLanding({ inviteRequired: !!inviteCode,
                 error: url.searchParams.get('error') }));
+        }
+
+        // Counters. This used to be open, and returned every account id with its
+        // balance, the host->owner mapping, and a rolling per-job log naming which
+        // consumer ran which model where — cross-account activity telemetry to
+        // anyone with the URL. It is now session-gated and scoped: an admin sees
+        // the network, and everyone else sees their own usage against anonymous
+        // hosts. `/v1/network` remains public, but carries no account identity.
+        if (req.method === 'GET' && consolePath === '/stats.json') {
+          if (!account) return apiError(res, 401, 'sign in to read stats', 'authentication_error');
+          const full = await stats(registry, ledger);
+          if (isAdmin(account)) return json(res, 200, full);
+          return json(res, 200, {
+            hosts: full.hosts.map(({ accountId, ...h }) => ({ ...h, mine: accountId === account.id })),
+            consumers: full.consumers.filter((c) => c.consumer === account.id),
+            totals: full.totals,
+            recent: full.recent.filter((r) => r.consumer === account.id),
+          });
         }
 
         if (req.method === 'GET' && consolePath === '/provider') {
@@ -363,6 +377,29 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
           object: 'list',
           data: registry.models().map((id) => ({ id, object: 'model', owned_by: 'ocm' })),
         });
+      }
+      // Check a provider token WITHOUT opening a socket. The installer and the
+      // agent's --doctor both call this: before it existed, the only way to learn
+      // that a token was wrong was a silent 401 on the WebSocket upgrade, which
+      // reads identically to a network fault and sent people editing files by hand.
+      if (req.method === 'GET' && url.pathname === '/v1/provider/verify') {
+        const presented = bearer(req) || url.searchParams.get('token') || '';
+        if (!presented) {
+          return apiError(res, 401, 'no provider token presented — set OCM_HOST_TOKEN', 'authentication_error');
+        }
+        if (/^ocm_live_/.test(presented)) {
+          return apiError(res, 401,
+            'that is a developer key, not a provider token. Provider tokens start with ocm_host_ and are issued from the console under New provider token.',
+            'authentication_error');
+        }
+        const found = await accounts.resolve(presented, 'provider_token');
+        if (!found) {
+          return apiError(res, 401,
+            'this provider token is not recognised — it may have been revoked, or issued against a different deployment. Issue a new one from the console.',
+            'authentication_error');
+        }
+        const acct = await accounts.accountFor(found.accountId);
+        return json(res, 200, { ok: true, account_id: found.accountId, email: acct ? acct.email : null });
       }
       if (req.method === 'GET' && url.pathname === '/v1/network') {
         return json(res, 200, {

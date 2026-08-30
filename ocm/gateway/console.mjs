@@ -290,30 +290,73 @@ export function renderProviderGuide({ account, apiHost, models, admin = false })
 <p class="sub">Contribute an Apple Silicon Mac and earn credits for the tokens it serves.</p>
 
 <div class="note">Requires Apple Silicon (M1 or later) and macOS 14+. An Intel Mac
-cannot run MLX and will not work. The agent holds one <em>outbound</em> connection —
-no inbound ports, no router configuration.</div>
+cannot run MLX and the installer will refuse. The agent holds one <em>outbound</em>
+connection — no inbound ports, no router configuration.</div>
 
 <h2>1 · Issue a provider token</h2>
-<p class="muted">On the <a href="/">console</a>, issue a provider token and copy it.</p>
+<p class="muted">On the <a href="/">console</a>, under <strong>New provider token</strong>,
+issue a token and copy it. It is shown once.</p>
+<div class="note warn"><strong>A developer key is not a provider token.</strong>
+A provider token starts <code>ocm_host_</code> and authorises a machine to join the
+network. A developer key starts <code>ocm_live_</code> and authorises API calls. They
+are not interchangeable in either direction — a developer key in
+<code>OCM_HOST_TOKEN</code> is refused, and it is the most common reason a new
+provider never appears.</div>
 
 <h2>2 · Install the agent</h2>
 <pre>curl -fsSL https://${esc(apiHost)}/install.sh -o install.sh
 less install.sh          # read it before running it
 sudo OCM_HOST_TOKEN="ocm_host_…" sh install.sh</pre>
-<p class="muted">The installer refuses to run on an Intel Mac, sets up an isolated
-runtime with <code>uv</code>, stores your token root-only rather than in the plist,
-runs a preflight check before connecting, and installs a <code>launchd</code> daemon
-so the agent survives reboot. It prints the uninstall command when it finishes.</p>
+<p class="muted">The installer checks your token against the gateway <em>before</em> it
+installs anything, so a token that would be refused fails here with the reason rather
+than after the fact. It then refuses to run on an Intel Mac, sets up an isolated
+runtime with <code>uv</code>, stores your token root-only in
+<code>/etc/ocm/agent.env</code> rather than in the plist, and installs a
+<code>launchd</code> daemon so the agent survives reboot. It prints the uninstall
+command when it finishes.</p>
 <p class="muted">Piping an unread script into a shell is a bad habit — the
 <code>less</code> line is there because it is worth the thirty seconds.</p>
 
 <h2>3 · Confirm it connected</h2>
-<pre>launchctl print system/com.ocm.agent   # status
-tail -f /var/log/ocm-agent.log        # logs
-curl https://${esc(apiHost)}/v1/network</pre>
-<p class="muted">Your Mac should appear within a few seconds, and on the console under
-<strong>Your providers</strong>. The agent reconnects on its own — dropped sockets are
-expected, not exceptional.</p>
+<pre>sudo /opt/ocm/bin/ocm-agent-run --doctor   # runtime, hardware, and token
+tail -f /var/log/ocm-agent.log             # logs
+launchctl print system/com.ocm.agent       # daemon status</pre>
+<p class="muted">Your Mac should appear within a few seconds, on the <a href="/">console</a>
+under <strong>Your providers</strong>. The agent reconnects on its own — dropped
+sockets are expected, not exceptional.</p>
+
+<h2>Changing the token later</h2>
+<pre>sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_…'</pre>
+<p class="muted">This verifies the new token, writes it to
+<code>/etc/ocm/agent.env</code>, and restarts the agent. If the gateway refuses it,
+nothing is changed.</p>
+<div class="note warn"><strong>Do not edit <code>/opt/ocm/bin/ocm-agent-run</code>.</strong>
+That file is a wrapper, it is regenerated on every reinstall, and it is not where the
+token lives. Hand-editing it has already cost one provider a day of downtime.</div>
+
+<h2>When it will not connect</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>What you see</th><th>What it means</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td><code>REFUSED BY GATEWAY</code></td>
+    <td>The token is wrong, revoked, or was never issued here.</td>
+    <td>Issue a new one, then <code>ocm-agent-token</code>.</td></tr>
+<tr><td><code>a developer key, not a provider token</code></td>
+    <td>An <code>ocm_live_</code> key is in <code>OCM_HOST_TOKEN</code>.</td>
+    <td>Issue a <em>provider</em> token instead.</td></tr>
+<tr><td><code>disconnected: … retrying</code></td>
+    <td>Ordinary socket churn, or the gateway restarting.</td>
+    <td>Nothing — it reconnects itself.</td></tr>
+<tr><td>Connected, but not listed</td>
+    <td>The agent authenticated but reported no models.</td>
+    <td><code>--doctor</code> names the runtime problem.</td></tr>
+<tr><td><code>404</code> on <code>/host/connect</code></td>
+    <td>A plain request; that path only answers WebSocket upgrades.</td>
+    <td>Expected. Use <code>--doctor</code> to test.</td></tr>
+</tbody></table></div>
+<p class="muted" style="margin-top:12px">The backoff climbs to 60s, so after fixing a
+token you could wait a minute — <code>ocm-agent-token</code> restarts the agent
+immediately and skips the wait.</p>
 
 <h2>What it will run</h2>
 <p class="muted">${models.length ? models.map(esc).join(', ') : 'No models are currently served.'}</p>

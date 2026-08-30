@@ -28,6 +28,18 @@ die() { printf '\nerror: %s\n' "$1" >&2; exit 1; }
 [ "$(id -u)" = "0" ] || die "run with sudo: the launchd daemon and /etc/ocm need root"
 [ -n "${OCM_HOST_TOKEN:-}" ] || die "set OCM_HOST_TOKEN to the provider token from your console"
 
+# Check the credential BEFORE installing anything. A token that the gateway will
+# refuse used to install cleanly and then fail forever on the socket, where a 401
+# is indistinguishable from the gateway being down. Fail here instead, with the
+# reason, while the person is still watching the terminal.
+printf 'checking your provider token …\n'
+VERIFY=$(curl -fsS -H "Authorization: Bearer $OCM_HOST_TOKEN" "$SOURCE/v1/provider/verify" 2>/dev/null) || {
+  REASON=$(curl -sS -H "Authorization: Bearer $OCM_HOST_TOKEN" "$SOURCE/v1/provider/verify" 2>/dev/null \
+           | sed -n 's/.*"message":"\([^"]*\)".*/\1/p')
+  die "${REASON:-could not reach $SOURCE to check the token}"
+}
+printf '  token accepted\n'
+
 printf 'OCM provider install\n  host    %s (%s)\n  gateway %s\n\n' \
   "$AGENT_ID" "$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo mac)" "$GATEWAY"
 
@@ -57,9 +69,44 @@ cat > "$PREFIX/bin/ocm-agent-run" <<RUN
 export PATH=/usr/local/bin:/var/root/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 export HOME=/var/root
 set -a; . /etc/ocm/agent.env; set +a
-exec "$UV" run --quiet --python 3.12 $PREFIX/agent/agent.py
+exec "$UV" run --quiet --python 3.12 $PREFIX/agent/agent.py "$@"
 RUN
 chmod +x "$PREFIX/bin/ocm-agent-run"
+
+# Rotating a token had no supported path, so people edited ocm-agent-run by hand —
+# which silently breaks the daemon, because that file is regenerated on reinstall
+# and is not where the token lives. This is the one command that does it correctly.
+cat > "$PREFIX/bin/ocm-agent-token" <<'TOK'
+#!/bin/sh
+# Replace this machine's provider token and restart the agent.
+#   sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_...'
+#
+# Use this rather than editing any file by hand: the token lives in
+# /etc/ocm/agent.env, and ocm-agent-run is regenerated on every reinstall.
+set -eu
+[ "$(id -u)" = "0" ] || { echo "run with sudo" >&2; exit 1; }
+[ $# -eq 1 ] || { echo "usage: ocm-agent-token 'ocm_host_...'" >&2; exit 1; }
+BASE=$(sed -n 's|^OCM_GATEWAY_URL=||p' /etc/ocm/agent.env | sed 's|^wss://|https://|; s|^ws://|http://|')
+[ -n "$BASE" ] || BASE=https://api.ocm.getdasha.com
+printf 'checking token ...\n'
+if ! curl -fsS -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" >/dev/null 2>&1; then
+  curl -sS -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" 2>/dev/null \
+    | sed -n 's/.*"message":"\([^"]*\)".*/error: \1/p' >&2
+  echo "nothing was changed" >&2
+  exit 1
+fi
+umask 077
+TMP=$(mktemp)
+grep -v '^OCM_HOST_TOKEN=' /etc/ocm/agent.env > "$TMP" || true
+printf 'OCM_HOST_TOKEN=%s\n' "$1" >> "$TMP"
+cat "$TMP" > /etc/ocm/agent.env
+rm -f "$TMP"
+chmod 600 /etc/ocm/agent.env
+launchctl kickstart -k system/com.ocm.agent
+echo "token accepted, written, and agent restarted."
+echo "watch it connect:  tail -f /var/log/ocm-agent.log"
+TOK
+chmod +x "$PREFIX/bin/ocm-agent-token"
 
 printf 'checking the local chain …\n'
 set -a; . /etc/ocm/agent.env; set +a
@@ -91,6 +138,8 @@ installed.
 
   status   launchctl print system/com.ocm.agent
   logs     tail -f /var/log/ocm-agent.log
+  check    sudo $PREFIX/bin/ocm-agent-run --doctor
+  rotate   sudo $PREFIX/bin/ocm-agent-token 'ocm_host_…'
   stop     sudo launchctl bootout system/com.ocm.agent
   remove   sudo launchctl bootout system/com.ocm.agent; sudo rm -rf $PREFIX /etc/ocm \\
              /Library/LaunchDaemons/com.ocm.agent.plist

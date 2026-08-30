@@ -245,11 +245,66 @@ test('the console is anonymous-safe and stats reflect real state', async () => {
       'the console must not overstate privacy');
     assert.doesNotMatch(html, /undefined|NaN/, 'template holes leaked into the page');
 
-    const s = await (await fetch(`${gw.base}/console/stats.json`)).json();
-    assert.equal(s.hosts.length, 1);
-    assert.equal(s.totals.requests, 1);
-    assert.ok(s.totals.completion_tokens > 0);
-    assert.equal(s.consumers[0].consumer, 'test-dev');
+    // Counters are not public. They used to be, and carried every account id with
+    // its balance plus a per-job log naming consumer, host and model.
+    const anon = await fetch(`${gw.base}/console/stats.json`);
+    assert.equal(anon.status, 401, 'stats must not be readable without a session');
+    const body = await anon.text();
+    assert.doesNotMatch(body, /test-dev|console-host/, 'the refusal must not leak the data');
+  } finally { await gw.close(); }
+});
+
+test('stats.json is scoped: admins see the network, others see only themselves', async () => {
+  const gw = await startConsole({ adminEmails: 'boss@dev.io' });
+  try {
+    const mk = async (email) => {
+      const r = await form(gw, '/signup', { email, invite: 'potter' });
+      return r.headers.get('set-cookie').split(';')[0];
+    };
+    const bossCookie = await mk('boss@dev.io');
+    const userCookie = await mk('user@dev.io');
+    const get = async (cookie) =>
+      (await fetch(`${gw.base}/console/stats.json`, { headers: { cookie } })).json();
+
+    const asAdmin = await get(bossCookie);
+    assert.ok(asAdmin.consumers.length >= 2, 'an admin sees every consumer');
+
+    const asUser = await get(userCookie);
+    assert.ok(asUser.consumers.length <= 1, 'a normal user sees at most their own row');
+    assert.ok(!/boss@dev\.io/.test(JSON.stringify(asUser)), 'no other account may appear');
+    assert.ok(asUser.hosts.every((h) => !('accountId' in h)),
+      'host ownership must not be exposed to a non-admin');
+  } finally { await gw.close(); }
+});
+
+test('a provider token can be verified before install, with a reason when it fails', async () => {
+  const gw = await startGatewayWithAdmin();
+  try {
+    const acct = await (await admin(gw, '/admin/accounts', { email: 'v@r.o' })).json();
+    const tok = await (await admin(gw, '/admin/credentials',
+      { account_id: acct.id, kind: 'provider_token', label: 'air' })).json();
+    const key = await (await admin(gw, '/admin/credentials',
+      { account_id: acct.id, kind: 'developer_key', label: 'laptop' })).json();
+
+    const verify = (t) => fetch(`${gw.base}/v1/provider/verify`,
+      { headers: t ? { authorization: `Bearer ${t}` } : {} });
+
+    const good = await verify(tok.secret);
+    assert.equal(good.status, 200);
+    assert.equal((await good.json()).email, 'v@r.o');
+
+    // Each failure must say which mistake was made, not merely "401".
+    const asKey = await verify(key.secret);
+    assert.equal(asKey.status, 401);
+    assert.match((await asKey.json()).error.message, /developer key, not a provider token/);
+
+    const unknown = await verify('ocm_host_not_a_real_token');
+    assert.equal(unknown.status, 401);
+    assert.match((await unknown.json()).error.message, /not recognised/);
+
+    const none = await verify(null);
+    assert.equal(none.status, 401);
+    assert.match((await none.json()).error.message, /OCM_HOST_TOKEN/);
   } finally { await gw.close(); }
 });
 
@@ -625,6 +680,16 @@ test('the provider guide is private and warns about plaintext prompts', async ()
     assert.match(html, /plaintext/i, 'providers must be told they can see prompts');
     assert.match(html, /Apple Silicon/, 'the hardware requirement must be stated');
     assert.match(html, /no inbound ports/i);
+
+    // The instructions have to carry the two facts that actually cost downtime:
+    // which credential to use, and how to change it without editing files.
+    assert.match(html, /ocm_host_/, 'the guide must name the provider token prefix');
+    assert.match(html, /developer key is not a provider token/i,
+      'the guide must distinguish the two credentials');
+    assert.match(html, /ocm-agent-token/,
+      'the guide must give a supported way to rotate a token');
+    assert.match(html, /Do not edit/i,
+      'the guide must warn against hand-editing the run wrapper');
   } finally { await gw.close(); }
 });
 
