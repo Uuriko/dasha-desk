@@ -2,6 +2,7 @@
 
 ## v0.1.1 — unreleased (main)
 
+- **Commons consume:** other Solana projects import `commons/` leaf files. Adapter is optional. See `docs/commons/CONSUME.md`.
 - **Activity Tape:** created / funded / submitted / selected / paid / cancelled on `/bounties`. Commons events, not `/digest`. Dedupe by idempotency key. No Helius SDK.
 - **Signed bounty loop:** create → fund → submit → select → pay on this-device board rows. Simulated tx port for CI. Wallet only on Fund/Pay. No escrow. Live feed unchanged.
 - **Commons bounty schemas:** token-agnostic records + state machine in `commons/`, adapter for `dasha-bounties-feed/v1`. Existing seed JSON and `/bounties` URLs unchanged. Live Worker still owns www. See `docs/commons/ARCHITECTURE.md`.

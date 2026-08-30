@@ -1,0 +1,39 @@
+{
+  "schema": "commons.bounty/v1",
+  "schemaVersion": 1,
+  "id": "example-7",
+  "title": "25 USDC bounty",
+  "description": "Fix the README screenshot",
+  "creator": {
+    "kind": "wallet",
+    "id": "DwpCrg5qfCMW11a9FYFsAR9ZYQUYKNhfLdnzpci7sYgb",
+    "wallet": "DwpCrg5qfCMW11a9FYFsAR9ZYQUYKNhfLdnzpci7sYgb",
+    "handle": "ada"
+  },
+  "creatorWallet": "DwpCrg5qfCMW11a9FYFsAR9ZYQUYKNhfLdnzpci7sYgb",
+  "reward": {
+    "asset": "spl",
+    "symbol": "USDC",
+    "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "amount": "25",
+    "chain": "solana"
+  },
+  "funding": { "state": "unfunded", "tx": null },
+  "createdAt": "2026-08-30T00:00:00.000Z",
+  "deadline": "2026-09-30T00:00:00.000Z",
+  "rules": { "eligibility": "", "submissionFormat": "url", "text": "" },
+  "submissions": [],
+  "winners": [],
+  "selectedAt": null,
+  "settlement": { "state": "none", "tx": null },
+  "cancellation": { "state": "none", "reason": null, "at": null },
+  "refund": { "state": "none", "tx": null, "reason": null },
+  "history": [],
+  "seenEventIds": [],
+  "state": "open",
+  "source": {
+    "kind": "app",
+    "community": "example-community",
+    "ref": "https://example.com/bounties/7"
+  }
+}

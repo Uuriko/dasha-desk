@@ -6,7 +6,7 @@
  * unfunded | declared | funded | selected | paid | cancelled | failed
  */
 import { apply, createBounty } from './machine.mjs';
-import { USDC_MINT } from './adapter.mjs';
+import { USDC_MINT } from './schema.mjs';
 import { makeEvent } from './tape.mjs';
 export { ingestTape, tapeFromBounties, eventsFromBounty, renderTapeLine, eventFromWebhook } from './tape.mjs';
 import { nowIso } from './schema.mjs';
@@ -75,6 +75,7 @@ export function createOpenBounty({
   creatorWallet = null,
   deadline = null,
   createdAt,
+  source,
 } = {}) {
   const wallet = creatorWallet || (creator && creator.wallet) || null;
   const ident = creator || { kind: wallet ? 'wallet' : 'opaque', id: wallet || id, wallet, handle: null };
@@ -86,7 +87,11 @@ export function createOpenBounty({
     reward: { asset: 'spl', symbol, mint, amount: String(amount), chain: 'solana' },
     createdAt,
     deadline,
-    source: { kind: 'local', community: null, ref: null },
+    source: {
+      kind: (source && source.kind) || 'local',
+      community: (source && source.community) || null,
+      ref: (source && source.ref) || null,
+    },
   });
   const published = apply(bounty, ev('publish', bounty.id, { idempotencyKey: `publish:${bounty.id}` }));
   if (!published.ok) throw new Error(published.error);

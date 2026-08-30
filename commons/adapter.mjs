@@ -3,10 +3,11 @@
  * Existing URLs, feeds, GitHub issue listings, and read-only consumers stay intact.
  * This file is the getdasha profile. Canonical objects themselves stay unbranded.
  */
-import { BOUNTY_SCHEMA, FEED_SCHEMA, SCHEMA_VERSION, emptyCancellation, emptyRefund, emptyRules, emptySettlement } from './schema.mjs';
+import { BOUNTY_SCHEMA, FEED_SCHEMA, SCHEMA_VERSION, USDC_MINT, emptyCancellation, emptyRefund, emptyRules, emptySettlement } from './schema.mjs';
+
+export { USDC_MINT };
 
 export const LEGACY_FEED_SCHEMA = 'dasha-bounties-feed/v1';
-export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 export const DASHA_BOARD_URL = 'https://www.getdasha.com/bounties';
 export const LIVE_FEED_URL = 'https://www.getdasha.com/bounties.json';
 /** Measured 2026-08-30 ~12:00 AM PT. These are not feeds. Do not invent them. */

@@ -1,6 +1,5 @@
 /**
- * Token-agnostic Commons schemas. No getdasha branding in required fields.
- * $DASHA is a reference community, not a schema requirement.
+ * Token-agnostic Commons schemas. No community brand in required fields.
  *
  * Trust model v1 (do not hide this):
  *   creator funds bounty → participants submit work/proof →
@@ -8,6 +7,9 @@
  * No DAO, disputes, oracles, reputation, or escrow in v1.
  * Prefer user-signed settlement. This module never holds keys.
  */
+
+/** Well-known USDC mint on Solana. Optional convenience — not a schema requirement. */
+export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 export const BOUNTY_SCHEMA = 'commons.bounty/v1';
 export const SUBMISSION_SCHEMA = 'commons.submission/v1';
 export const EVENT_SCHEMA = 'commons.event/v1';
