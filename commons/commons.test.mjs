@@ -14,6 +14,9 @@ import {
   USDC_MINT,
   apply,
   canTransition,
+  LIVE_EMPTY_FEED,
+  LIVE_FEED_NOT_FOUND,
+  LIVE_FEED_URL,
   consumeDashaFeed,
   createBounty,
   dedupeEvents,
@@ -297,9 +300,19 @@ assert.deepEqual(STATES, [
   const feed = JSON.parse(read('bounties/feed.json'));
   const rootFeed = JSON.parse(read('bounties.json'));
   const seed = JSON.parse(read('config/bounties.seed.json'));
-  const live = { name: 'dasha bounties', schema: LEGACY_FEED_SCHEMA, note: "USDC on Solana. We don't hold it.", url: 'https://www.getdasha.com/bounties', listings: [] };
+  const live = JSON.parse(read('commons/fixtures/live-bounties.json'));
   const watchLegacy = { schema: LEGACY_FEED_SCHEMA, items: [] };
   const watchNow = JSON.parse(read('fixtures/watch/bounties.json'));
+  assert.deepEqual(live, { ...LIVE_EMPTY_FEED, listings: [] });
+  assert.deepEqual(live.listings, []);
+  assert.equal(LIVE_FEED_URL, 'https://www.getdasha.com/bounties.json');
+  assert.deepEqual(LIVE_FEED_NOT_FOUND, [
+    'https://www.getdasha.com/bounties/api',
+    'https://www.getdasha.com/bounties/feed',
+    'https://www.getdasha.com/api/bounties',
+    'https://www.getdasha.com/bounties/feed.json',
+  ]);
+  assert.ok(!('items' in live) && !('bounties' in live), 'live feed is listings-only; do not invent a second key');
 
   assert.deepEqual(feed, rootFeed);
   assert.deepEqual(feed.listings, seed.listings);
@@ -317,9 +330,11 @@ assert.deepEqual(STATES, [
   assert.doesNotMatch(fromPages.bounties[0].schema, /dasha/);
 
   const fromLive = consumeDashaFeed(live);
-  assert.equal(fromLive.bounties.length, 0);
-  assert.deepEqual(emitDashaFeed(fromLive).listings, []);
+  assert.equal(fromLive.bounties.length, 0, 'empty listings is honest, not a parse failure');
+  assert.deepEqual(emitDashaFeed(fromLive), live);
   assert.equal(emitDashaFeed(fromLive).schema, LEGACY_FEED_SCHEMA);
+  assert.ok(!('items' in emitDashaFeed(fromLive)));
+  assert.ok(!('bounties' in emitDashaFeed(fromLive)));
 
   const fromItems = fromLegacyFeed(watchLegacy);
   assert.equal(fromItems.bounties.length, 0);

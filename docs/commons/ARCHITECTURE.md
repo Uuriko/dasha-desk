@@ -1,4 +1,4 @@
-# Commons architecture (inspected 2026-08-30)
+# Commons architecture (measured 2026-08-30 ~12:00 AM PT)
 
 Short map of production truth, this repo, and the first Commons slice. Not a novel.
 
@@ -12,16 +12,21 @@ Do not `wrangler deploy` from here. Do not Designer-publish. GitHub Pages is a m
 
 ## Bounty source of truth
 
-| Surface | What it actually is (2026-08-30) |
-| --- | --- |
-| `https://www.getdasha.com/bounties` | Worker HTML (`x-dasha-edge: bounties`). H1 Bounties. Copy: "USDC on Solana. We don’t hold it." Body: "No funded bounties right now." **Does not load** this repo's `board.js`. |
-| `https://www.getdasha.com/bounties.json` | Worker JSON (`x-dasha-edge: bounties-feed`). `schema: dasha-bounties-feed/v1`, `listings: []`. |
-| `bounties/feed.json` + root `bounties.json` | Same v1 schema. Two **unfunded** seed rows (`payTo: null`, `payoutStatus: "not_implemented"`). Pages still publishes them. Live Worker correctly shows none. |
-| `bounties/board.js` | Client board: GitHub issues `[bounty]` / `bounty-project`, localStorage, `#l=` share, Demigod extra feed. `canList` requires `payTo`. Pay opens a Solana Pay URL (user wallet), not an in-app connect. |
-| GitHub issue workflow | `.github/ISSUE_TEMPLATE/bounty-project.yml`. Write path is `issues/new`. Zero open `bounty-project` issues today. |
-| Watch fixture | Was `{ schema, items: [] }`. Live uses `listings`. Watch counted `items` only — now counts `listings` then `items`. |
+Measured Sun 2026-08-30 ~12:00 AM PT. One feed. Empty `listings` is honest, not a bug.
 
-**Hypothesis held:** the live Worker bounty page is a read-only listing ("We don't hold it"). This repo already had `dasha-bounties-feed/v1`. Commons **adapts** that feed. It does not fork a second board.
+| Surface | What it actually is |
+| --- | --- |
+| `GET /bounties` | **200**, `x-dasha-edge: bounties`, `text/html`, ~2438 bytes. After style/script strip: `Bounties` / `USDC on Solana. We don’t hold it.` / `Pick a good first issue` / leftover lecture (see below) / footer Home · How to buy · Privacy. No `plugin.jup.ag`. **Does not load** this repo's `board.js`. Wallet not required. |
+| `GET /bounties.json` | **200** `application/json`, `x-dasha-edge: bounties-feed`. Exact body pinned at `commons/fixtures/live-bounties.json`: `{ name, schema: dasha-bounties-feed/v1, note, url, listings: [] }`. |
+| 404 (not feeds) | `/bounties/api` `/bounties/feed` `/api/bounties` `/bounties/feed.json`. Do not invent these. |
+| `bounties/feed.json` + root `bounties.json` | Same v1 schema on Pages. Two **unfunded** seed rows (`payTo: null`, `payoutStatus: "not_implemented"`). Live Worker correctly shows none. |
+| `bounties/board.js` | Client board paste. `canList` requires `payTo`. Pay opens a Solana Pay URL. Browse stays wallet-free. |
+| GitHub issue workflow | `.github/ISSUE_TEMPLATE/bounty-project.yml`. Zero open `bounty-project` issues today. |
+| Watch fixture | Live shape (`listings`). Counts `listings` then `items`. Page fixture uses recommended empty copy, not the leftover lecture. |
+
+**Leftover lecture (Worker-ahead copy):** live HTML still says “Open-source contributions need no wallet, holder status, or Simp Points.” That is leftover. This PR does not wrangler-deploy. If we touch presentation here, the empty line is **No funded bounties right now.** Keep USDC + we don't hold it + the first-issue link. Do not paste the lecture back.
+
+**Hypothesis held:** live `/bounties` is a read-only listing. Commons **adapts** `dasha-bounties-feed/v1`. It does not fork a second board or a second URL.
 
 ## Trust model v1
 
@@ -63,12 +68,16 @@ Edit sources, then generate:
 
 CI (`.github/workflows/verify.yml`): `npm ci --ignore-scripts` + `npm test` + Studio/bounties embed `--check`. `watch.yml` hits live www. `pages.yml` mirrors `main` to uuriko.github.io. Commons tests ride `npm test`.
 
-## Conflicting PRs (open 2026-08-30)
+## Conflicting PRs (checked 2026-08-30)
 
-| PR | Overlap |
-| --- | --- |
-| [#43 accepted-work ledger](https://github.com/Uuriko/dasha-desk/pull/43) | Complementary. Maintainer-accepted GitHub PRs + reward **state**, not bounty settlement. Different schema (`dasha-accepted-work/v1`). Do not merge the two records. |
-| [#44 OCM](https://github.com/Uuriko/dasha-desk/pull/44) | Isolated under `ocm/`. No bounty files. |
+| PR | Status | Overlap |
+| --- | --- | --- |
+| [#33 Watch + live contract](https://github.com/Uuriko/dasha-desk/pull/33) | **Merged.** Already on `main`. We inherit it. Do not reopen. |
+| [#32 Worker-first OSS](https://github.com/Uuriko/dasha-desk/pull/32) | **Closed, not merged.** Do not take its `worker/` tree. This repo still does not invent a Worker. |
+| [#43 accepted-work ledger](https://github.com/Uuriko/dasha-desk/pull/43) | Open. Complementary. Maintainer-accepted GitHub PRs + reward **state**, not bounty settlement. Different schema. |
+| [#44 OCM](https://github.com/Uuriko/dasha-desk/pull/44) | Open. Isolated under `ocm/`. No bounty files. |
+
+#45 Pocket / #46 Commons / #47 micro-bounties are **one primitive**, not four products. This slice is Commons + the existing USDC feed.
 
 Remote `bounty-github-cta-honesty` has no open PR against current main.
 

@@ -32,6 +32,7 @@
   var GH_ACCEPT = 'application/vnd.github+json';
   var GH_VERSION = '2022-11-28';
   var EMPTY_OUTCOMES = 'No accepted outcomes in this cycle yet.';
+  var EMPTY_HUNT = 'No funded bounties right now.';
   var PROOF_RE =
     /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/(issues|pull)\/(\d+)(?:#(?:issuecomment-\d+|pullrequestreview-\d+|discussion_r\d+))?$/i;
   var ITEM_RE =
@@ -1114,7 +1115,7 @@
   function renderBoard(listings, filter, identity) {
     var rows = filterListings(listings, filter);
     if (!rows.length) {
-      return '';
+      return '<p class="bb-empty" role="status">' + esc(EMPTY_HUNT) + '</p>';
     }
     return rows
       .map(function (listing) {
@@ -1579,6 +1580,7 @@
     EXTRA_SEED_URLS: EXTRA_SEED_URLS,
     DEMIGOD_BOARD_NOTE: DEMIGOD_BOARD_NOTE,
     EMPTY_OUTCOMES: EMPTY_OUTCOMES,
+    EMPTY_HUNT: EMPTY_HUNT,
     isValidRepo: isValidRepo,
     normalizeRepo: normalizeRepo,
     parseGithubItem: parseGithubItem,

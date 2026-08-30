@@ -12,7 +12,7 @@ Trust model v1: creator funds → submit work → creator selects → winner pai
 
 - In-repo production map (Worker vs desk, feeds, OAuth, Watch, open PRs).
 - Token-agnostic bounty / submission / event / tx schemas + explicit state machine.
-- Adapter: live `{ listings: [] }`, Pages seed, Watch `{ items }`, and Commons `{ bounties }` round-trip without changing published seed JSON or `/bounties` URLs.
+- Adapter: measured live `GET /bounties.json` (`listings: []`, pinned at `commons/fixtures/live-bounties.json`) consume/emit bit-identical. Empty listings is honest. 404s `/bounties/api` `/bounties/feed` `/api/bounties` `/bounties/feed.json` are not feeds. Pages seed and Watch `{ items }` still round-trip. No second URL.
 - Tests: transitions, duplicate funding, double settlement, settlement retry, cancel/refund, malformed submit, expiry, stale feed, idempotent replay, legacy compat.
 - Helius note (no integration). Pocket: separate repo. Faucet: inspect-only seam.
 

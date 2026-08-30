@@ -8,6 +8,21 @@ import { BOUNTY_SCHEMA, FEED_SCHEMA, SCHEMA_VERSION, emptyCancellation, emptyRef
 export const LEGACY_FEED_SCHEMA = 'dasha-bounties-feed/v1';
 export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 export const DASHA_BOARD_URL = 'https://www.getdasha.com/bounties';
+export const LIVE_FEED_URL = 'https://www.getdasha.com/bounties.json';
+/** Measured 2026-08-30 ~12:00 AM PT. These are not feeds. Do not invent them. */
+export const LIVE_FEED_NOT_FOUND = Object.freeze([
+  'https://www.getdasha.com/bounties/api',
+  'https://www.getdasha.com/bounties/feed',
+  'https://www.getdasha.com/api/bounties',
+  'https://www.getdasha.com/bounties/feed.json',
+]);
+export const LIVE_EMPTY_FEED = Object.freeze({
+  name: 'dasha bounties',
+  schema: LEGACY_FEED_SCHEMA,
+  note: "USDC on Solana. We don't hold it.",
+  url: DASHA_BOARD_URL,
+  listings: Object.freeze([]),
+});
 
 const ITEM_RE =
   /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/(issues|pull)\/(\d+)/i;
