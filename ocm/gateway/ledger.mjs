@@ -32,6 +32,8 @@ function usageShape({ consumer, host, model, promptTokens, completionTokens, job
   }
   const prompt = asNonNegativeInteger(promptTokens, 'promptTokens');
   const completion = asNonNegativeInteger(completionTokens, 'completionTokens');
+  const tokens = prompt + completion;
+  if (!Number.isSafeInteger(tokens)) throw new TypeError('total tokens must be a safe integer');
   return {
     kind: 'usage',
     consumer,
@@ -40,7 +42,7 @@ function usageShape({ consumer, host, model, promptTokens, completionTokens, job
     jobId,
     promptTokens: prompt,
     completionTokens: completion,
-    tokens: prompt + completion,
+    tokens,
   };
 }
 
@@ -62,11 +64,13 @@ export class Ledger {
     for (const entry of this.entries) {
       if (entry.kind !== 'usage' || !entry.jobId) continue;
       const prior = this.usageByJob.get(entry.jobId);
-      if (prior && !sameUsage(prior, entry)) {
-        this.accountingError = `conflicting persisted usage rows for job ${entry.jobId}`;
+      if (prior) {
+        this.accountingError = sameUsage(prior, entry)
+          ? `duplicate persisted usage rows for job ${entry.jobId}`
+          : `conflicting persisted usage rows for job ${entry.jobId}`;
         continue;
       }
-      if (!prior) this.usageByJob.set(entry.jobId, entry);
+      this.usageByJob.set(entry.jobId, entry);
     }
   }
 
