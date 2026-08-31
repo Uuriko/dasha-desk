@@ -426,7 +426,8 @@ test('a valid developer key cannot open a provider socket, and the refusal is lo
     // The mistake this guards: putting a developer key in OCM_HOST_TOKEN. The key
     // is valid, so nothing about it looks wrong to whoever installed the agent.
     const rejected = await new Promise((resolve) => {
-      const ws = new WebSocket(`${gw.wsBase}/host/connect?token=${encodeURIComponent(key.secret)}`);
+      const ws = new WebSocket(`${gw.wsBase}/host/connect`,
+        { headers: { authorization: `Bearer ${key.secret}` } });
       ws.addEventListener('error', () => resolve(true));
       ws.addEventListener('open', () => resolve(false));
     });
@@ -450,7 +451,8 @@ test('a host presenting an issued provider token connects; a bad one does not', 
     assert.match(tok.secret, /^ocm_host_/);
 
     await new Promise((resolve, reject) => {
-      const ws = new WebSocket(`${gw.wsBase}/host/connect?token=${encodeURIComponent(tok.secret)}`);
+      const ws = new WebSocket(`${gw.wsBase}/host/connect`,
+        { headers: { authorization: `Bearer ${tok.secret}` } });
       ws.addEventListener('error', reject);
       ws.addEventListener('open', () => ws.send(JSON.stringify({
         t: 'hello', agent: { id: 'owned-host', models: ['qwen3-8b'] } })));
@@ -462,11 +464,21 @@ test('a host presenting an issued provider token connects; a bad one does not', 
       'the host must be bound to the issuing account');
 
     const rejected = await new Promise((resolve) => {
-      const ws = new WebSocket(`${gw.wsBase}/host/connect?token=ocm_host_not_a_real_token`);
+      const ws = new WebSocket(`${gw.wsBase}/host/connect`,
+        { headers: { authorization: 'Bearer ocm_host_not_a_real_token' } });
       ws.addEventListener('error', () => resolve(true));
       ws.addEventListener('open', () => resolve(false));
     });
     assert.equal(rejected, true, 'an unissued provider token must be refused');
+
+    // Even a VALID token is refused in a query string: credentials belong in headers,
+    // and a URL is recorded by every proxy in the path.
+    const viaUrl = await new Promise((resolve) => {
+      const ws = new WebSocket(`${gw.wsBase}/host/connect?token=${encodeURIComponent(tok.secret)}`);
+      ws.addEventListener('error', () => resolve(true));
+      ws.addEventListener('open', () => resolve(false));
+    });
+    assert.equal(viaUrl, true, 'a valid token in a query string must still be refused');
   } finally { await gw.close(); }
 });
 
@@ -486,7 +498,8 @@ test('with no bootstrap credentials configured, nothing is accepted by default',
       assert.equal(res.status, 401, `well-known default "${key}" must not authorise`);
     }
     const rejected = await new Promise((resolve) => {
-      const ws = new WebSocket(`ws://127.0.0.1:${gw.server.address().port}/host/connect?token=host-dev-token`);
+      const ws = new WebSocket(`ws://127.0.0.1:${gw.server.address().port}/host/connect`,
+        { headers: { authorization: 'Bearer host-dev-token' } });
       ws.addEventListener('error', () => resolve(true));
       ws.addEventListener('open', () => resolve(false));
     });

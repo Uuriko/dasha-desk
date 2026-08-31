@@ -178,6 +178,15 @@ test('no credential is ever placed in a URL', () => {
     'the agent must present the provider token as a bearer header');
 });
 
+test('the gateway accepts credentials only in headers', () => {
+  // Rubric §B. The agent stopped putting the token in the URL first; the gateway kept
+  // accepting it so live hosts survived the migration. Both are updated, so the
+  // fallback is gone and this asserts it cannot come back.
+  const src = readFileSync(new URL('../gateway/server.mjs', import.meta.url), 'utf8');
+  assert.doesNotMatch(src, /searchParams\.get\('token'\)/,
+    'the gateway must not read a credential from a query string');
+});
+
 test('no static shared credential can authenticate a host', () => {
   // Rubric §B, promoted from review to test. A shared bootstrap token used to let any
   // machine join; it was disabled in production only by stripping an env var, which is

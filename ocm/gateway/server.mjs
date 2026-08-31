@@ -520,7 +520,7 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
       // that a token was wrong was a silent 401 on the WebSocket upgrade, which
       // reads identically to a network fault and sent people editing files by hand.
       if (req.method === 'GET' && url.pathname === '/v1/provider/verify') {
-        const presented = bearer(req) || url.searchParams.get('token') || '';
+        const presented = bearer(req);
         if (!presented) {
           return apiError(res, 401, 'no provider token presented — set OCM_HOST_TOKEN', 'authentication_error');
         }
@@ -737,7 +737,10 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
   server.on('upgrade', async (req, socket) => {
     const url = new URL(req.url, 'http://gateway');
     if (url.pathname !== '/host/connect') { socket.destroy(); return; }
-    const presented = bearer(req) || url.searchParams.get('token') || '';
+    // Header only. The query-string fallback existed so hosts running the pre-header
+    // agent kept working during the migration; both live hosts are updated, so it is
+    // gone. A credential in a URL is recorded verbatim by every proxy in the path.
+    const presented = bearer(req);
     // Account-bound provider token first; the shared bootstrap token still works
     // so existing hosts keep running during migration.
     // Account-bound provider tokens only. The shared bootstrap token this used to
