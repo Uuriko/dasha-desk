@@ -978,6 +978,14 @@ test('onboarding copy states the facts that stopped providers', async () => {
     assert.match(guide, /up to about 90\s*seconds|~90s/i, 'cold start must be documented');
     assert.match(guide, /Setting this up with an AI agent/i, 'the agent block must be present');
     assert.match(guide, /brew install uv/, 'the root-shell-free path must be offered');
+
+    // Prose tables must wrap. A blanket td{white-space:nowrap} once forced a whole
+    // paragraph onto one line, giving that column a ~1400px width on a 390px phone,
+    // which is what triggered iOS to inflate its text out of proportion.
+    const proseTables = guide.match(/<div class="tablewrap"><table>/g) || [];
+    assert.ok(proseTables.length >= 2, 'the guide has prose tables that must not opt into nowrap');
+    assert.doesNotMatch(guide, /<div class="tablewrap"><table class="data">/,
+      'prose tables must not be marked as data tables');
     assert.doesNotMatch(guide, /agent yields when you need the GPU/,
       'the unimplemented yielding claim must be gone');
 

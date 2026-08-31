@@ -47,6 +47,12 @@ const STYLE = `
 :root{--bg:#fbfbfa;--fg:#1a1a19;--dim:#6b6b66;--line:#e4e3df;--card:#fff;--ok:#1a7f47;--idle:#9a9a94;--warn:#b45309;--accent:#1a1a19}
 @media (prefers-color-scheme:dark){:root{--bg:#131312;--fg:#eeede9;--dim:#9a9a94;--line:#2b2b29;--card:#1c1c1a;--ok:#4ade80;--idle:#6b6b66;--warn:#fbbf24;--accent:#eeede9}}
 *{box-sizing:border-box}
+/* iOS Safari inflates text inside any block wider than the viewport, and computes the
+   factor per block from its width. Our tables are min-width:480px inside a scrolling
+   wrapper, so on a phone each column was boosted by a different amount and the widest
+   column came out visibly larger than the rest of the page. 100% disables the automatic
+   boost while leaving user-initiated zoom alone; 'none' would break that and is wrong. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif}
 .wrap{max-width:820px;margin:0 auto;padding:40px 24px 72px}
 a{color:var(--fg)}
@@ -63,8 +69,11 @@ h3{font-size:15px;margin:0 0 8px}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card)}
 table{border-collapse:collapse;width:100%;font-size:14px;min-width:480px}
 th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);padding:10px 14px;border-bottom:1px solid var(--line);font-weight:600}
-td{padding:11px 14px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
-th{white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+/* nowrap is opt-in, not the default. A blanket rule here kept dates like 2026-08-30
+   whole, but it also applied to prose tables, forcing a whole paragraph onto one line
+   and blowing that column out to ~1400px on a phone. Data tables opt in; prose wraps. */
+table.data td, table.data th, th{white-space:nowrap}
 tr:last-child td{border-bottom:0}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:middle}
 .on{background:var(--ok)} .off{background:var(--idle)}
@@ -203,13 +212,13 @@ ${redeemBlock}
 </div>
 
 <h2>Your providers</h2>
-<div class="tablewrap">${hostRows ? `<table>
+<div class="tablewrap">${hostRows ? `<table class="data">
 <thead><tr><th>Host</th><th>Chip</th><th>Memory</th><th>Uptime</th><th>Tokens credited</th></tr></thead>
 <tbody>${hostRows}</tbody></table>`
   : '<div class="empty">None connected. <a href="/provider">Run a provider</a> to contribute a Mac.</div>'}</div>
 
 <h2>Credentials</h2>
-<div class="tablewrap">${credRows ? `<table>
+<div class="tablewrap">${credRows ? `<table class="data">
 <thead><tr><th>Kind</th><th>Label</th><th>Created</th><th>Last used</th><th></th></tr></thead>
 <tbody>${credRows}</tbody></table>` : '<div class="empty">No credentials yet.</div>'}</div>
 <div class="row" style="margin-top:12px">
@@ -271,17 +280,17 @@ export async function renderNetwork({ registry, ledger, accounts, account }) {
 </div>
 
 <h2>Providers</h2>
-<div class="tablewrap">${hostRows ? `<table>
+<div class="tablewrap">${hostRows ? `<table class="data">
 <thead><tr><th>Host</th><th>Owner</th><th>Chip</th><th>Memory</th><th>Models</th><th>In flight</th><th>Uptime</th><th>Credited</th></tr></thead>
 <tbody>${hostRows}</tbody></table>` : '<div class="empty">No providers connected.</div>'}</div>
 
 <h2>Accounts</h2>
-<div class="tablewrap">${acctRows ? `<table>
+<div class="tablewrap">${acctRows ? `<table class="data">
 <thead><tr><th>Email</th><th>Created</th><th>Dev keys</th><th>Host tokens</th><th>Balance</th><th>Used</th><th>Requests</th><th>Last used</th></tr></thead>
 <tbody>${acctRows}</tbody></table>` : '<div class="empty">No accounts.</div>'}</div>
 
 <h2>Recent requests</h2>
-<div class="tablewrap">${recentRows ? `<table>
+<div class="tablewrap">${recentRows ? `<table class="data">
 <thead><tr><th>When (UTC)</th><th>Consumer</th><th>Host</th><th>Model</th><th>Prompt</th><th>Completion</th></tr></thead>
 <tbody>${recentRows}</tbody></table>` : '<div class="empty">No requests yet.</div>'}</div>
 <p class="muted" style="margin-top:12px">Raw counters: <a href="/console/stats.json">stats.json</a> (anonymous, no emails).</p>`);
