@@ -19,6 +19,20 @@ const mint = (prefix) => `${prefix}_${randomBytes(24).toString('base64url')}`;
 export const mintDeveloperKey = () => mint('ocm_live');
 export const mintProviderToken = () => mint('ocm_host');
 
+/**
+ * Email is a label and future notification route, not an authenticator. Until OCM
+ * verifies mailbox ownership, public signup must never use a matching email to
+ * reopen an existing account or mint another credential for it.
+ */
+export function normalizeEmail(value) {
+  const email = String(value || '').trim().toLowerCase();
+  if (!email || email.length > 254 || !/^[^@\s]+@[^@\s]+$/.test(email)
+      || /[\u0000-\u001f\u007f]/.test(email)) {
+    throw new TypeError('a valid email address is required');
+  }
+  return email;
+}
+
 /** Constant-time compare for equal-length hex digests. */
 export function sameSecret(a, b) {
   const x = Buffer.from(a || '', 'utf8');
@@ -55,13 +69,23 @@ export class PgAccounts {
 
   async init() { await this.pool.query(SCHEMA); return this; }
 
+  /**
+   * Atomically create or locate an account. `created` is security-significant: a
+   * public caller may issue a first key only when it inserted the row itself.
+   */
   async createAccount(email) {
+    const normalized = normalizeEmail(email);
     const id = `acct_${randomBytes(9).toString('base64url')}`;
-    const { rows } = await this.pool.query(
+    const inserted = await this.pool.query(
       `INSERT INTO accounts (id, email) VALUES ($1,$2)
-         ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
-       RETURNING id, email, created_at`, [id, email.toLowerCase()]);
-    return rows[0];
+         ON CONFLICT (email) DO NOTHING
+       RETURNING id, email, created_at`, [id, normalized]);
+    if (inserted.rows[0]) return { ...inserted.rows[0], created: true };
+
+    const existing = await this.pool.query(
+      `SELECT id, email, created_at FROM accounts WHERE email = $1`, [normalized]);
+    if (!existing.rows[0]) throw new Error('account create conflict without an existing row');
+    return { ...existing.rows[0], created: false };
   }
 
   async issue(accountId, kind, label = null) {
@@ -129,11 +153,17 @@ export class MemoryAccounts {
   async init() { return this; }
 
   async createAccount(email) {
-    const lower = email.toLowerCase();
-    for (const a of this.accounts.values()) if (a.email === lower) return a;
-    const acct = { id: `acct_${randomBytes(9).toString('base64url')}`, email: lower, created_at: new Date() };
-    this.accounts.set(acct.id, acct);
-    return acct;
+    const normalized = normalizeEmail(email);
+    for (const account of this.accounts.values()) {
+      if (account.email === normalized) return { ...account, created: false };
+    }
+    const account = {
+      id: `acct_${randomBytes(9).toString('base64url')}`,
+      email: normalized,
+      created_at: new Date(),
+    };
+    this.accounts.set(account.id, account);
+    return { ...account, created: true };
   }
 
   async issue(accountId, kind, label = null) {
