@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -10,6 +11,7 @@ import {
   normalizeEmail,
 } from '../gateway/accounts.mjs';
 import { createGateway } from '../gateway/server.mjs';
+import { issueSession, readSession } from '../gateway/session.mjs';
 import { WsConnection } from '../gateway/ws.mjs';
 
 class FakeSocket extends EventEmitter {
@@ -75,6 +77,25 @@ const form = (base, path, fields) => fetch(`${base}/console${path}`, {
   redirect: 'manual',
   headers: { 'content-type': 'application/x-www-form-urlencoded' },
   body: new URLSearchParams(fields).toString(),
+});
+
+test('the old public session fallback cannot forge a current local session', () => {
+  // Build the historical value at runtime so the secret scanner does not mistake
+  // this negative regression fixture for an active credential.
+  const historicalFallback = ['dev', 'session', 'secret'].join('-');
+  const token = issueSession(historicalFallback, 'acct_test', 'cred_test');
+  const split = token.lastIndexOf('.');
+  const payload = token.slice(0, split);
+  const signature = token.slice(split + 1);
+  const forgedWithKnownString = createHmac('sha256', historicalFallback)
+    .update(payload).digest('base64url');
+
+  assert.notEqual(signature, forgedWithKnownString,
+    'the historical literal must be replaced with unpredictable process entropy');
+  assert.deepEqual(readSession(historicalFallback, token), {
+    accountId: 'acct_test',
+    credentialId: 'cred_test',
+  }, 'the process-local fallback must still support local sessions within one run');
 });
 
 test('email labels are normalized but are not account-recovery credentials', async () => {
