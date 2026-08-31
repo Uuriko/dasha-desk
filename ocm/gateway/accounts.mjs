@@ -33,6 +33,14 @@ export function normalizeEmail(value) {
   return email;
 }
 
+export class AccountExistsError extends Error {
+  constructor() {
+    super('account already exists — sign in with an existing developer key');
+    this.name = 'AccountExistsError';
+    this.code = 'ACCOUNT_EXISTS';
+  }
+}
+
 /** Constant-time compare for equal-length hex digests. */
 export function sameSecret(a, b) {
   const x = Buffer.from(a || '', 'utf8');
@@ -70,8 +78,9 @@ export class PgAccounts {
   async init() { await this.pool.query(SCHEMA); return this; }
 
   /**
-   * Atomically create or locate an account. `created` is security-significant: a
-   * public caller may issue a first key only when it inserted the row itself.
+   * Atomically create a new account. A duplicate is a hard stop: without email
+   * verification, returning the existing row would let anyone who knows an address
+   * mint a new developer key for that person's account.
    */
   async createAccount(email) {
     const normalized = normalizeEmail(email);
@@ -80,12 +89,8 @@ export class PgAccounts {
       `INSERT INTO accounts (id, email) VALUES ($1,$2)
          ON CONFLICT (email) DO NOTHING
        RETURNING id, email, created_at`, [id, normalized]);
-    if (inserted.rows[0]) return { ...inserted.rows[0], created: true };
-
-    const existing = await this.pool.query(
-      `SELECT id, email, created_at FROM accounts WHERE email = $1`, [normalized]);
-    if (!existing.rows[0]) throw new Error('account create conflict without an existing row');
-    return { ...existing.rows[0], created: false };
+    if (!inserted.rows[0]) throw new AccountExistsError();
+    return inserted.rows[0];
   }
 
   async issue(accountId, kind, label = null) {
@@ -155,7 +160,7 @@ export class MemoryAccounts {
   async createAccount(email) {
     const normalized = normalizeEmail(email);
     for (const account of this.accounts.values()) {
-      if (account.email === normalized) return { ...account, created: false };
+      if (account.email === normalized) throw new AccountExistsError();
     }
     const account = {
       id: `acct_${randomBytes(9).toString('base64url')}`,
@@ -163,7 +168,7 @@ export class MemoryAccounts {
       created_at: new Date(),
     };
     this.accounts.set(account.id, account);
-    return { ...account, created: true };
+    return account;
   }
 
   async issue(accountId, kind, label = null) {
