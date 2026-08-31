@@ -749,6 +749,11 @@ test('the provider guide is public and warns about plaintext prompts', async () 
       'the guide must distinguish the two credentials');
     assert.match(html, /ocm-agent-token/,
       'the guide must give a supported way to rotate a token');
+    // A credential passed as an argument is visible via ps and kept in shell history.
+    assert.match(html, /printf '%s'[^|]*\|\s*sudo[^<]*ocm-agent-token/,
+      'the documented rotation must pipe the token, not pass it as an argument');
+    assert.match(html, /Never pass a token as a command-line argument/i,
+      'the guide must say why');
     assert.match(html, /Do not edit/i,
       'the guide must warn against hand-editing the run wrapper');
     assert.match(html, /OCM_AGENT_ID/,

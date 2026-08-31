@@ -367,10 +367,16 @@ seconds</strong>, while the model loads into memory. Every request after that ta
 around a second. A slow first response is the system working, not failing.</div>
 
 <h2>Changing the token later</h2>
-<pre>sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_…'</pre>
+<pre>printf '%s' 'ocm_host_…' | sudo /opt/ocm/bin/ocm-agent-token</pre>
 <p class="muted">This verifies the new token, writes it to
 <code>/etc/ocm/agent.env</code>, and restarts the agent. If the gateway refuses it,
-nothing is changed.</p>
+nothing is changed. There is also
+<code>--token-file <em>path</em></code> if you would rather keep it in a file.</p>
+<div class="note warn"><strong>Never pass a token as a command-line argument.</strong>
+Arguments are visible to any local user through <code>ps</code> while the command runs,
+and they persist in your shell history afterwards. Piping from
+<code>printf</code> avoids both. The old
+<code>ocm-agent-token 'ocm_host_…'</code> form still works and warns.</div>
 <div class="note warn"><strong>Do not edit <code>/opt/ocm/bin/ocm-agent-run</code>.</strong>
 That file is a wrapper, it is regenerated on every reinstall, and it is not where the
 token lives.</div>
@@ -403,7 +409,8 @@ provider instead of recovering the first.
 
 Confirm: sudo /opt/ocm/bin/ocm-agent-run --doctor   (expect: token ok)
 The first request takes up to ~90s while the model loads. That is not a fault.
-To change the token later: sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_…'
+To change the token later, never as an argument (ps and shell history expose it):
+  printf '%s' 'ocm_host_…' | sudo /opt/ocm/bin/ocm-agent-token
 Never edit /opt/ocm/bin/ocm-agent-run; it is generated and holds no token.
 
 Tell the user plainly: as a provider they can read every prompt routed to this machine

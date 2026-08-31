@@ -106,18 +106,56 @@ chmod 755 "$PREFIX/bin/ocm-agent-run"
 cat > "$PREFIX/bin/ocm-agent-token" <<'TOK'
 #!/bin/sh
 # Replace this machine's provider token and restart the agent.
-#   sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_...'
+#
+#   printf '%s' 'ocm_host_...' | sudo /opt/ocm/bin/ocm-agent-token
+#   sudo /opt/ocm/bin/ocm-agent-token --token-file /path/to/token
+#
+# Read from stdin or a file, never an argument. A command-line argument is visible
+# to any local user via `ps` for the life of the process, and lands in shell history
+# permanently. That is the same mistake as putting a credential in a URL, one layer
+# down. The argument form still works so existing docs do not break, but it warns.
 #
 # Use this rather than editing any file by hand: the token lives in
 # /etc/ocm/agent.env, and ocm-agent-run is regenerated on every reinstall.
 set -eu
 [ "$(id -u)" = "0" ] || { echo "run with sudo" >&2; exit 1; }
-[ $# -eq 1 ] || { echo "usage: ocm-agent-token 'ocm_host_...'" >&2; exit 1; }
+
+usage() {
+  echo "usage:" >&2
+  echo "  printf '%s' 'ocm_host_...' | sudo ocm-agent-token" >&2
+  echo "  sudo ocm-agent-token --token-file /path/to/token" >&2
+  exit 1
+}
+
+case "${1:-}" in
+  --token-file)
+    [ -n "${2:-}" ] && [ -r "${2:-}" ] || usage
+    TOKEN=$(cat "$2")
+    ;;
+  -h|--help)
+    usage
+    ;;
+  "")
+    # No argument: read stdin. Refuse an interactive terminal rather than hang.
+    [ -t 0 ] && usage
+    TOKEN=$(cat)
+    ;;
+  *)
+    TOKEN="$1"
+    echo "warning: passing the token as an argument leaves it in shell history and" >&2
+    echo "         exposes it via ps. Prefer: printf '%s' 'ocm_host_...' | sudo $0" >&2
+    ;;
+esac
+
+# Trim a trailing newline from `printf` pipelines or an editor-saved file.
+TOKEN=$(printf '%s' "$TOKEN" | tr -d '\r\n')
+[ -n "$TOKEN" ] || { echo "no token supplied" >&2; exit 1; }
+
 BASE=$(sed -n 's|^OCM_GATEWAY_URL=||p' /etc/ocm/agent.env | sed 's|^wss://|https://|; s|^ws://|http://|')
 [ -n "$BASE" ] || BASE=https://api.ocm.getdasha.com
 printf 'checking token ...\n'
-if ! curl -fsS -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" >/dev/null 2>&1; then
-  curl -sS -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" 2>/dev/null \
+if ! curl -fsS -H "Authorization: Bearer $TOKEN" "$BASE/v1/provider/verify" >/dev/null 2>&1; then
+  curl -sS -H "Authorization: Bearer $TOKEN" "$BASE/v1/provider/verify" 2>/dev/null \
     | sed -n 's/.*"message":"\([^"]*\)".*/error: \1/p' >&2
   echo "nothing was changed" >&2
   exit 1
@@ -125,7 +163,7 @@ fi
 umask 077
 TMP=$(mktemp)
 grep -v '^OCM_HOST_TOKEN=' /etc/ocm/agent.env > "$TMP" || true
-printf 'OCM_HOST_TOKEN=%s\n' "$1" >> "$TMP"
+printf 'OCM_HOST_TOKEN=%s\n' "$TOKEN" >> "$TMP"
 cat "$TMP" > /etc/ocm/agent.env
 rm -f "$TMP"
 chmod 600 /etc/ocm/agent.env
@@ -180,7 +218,8 @@ installed.
   status   launchctl print system/com.ocm.agent
   logs     tail -f /var/log/ocm-agent.log
   check    sudo $PREFIX/bin/ocm-agent-run --doctor
-  rotate   sudo $PREFIX/bin/ocm-agent-token 'ocm_host_…'
+  rotate   printf '%s' 'ocm_host_…' | sudo $PREFIX/bin/ocm-agent-token
+           (never pass a token as an argument: ps and shell history expose it)
   stop     sudo launchctl bootout system/com.ocm.agent
   remove   sudo launchctl bootout system/com.ocm.agent; sudo rm -rf $PREFIX /etc/ocm \\
              /Library/LaunchDaemons/com.ocm.agent.plist

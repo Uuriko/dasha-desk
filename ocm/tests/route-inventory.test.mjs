@@ -187,6 +187,19 @@ test('the gateway accepts credentials only in headers', () => {
     'the gateway must not read a credential from a query string');
 });
 
+test('the rotation helper never requires a credential in argv', () => {
+  // Rubric §B. `ps` exposes arguments to any local user, and shells keep history.
+  const src = readFileSync(new URL('../agent/install.sh', import.meta.url), 'utf8');
+  const helper = src.slice(src.indexOf("cat > \"$PREFIX/bin/ocm-agent-token\""),
+                           src.indexOf('chmod 755 "$PREFIX/bin/ocm-agent-token"'));
+  assert.match(helper, /TOKEN=\$\(cat\)/,
+    'the helper must accept a token on stdin');
+  assert.match(helper, /--token-file/,
+    'the helper must accept a token from a file');
+  assert.match(helper, /shell history/,
+    'the argument form must warn about history and ps');
+});
+
 test('no static shared credential can authenticate a host', () => {
   // Rubric §B, promoted from review to test. A shared bootstrap token used to let any
   // machine join; it was disabled in production only by stripping an env var, which is
