@@ -18,7 +18,8 @@ import { accept } from './ws.mjs';
 import { Ledger } from './ledger.mjs';
 import { stats, renderLanding, renderDashboard, renderNetwork, renderProviderGuide, renderSecret } from './console.mjs';
 import { issueSession, readSession, cookieHeader, clearCookieHeader, readCookie, parseForm } from './session.mjs';
-import { MemoryAccounts } from './accounts.mjs';
+import { AccountExistsError, MemoryAccounts } from './accounts.mjs';
+import { normalizeProviderAgent } from './provider.mjs';
 
 const HEARTBEAT_MS = 30_000;
 const HOST_TIMEOUT_MS = 90_000;
@@ -28,6 +29,7 @@ const JOB_TIMEOUT_MS = 120_000;
 // warm a longer leash, rather than timing out a machine that is working correctly.
 const COLD_JOB_TIMEOUT_MS = 300_000;
 const MAX_ROUTE_ATTEMPTS = 3;
+const MAX_COMPLETION_BYTES = 2 * 1024 * 1024;
 // Public alias -> the local builds that satisfy it.
 //
 // A provider advertises whatever its runtime reports. An MLX host that never set
@@ -108,18 +110,46 @@ class Registry {
     return null;
   }
 
-  add(hostId, conn, caps) {
-    this.hosts.set(hostId, {
-      id: hostId, conn, caps,
+  /**
+   * Register or reconnect one authenticated provider identity.
+   *
+   * The user-chosen host id is namespaced by the issuing account. Another account
+   * must never replace it, because credits and operational history are keyed by that
+   * id. A same-account reconnect is legitimate: install/reboot/network recovery all
+   * reuse OCM_AGENT_ID. Existing in-flight jobs fail before the socket is replaced,
+   * and the old socket cannot mutate the new registration afterwards.
+   */
+  add(hostId, conn, caps, credentialId = null) {
+    const existing = this.hosts.get(hostId);
+    const currentOwner = existing?.caps.accountId || null;
+    const nextOwner = caps.accountId || null;
+    if (existing && currentOwner !== nextOwner) {
+      return { ok: false, error: 'host id already belongs to another provider account' };
+    }
+
+    const oldJobs = existing ? [...existing.inflight.values()] : [];
+    const host = {
+      id: hostId,
+      conn,
+      caps,
+      credentialId,
       models: new Set(caps.models || []),
       inflight: new Map(),
-      // model -> when this host last actually produced tokens for it. Evidence the
-      // weights are resident, which is the difference between a 1s reply and 75s.
-      warm: new Map(),
+      // Preserve useful cache evidence across an authenticated reconnect by the same
+      // account, but never across an account boundary.
+      warm: existing ? new Map(existing.warm) : new Map(),
       lastSeen: Date.now(),
       connectedAt: Date.now(),
-    });
-    return this.hosts.get(hostId);
+    };
+    this.hosts.set(hostId, host);
+
+    if (existing && existing.conn !== conn) {
+      for (const job of oldJobs) {
+        Promise.resolve(job.onError('provider reconnected')).catch(() => {});
+      }
+      existing.conn.close(1001, 'replaced by authenticated reconnect');
+    }
+    return { ok: true, host, replaced: !!existing };
   }
 
   remove(hostId) { this.hosts.delete(hostId); }
@@ -357,7 +387,16 @@ export async function createGateway({
           if (offered && inviteCode && offered !== inviteCode) {
             return redirect(res, '/?error=' + encodeURIComponent('That invite code is not valid.'));
           }
-          const acct = await accounts.createAccount(f.email);
+          let acct;
+          try {
+            acct = await accounts.createAccount(f.email);
+          } catch (err) {
+            if (err instanceof AccountExistsError || err?.code === 'ACCOUNT_EXISTS') {
+              return redirect(res, '/?error=' + encodeURIComponent(
+                'An account cannot be created with those details. Sign in with an existing developer key.'));
+            }
+            throw err;
+          }
           const granted = offered && (!inviteCode || offered === inviteCode)
             && (await ledger.grantCount(acct.id)) === 0;
           if (granted) await ledger.grant(acct.id, grantTokens, 'invite grant');
@@ -616,6 +655,7 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
     return new Promise((resolve) => {
       let committed = false;   // bytes written to the client
       let text = '';           // what we have delivered (streaming) or accumulated
+      let textBytes = 0;
       let state = 'open';      // open -> settling -> settled
       const wireModel = registry.wireName(host, model) || model;
 
@@ -678,7 +718,18 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
 
       host.inflight.set(jobId, {
         onChunk(delta) {
-          if (state !== 'open' || !delta) return;
+          if (state !== 'open') return;
+          if (typeof delta !== 'string') {
+            host.conn.close(1003, 'completion chunks must be text');
+            return;
+          }
+          if (!delta) return;
+          const bytes = Buffer.byteLength(delta);
+          if (textBytes + bytes > MAX_COMPLETION_BYTES) {
+            host.conn.close(1009, 'completion exceeds gateway limit');
+            return;
+          }
+          textBytes += bytes;
           // First tokens are proof the exact wire model is resident. Public aliases
           // and raw build names therefore share the same warmth evidence.
           if (!text) host.warm.set(wireModel, Date.now());
@@ -744,7 +795,7 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
       const sent = host.conn.sendJson({
         t: 'job', id: jobId, model: wireModel, messages });
       if (sent === false && !committed && claimSettlement()) {
-        finish({ ok: false, committed: false, message: 'host backpressure' });
+        finish({ ok: false, committed: false, message: 'host send failed' });
       }
     });
   }
@@ -774,6 +825,7 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
       return;
     }
     const accountId = owner ? owner.accountId : null;
+    const credentialId = owner ? owner.credentialId : null;
     const conn = accept(req, socket);
     if (!conn) return;
     sockets.add(conn);
@@ -781,23 +833,73 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
     let hostId = null;
     conn.on('message', (raw) => {
       let msg;
-      try { msg = JSON.parse(raw); } catch { return; }
-      if (msg.t === 'hello') {
-        hostId = msg.agent?.id || randomUUID();
-        registry.add(hostId, conn, { ...(msg.agent || {}), accountId });
+      try { msg = JSON.parse(raw); }
+      catch { conn.close(1007, 'provider messages must be valid JSON'); return; }
+
+      if (!hostId) {
+        if (msg?.t !== 'hello') {
+          conn.close(1008, 'first provider message must be hello');
+          return;
+        }
+        let agent;
+        try { agent = normalizeProviderAgent(msg.agent); }
+        catch (err) {
+          console.error(JSON.stringify({ level: 'warn', msg: 'invalid provider hello',
+            accountId, error: err.message }));
+          conn.close(1008, 'invalid provider capabilities');
+          return;
+        }
+        const registration = registry.add(agent.id, conn, { ...agent, accountId }, credentialId);
+        if (!registration.ok) {
+          console.error(JSON.stringify({ level: 'warn', msg: 'provider identity collision',
+            accountId, hostId: agent.id }));
+          conn.close(1008, 'provider id already in use');
+          return;
+        }
+        hostId = agent.id;
         conn.sendJson({ t: 'welcome', host_id: hostId, heartbeat_ms: HEARTBEAT_MS });
         return;
       }
-      const host = hostId && registry.get(hostId);
-      if (!host) return;
+
+      if (msg?.t === 'hello') {
+        conn.close(1008, 'provider hello may be sent only once');
+        return;
+      }
+      if (msg?.id !== undefined
+          && (typeof msg.id !== 'string' || msg.id.length < 1 || msg.id.length > 128)) {
+        conn.close(1008, 'invalid job id');
+        return;
+      }
+
+      const host = registry.get(hostId);
+      // A superseded socket must not update the new provider's heartbeat or complete
+      // one of its jobs merely because both connections used the same stable id.
+      if (!host || host.conn !== conn) {
+        conn.close(1008, 'provider connection was superseded');
+        return;
+      }
       host.lastSeen = Date.now();
       const job = msg.id && host.inflight.get(msg.id);
-      if (msg.t === 'chunk') job?.onChunk(msg.delta);
-      else if (msg.t === 'done') Promise.resolve(job?.onDone()).catch((e) => console.error('onDone', e));
-      else if (msg.t === 'error') Promise.resolve(job?.onError(msg.message || 'host error')).catch((e) => console.error('onError', e));
+      if (msg.t === 'chunk') {
+        if (typeof msg.delta !== 'string') {
+          conn.close(1003, 'completion chunks must be text');
+          return;
+        }
+        job?.onChunk(msg.delta);
+      } else if (msg.t === 'done') {
+        Promise.resolve(job?.onDone()).catch((e) => console.error('onDone', e));
+      } else if (msg.t === 'error') {
+        const message = typeof msg.message === 'string'
+          ? msg.message.slice(0, 512)
+          : 'host error';
+        Promise.resolve(job?.onError(message)).catch((e) => console.error('onError', e));
+      }
     });
 
-    conn.on('pong', () => { const h = hostId && registry.get(hostId); if (h) h.lastSeen = Date.now(); });
+    conn.on('pong', () => {
+      const host = hostId && registry.get(hostId);
+      if (host?.conn === conn) host.lastSeen = Date.now();
+    });
 
     conn.on('close', () => {
       sockets.delete(conn);
@@ -815,10 +917,24 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
     });
   });
 
-  const heartbeat = setInterval(() => {
-    for (const host of registry.online()) {
-      if (Date.now() - host.lastSeen > HOST_TIMEOUT_MS) { host.conn.close(1001, 'stale'); continue; }
-      host.conn.ping();
+  let heartbeatRunning = false;
+  const heartbeat = setInterval(async () => {
+    if (heartbeatRunning) return;
+    heartbeatRunning = true;
+    try {
+      for (const host of registry.online()) {
+        if (host.credentialId && !(await accounts.credentialActive(host.credentialId))) {
+          host.conn.close(1008, 'provider token revoked');
+          continue;
+        }
+        if (Date.now() - host.lastSeen > HOST_TIMEOUT_MS) {
+          host.conn.close(1001, 'stale');
+          continue;
+        }
+        host.conn.ping();
+      }
+    } finally {
+      heartbeatRunning = false;
     }
   }, HEARTBEAT_MS);
   heartbeat.unref?.();
