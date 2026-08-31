@@ -13,6 +13,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 
 const MAX_JOB_ID_LENGTH = 200;
+const ACCOUNTING_UNHEALTHY = 'ACCOUNTING_UNHEALTHY';
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS usage_log (
@@ -52,11 +53,13 @@ function usageShape({ consumer, host, model, promptTokens, completionTokens, job
   }
   const prompt = asNonNegativeInteger(promptTokens, 'promptTokens');
   const completion = asNonNegativeInteger(completionTokens, 'completionTokens');
+  const tokens = prompt + completion;
+  if (!Number.isSafeInteger(tokens)) throw new TypeError('total tokens must be a safe integer');
   return {
     kind: 'usage', consumer, host, model, jobId,
     promptTokens: prompt,
     completionTokens: completion,
-    tokens: prompt + completion,
+    tokens,
   };
 }
 
@@ -116,7 +119,7 @@ export class PgLedger {
   }
 
   #requireHealthy() {
-    if (this.accountingError) throw new Error(`ACCOUNTING_UNHEALTHY: ${this.accountingError}`);
+    if (this.accountingError) throw new Error(ACCOUNTING_UNHEALTHY);
   }
 
   #markUnhealthy(error) {
@@ -129,7 +132,7 @@ export class PgLedger {
       return await this.pool.query(text, values);
     } catch (error) {
       this.#markUnhealthy(error);
-      throw new Error(`ACCOUNTING_UNHEALTHY: ${this.accountingError}`, { cause: error });
+      throw new Error(ACCOUNTING_UNHEALTHY, { cause: error });
     }
   }
 
@@ -139,7 +142,7 @@ export class PgLedger {
       return this;
     } catch (error) {
       this.#markUnhealthy(error);
-      throw new Error(`ACCOUNTING_UNHEALTHY: ${this.accountingError}`, { cause: error });
+      throw new Error(ACCOUNTING_UNHEALTHY, { cause: error });
     }
   }
 
@@ -180,7 +183,7 @@ export class PgLedger {
     if (!existing) {
       const error = new Error(`ambiguous usage insert for job ${row.jobId}`);
       this.#markUnhealthy(error);
-      throw new Error(`ACCOUNTING_UNHEALTHY: ${this.accountingError}`, { cause: error });
+      throw new Error(ACCOUNTING_UNHEALTHY, { cause: error });
     }
     if (!sameUsage(existing, row)) throw new Error(`idempotency_conflict: job ${row.jobId}`);
     return { ...existing, replayed: true };
@@ -232,7 +235,7 @@ export class PgLedger {
       ]);
     } catch (error) {
       this.#markUnhealthy(error);
-      throw new Error(`ACCOUNTING_UNHEALTHY: ${this.accountingError}`, { cause: error });
+      throw new Error(ACCOUNTING_UNHEALTHY, { cause: error });
     }
     const [consumers, hosts, totals, recent] = result;
 
