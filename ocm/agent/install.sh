@@ -94,7 +94,11 @@ export HOME=/var/root
 set -a; . /etc/ocm/agent.env; set +a
 exec "$UV" run --quiet --python 3.12 $PREFIX/agent/agent.py "\$@"
 RUN
-chmod +x "$PREFIX/bin/ocm-agent-run"
+# 755, not the 700 that `umask 077` above would otherwise leave. This file holds no
+# secret — the token lives in /etc/ocm/agent.env — so root-only mode protects nothing
+# and blocks the owner (or their agent) from reading back what was just installed,
+# which is exactly the verification this script asks people to perform.
+chmod 755 "$PREFIX/bin/ocm-agent-run"
 
 # Rotating a token had no supported path, so people edited ocm-agent-run by hand —
 # which silently breaks the daemon, because that file is regenerated on reinstall
@@ -129,7 +133,7 @@ launchctl kickstart -k system/com.ocm.agent
 echo "token accepted, written, and agent restarted."
 echo "watch it connect:  tail -f /var/log/ocm-agent.log"
 TOK
-chmod +x "$PREFIX/bin/ocm-agent-token"
+chmod 755 "$PREFIX/bin/ocm-agent-token"   # readable for the same reason
 
 printf 'checking the local chain …\n'
 set -a; . /etc/ocm/agent.env; set +a

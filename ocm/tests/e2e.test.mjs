@@ -918,6 +918,16 @@ test('the installer generates a run wrapper that forwards its arguments', () => 
     '--doctor must reach the agent unquoted');
   assert.doesNotMatch(run(''), /agent\.py \S/,
     'no arguments must mean no arguments');
+
+  // `umask 077` is set earlier for the token file and stays in effect, so a bare
+  // `chmod +x` leaves these helpers root-only. Neither holds a secret, and 700 blocks
+  // the owner from reading back what was installed — the verification we ask for.
+  assert.match(src, /chmod 755 "\$PREFIX\/bin\/ocm-agent-run"/,
+    'the run wrapper must be readable, not 700');
+  assert.match(src, /chmod 755 "\$PREFIX\/bin\/ocm-agent-token"/,
+    'the rotation helper must be readable too');
+  assert.match(src, /chmod 600 \/etc\/ocm\/agent\.env/,
+    'the token file itself must stay root-only');
 });
 
 test('the installer hash is published and matches the bytes served', async () => {
