@@ -110,6 +110,13 @@ export class PgAccounts {
     return rows[0] || null;
   }
 
+  /** Existing account for this email, or null. Signup uses it to refuse a duplicate. */
+  async accountByEmail(email) {
+    const { rows } = await this.pool.query(
+      `SELECT id, email FROM accounts WHERE email = $1`, [String(email || '').toLowerCase()]);
+    return rows[0] || null;
+  }
+
   /** Every account, oldest first — for the admin network view only. */
   async listAccounts() {
     const { rows } = await this.pool.query(
@@ -174,6 +181,12 @@ export class MemoryAccounts {
   }
 
   async accountFor(accountId) { return this.accounts.get(accountId) || null; }
+
+  async accountByEmail(email) {
+    const lower = String(email || '').toLowerCase();
+    for (const a of this.accounts.values()) if (a.email === lower) return a;
+    return null;
+  }
 
   async listAccounts() {
     return [...this.accounts.values()].map((a) => {

@@ -318,6 +318,16 @@ export async function createGateway({
         if (req.method === 'POST' && consolePath === '/signup') {
           const f = parseForm(await readBody(req));
           if (!f.email) return redirect(res, '/?error=' + encodeURIComponent('An email address is required.'));
+          // Signup must NEVER authenticate an existing email. Accounts are keyed by
+          // email, so without this an unauthenticated visitor who types someone
+          // else's address is handed a live session and a working key on that
+          // account — takeover by address alone. An existing email is turned away
+          // here, before any credential is issued or cookie set; recovering access
+          // requires the account's developer key (or, later, an emailed link).
+          if (await accounts.accountByEmail(f.email)) {
+            return redirect(res, '/?error=' + encodeURIComponent(
+              'An account with that email already exists. Sign in with your developer key.'));
+          }
           // Signup is open. The invite code buys TOKENS, not entry — a wrong code is
           // still refused outright, because silently creating a useless account
           // would leave someone wondering why nothing works.

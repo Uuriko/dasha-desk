@@ -513,6 +513,38 @@ const form = (gw, path, fields, cookie) => fetch(`${gw.base}/console${path}`, {
   body: new URLSearchParams(fields).toString(),
 });
 
+test('signup refuses an existing email and issues nothing (no takeover by address)', async () => {
+  const gw = await startConsole();
+  try {
+    // First signup: a real account and a real key exist for this email.
+    const first = await form(gw, '/signup', { email: 'owner@dev.io', invite: 'potter' });
+    assert.equal(first.status, 200);
+    const ownerKey = (await first.text()).match(/ocm_live_[A-Za-z0-9_-]+/)[0];
+
+    // An attacker who knows only the email tries to sign up as them.
+    const attack = await form(gw, '/signup', { email: 'owner@dev.io' });
+    assert.equal(attack.status, 302, 'a duplicate email must be refused, not served');
+    assert.equal(attack.headers.get('set-cookie'), null,
+      'no session cookie may be issued for an existing email');
+    assert.match(attack.headers.get('location'), /already/,
+      'the refusal must tell them to sign in');
+
+    // The attacker was handed no credential: a 302 carries no body and, asserted
+    // above, no cookie. And the owner's key still authenticates, so nothing about
+    // their account changed. Signin needs no provider, so this is host-independent.
+    const attackBody = await attack.text();
+    assert.doesNotMatch(attackBody, /ocm_live_/, 'no key may be returned to the attacker');
+    const ownerSignin = await form(gw, '/signin', { key: ownerKey });
+    assert.equal(ownerSignin.status, 302);
+    assert.ok(ownerSignin.headers.get('set-cookie'), "the owner's key still signs in");
+
+    // Case-insensitive: the email is lowercased, so a case variant is the same account.
+    const variant = await form(gw, '/signup', { email: 'OWNER@DEV.IO' });
+    assert.equal(variant.status, 302, 'email match must be case-insensitive');
+    assert.match(variant.headers.get('location'), /already/);
+  } finally { await gw.close(); }
+});
+
 test('signup works without a code, but the account starts at zero', async () => {
   const gw = await startConsole();
   try {
