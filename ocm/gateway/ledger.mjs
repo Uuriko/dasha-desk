@@ -76,7 +76,9 @@ export class Ledger {
   }
 
   async init() {
-    this.#requireHealthy();
+    // Startup has no live HTTP surface yet, so operators receive the repair detail.
+    // Runtime calls use #requireHealthy(), whose public-safe error is generic.
+    if (this.accountingError) throw new Error(`${ACCOUNTING_UNHEALTHY}: ${this.accountingError}`);
     return this;
   }
 
