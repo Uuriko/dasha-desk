@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["websockets>=13", "mlx-lm>=0.28; sys_platform == 'darwin' and platform_machine == 'arm64'"]
+# dependencies = ["websockets==13.1", "mlx-lm>=0.28; sys_platform == 'darwin' and platform_machine == 'arm64'"]
 # ///
 """
 OCM host agent.
@@ -25,11 +25,12 @@ import platform
 import random
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
 
-import websockets
+from websockets.legacy.client import connect
 
 GATEWAY_URL = os.getenv("OCM_GATEWAY_URL", "ws://127.0.0.1:8080")
 HOST_TOKEN = os.getenv("OCM_HOST_TOKEN", "host-dev-token")
@@ -309,9 +310,14 @@ async def session():
     models = RUNTIME.models()
     if not models:
         raise RuntimeError("runtime reports no models")
-    url = f"{GATEWAY_URL.rstrip('/')}/host/connect?token={HOST_TOKEN}"
-    async with websockets.connect(url, ping_interval=20, ping_timeout=20,
-                                  max_size=8 * 1024 * 1024) as ws:
+    url = f"{GATEWAY_URL.rstrip('/')}/host/connect"
+    async with connect(
+        url,
+        extra_headers={"Authorization": f"Bearer {HOST_TOKEN}"},
+        ping_interval=20,
+        ping_timeout=20,
+        max_size=8 * 1024 * 1024,
+    ) as ws:
         await ws.send(json.dumps({"t": "hello", "agent": capabilities(models)}))
         jobs: dict[str, asyncio.Event] = {}
         async for raw in ws:
@@ -392,7 +398,6 @@ def benchmark():
     model = os.getenv("OCM_BENCH_MODEL", models[0])
     n = int(os.getenv("OCM_BENCH_TOKENS", "32"))
     print(f"benchmarking {model} for ~{n} tokens …", flush=True)
-    import threading
     start, chars = time.time(), 0
     for delta in RUNTIME.stream(model, [{"role": "user", "content": "Count from one to twenty."}],
                                 threading.Event(), max_tokens=n):
