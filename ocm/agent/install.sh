@@ -7,13 +7,13 @@
 #
 # What it does:
 #   1. refuses to run on anything but Apple Silicon macOS
-#   2. installs uv (isolated Python runtime manager) if missing
-#   3. downloads the agent to /opt/ocm
+#   2. requires an existing, explicitly located uv binary
+#   3. downloads the agent over HTTPS and proves its doctor path before replacing files
 #   4. stores your provider token root-only in /etc/ocm/agent.env
 #   5. installs a launchd daemon so the agent survives reboot
 #
 # Usage:
-#   OCM_HOST_TOKEN="ocm_host_…" sh install.sh
+#   sudo env OCM_HOST_TOKEN="ocm_host_…" sh install.sh
 #
 # Optional:
 #   OCM_AGENT_ID="my-mac"   the name this machine registers under; defaults to the
@@ -22,10 +22,14 @@
 #   OCM_MODEL_MAP="public=local,…"  what this machine advertises. Defaults to
 #                           ocm-coder=<the MLX coder model>, which is the name
 #                           consumers actually request.
+#   OCM_UV_BIN="/opt/homebrew/bin/uv"  explicit uv path when sudo has a narrow PATH.
 set -eu
 
 GATEWAY="${OCM_GATEWAY_URL:-wss://api.ocm.getdasha.com}"
-SOURCE="${OCM_SOURCE_URL:-https://api.ocm.getdasha.com}"
+# The download and credential-check origin is derived from the socket origin. A
+# second arbitrary source URL previously allowed a token to be checked against one
+# deployment while root downloaded executable code from another.
+SOURCE=$(printf '%s\n' "$GATEWAY" | sed 's|^wss://|https://|')
 # Set OCM_AGENT_ID to keep a machine's identity stable across reinstalls. Without it
 # this defaults to the hostname, and a reinstall that produces a different name
 # registers a SECOND host rather than recovering the existing one.
@@ -40,41 +44,88 @@ MODEL_MAP="${OCM_MODEL_MAP:-ocm-coder=$MLX_MODEL}"
 PREFIX=/opt/ocm
 
 die() { printf '\nerror: %s\n' "$1" >&2; exit 1; }
+matches() { printf '%s\n' "$1" | LC_ALL=C grep -Eq "$2"; }
+curl_https() {
+  curl --silent --show-error --location \
+    --proto '=https' --proto-redir '=https' --tlsv1.2 "$@"
+}
 
 [ "$(uname -s)" = "Darwin" ] || die "this installer is for macOS"
 [ "$(uname -m)" = "arm64" ] || die "Apple Silicon is required — MLX cannot run on an Intel Mac"
 [ "$(id -u)" = "0" ] || die "run with sudo: the launchd daemon and /etc/ocm need root"
 [ -n "${OCM_HOST_TOKEN:-}" ] || die "set OCM_HOST_TOKEN to the provider token from your console"
 
-# Check the credential BEFORE installing anything. A token that the gateway will
-# refuse used to install cleanly and then fail forever on the socket, where a 401
-# is indistinguishable from the gateway being down. Fail here instead, with the
-# reason, while the person is still watching the terminal.
+# Every value below is written to a shell-sourced, root-only environment file. The
+# allowlists are therefore a code-execution boundary, not cosmetic validation.
+matches "$GATEWAY" '^wss://[A-Za-z0-9.-]+(:[0-9]{1,5})?$' \
+  || die "OCM_GATEWAY_URL must be a bare wss:// host with an optional port"
+matches "$SOURCE" '^https://[A-Za-z0-9.-]+(:[0-9]{1,5})?$' \
+  || die "the gateway could not be converted to a safe HTTPS source"
+matches "$OCM_HOST_TOKEN" '^ocm_host_[-A-Za-z0-9_]{16,}$' \
+  || die "OCM_HOST_TOKEN must be an issued provider token beginning ocm_host_"
+matches "$AGENT_ID" '^[-A-Za-z0-9._]{1,64}$' \
+  || die "OCM_AGENT_ID may contain only letters, numbers, dot, underscore and hyphen (64 max)"
+matches "$MLX_MODEL" '^[-A-Za-z0-9._/:@+]{1,512}$' \
+  || die "OCM_MLX_MODEL contains unsupported characters or is too long"
+matches "$MODEL_MAP" '^[-A-Za-z0-9._/:@=,+]{1,2048}$' \
+  || die "OCM_MODEL_MAP contains unsupported characters or is too long"
+
+# Require uv rather than piping a third party installer into a root shell. Homebrew's
+# default Apple Silicon path is checked explicitly because sudo often drops it from
+# PATH. OCM_UV_BIN is accepted only when it is an absolute executable path with a
+# shape that cannot break the generated wrapper.
+UV="${OCM_UV_BIN:-}"
+if [ -z "$UV" ]; then
+  UV=$(command -v uv 2>/dev/null || true)
+fi
+if [ -z "$UV" ]; then
+  for candidate in /opt/homebrew/bin/uv /usr/local/bin/uv /var/root/.local/bin/uv; do
+    if [ -x "$candidate" ]; then UV=$candidate; break; fi
+  done
+fi
+[ -n "$UV" ] && [ -x "$UV" ] \
+  || die "uv is required before running this root installer. Install it yourself (for example: brew install uv), then rerun with OCM_UV_BIN=\"$(command -v uv 2>/dev/null || echo /opt/homebrew/bin/uv)\""
+matches "$UV" '^/[-A-Za-z0-9._/+]{1,512}$' \
+  || die "OCM_UV_BIN must be a safe absolute executable path"
+
+# Check the credential BEFORE downloading or replacing anything. Fail here, with a
+# useful reason, while the operator is still watching the terminal.
 printf 'checking your provider token …\n'
-VERIFY=$(curl -fsS -H "Authorization: Bearer $OCM_HOST_TOKEN" "$SOURCE/v1/provider/verify" 2>/dev/null) || {
-  REASON=$(curl -sS -H "Authorization: Bearer $OCM_HOST_TOKEN" "$SOURCE/v1/provider/verify" 2>/dev/null \
-           | sed -n 's/.*"message":"\([^"]*\)".*/\1/p')
+VERIFY=$(curl_https --fail -H "Authorization: Bearer $OCM_HOST_TOKEN" \
+  "$SOURCE/v1/provider/verify" 2>/dev/null) || {
+  REASON=$(curl_https -H "Authorization: Bearer $OCM_HOST_TOKEN" \
+    "$SOURCE/v1/provider/verify" 2>/dev/null \
+    | sed -n 's/.*"message":"\([^"]*\)".*/\1/p')
   die "${REASON:-could not reach $SOURCE to check the token}"
 }
+printf '%s' "$VERIFY" | grep -q '"ok":true' \
+  || die "the gateway response did not confirm this provider token"
 printf '  token accepted\n'
 
 printf 'OCM provider install\n  host    %s (%s)\n  gateway %s\n  serving %s\n\n' \
   "$AGENT_ID" "$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo mac)" "$GATEWAY" "$MODEL_MAP"
 
-if ! command -v uv >/dev/null 2>&1 && [ ! -x /var/root/.local/bin/uv ]; then
-  # Note, in a script whose preamble argues against exactly this: the next line pipes
-  # a third party's installer into a root shell. It is the one place this script hands
-  # root to someone else. Install uv yourself first (`brew install uv`) and this is
-  # skipped entirely — which is the better choice if you are being careful.
-  printf 'installing uv (from astral.sh, as root) …\n'
-  curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null
-fi
-UV="$(command -v uv || echo /var/root/.local/bin/uv)"
-[ -x "$UV" ] || die "uv not found after install"
+# Download to a private temporary file and prove the new agent's diagnostic path
+# before replacing a working installation. HTTPS authenticates the current gateway;
+# broad deployment still requires a release artifact pinned to an immutable digest.
+umask 077
+TMP_AGENT=$(mktemp "${TMPDIR:-/tmp}/ocm-agent.XXXXXX")
+trap 'rm -f "$TMP_AGENT"' EXIT HUP INT TERM
+printf 'downloading agent …\n'
+curl_https --fail "$SOURCE/agent.py" -o "$TMP_AGENT" \
+  || die "could not fetch $SOURCE/agent.py"
+chmod 700 "$TMP_AGENT"
+
+printf 'checking the downloaded agent …\n'
+OCM_HOST_TOKEN="$OCM_HOST_TOKEN" \
+OCM_GATEWAY_URL="$GATEWAY" \
+OCM_AGENT_ID="$AGENT_ID" \
+OCM_MODEL_MAP="$MODEL_MAP" \
+  "$UV" run --quiet --python 3.12 "$TMP_AGENT" --doctor \
+  || die "downloaded agent doctor failed — no installed files were changed"
 
 mkdir -p "$PREFIX/agent" "$PREFIX/bin"
-printf 'downloading agent …\n'
-curl -fsSL "$SOURCE/agent.py" -o "$PREFIX/agent/agent.py" || die "could not fetch $SOURCE/agent.py"
+install -m 755 "$TMP_AGENT" "$PREFIX/agent/agent.py"
 
 # The token lives in a root-only file, never in the plist — plists are world-readable.
 install -d -m 700 /etc/ocm
@@ -89,7 +140,7 @@ chmod 600 /etc/ocm/agent.env
 
 cat > "$PREFIX/bin/ocm-agent-run" <<RUN
 #!/bin/bash
-export PATH=/usr/local/bin:/var/root/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+export PATH=/usr/local/bin:/opt/homebrew/bin:/var/root/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 export HOME=/var/root
 set -a; . /etc/ocm/agent.env; set +a
 exec "$UV" run --quiet --python 3.12 $PREFIX/agent/agent.py "\$@"
@@ -109,32 +160,34 @@ cat > "$PREFIX/bin/ocm-agent-token" <<'TOK'
 set -eu
 [ "$(id -u)" = "0" ] || { echo "run with sudo" >&2; exit 1; }
 [ $# -eq 1 ] || { echo "usage: ocm-agent-token 'ocm_host_...'" >&2; exit 1; }
-BASE=$(sed -n 's|^OCM_GATEWAY_URL=||p' /etc/ocm/agent.env | sed 's|^wss://|https://|; s|^ws://|http://|')
-[ -n "$BASE" ] || BASE=https://api.ocm.getdasha.com
+printf '%s\n' "$1" | LC_ALL=C grep -Eq '^ocm_host_[-A-Za-z0-9_]{16,}$' \
+  || { echo "error: expected an issued ocm_host_ provider token" >&2; exit 1; }
+BASE=$(sed -n 's|^OCM_GATEWAY_URL=||p' /etc/ocm/agent.env | sed 's|^wss://|https://|')
+printf '%s\n' "$BASE" | LC_ALL=C grep -Eq '^https://[A-Za-z0-9.-]+(:[0-9]{1,5})?$' \
+  || { echo "error: unsafe or missing gateway URL in /etc/ocm/agent.env" >&2; exit 1; }
 printf 'checking token ...\n'
-if ! curl -fsS -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" >/dev/null 2>&1; then
-  curl -sS -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" 2>/dev/null \
+if ! curl --silent --show-error --location --fail \
+  --proto '=https' --proto-redir '=https' --tlsv1.2 \
+  -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" >/dev/null 2>&1; then
+  curl --silent --show-error --location \
+    --proto '=https' --proto-redir '=https' --tlsv1.2 \
+    -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" 2>/dev/null \
     | sed -n 's/.*"message":"\([^"]*\)".*/error: \1/p' >&2
   echo "nothing was changed" >&2
   exit 1
 fi
 umask 077
-TMP=$(mktemp)
+TMP=$(mktemp "${TMPDIR:-/tmp}/ocm-token.XXXXXX")
+trap 'rm -f "$TMP"' EXIT HUP INT TERM
 grep -v '^OCM_HOST_TOKEN=' /etc/ocm/agent.env > "$TMP" || true
 printf 'OCM_HOST_TOKEN=%s\n' "$1" >> "$TMP"
 cat "$TMP" > /etc/ocm/agent.env
-rm -f "$TMP"
 chmod 600 /etc/ocm/agent.env
 launchctl kickstart -k system/com.ocm.agent
 echo "token accepted, written, and agent restarted."
 echo "watch it connect:  tail -f /var/log/ocm-agent.log"
 TOK
 chmod +x "$PREFIX/bin/ocm-agent-token"
-
-printf 'checking the local chain …\n'
-set -a; . /etc/ocm/agent.env; set +a
-"$UV" run --quiet --python 3.12 "$PREFIX/agent/agent.py" --doctor \
-  || die "doctor failed — fix the above before connecting"
 
 cat > /Library/LaunchDaemons/com.ocm.agent.plist <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -155,7 +208,7 @@ chmod 644 /Library/LaunchDaemons/com.ocm.agent.plist
 # bootout is ASYNCHRONOUS. Bootstrapping while teardown is still in flight fails
 # with "Bootstrap failed: 5: Input/output error", and under `set -eu` the script
 # then dies having ALREADY removed the working daemon — a reinstall took a healthy
-# provider offline and left it that way. Wait for the old job to actually go.
+# provider offline and left it there. Wait for the old job to actually go.
 launchctl bootout system/com.ocm.agent 2>/dev/null || true
 n=0
 while launchctl print system/com.ocm.agent >/dev/null 2>&1 && [ "$n" -lt 50 ]; do
@@ -168,6 +221,9 @@ if ! launchctl bootstrap system /Library/LaunchDaemons/com.ocm.agent.plist; then
   Retry:  sudo launchctl bootstrap system /Library/LaunchDaemons/com.ocm.agent.plist
   Then:   sudo $PREFIX/bin/ocm-agent-run --doctor"
 fi
+
+rm -f "$TMP_AGENT"
+trap - EXIT HUP INT TERM
 
 cat <<DONE
 
