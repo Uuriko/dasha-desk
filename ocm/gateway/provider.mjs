@@ -12,6 +12,13 @@ const MODEL_ID = /^[-A-Za-z0-9._/:@+]{1,256}$/;
 const SHORT_TEXT = /^[^\u0000-\u001f\u007f]{1,96}$/;
 const MAX_MODELS = 32;
 
+export function normalizeModelId(value, field = 'model') {
+  if (typeof value !== 'string' || !MODEL_ID.test(value)) {
+    throw new TypeError(`${field} may contain only routing-safe characters (256 max)`);
+  }
+  return value;
+}
+
 function optionalText(value, field) {
   if (value === undefined || value === null || value === '') return null;
   if (typeof value !== 'string' || !SHORT_TEXT.test(value)) {
@@ -38,12 +45,10 @@ export function normalizeProviderAgent(agent) {
   const models = [];
   const seen = new Set();
   for (const model of agent.models) {
-    if (typeof model !== 'string' || !MODEL_ID.test(model)) {
-      throw new TypeError('model ids may contain only routing-safe characters (256 max)');
-    }
-    if (seen.has(model)) throw new TypeError(`duplicate model id: ${model}`);
-    seen.add(model);
-    models.push(model);
+    const normalized = normalizeModelId(model, 'model ids');
+    if (seen.has(normalized)) throw new TypeError(`duplicate model id: ${normalized}`);
+    seen.add(normalized);
+    models.push(normalized);
   }
 
   let memoryGb = null;
