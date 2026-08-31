@@ -104,7 +104,7 @@ test('production provider socket auth refuses URL credentials', () => {
 
 test('public health exposes accounting state without leaking its internal error', () => {
   assert.deepEqual(publicAccountingHealth({
-    health: () => ({ ok: false, error: 'postgres://user:secret@internal-db.example/ocm' }),
+    health: () => ({ ok: false, error: 'private database driver failure details' }),
   }), { ok: false });
   assert.deepEqual(publicAccountingHealth({}), { ok: true });
 });
