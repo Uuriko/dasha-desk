@@ -14,12 +14,20 @@
  * The developer key itself is never stored in the cookie: a stolen cookie grants
  * console access until it expires or the key is revoked, not a usable API credential.
  */
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
 const MAX_AGE_S = 12 * 3600;
+const LEGACY_DEV_SECRET = 'dev-session-secret';
+// Local runs that omit OCM_SESSION_SECRET get an unpredictable process-local key.
+// Their sessions intentionally die on restart. Production should always supply a
+// durable secret, but an omitted variable must never fall back to a public string.
+const EPHEMERAL_SECRET = randomBytes(32).toString('base64url');
+
+export const effectiveSessionSecret = (configured) =>
+  configured && configured !== LEGACY_DEV_SECRET ? configured : EPHEMERAL_SECRET;
 
 const sign = (secret, payload) =>
-  createHmac('sha256', secret).update(payload).digest('base64url');
+  createHmac('sha256', effectiveSessionSecret(secret)).update(payload).digest('base64url');
 
 export function issueSession(secret, accountId, credentialId) {
   const expires = Math.floor(Date.now() / 1000) + MAX_AGE_S;
