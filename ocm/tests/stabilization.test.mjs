@@ -16,6 +16,7 @@ import {
   createGateway,
   parseAliases,
   providerSocketCredential,
+  publicAccountingHealth,
 } from '../gateway/server.mjs';
 
 const AGENT = fileURLToPath(new URL('../agent/agent.py', import.meta.url));
@@ -37,6 +38,21 @@ async function listen(gateway) {
     base: `http://127.0.0.1:${port}`,
     ws: `ws://127.0.0.1:${port}`,
   };
+}
+
+function connectHost(wsBase, token, id, models, onJob = () => {}) {
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket(`${wsBase}/host/connect?token=${encodeURIComponent(token)}`);
+    socket.addEventListener('error', reject);
+    socket.addEventListener('open', () => socket.send(JSON.stringify({
+      t: 'hello', agent: { id, models },
+    })));
+    socket.addEventListener('message', (event) => {
+      const message = JSON.parse(event.data);
+      if (message.t === 'welcome') return resolve(socket);
+      if (message.t === 'job') onJob(message, socket);
+    });
+  });
 }
 
 test('the MLX agent imports successfully and never puts its credential in the URL', () => {
@@ -86,6 +102,13 @@ test('production provider socket auth refuses URL credentials', () => {
   }, withQuery), 'header-secret', 'Authorization must be the production credential path');
 });
 
+test('public health exposes accounting state without leaking its internal error', () => {
+  assert.deepEqual(publicAccountingHealth({
+    health: () => ({ ok: false, error: 'postgres://user:secret@internal-db.example/ocm' }),
+  }), { ok: false });
+  assert.deepEqual(publicAccountingHealth({}), { ok: true });
+});
+
 test('provider verification accepts only the Authorization header', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'ocm-provider-auth-'));
   const gw = await createGateway({ ledgerPath: join(dir, 'usage.jsonl'), keys: new Map() });
@@ -122,22 +145,13 @@ test('duplicate and conflicting terminal messages clear one usage row', async ()
     modelAliases: '',
   });
   const { base, ws } = await listen(gw);
+  let socket;
   try {
-    await new Promise((resolve, reject) => {
-      const socket = new WebSocket(`${ws}/host/connect?token=${hostToken}`);
-      socket.addEventListener('error', reject);
-      socket.addEventListener('open', () => socket.send(JSON.stringify({
-        t: 'hello', agent: { id: 'racy-host', models: ['race-model'] },
-      })));
-      socket.addEventListener('message', (event) => {
-        const message = JSON.parse(event.data);
-        if (message.t === 'welcome') return resolve();
-        if (message.t !== 'job') return;
-        socket.send(JSON.stringify({ t: 'chunk', id: message.id, delta: 'abcd' }));
-        socket.send(JSON.stringify({ t: 'done', id: message.id }));
-        socket.send(JSON.stringify({ t: 'error', id: message.id, message: 'late error' }));
-        socket.send(JSON.stringify({ t: 'done', id: message.id }));
-      });
+    socket = await connectHost(ws, hostToken, 'racy-host', ['race-model'], (message, host) => {
+      host.send(JSON.stringify({ t: 'chunk', id: message.id, delta: 'abcd' }));
+      host.send(JSON.stringify({ t: 'done', id: message.id }));
+      host.send(JSON.stringify({ t: 'error', id: message.id, message: 'late error' }));
+      host.send(JSON.stringify({ t: 'done', id: message.id }));
     });
 
     const response = await fetch(`${base}/v1/chat/completions`, {
@@ -151,7 +165,64 @@ test('duplicate and conflicting terminal messages clear one usage row', async ()
     const summary = await gw.ledger.summary();
     assert.equal(summary.totals.requests, 1,
       'done + error + done must have one settlement owner and one usage row');
-  } finally { await gw.close(); }
+  } finally {
+    socket?.close();
+    await gw.close();
+  }
+});
+
+test('a client abort before first token never dispatches a failover job', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ocm-client-abort-'));
+  const hostToken = 'host-abort-token';
+  const apiKey = 'ocm_abort_key';
+  const gw = await createGateway({
+    hostToken,
+    keys: new Map([[apiKey, 'abort-consumer']]),
+    ledgerPath: join(dir, 'usage.jsonl'),
+    grantTokens: 1_000,
+    modelAliases: '',
+  });
+  const { base, ws } = await listen(gw);
+  let first;
+  let backup;
+  let firstJobs = 0;
+  let backupJobs = 0;
+  let dispatchedResolve;
+  const dispatched = new Promise((resolve) => { dispatchedResolve = resolve; });
+
+  try {
+    first = await connectHost(ws, hostToken, 'hanging-host', ['abort-model'], () => {
+      firstJobs += 1;
+      dispatchedResolve();
+      // Deliberately never return a token or terminal message.
+    });
+
+    const controller = new AbortController();
+    const request = fetch(`${base}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'abort-model', messages: [{ role: 'user', content: 'wait' }] }),
+      signal: controller.signal,
+    }).catch((error) => error);
+
+    await dispatched;
+    backup = await connectHost(ws, hostToken, 'backup-host', ['abort-model'], (message, host) => {
+      backupJobs += 1;
+      host.send(JSON.stringify({ t: 'chunk', id: message.id, delta: 'should-not-run' }));
+      host.send(JSON.stringify({ t: 'done', id: message.id }));
+    });
+
+    controller.abort();
+    await request;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    assert.equal(firstJobs, 1);
+    assert.equal(backupJobs, 0,
+      'closing the client is an abort, not a pre-commit provider failure to retry');
+  } finally {
+    first?.close();
+    backup?.close();
+    await gw.close();
+  }
 });
 
 test('local usage clearing is at-most-once and conflicts fail', async () => {
@@ -179,6 +250,10 @@ test('local usage clearing is at-most-once and conflicts fail', async () => {
   );
   await assert.rejects(ledger.clear(usage({ jobId: '' })), /jobId must be/);
   await assert.rejects(ledger.clear(usage({ promptTokens: 1.5 })), /safe integer/);
+  await assert.rejects(ledger.clear(usage({
+    promptTokens: Number.MAX_SAFE_INTEGER,
+    completionTokens: 1,
+  })), /total tokens must be a safe integer/);
 });
 
 test('an append failure makes accounting unhealthy and stops balance reads', async () => {
@@ -199,20 +274,26 @@ test('an append failure makes accounting unhealthy and stops balance reads', asy
     'the gateway balance gate must stop accepting new work after accounting fails');
 });
 
-test('conflicting persisted rows are detected at startup', async () => {
+test('duplicate or conflicting persisted rows are detected at startup', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'ocm-ledger-corrupt-'));
-  const path = join(dir, 'usage.jsonl');
-  mkdirSync(dirname(path), { recursive: true });
   const base = {
     id: 'one', at: new Date(0).toISOString(), kind: 'usage',
     consumer: 'acct_test', host: 'provider-m4', model: 'ocm-coder',
     jobId: 'same-job', promptTokens: 1, completionTokens: 1, tokens: 2,
   };
-  writeFileSync(path, `${JSON.stringify(base)}\n${JSON.stringify({
+
+  const duplicatePath = join(dir, 'duplicate.jsonl');
+  writeFileSync(duplicatePath, `${JSON.stringify(base)}\n${JSON.stringify({ ...base, id: 'two' })}\n`);
+  const duplicate = new Ledger(duplicatePath);
+  await assert.rejects(duplicate.init(), /duplicate persisted usage rows/);
+  assert.equal(duplicate.health().ok, false);
+
+  const conflictPath = join(dir, 'conflict.jsonl');
+  mkdirSync(dirname(conflictPath), { recursive: true });
+  writeFileSync(conflictPath, `${JSON.stringify(base)}\n${JSON.stringify({
     ...base, id: 'two', completionTokens: 2, tokens: 3,
   })}\n`);
-
-  const ledger = new Ledger(path);
-  await assert.rejects(ledger.init(), /conflicting persisted usage rows/);
-  assert.equal(ledger.health().ok, false);
+  const conflict = new Ledger(conflictPath);
+  await assert.rejects(conflict.init(), /conflicting persisted usage rows/);
+  assert.equal(conflict.health().ok, false);
 });
