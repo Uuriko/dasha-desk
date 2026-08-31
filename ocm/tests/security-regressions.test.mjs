@@ -136,8 +136,9 @@ test('public duplicate signup cannot mint a second key for an existing email', a
       email: '  Victim@Example.COM  ',
       invite: 'potter',
     });
-    assert.equal(duplicate.status, 500,
-      'until email verification exists, duplicate signup must fail closed');
+    assert.equal(duplicate.status, 302,
+      'duplicate signup must fail closed without a server-error response');
+    assert.match(decodeURIComponent(duplicate.headers.get('location') || ''), /cannot be created/i);
     assert.equal(duplicate.headers.get('set-cookie'), null,
       'a rejected duplicate must not receive an authenticated session');
     assert.equal((await gateway.accounts.listCredentials(account.id)).length, 1,
