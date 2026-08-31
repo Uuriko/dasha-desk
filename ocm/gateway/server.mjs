@@ -40,14 +40,26 @@ const MAX_ROUTE_ATTEMPTS = 3;
 // advertises, so nothing is asked to serve a name it does not know.
 const DEFAULT_MODEL_ALIASES = 'ocm-coder=mlx-community/Qwen2.5-Coder-7B-Instruct-4bit';
 
-function parseAliases(spec) {
+export function parseAliases(spec) {
   const map = new Map();
-  for (const pair of String(spec || '').split(',')) {
-    const [pub, local] = pair.split('=');
-    if (!pub || !local) continue;
-    const key = pub.trim();
-    if (!map.has(key)) map.set(key, []);
-    map.get(key).push(local.trim());
+  const publicByLocal = new Map();
+  for (const rawPair of String(spec || '').split(',')) {
+    const pair = rawPair.trim();
+    if (!pair) continue;
+    const splitAt = pair.indexOf('=');
+    if (splitAt <= 0 || splitAt === pair.length - 1) {
+      throw new Error(`invalid model alias "${pair}"; expected public=local`);
+    }
+    const pub = pair.slice(0, splitAt).trim();
+    const local = pair.slice(splitAt + 1).trim();
+    if (!pub || !local) throw new Error(`invalid model alias "${pair}"; names may not be blank`);
+    const existing = publicByLocal.get(local);
+    if (existing && existing !== pub) {
+      throw new Error(`ambiguous model alias: ${local} is mapped by both ${existing} and ${pub}`);
+    }
+    publicByLocal.set(local, pub);
+    if (!map.has(pub)) map.set(pub, []);
+    if (!map.get(pub).includes(local)) map.get(pub).push(local);
   }
   return map;
 }
@@ -114,8 +126,8 @@ class Registry {
   get(hostId) { return this.hosts.get(hostId); }
   online() { return [...this.hosts.values()]; }
 
-  /** Is this host known to have the model loaded right now? */
-  isWarm(host, model) { return (host.warm.get(model) || 0) > Date.now() - WARM_TTL_MS; }
+  /** Is this host known to have the exact wire model loaded right now? */
+  isWarm(host, wireModel) { return (host.warm.get(wireModel) || 0) > Date.now() - WARM_TTL_MS; }
 
   /**
    * Choose a host for a model.
@@ -142,7 +154,7 @@ class Registry {
     if (!candidates.length) return null;
     const rank = (h) => {
       if (h.inflight.size >= MAX_INFLIGHT_PER_HOST) return 2;
-      return this.isWarm(h, model) ? 0 : 1;
+      return this.isWarm(h, this.wireName(h, model)) ? 0 : 1;
     };
     candidates.sort((a, b) => rank(a) - rank(b) || a.inflight.size - b.inflight.size);
     return candidates[0];
@@ -192,6 +204,20 @@ const readBody = (req, limit = 2 * 1024 * 1024) => new Promise((resolve, reject)
 });
 
 const bearer = (req) => (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
+const isLoopbackAddress = (address) =>
+  address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
+
+/**
+ * Header auth is the production path. Query auth exists only for old local tests and
+ * cannot be enabled by a forwarded header: the actual TCP peer must be loopback.
+ */
+export function providerSocketCredential(req, url) {
+  const header = bearer(req);
+  if (header) return header;
+  return isLoopbackAddress(req.socket?.remoteAddress)
+    ? (url.searchParams.get('token') || '')
+    : '';
+}
 
 export async function createGateway({
   inviteCode = process.env.OCM_INVITE_CODE || '',
@@ -461,7 +487,13 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
         }
       }
       if (req.method === 'GET' && url.pathname === '/healthz') {
-        return json(res, 200, { ok: true, service: 'ocm-gateway', hosts: registry.online().length });
+        const accounting = ledger.health?.() || { ok: true, error: null };
+        return json(res, accounting.ok ? 200 : 503, {
+          ok: accounting.ok,
+          service: 'ocm-gateway',
+          hosts: registry.online().length,
+          accounting,
+        });
       }
       if (req.method === 'GET' && url.pathname === '/v1/models') {
         return json(res, 200, {
@@ -470,11 +502,10 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
         });
       }
       // Check a provider token WITHOUT opening a socket. The installer and the
-      // agent's --doctor both call this: before it existed, the only way to learn
-      // that a token was wrong was a silent 401 on the WebSocket upgrade, which
-      // reads identically to a network fault and sent people editing files by hand.
+      // agent's --doctor both call this. Header auth is mandatory on this public
+      // HTTP route; provider credentials are never accepted from a URL.
       if (req.method === 'GET' && url.pathname === '/v1/provider/verify') {
-        const presented = bearer(req) || url.searchParams.get('token') || '';
+        const presented = bearer(req);
         if (!presented) {
           return apiError(res, 401, 'no provider token presented — set OCM_HOST_TOKEN', 'authentication_error');
         }
@@ -579,50 +610,72 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
     return new Promise((resolve) => {
       let committed = false;   // bytes written to the client
       let text = '';           // what we have delivered (streaming) or accumulated
-      let settled = false;
+      let state = 'open';      // open -> settling -> settled
+      const wireModel = registry.wireName(host, model) || model;
 
-      const finish = (result) => {
-        if (settled) return;
-        settled = true;
+      const cleanup = () => {
         clearTimeout(timer);
         host.inflight.delete(jobId);
         res.off('close', onClientGone);
+      };
+
+      // Claim before the first await. Duplicate done/error/close/timeout paths then
+      // observe `settling` and cannot all enter ledger.clear or finalize a response.
+      const claimSettlement = () => {
+        if (state !== 'open') return false;
+        state = 'settling';
+        cleanup();
+        return true;
+      };
+
+      const finish = (result) => {
+        if (state === 'settled') return;
+        state = 'settled';
+        cleanup();
         resolve(result);
       };
 
       // Bill only what reached the client, and only ever the gateway's own count.
-      // A ledger failure must not fail a request the user already received, but it
-      // must be loud: this is unbilled usage, and silence would hide revenue loss.
+      // The ledgers are idempotent by jobId and mark accounting unhealthy on a
+      // write/database failure, which makes subsequent balance checks fail closed.
       const meter = async () => {
         const completionTokens = countTokens(text);
         try {
           await ledger.clear({ consumer, host: host.id, model, promptTokens, completionTokens, jobId });
         } catch (err) {
-          console.error(JSON.stringify({ level: 'error', msg: 'LEDGER WRITE FAILED — usage not billed',
+          console.error(JSON.stringify({ level: 'error', msg: 'LEDGER WRITE FAILED — accounting disabled',
             jobId, consumer, host: host.id, completionTokens, error: String(err) }));
         }
         return completionTokens;
       };
 
       const onClientGone = () => {
-        if (settled) return;
+        if (state !== 'open') return;
         host.conn.sendJson({ t: 'cancel', id: jobId });
-        if (committed) void meter();
-        finish({ ok: false, committed });
+        const wasCommitted = committed;
+        if (!claimSettlement()) return;
+        if (!wasCommitted) return finish({ ok: false, committed: false });
+        void meter().finally(() => finish({ ok: false, committed: true }));
       };
 
       const timer = setTimeout(() => {
+        if (state !== 'open') return;
         host.conn.sendJson({ t: 'cancel', id: jobId });
-        if (committed) { void meter(); try { res.end(); } catch {} }
-        finish({ ok: false, committed });
-      }, registry.isWarm(host, model) ? JOB_TIMEOUT_MS : COLD_JOB_TIMEOUT_MS);
+        const wasCommitted = committed;
+        if (!claimSettlement()) return;
+        if (!wasCommitted) return finish({ ok: false, committed: false });
+        void meter().finally(() => {
+          try { res.end(); } catch {}
+          finish({ ok: false, committed: true });
+        });
+      }, registry.isWarm(host, wireModel) ? JOB_TIMEOUT_MS : COLD_JOB_TIMEOUT_MS);
 
       host.inflight.set(jobId, {
         onChunk(delta) {
-          if (settled || !delta) return;
-          // First tokens are proof the weights are resident. Recording warmth here
-          // rather than on dispatch means it is evidence, never an assumption.
-          if (!text) host.warm.set(model, Date.now());
+          if (state !== 'open' || !delta) return;
+          // First tokens are proof the exact wire model is resident. Public aliases
+          // and raw build names therefore share the same warmth evidence.
+          if (!text) host.warm.set(wireModel, Date.now());
           text += delta;
           if (!stream) return;   // non-stream commits nothing until the end
           if (!committed) {
@@ -639,7 +692,7 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
           })}\n\n`);
         },
         async onDone() {
-          if (settled) return;
+          if (!claimSettlement()) return;
           if (stream) {
             if (!committed) {
               committed = true;
@@ -654,8 +707,8 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
             res.end();
             void completionTokens;
           } else {
-            committed = true;
             const completionTokens = await meter();
+            committed = true;
             json(res, 200, {
               id: chatId, object: 'chat.completion', created, model,
               choices: [{ index: 0, message: { role: 'assistant', content: text }, finish_reason: 'stop' }],
@@ -666,8 +719,9 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
           finish({ ok: true, committed: true });
         },
         async onError(message) {
-          if (settled) return;
-          if (committed) {
+          const wasCommitted = committed;
+          if (!claimSettlement()) return;
+          if (wasCommitted) {
             // Mid-stream failure: close the stream cleanly and bill what shipped.
             await meter();
             if (stream) { res.write('data: [DONE]\n\n'); res.end(); }
@@ -681,17 +735,18 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
 
       res.on('close', onClientGone);
 
-      // The consumer's name may be an alias; the host only knows its own.
       const sent = host.conn.sendJson({
-        t: 'job', id: jobId, model: registry.wireName(host, model) || model, messages });
-      if (sent === false && !committed) finish({ ok: false, committed: false, message: 'host backpressure' });
+        t: 'job', id: jobId, model: wireModel, messages });
+      if (sent === false && !committed && claimSettlement()) {
+        finish({ ok: false, committed: false, message: 'host backpressure' });
+      }
     });
   }
 
   server.on('upgrade', async (req, socket) => {
     const url = new URL(req.url, 'http://gateway');
     if (url.pathname !== '/host/connect') { socket.destroy(); return; }
-    const presented = bearer(req) || url.searchParams.get('token') || '';
+    const presented = providerSocketCredential(req, url);
     // Account-bound provider token first; the shared bootstrap token still works
     // so existing hosts keep running during migration.
     const owner = await accounts.resolve(presented, 'provider_token');
