@@ -14,13 +14,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createGateway } from '../gateway/server.mjs';
 
-const HOST_TOKEN = 'host-test-token';
 const API_KEY = 'ocm_test_key';
 
 async function startGateway(opts = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'ocm-'));
   const gw = await createGateway({
-    hostToken: HOST_TOKEN,
     keys: new Map([[API_KEY, 'test-dev']]),
     ledgerPath: join(dir, 'usage.jsonl'),
     grantTokens: 10_000,
@@ -29,9 +27,22 @@ async function startGateway(opts = {}) {
     modelAliases: '',
     ...opts,
   });
+  // No shared bootstrap token exists any more, so a stub host authenticates the way
+  // a real provider does: with an issued, account-bound credential.
+  return ready(gw);
+}
+
+/**
+ * Finish booting a gateway: listen, then issue the account-bound provider token a
+ * stub host needs. Shared by every factory so they cannot drift apart.
+ */
+function ready(gw) {
   return new Promise((resolve) => {
-    gw.server.listen(0, '127.0.0.1', () => {
-      resolve({ ...gw, base: `http://127.0.0.1:${gw.server.address().port}`,
+    gw.server.listen(0, '127.0.0.1', async () => {
+      const acct = await gw.accounts.createAccount('hosts@test.io');
+      const tok = await gw.accounts.issue(acct.id, 'provider_token', 'stub host');
+      resolve({ ...gw, hostToken: tok.secret, hostAccountId: acct.id,
+                base: `http://127.0.0.1:${gw.server.address().port}`,
                 wsBase: `ws://127.0.0.1:${gw.server.address().port}` });
     });
   });
@@ -43,7 +54,10 @@ async function startGateway(opts = {}) {
  */
 function connectHost(gw, { id, models = ['qwen3-8b'], behaviour }) {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`${gw.wsBase}/host/connect?token=${HOST_TOKEN}`);
+    // Header, not a query string: the production agent does the same, so a token
+    // cannot reach a proxy access log.
+    const ws = new WebSocket(`${gw.wsBase}/host/connect`,
+      { headers: { authorization: `Bearer ${gw.hostToken}` } });
     ws.addEventListener('error', reject);
     ws.addEventListener('open', () => {
       ws.send(JSON.stringify({
@@ -327,16 +341,11 @@ const admin = (gw, path, body) => fetch(`${gw.base}${path}`, {
 function startGatewayWithAdmin() {
   const dir = mkdtempSync(join(tmpdir(), 'ocm-'));
   return createGateway({
-    hostToken: HOST_TOKEN,
     adminToken: 'test-admin',
     keys: new Map([[API_KEY, 'test-dev']]),
     ledgerPath: join(dir, 'usage.jsonl'),
     grantTokens: 10_000,
-  }).then((gw) => new Promise((resolve) => {
-    gw.server.listen(0, '127.0.0.1', () => resolve({ ...gw,
-      base: `http://127.0.0.1:${gw.server.address().port}`,
-      wsBase: `ws://127.0.0.1:${gw.server.address().port}` }));
-  }));
+  }).then(ready);
 }
 
 test('admin routes require the admin token', async () => {
@@ -492,7 +501,6 @@ test('with no bootstrap credentials configured, nothing is accepted by default',
 function startConsole(opts = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'ocm-'));
   return createGateway({
-    hostToken: HOST_TOKEN,
     inviteCode: 'potter',
     sessionSecret: 'test-session-secret',
     secureCookies: false,
@@ -500,11 +508,7 @@ function startConsole(opts = {}) {
     ledgerPath: join(dir, 'usage.jsonl'),
     grantTokens: 5_000,
     ...opts,
-  }).then((gw) => new Promise((resolve) => {
-    gw.server.listen(0, '127.0.0.1', () => resolve({ ...gw,
-      base: `http://127.0.0.1:${gw.server.address().port}`,
-      wsBase: `ws://127.0.0.1:${gw.server.address().port}` }));
-  }));
+  }).then(ready);
 }
 
 const form = (gw, path, fields, cookie) => fetch(`${gw.base}/console${path}`, {

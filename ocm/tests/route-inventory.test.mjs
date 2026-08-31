@@ -166,6 +166,29 @@ test('an anonymous request gets what the inventory says it should', async () => 
   } finally { await gw.close(); }
 });
 
+test('no credential is ever placed in a URL', () => {
+  // Rubric §B, promoted from review to test. A query string is recorded verbatim by
+  // every proxy in the path, so `?token=` wrote a live provider credential into ALB
+  // access logs on every reconnect. The agent now sends an Authorization header.
+  const agent = readFileSync(new URL('../agent/agent.py', import.meta.url), 'utf8');
+  const code = agent.split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
+  assert.doesNotMatch(code, /[?&]token=/,
+    'the agent must not put a credential in a URL; use an Authorization header');
+  assert.match(code, /Authorization.*Bearer/,
+    'the agent must present the provider token as a bearer header');
+});
+
+test('no static shared credential can authenticate a host', () => {
+  // Rubric §B, promoted from review to test. A shared bootstrap token used to let any
+  // machine join; it was disabled in production only by stripping an env var, which is
+  // a deployment detail standing in for a code guarantee.
+  const src = readFileSync(new URL('../gateway/server.mjs', import.meta.url), 'utf8');
+  assert.doesNotMatch(src, /hostToken/,
+    'the shared bootstrap host-token path must not exist');
+  assert.doesNotMatch(src, /process\.env\.OCM_HOST_TOKEN/,
+    'the gateway must not read a shared host token from the environment');
+});
+
 test('no public route exposes account identity', async () => {
   // `public` is the dangerous declaration, so it gets its own assertion rather than
   // relying on whoever added the line having thought about it.

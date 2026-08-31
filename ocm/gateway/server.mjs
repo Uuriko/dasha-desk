@@ -226,9 +226,6 @@ export async function createGateway({
   databaseUrl = process.env.DATABASE_URL || '',
   consoleHost = process.env.OCM_CONSOLE_HOST || 'ocm.getdasha.com',
   apiHost = process.env.OCM_API_HOST || 'api.ocm.getdasha.com',
-  // No default. An unset bootstrap token must DISABLE the shared-token path, not
-  // fall back to a well-known string that anyone could present.
-  hostToken = process.env.OCM_HOST_TOKEN || '',
   keys = null,
   ledgerPath = 'ocm/.data/usage.jsonl',
   grantTokens = Number(process.env.OCM_GRANT_TOKENS || 1_000_000),
@@ -263,7 +260,8 @@ export async function createGateway({
   const sockets = new Set();   // every live host socket, registered or not
 
   // Bootstrap developer key, for first-run only. Empty unless explicitly set, for
-  // the same reason as hostToken: real callers hold issued, revocable account keys.
+  // the same reason the shared host token was removed: real callers hold issued,
+  // revocable, account-bound credentials.
   const consumers = keys
     || (process.env.OCM_API_KEY ? new Map([[process.env.OCM_API_KEY, 'dev']]) : new Map());
   for (const consumer of new Set(consumers.values())) {
@@ -742,8 +740,12 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
     const presented = bearer(req) || url.searchParams.get('token') || '';
     // Account-bound provider token first; the shared bootstrap token still works
     // so existing hosts keep running during migration.
+    // Account-bound provider tokens only. The shared bootstrap token this used to
+    // accept was a static credential that let any machine join; it was disabled in
+    // production by stripping its env var, which is a deployment detail standing in
+    // for a code guarantee. Now there is no such path to re-enable by accident.
     const owner = await accounts.resolve(presented, 'provider_token');
-    if (!owner && !(hostToken && presented === hostToken)) {
+    if (!owner) {
       // A rejected provider was previously invisible here: the socket was closed
       // with no record, so "my Mac will not connect" had no server-side evidence
       // at all. Log the token's SHAPE — never the token — which is enough to tell
@@ -760,7 +762,7 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
       socket.destroy();
       return;
     }
-    const accountId = owner ? owner.accountId : null;
+    const accountId = owner.accountId;
     const conn = accept(req, socket);
     if (!conn) return;
     sockets.add(conn);

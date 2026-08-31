@@ -305,13 +305,30 @@ async def run_job(ws, job, jobs):
     jobs.pop(job_id, None)
 
 
+def _connect(url):
+    """Open the host socket with the token as an Authorization header.
+
+    `websockets` renamed this parameter: `extra_headers` up to 13.x,
+    `additional_headers` from 14.0. The dependency pin is `>=13`, so both are in
+    scope and the name is chosen at runtime rather than assumed.
+    """
+    kw = dict(ping_interval=20, ping_timeout=20, max_size=8 * 1024 * 1024)
+    headers = [("Authorization", f"Bearer {HOST_TOKEN}")]
+    try:
+        return websockets.connect(url, additional_headers=headers, **kw)
+    except TypeError:
+        return websockets.connect(url, extra_headers=headers, **kw)
+
+
 async def session():
     models = RUNTIME.models()
     if not models:
         raise RuntimeError("runtime reports no models")
-    url = f"{GATEWAY_URL.rstrip('/')}/host/connect?token={HOST_TOKEN}"
-    async with websockets.connect(url, ping_interval=20, ping_timeout=20,
-                                  max_size=8 * 1024 * 1024) as ws:
+    # The token goes in a header, never the URL. A query string is recorded verbatim
+    # by every proxy and load balancer in the path, so `?token=` wrote a live provider
+    # credential into ALB access logs on every reconnect.
+    url = f"{GATEWAY_URL.rstrip('/')}/host/connect"
+    async with _connect(url) as ws:
         await ws.send(json.dumps({"t": "hello", "agent": capabilities(models)}))
         jobs: dict[str, asyncio.Event] = {}
         async for raw in ws:
