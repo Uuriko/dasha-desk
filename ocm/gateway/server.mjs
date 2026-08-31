@@ -10,10 +10,10 @@
  * failover before first token, and gateway-side metering.
  */
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { accept } from './ws.mjs';
 import { Ledger } from './ledger.mjs';
 import { stats, renderLanding, renderDashboard, renderNetwork, renderProviderGuide, renderSecret } from './console.mjs';
@@ -61,6 +61,27 @@ const MAX_INFLIGHT_PER_HOST = 2;
 // The agent and its installer are served from the gateway so a provider fetches
 // exactly the code this deployment expects, rather than a version drifting in a repo.
 const AGENT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'agent');
+/**
+ * SHA-256 of the installer we are actually serving, computed from the bytes on disk
+ * rather than a build artifact, so the published hash cannot drift from the file.
+ * Cached by mtime: the file only changes on deploy.
+ */
+let _installHash = null;
+async function installSha256() {
+  try {
+    const path = join(AGENT_DIR, 'install.sh');
+    const { mtimeMs, size } = await stat(path);
+    if (_installHash && _installHash.mtimeMs === mtimeMs && _installHash.size === size) {
+      return _installHash.hex;
+    }
+    const hex = createHash('sha256').update(await readFile(path)).digest('hex');
+    _installHash = { mtimeMs, size, hex };
+    return hex;
+  } catch {
+    return null;   // never let a missing file take the page down
+  }
+}
+
 const DOWNLOADS = {
   '/agent.py': { file: 'agent.py', type: 'text/x-python; charset=utf-8' },
   '/install.sh': { file: 'install.sh', type: 'text/x-shellscript; charset=utf-8' },
@@ -303,8 +324,12 @@ export async function createGateway({
         }
 
         if (req.method === 'GET' && consolePath === '/provider') {
-          if (!account) return redirect(res, '/');
-          return html(res, 200, renderProviderGuide({ account, apiHost, models: registry.models(), admin: isAdmin(account) }));
+          // Readable signed out on purpose: it is the link prospects are sent, it
+          // contains no account data, and it is the best recruiting asset we have.
+          return html(res, 200, renderProviderGuide({
+            account, apiHost, models: registry.models(), admin: isAdmin(account),
+            installHash: await installSha256(),
+          }));
         }
 
         // Network-wide view: every host, account and consumer. Admins only — the
@@ -351,8 +376,11 @@ export OPENAI_API_KEY="${cred.secret}"</pre>
 ${granted
   ? `<p class="muted">You have ${grantTokens.toLocaleString('en-US')} granted tokens. These are credits, not money.</p>`
   : `<div class="note warn"><strong>Your balance is zero.</strong> The account exists and
-     the key is valid, but requests will be refused until you redeem an invite code —
-     you can do that from the console at any time.</div>`}`,
+     the key is valid, but API requests will be refused until you redeem an invite code —
+     you can do that from the console at any time.</div>`}
+<div class="note"><strong>Want to contribute a Mac instead?</strong> Running a provider
+needs no invite code: your machine earns credits as it serves. See
+<a href="/provider">Run a provider</a>.</div>`,
           }));
         }
 
@@ -458,6 +486,16 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
           return json(res, 200, { revoked: await accounts.revoke(body.credential_id) });
         }
         return apiError(res, 404, `no admin route for ${req.method} ${url.pathname}`);
+      }
+      if (req.method === 'GET' && url.pathname === '/install.sh.sha256') {
+        const hash = await installSha256();
+        if (!hash) return apiError(res, 404, 'installer not available');
+        // `shasum -a 256` output shape, so it can be piped straight into `shasum -c`.
+        const body = `${hash}  install.sh\n`;
+        res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8',
+                             'cache-control': 'no-cache',
+                             'content-length': Buffer.byteLength(body) });
+        return res.end(body);
       }
       if (req.method === 'GET' && DOWNLOADS[url.pathname]) {
         const { file, type } = DOWNLOADS[url.pathname];

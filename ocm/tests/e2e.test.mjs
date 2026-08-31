@@ -9,6 +9,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, mkdtempSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createGateway } from '../gateway/server.mjs';
@@ -705,11 +706,17 @@ test('a signed-in account cannot revoke a credential it does not own', async () 
   } finally { await gw.close(); }
 });
 
-test('the provider guide is private and warns about plaintext prompts', async () => {
+test('the provider guide is public and warns about plaintext prompts', async () => {
   const gw = await startConsole();
   try {
-    const anon = await fetch(`${gw.base}/console/provider`, { redirect: 'manual' });
-    assert.equal(anon.status, 302, 'the guide must require sign-in');
+    // The guide is deliberately public: it is the link prospects are sent, and it
+    // carries no account data. It used to 302 to an unexplained login wall.
+    const anon = await fetch(`${gw.base}/console/provider`);
+    assert.equal(anon.status, 200, 'the recruiting guide must be readable signed out');
+    const anonHtml = await anon.text();
+    assert.doesNotMatch(anonHtml, /Sign out/, 'a signed-out visitor gets no account chrome');
+    assert.match(anonHtml, /no invite code/i,
+      'a signed-out provider must be told they need no invite code');
 
     const s = await form(gw, '/signup', { email: 'p@dev.io', invite: 'potter' });
     const cookie = s.headers.get('set-cookie').split(';')[0];
@@ -911,6 +918,48 @@ test('the installer generates a run wrapper that forwards its arguments', () => 
     '--doctor must reach the agent unquoted');
   assert.doesNotMatch(run(''), /agent\.py \S/,
     'no arguments must mean no arguments');
+});
+
+test('the installer hash is published and matches the bytes served', async () => {
+  const gw = await startGateway();
+  try {
+    const res = await fetch(`${gw.base}/install.sh.sha256`);
+    assert.equal(res.status, 200);
+    const [hex, name] = (await res.text()).trim().split(/\s+/);
+    assert.match(hex, /^[0-9a-f]{64}$/, 'a sha256 hex digest');
+    assert.equal(name, 'install.sh', 'shasum -c parseable');
+
+    // The published hash must be of the file actually served, not a build artifact
+    // that can drift from it.
+    const script = await (await fetch(`${gw.base}/install.sh`)).text();
+    const actual = createHash('sha256').update(script).digest('hex');
+    assert.equal(hex, actual, 'the published hash must match the served installer');
+  } finally { await gw.close(); }
+});
+
+test('onboarding copy states the facts that stopped providers', async () => {
+  const gw = await startConsole();
+  try {
+    // Signed out: the recruiting page carries the credit facts and the agent block.
+    const guide = await (await fetch(`${gw.base}/console/provider`)).text();
+    assert.match(guide, /not money/i, 'credits must be defined honestly');
+    assert.match(guide, /up to about 90\s*seconds|~90s/i, 'cold start must be documented');
+    assert.match(guide, /Setting this up with an AI agent/i, 'the agent block must be present');
+    assert.match(guide, /brew install uv/, 'the root-shell-free path must be offered');
+    assert.doesNotMatch(guide, /agent yields when you need the GPU/,
+      'the unimplemented yielding claim must be gone');
+
+    // Signup: the first screen everyone sees must not imply providers are blocked.
+    const up = await form(gw, '/signup', { email: 'prov@dev.io' });
+    const upHtml = await up.text();
+    assert.match(upHtml, /needs no invite code/i,
+      'the post-signup page must tell a provider they need no code');
+
+    // The zero-balance banner says the same.
+    const cookie = up.headers.get('set-cookie').split(';')[0];
+    const home = await (await fetch(`${gw.base}/console`, { headers: { cookie } })).text();
+    assert.match(home, /does not affect running a provider/i);
+  } finally { await gw.close(); }
 });
 
 test('the gateway serves the agent and installer it expects', async () => {

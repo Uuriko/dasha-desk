@@ -97,12 +97,12 @@ nav .who button{flex:none}
 footer{margin-top:44px;color:var(--dim);font-size:12px;border-top:1px solid var(--line);padding-top:14px}
 `;
 
-const page = (title, body) => `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+const page = (title, body, { footer = true } = {}) => `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>${esc(title)}</title><style>${STYLE}</style></head><body><div class="wrap">${body}
-<footer>Tokens are counted at the gateway, never taken from a host's own report.
+${footer ? `<footer>Tokens are counted at the gateway, never taken from a host's own report.
 Prompts are visible in plaintext to whoever runs a provider — no confidentiality is
-claimed that the architecture cannot enforce.</footer></div></body></html>`;
+claimed that the architecture cannot enforce.</footer>` : ''}</div></body></html>`;
 
 /**
  * Two groups so the header degrades in order on a narrow screen: the identity
@@ -113,8 +113,9 @@ claimed that the architecture cannot enforce.</footer></div></body></html>`;
 const nav = (email, admin = false) => `<nav>
   <div class="links"><strong>OCM</strong>
     <a href="/">Overview</a><a href="/provider">Run a provider</a>${admin ? '<a href="/network">Network</a>' : ''}</div>
-  <div class="who"><span class="muted" title="${esc(email)}">${esc(email)}</span>
-    <form method="post" action="/signout"><button class="ghost" style="margin:0;padding:6px 12px">Sign out</button></form></div></nav>`;
+  ${email ? `<div class="who"><span class="muted" title="${esc(email)}">${esc(email)}</span>
+    <form method="post" action="/signout"><button class="ghost" style="margin:0;padding:6px 12px">Sign out</button></form></div>`
+    : `<div class="who"><a class="muted" href="/">Sign in or create an account</a></div>`}</nav>`;
 
 /** Shown exactly once — the plaintext is not recoverable afterwards. */
 export function renderSecret({ title, secret, whatNext }) {
@@ -178,8 +179,10 @@ export async function renderDashboard({ registry, ledger, accounts, account, api
   </tr>`).join('') : '';
 
   const redeemBlock = redeemed ? '' : `
-<div class="note warn"><strong>This account has no tokens yet.</strong> Requests are
-refused until an invite code is redeemed. One redemption per account.</div>
+<div class="note warn"><strong>This account has no tokens yet.</strong> API requests are
+refused until an invite code is redeemed. One redemption per account.
+<strong>This does not affect running a provider</strong> — contributing a Mac needs no
+invite code, and earns credits as it serves.</div>
 <form class="card" method="post" action="/redeem" style="margin-bottom:8px">
   <h3>Redeem an invite code</h3>
   <label for="rc">Invite code</label>
@@ -284,14 +287,38 @@ export async function renderNetwork({ registry, ledger, accounts, account }) {
 <p class="muted" style="margin-top:12px">Raw counters: <a href="/console/stats.json">stats.json</a> (anonymous, no emails).</p>`);
 }
 
-export function renderProviderGuide({ account, apiHost, models, admin = false }) {
-  return page('Run a provider', `${nav(account.email, admin)}
+export function renderProviderGuide({ account = null, apiHost, models, admin = false, installHash = null }) {
+  const email = account ? account.email : '';
+  return page('Run a provider', `${nav(email, admin)}
 <h1>Run a provider</h1>
 <p class="sub">Contribute an Apple Silicon Mac and earn credits for the tokens it serves.</p>
 
 <div class="note">Requires Apple Silicon (M1 or later) and macOS 14+. An Intel Mac
 cannot run MLX and the installer will refuse. The agent holds one <em>outbound</em>
 connection — no inbound ports, no router configuration.</div>
+
+<h2>What you get, plainly</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Question</th><th>Answer</th></tr></thead>
+<tbody>
+<tr><td>What is a credit?</td>
+    <td>A count of tokens your machine has served, recorded in the ledger. <strong>Credits are
+    not money and do not convert to money.</strong> There is no payout, no rate and no expiry
+    today. This is an alpha, and that is the whole of it.</td></tr>
+<tr><td>Do I need an invite code?</td>
+    <td><strong>No.</strong> Invite codes grant API tokens to consumers. Running a provider
+    needs no invite code at all — your machine earns credits by serving.</td></tr>
+<tr><td>What runs on my Mac?</td>
+    <td>A Python agent under <code>launchd</code>, and one model held in memory
+    (about 4.5 GB for the current coder model). It downloads roughly the same again on
+    first use.</td></tr>
+<tr><td>What can the operator see?</td>
+    <td>Tokens served, uptime, and the model you advertise. Not your files, and not
+    anything else on the machine.</td></tr>
+<tr><td>How do I stop?</td>
+    <td>One command, printed when the installer finishes. It removes the daemon and
+    everything it installed.</td></tr>
+</tbody></table></div>
 
 <h2>1 · Issue a provider token</h2>
 <p class="muted">On the <a href="/">console</a>, under <strong>New provider token</strong>,
@@ -304,9 +331,18 @@ are not interchangeable in either direction — a developer key in
 provider never appears.</div>
 
 <h2>2 · Install the agent</h2>
+<p class="muted">If you have Homebrew, <code>brew install uv</code> first. The installer
+needs <code>uv</code>, and installing it yourself skips the one step where the installer
+pipes a third party's script into a root shell.</p>
 <pre>curl -fsSL https://${esc(apiHost)}/install.sh -o install.sh
-less install.sh          # read it before running it
+shasum -a 256 install.sh   # compare with the hash below
+less install.sh            # about 190 lines
 sudo OCM_HOST_TOKEN="ocm_host_…" OCM_AGENT_ID="my-mac" sh install.sh</pre>
+${installHash ? `<p class="muted">Published hash of the installer we are serving right now:<br>
+<code style="word-break:break-all">${esc(installHash)}</code><br>
+Also at <a href="https://${esc(apiHost)}/install.sh.sha256">/install.sh.sha256</a>. This
+proves the file you read is the file you run. It is not proof against a compromised
+gateway, since the same server publishes both.</p>` : ''}
 <p class="muted"><code>OCM_AGENT_ID</code> is the name your machine registers under.
 It is optional and defaults to the hostname — but set it, and keep it the same on
 every reinstall. A machine that comes back under a different name registers as a
@@ -318,8 +354,6 @@ runtime with <code>uv</code>, stores your token root-only in
 <code>/etc/ocm/agent.env</code> rather than in the plist, and installs a
 <code>launchd</code> daemon so the agent survives reboot. It prints the uninstall
 command when it finishes.</p>
-<p class="muted">Piping an unread script into a shell is a bad habit — the
-<code>less</code> line is there because it is worth the thirty seconds.</p>
 
 <h2>3 · Confirm it connected</h2>
 <pre>sudo /opt/ocm/bin/ocm-agent-run --doctor   # runtime, hardware, and token
@@ -328,6 +362,9 @@ launchctl print system/com.ocm.agent       # daemon status</pre>
 <p class="muted">Your Mac should appear within a few seconds, on the <a href="/">console</a>
 under <strong>Your providers</strong>. The agent reconnects on its own — dropped
 sockets are expected, not exceptional.</p>
+<div class="note"><strong>The first request your Mac serves takes up to about 90
+seconds</strong>, while the model loads into memory. Every request after that takes
+around a second. A slow first response is the system working, not failing.</div>
 
 <h2>Changing the token later</h2>
 <pre>sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_…'</pre>
@@ -336,12 +373,49 @@ sockets are expected, not exceptional.</p>
 nothing is changed.</p>
 <div class="note warn"><strong>Do not edit <code>/opt/ocm/bin/ocm-agent-run</code>.</strong>
 That file is a wrapper, it is regenerated on every reinstall, and it is not where the
-token lives. Hand-editing it has already cost one provider a day of downtime.</div>
+token lives.</div>
+
+<h2>Setting this up with an AI agent?</h2>
+<p class="muted">Paste the block below. It gives an assistant what it needs to do this
+safely, and to tell you honestly what it is doing.</p>
+<pre>You are installing the OCM provider agent on this Mac. It contributes idle GPU to a
+compute marketplace and earns credits, which are a token count and not money.
+
+Verify before installing:
+1. \`uname -m\` must be arm64. MLX cannot run on Intel and the installer refuses.
+2. Download, do not pipe:
+   curl -fsSL https://${esc(apiHost)}/install.sh -o install.sh
+3. Compare \`shasum -a 256 install.sh\` with https://${esc(apiHost)}/install.sh.sha256
+   Stop if they differ.
+4. Read it. About 190 lines. It writes only to /opt/ocm, /etc/ocm and
+   /Library/LaunchDaemons, and sends the token only to /v1/provider/verify.
+5. \`brew install uv\` first if Homebrew is present. This skips the one step where the
+   installer pipes a third party's script into a root shell.
+
+The credential: ask the user for a PROVIDER TOKEN, starting ocm_host_, issued in the
+console under New provider token. A developer key (ocm_live_) is a different thing and
+will be refused. The installer verifies the token before writing anything.
+
+Install:
+  sudo OCM_HOST_TOKEN="ocm_host_…" OCM_AGENT_ID="a-stable-name" sh install.sh
+Keep OCM_AGENT_ID identical on every reinstall, or the machine registers as a second
+provider instead of recovering the first.
+
+Confirm: sudo /opt/ocm/bin/ocm-agent-run --doctor   (expect: token ok)
+The first request takes up to ~90s while the model loads. That is not a fault.
+To change the token later: sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_…'
+Never edit /opt/ocm/bin/ocm-agent-run; it is generated and holds no token.
+
+Tell the user plainly: as a provider they can read every prompt routed to this machine
+in plaintext, and so can every other provider.</pre>
 
 <h2>When it will not connect</h2>
 <div class="tablewrap"><table>
 <thead><tr><th>What you see</th><th>What it means</th><th>What to do</th></tr></thead>
 <tbody>
+<tr><td>First request takes ~90s</td>
+    <td>The model is loading into memory.</td>
+    <td>Nothing. Later requests take about a second.</td></tr>
 <tr><td><code>REFUSED BY GATEWAY</code></td>
     <td>The token is wrong, revoked, or was never issued here.</td>
     <td>Issue a new one, then <code>ocm-agent-token</code>.</td></tr>
@@ -366,11 +440,15 @@ immediately and skips the wait.</p>
 <p class="muted">${models.length ? models.map(esc).join(', ') : 'No models are currently served.'}</p>
 
 <h2>What it costs you</h2>
-<p class="muted">The agent yields when you need the GPU yourself, and the model stays
-resident in unified memory — about 4.5 GB for a 7B model. Expect the fans under
-sustained load.</p>
+<p class="muted">The model stays resident in unified memory, about 4.5 GB for the
+current coder model, and roughly the same again is downloaded on first use. Expect the
+fans under sustained load. The agent does not currently yield the GPU back to you
+automatically, so treat it as a background tenant on a machine you are still using.</p>
 
 <div class="note warn"><strong>Be clear-eyed about privacy.</strong> As a provider you
 can see every prompt routed to your machine in plaintext. The same is true of every
-other provider, which is why prompts should not carry secrets.</div>`);
+other provider, which is why prompts should not carry secrets.</div>
+
+${account ? '' : `<div class="note"><a href="/">Create an account</a> to issue a provider
+token. You do not need an invite code to run a provider.</div>`}`);
 }

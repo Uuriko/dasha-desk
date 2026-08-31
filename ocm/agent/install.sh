@@ -1,9 +1,9 @@
 #!/bin/sh
 # OCM provider installer for macOS (Apple Silicon).
 #
-# Read this before running it. It is short on purpose: piping an unread script into
-# a shell is a bad habit, and the owners worth recruiting first are the ones who
-# would rather look.
+# Read this before running it: piping an unread script into a shell is a bad habit.
+# It is about 190 lines. The two parts worth your attention are the token check at the
+# top, which runs before anything is written, and the launchd handling at the end.
 #
 # What it does:
 #   1. refuses to run on anything but Apple Silicon macOS
