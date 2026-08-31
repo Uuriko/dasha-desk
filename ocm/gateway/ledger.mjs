@@ -15,6 +15,7 @@ import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 const MAX_JOB_ID_LENGTH = 200;
+const ACCOUNTING_UNHEALTHY = 'ACCOUNTING_UNHEALTHY';
 
 function asNonNegativeInteger(value, field) {
   if (!Number.isSafeInteger(value) || value < 0) {
@@ -75,7 +76,7 @@ export class Ledger {
   }
 
   async init() {
-    if (this.accountingError) throw new Error(`ACCOUNTING_UNHEALTHY: ${this.accountingError}`);
+    this.#requireHealthy();
     return this;
   }
 
@@ -84,7 +85,7 @@ export class Ledger {
   }
 
   #requireHealthy() {
-    if (this.accountingError) throw new Error(`ACCOUNTING_UNHEALTHY: ${this.accountingError}`);
+    if (this.accountingError) throw new Error(ACCOUNTING_UNHEALTHY);
   }
 
   #markUnhealthy(error) {
@@ -123,7 +124,7 @@ export class Ledger {
       appendFileSync(this.path, JSON.stringify(entry) + '\n');
     } catch (error) {
       this.#markUnhealthy(error);
-      throw new Error(`ACCOUNTING_UNHEALTHY: ${this.accountingError}`, { cause: error });
+      throw new Error(ACCOUNTING_UNHEALTHY, { cause: error });
     }
     this.entries.push(entry);
     return entry;
