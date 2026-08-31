@@ -24,8 +24,11 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22"
-      # No install step: the gateway and its tests are dependency-free by design.
+      # No npm install step: the gateway and its tests are dependency-free by design.
       # `pg` is imported dynamically and only when DATABASE_URL is set.
+      - name: Python syntax
+        working-directory: ocm
+        run: python3 -m py_compile agent/agent.py
       - name: Tests
         working-directory: ocm
         run: node --test tests/*.test.mjs
