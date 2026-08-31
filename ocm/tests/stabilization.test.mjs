@@ -12,6 +12,11 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Ledger } from '../gateway/ledger.mjs';
+import {
+  createGateway,
+  parseAliases,
+  providerSocketCredential,
+} from '../gateway/server.mjs';
 
 const AGENT = fileURLToPath(new URL('../agent/agent.py', import.meta.url));
 
@@ -24,6 +29,15 @@ const usage = (overrides = {}) => ({
   jobId: 'job-1',
   ...overrides,
 });
+
+async function listen(gateway) {
+  await new Promise((resolve) => gateway.server.listen(0, '127.0.0.1', resolve));
+  const port = gateway.server.address().port;
+  return {
+    base: `http://127.0.0.1:${port}`,
+    ws: `ws://127.0.0.1:${port}`,
+  };
+}
 
 test('the MLX agent imports successfully and never puts its credential in the URL', () => {
   const source = readFileSync(AGENT, 'utf8');
@@ -58,6 +72,86 @@ test('the MLX agent imports successfully and never puts its credential in the UR
   ].join('; '), AGENT], {
     env: { ...process.env, PYTHONPATH: stub, OCM_RUNTIME: 'mlx' },
   });
+});
+
+test('production provider socket auth refuses URL credentials', () => {
+  const withQuery = new URL('ws://gateway/host/connect?token=query-secret');
+  assert.equal(providerSocketCredential({ headers: {}, socket: { remoteAddress: '10.0.1.9' } }, withQuery), '',
+    'a non-loopback peer must never authenticate from the URL');
+  assert.equal(providerSocketCredential({ headers: {}, socket: { remoteAddress: '127.0.0.1' } }, withQuery),
+    'query-secret', 'legacy query auth is limited to the actual loopback TCP peer');
+  assert.equal(providerSocketCredential({
+    headers: { authorization: 'Bearer header-secret' },
+    socket: { remoteAddress: '10.0.1.9' },
+  }, withQuery), 'header-secret', 'Authorization must be the production credential path');
+});
+
+test('provider verification accepts only the Authorization header', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ocm-provider-auth-'));
+  const gw = await createGateway({ ledgerPath: join(dir, 'usage.jsonl'), keys: new Map() });
+  const { base } = await listen(gw);
+  try {
+    const account = await gw.accounts.createAccount('provider@test.dev');
+    const token = await gw.accounts.issue(account.id, 'provider_token', 'test');
+
+    const query = await fetch(`${base}/v1/provider/verify?token=${encodeURIComponent(token.secret)}`);
+    assert.equal(query.status, 401, 'public HTTP endpoints must not accept credentials from URLs');
+
+    const header = await fetch(`${base}/v1/provider/verify`, {
+      headers: { authorization: `Bearer ${token.secret}` },
+    });
+    assert.equal(header.status, 200);
+  } finally { await gw.close(); }
+});
+
+test('model aliases reject blank and ambiguous reverse mappings', () => {
+  assert.throws(() => parseAliases('ocm-coder='), /invalid model alias/);
+  assert.throws(() => parseAliases('alias-a=raw-build,alias-b=raw-build'), /ambiguous model alias/);
+  assert.deepEqual(parseAliases('ocm-coder=raw-build').get('ocm-coder'), ['raw-build']);
+});
+
+test('duplicate and conflicting terminal messages clear one usage row', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ocm-terminal-race-'));
+  const hostToken = 'host-race-token';
+  const apiKey = 'ocm_race_key';
+  const gw = await createGateway({
+    hostToken,
+    keys: new Map([[apiKey, 'race-consumer']]),
+    ledgerPath: join(dir, 'usage.jsonl'),
+    grantTokens: 1_000,
+    modelAliases: '',
+  });
+  const { base, ws } = await listen(gw);
+  try {
+    await new Promise((resolve, reject) => {
+      const socket = new WebSocket(`${ws}/host/connect?token=${hostToken}`);
+      socket.addEventListener('error', reject);
+      socket.addEventListener('open', () => socket.send(JSON.stringify({
+        t: 'hello', agent: { id: 'racy-host', models: ['race-model'] },
+      })));
+      socket.addEventListener('message', (event) => {
+        const message = JSON.parse(event.data);
+        if (message.t === 'welcome') return resolve();
+        if (message.t !== 'job') return;
+        socket.send(JSON.stringify({ t: 'chunk', id: message.id, delta: 'abcd' }));
+        socket.send(JSON.stringify({ t: 'done', id: message.id }));
+        socket.send(JSON.stringify({ t: 'error', id: message.id, message: 'late error' }));
+        socket.send(JSON.stringify({ t: 'done', id: message.id }));
+      });
+    });
+
+    const response = await fetch(`${base}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'race-model', messages: [{ role: 'user', content: 'go' }] }),
+    });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).choices[0].message.content, 'abcd');
+
+    const summary = await gw.ledger.summary();
+    assert.equal(summary.totals.requests, 1,
+      'done + error + done must have one settlement owner and one usage row');
+  } finally { await gw.close(); }
 });
 
 test('local usage clearing is at-most-once and conflicts fail', async () => {
