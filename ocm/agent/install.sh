@@ -9,8 +9,8 @@
 #   1. refuses to run on anything but Apple Silicon macOS
 #   2. requires an existing, explicitly located uv binary
 #   3. downloads the agent over HTTPS and proves its doctor path before replacing files
-#   4. stores your provider token root-only in /etc/ocm/agent.env
-#   5. installs a launchd daemon so the agent survives reboot
+#   4. stores your provider token in an owner-only environment file
+#   5. installs a launchd daemon that runs as the invoking non-root user
 #
 # Usage:
 #   sudo env OCM_HOST_TOKEN="ocm_host_…" sh install.sh
@@ -23,7 +23,14 @@
 #                           ocm-coder=<the MLX coder model>, which is the name
 #                           consumers actually request.
 #   OCM_UV_BIN="/opt/homebrew/bin/uv"  explicit uv path when sudo has a narrow PATH.
+#   OCM_RUN_USER="alice"    account that runs inference. Defaults to SUDO_USER and
+#                           may never be root.
 set -eu
+
+# Root must not inherit a caller-controlled PATH while downloading or installing
+# executable code. Homebrew locations are included after the system directories.
+PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin:/var/root/.local/bin
+export PATH
 
 GATEWAY="${OCM_GATEWAY_URL:-wss://api.ocm.getdasha.com}"
 # The download and credential-check origin is derived from the socket origin. A
@@ -41,6 +48,7 @@ AGENT_ID="${OCM_AGENT_ID:-$(hostname -s)}"
 # model, which is exactly what OCM_MODEL_MAP exists to express.
 MLX_MODEL="${OCM_MLX_MODEL:-mlx-community/Qwen2.5-Coder-7B-Instruct-4bit}"
 MODEL_MAP="${OCM_MODEL_MAP:-ocm-coder=$MLX_MODEL}"
+RUN_USER="${OCM_RUN_USER:-${SUDO_USER:-}}"
 PREFIX=/opt/ocm
 
 die() { printf '\nerror: %s\n' "$1" >&2; exit 1; }
@@ -52,11 +60,14 @@ curl_https() {
 
 [ "$(uname -s)" = "Darwin" ] || die "this installer is for macOS"
 [ "$(uname -m)" = "arm64" ] || die "Apple Silicon is required — MLX cannot run on an Intel Mac"
-[ "$(id -u)" = "0" ] || die "run with sudo: the launchd daemon and /etc/ocm need root"
+[ "$(id -u)" = "0" ] || die "run with sudo: installing the launchd daemon needs root"
 [ -n "${OCM_HOST_TOKEN:-}" ] || die "set OCM_HOST_TOKEN to the provider token from your console"
+[ -n "$RUN_USER" ] || die "run through sudo from the account that should run inference, or set OCM_RUN_USER"
+[ "$RUN_USER" != root ] || die "the OCM inference daemon may not run as root; set OCM_RUN_USER to a normal account"
 
-# Every value below is written to a shell-sourced, root-only environment file. The
-# allowlists are therefore a code-execution boundary, not cosmetic validation.
+# Every value below is written to a shell-sourced environment file or generated
+# wrapper. The allowlists are therefore a code-execution boundary, not cosmetic
+# validation.
 matches "$GATEWAY" '^wss://[A-Za-z0-9.-]+(:[0-9]{1,5})?$' \
   || die "OCM_GATEWAY_URL must be a bare wss:// host with an optional port"
 matches "$SOURCE" '^https://[A-Za-z0-9.-]+(:[0-9]{1,5})?$' \
@@ -69,17 +80,25 @@ matches "$MLX_MODEL" '^[-A-Za-z0-9._/:@+]{1,512}$' \
   || die "OCM_MLX_MODEL contains unsupported characters or is too long"
 matches "$MODEL_MAP" '^[-A-Za-z0-9._/:@=,+]{1,2048}$' \
   || die "OCM_MODEL_MAP contains unsupported characters or is too long"
+matches "$RUN_USER" '^[-A-Za-z0-9._]{1,64}$' \
+  || die "OCM_RUN_USER contains unsupported characters"
+id "$RUN_USER" >/dev/null 2>&1 || die "OCM_RUN_USER does not name a local account"
+RUN_HOME=$(dscl . -read "/Users/$RUN_USER" NFSHomeDirectory 2>/dev/null \
+  | awk '{ print $2; exit }')
+[ -n "$RUN_HOME" ] || die "could not determine the home directory for OCM_RUN_USER"
+matches "$RUN_HOME" '^/[-A-Za-z0-9._/+]{1,512}$' \
+  || die "the provider account home directory contains unsupported characters"
 
 # Require uv rather than piping a third party installer into a root shell. Homebrew's
-# default Apple Silicon path is checked explicitly because sudo often drops it from
-# PATH. OCM_UV_BIN is accepted only when it is an absolute executable path with a
-# shape that cannot break the generated wrapper.
+# default Apple Silicon path and the provider user's local path are checked explicitly.
+# OCM_UV_BIN is accepted only when it is an absolute executable path with a shape
+# that cannot break the generated wrapper.
 UV="${OCM_UV_BIN:-}"
 if [ -z "$UV" ]; then
   UV=$(command -v uv 2>/dev/null || true)
 fi
 if [ -z "$UV" ]; then
-  for candidate in /opt/homebrew/bin/uv /usr/local/bin/uv /var/root/.local/bin/uv; do
+  for candidate in /opt/homebrew/bin/uv /usr/local/bin/uv "$RUN_HOME/.local/bin/uv"; do
     if [ -x "$candidate" ]; then UV=$candidate; break; fi
   done
 fi
@@ -87,6 +106,8 @@ fi
   || die "uv is required before running this root installer. Install it yourself (for example: brew install uv), then rerun with OCM_UV_BIN=\"$(command -v uv 2>/dev/null || echo /opt/homebrew/bin/uv)\""
 matches "$UV" '^/[-A-Za-z0-9._/+]{1,512}$' \
   || die "OCM_UV_BIN must be a safe absolute executable path"
+sudo -u "$RUN_USER" test -x "$UV" \
+  || die "OCM_UV_BIN is not executable by OCM_RUN_USER"
 
 # Check the credential BEFORE downloading or replacing anything. Fail here, with a
 # useful reason, while the operator is still watching the terminal.
@@ -102,33 +123,39 @@ printf '%s' "$VERIFY" | grep -q '"ok":true' \
   || die "the gateway response did not confirm this provider token"
 printf '  token accepted\n'
 
-printf 'OCM provider install\n  host    %s (%s)\n  gateway %s\n  serving %s\n\n' \
-  "$AGENT_ID" "$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo mac)" "$GATEWAY" "$MODEL_MAP"
+printf 'OCM provider install\n  host    %s (%s)\n  user    %s\n  gateway %s\n  serving %s\n\n' \
+  "$AGENT_ID" "$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo mac)" \
+  "$RUN_USER" "$GATEWAY" "$MODEL_MAP"
 
-# Download to a private temporary file and prove the new agent's diagnostic path
-# before replacing a working installation. HTTPS authenticates the current gateway;
-# broad deployment still requires a release artifact pinned to an immutable digest.
+# Download to a private temporary file and prove the new agent's diagnostic path as
+# the same unprivileged account that launchd will use. Only then replace installed
+# files. HTTPS authenticates the current gateway; broad deployment still requires a
+# release artifact pinned to an immutable digest.
 umask 077
 TMP_AGENT=$(mktemp "${TMPDIR:-/tmp}/ocm-agent.XXXXXX")
 trap 'rm -f "$TMP_AGENT"' EXIT HUP INT TERM
 printf 'downloading agent …\n'
 curl_https --fail "$SOURCE/agent.py" -o "$TMP_AGENT" \
   || die "could not fetch $SOURCE/agent.py"
-chmod 700 "$TMP_AGENT"
+chmod 755 "$TMP_AGENT"
 
-printf 'checking the downloaded agent …\n'
-OCM_HOST_TOKEN="$OCM_HOST_TOKEN" \
-OCM_GATEWAY_URL="$GATEWAY" \
-OCM_AGENT_ID="$AGENT_ID" \
-OCM_MODEL_MAP="$MODEL_MAP" \
+printf 'checking the downloaded agent as %s …\n' "$RUN_USER"
+sudo -u "$RUN_USER" env \
+  HOME="$RUN_HOME" \
+  OCM_HOST_TOKEN="$OCM_HOST_TOKEN" \
+  OCM_GATEWAY_URL="$GATEWAY" \
+  OCM_AGENT_ID="$AGENT_ID" \
+  OCM_MODEL_MAP="$MODEL_MAP" \
   "$UV" run --quiet --python 3.12 "$TMP_AGENT" --doctor \
   || die "downloaded agent doctor failed — no installed files were changed"
 
 mkdir -p "$PREFIX/agent" "$PREFIX/bin"
 install -m 755 "$TMP_AGENT" "$PREFIX/agent/agent.py"
 
-# The token lives in a root-only file, never in the plist — plists are world-readable.
+# The token lives in an owner-only file, never in the plist — plists are
+# world-readable. The provider process runs as RUN_USER, not as root.
 install -d -m 700 /etc/ocm
+chown "$RUN_USER" /etc/ocm
 umask 077
 cat > /etc/ocm/agent.env <<ENV
 OCM_HOST_TOKEN=$OCM_HOST_TOKEN
@@ -136,16 +163,17 @@ OCM_GATEWAY_URL=$GATEWAY
 OCM_AGENT_ID=$AGENT_ID
 OCM_MODEL_MAP=$MODEL_MAP
 ENV
+chown "$RUN_USER" /etc/ocm/agent.env
 chmod 600 /etc/ocm/agent.env
 
 cat > "$PREFIX/bin/ocm-agent-run" <<RUN
 #!/bin/bash
-export PATH=/usr/local/bin:/opt/homebrew/bin:/var/root/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin
-export HOME=/var/root
+export PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/homebrew/bin:$RUN_HOME/.local/bin
+export HOME="$RUN_HOME"
 set -a; . /etc/ocm/agent.env; set +a
 exec "$UV" run --quiet --python 3.12 $PREFIX/agent/agent.py "\$@"
 RUN
-chmod +x "$PREFIX/bin/ocm-agent-run"
+chmod 755 "$PREFIX/bin/ocm-agent-run"
 
 # Rotating a token had no supported path, so people edited ocm-agent-run by hand —
 # which silently breaks the daemon, because that file is regenerated on reinstall
@@ -158,10 +186,16 @@ cat > "$PREFIX/bin/ocm-agent-token" <<'TOK'
 # Use this rather than editing any file by hand: the token lives in
 # /etc/ocm/agent.env, and ocm-agent-run is regenerated on every reinstall.
 set -eu
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+export PATH
 [ "$(id -u)" = "0" ] || { echo "run with sudo" >&2; exit 1; }
 [ $# -eq 1 ] || { echo "usage: ocm-agent-token 'ocm_host_...'" >&2; exit 1; }
 printf '%s\n' "$1" | LC_ALL=C grep -Eq '^ocm_host_[-A-Za-z0-9_]{16,}$' \
   || { echo "error: expected an issued ocm_host_ provider token" >&2; exit 1; }
+OWNER=$(stat -f '%Su' /etc/ocm/agent.env 2>/dev/null || true)
+printf '%s\n' "$OWNER" | LC_ALL=C grep -Eq '^[-A-Za-z0-9._]{1,64}$' \
+  || { echo "error: could not identify the provider account" >&2; exit 1; }
+[ "$OWNER" != root ] || { echo "error: the provider environment may not be owned by root" >&2; exit 1; }
 BASE=$(sed -n 's|^OCM_GATEWAY_URL=||p' /etc/ocm/agent.env | sed 's|^wss://|https://|')
 printf '%s\n' "$BASE" | LC_ALL=C grep -Eq '^https://[A-Za-z0-9.-]+(:[0-9]{1,5})?$' \
   || { echo "error: unsafe or missing gateway URL in /etc/ocm/agent.env" >&2; exit 1; }
@@ -182,18 +216,26 @@ trap 'rm -f "$TMP"' EXIT HUP INT TERM
 grep -v '^OCM_HOST_TOKEN=' /etc/ocm/agent.env > "$TMP" || true
 printf 'OCM_HOST_TOKEN=%s\n' "$1" >> "$TMP"
 cat "$TMP" > /etc/ocm/agent.env
+chown "$OWNER" /etc/ocm/agent.env
 chmod 600 /etc/ocm/agent.env
 launchctl kickstart -k system/com.ocm.agent
 echo "token accepted, written, and agent restarted."
 echo "watch it connect:  tail -f /var/log/ocm-agent.log"
 TOK
-chmod +x "$PREFIX/bin/ocm-agent-token"
+chmod 755 "$PREFIX/bin/ocm-agent-token"
+
+# launchd opens the log as RUN_USER. Pre-create it owner-only rather than relying on
+# launchd to create a world-readable root log or failing because /var/log is closed.
+touch /var/log/ocm-agent.log
+chown "$RUN_USER" /var/log/ocm-agent.log
+chmod 600 /var/log/ocm-agent.log
 
 cat > /Library/LaunchDaemons/com.ocm.agent.plist <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>Label</key><string>com.ocm.agent</string>
+  <key>UserName</key><string>$RUN_USER</string>
   <key>ProgramArguments</key><array><string>$PREFIX/bin/ocm-agent-run</string></array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
@@ -219,7 +261,7 @@ if ! launchctl bootstrap system /Library/LaunchDaemons/com.ocm.agent.plist; then
   # failure means the machine is left with no agent at all.
   die "the daemon could not be loaded, and this machine now has NO agent running.
   Retry:  sudo launchctl bootstrap system /Library/LaunchDaemons/com.ocm.agent.plist
-  Then:   sudo $PREFIX/bin/ocm-agent-run --doctor"
+  Then:   sudo -u $RUN_USER $PREFIX/bin/ocm-agent-run --doctor"
 fi
 
 rm -f "$TMP_AGENT"
@@ -227,15 +269,15 @@ trap - EXIT HUP INT TERM
 
 cat <<DONE
 
-installed.
+installed. Inference runs as $RUN_USER, never as root.
 
   status   launchctl print system/com.ocm.agent
   logs     tail -f /var/log/ocm-agent.log
-  check    sudo $PREFIX/bin/ocm-agent-run --doctor
+  check    sudo -u $RUN_USER $PREFIX/bin/ocm-agent-run --doctor
   rotate   sudo $PREFIX/bin/ocm-agent-token 'ocm_host_…'
   stop     sudo launchctl bootout system/com.ocm.agent
   remove   sudo launchctl bootout system/com.ocm.agent; sudo rm -rf $PREFIX /etc/ocm \\
-             /Library/LaunchDaemons/com.ocm.agent.plist
+             /Library/LaunchDaemons/com.ocm.agent.plist /var/log/ocm-agent.log
 
 Your Mac should appear in the console within a few seconds.
 
