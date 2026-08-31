@@ -219,6 +219,12 @@ export function providerSocketCredential(req, url) {
     : '';
 }
 
+/** Public health must never echo a database hostname, user, path, or driver error. */
+export function publicAccountingHealth(ledger) {
+  const health = ledger.health?.() || { ok: true };
+  return { ok: health.ok !== false };
+}
+
 export async function createGateway({
   inviteCode = process.env.OCM_INVITE_CODE || '',
   sessionSecret = process.env.OCM_SESSION_SECRET || process.env.OCM_ADMIN_TOKEN || 'dev-session-secret',
@@ -487,7 +493,7 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
         }
       }
       if (req.method === 'GET' && url.pathname === '/healthz') {
-        const accounting = ledger.health?.() || { ok: true, error: null };
+        const accounting = publicAccountingHealth(ledger);
         return json(res, accounting.ok ? 200 : 503, {
           ok: accounting.ok,
           service: 'ocm-gateway',
@@ -590,7 +596,7 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
       }
       tried.add(host.id);
       const outcome = await runJob({ host, jobId, model, messages, stream, res, chatId, created, consumer, promptTokens });
-      if (outcome.ok || outcome.committed) return;
+      if (outcome.ok || outcome.committed || outcome.aborted || res.destroyed || res.writableEnded) return;
       // else: nothing was delivered to the client — safe to try another host
     }
     if (!res.headersSent) apiError(res, 503, 'all candidate hosts failed', 'service_unavailable');
@@ -654,8 +660,8 @@ export OPENAI_API_KEY="${cred.secret}"</pre>`,
         host.conn.sendJson({ t: 'cancel', id: jobId });
         const wasCommitted = committed;
         if (!claimSettlement()) return;
-        if (!wasCommitted) return finish({ ok: false, committed: false });
-        void meter().finally(() => finish({ ok: false, committed: true }));
+        if (!wasCommitted) return finish({ ok: false, committed: false, aborted: true });
+        void meter().finally(() => finish({ ok: false, committed: true, aborted: true }));
       };
 
       const timer = setTimeout(() => {
