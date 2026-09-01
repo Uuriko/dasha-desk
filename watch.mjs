@@ -30,6 +30,8 @@ const GONE = [
   /not financial advice/i,
   /association is not endorsement/i,
   /not affiliated with dasha/i,
+  /t\.me\//i,
+  /telegram\.me\//i,
 ];
 const HOME_308 = ['/studio', '/verse', '/learn', '/graph'];
 const BUY_308 = ['/dasha', '/desk'];
@@ -322,10 +324,16 @@ export async function runWatch({ probe, skipPages = false } = {}) {
   await page200(bag, probe, '/lobby', {
     h1: true,
     match: [[/lobby|chat|forum|community|simp/i, '/lobby: missing community room']],
+    forbid: [
+      [/id=["']forum-play["']/, '/lobby: leftover id=forum-play'],
+    ],
   });
 
   await page200(bag, probe, '/chess', {
     heading: true,
+    forbid: [
+      [/id=["']buy-share-tg["']/, '/chess: leftover id=buy-share-tg'],
+    ],
     after: async (b, html) => {
       const api = chessApi(html);
       fail(b, api !== null, '/chess: var API is missing');

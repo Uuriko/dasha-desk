@@ -151,6 +151,46 @@ assert.equal(baseline.failures.length, 0, `good fixtures must pass:\n${baseline.
 }
 
 {
+  const bag = await runWatch({
+    probe: overlay(good, {
+      [`${ORIGIN}/lobby`]: {
+        status: 200,
+        body: '<!doctype html><h1>Lobby</h1><p>The one community room.</p><a href="https://t.me/+xB7S8mIQaKFiZjRh">TG</a>',
+      },
+    }),
+    skipPages: true,
+  });
+  assert.ok(bag.failures.some((f) => /\/lobby:.*t\\.me/.test(f)), bag.failures.join('\n'));
+}
+
+{
+  const bag = await runWatch({
+    probe: overlay(good, {
+      [`${ORIGIN}/lobby`]: {
+        status: 200,
+        body: '<!doctype html><h1>Lobby</h1><p>The one community room.</p><section id="forum-play">Play</section>',
+      },
+    }),
+    skipPages: true,
+  });
+  assert.ok(bag.failures.some((f) => /leftover id=forum-play/.test(f)), bag.failures.join('\n'));
+}
+
+{
+  const bag = await runWatch({
+    probe: overlay(good, {
+      [`${ORIGIN}/chess`]: {
+        status: 200,
+        body: '<!doctype html><h1>Chess</h1><script>var API=\'https://lobby.getdasha.com\';</script><button id="gate-action">Play</button><button id="gate-find">Find</button><a id="buy-share-tg" href="https://t.me/+xB7S8mIQaKFiZjRh">TG</a>',
+      },
+    }),
+    skipPages: true,
+  });
+  assert.ok(bag.failures.some((f) => /leftover id=buy-share-tg/.test(f)), bag.failures.join('\n'));
+  assert.ok(bag.failures.some((f) => /\/chess:.*t\\.me/.test(f)), bag.failures.join('\n'));
+}
+
+{
   const pin = readFileSync(join(fixtureDir, 'home.html'), 'utf8');
   const stale = pin.replace(
     'sha384-FzI+vBDCbm64kOB54trhapHWjR6ugybc4wrY8GMgqEYeUJ4rTg1mCO+w2bS4HKNp',
