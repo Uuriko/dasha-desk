@@ -91,6 +91,27 @@ button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line
 .secret{background:var(--card);border:1px solid var(--warn);border-radius:8px;padding:14px;margin:12px 0}
 .secret code{display:block;word-break:break-all;padding:9px 11px;font-size:13px;background:var(--bg)}
 .muted{color:var(--dim);font-size:13px}
+/* Provider guide: one command per line with room around it, so a sequence reads as
+   steps rather than a wall. */
+.step{margin:0 0 26px}
+.step h3{font-size:15px;font-weight:600;margin:0 0 10px;letter-spacing:-.01em}
+.step .num{color:var(--dim);font-weight:400;margin-right:8px}
+.cmd{display:block;background:var(--card);border:1px solid var(--line);border-radius:6px;
+  padding:11px 13px;margin:0 0 6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:13px;line-height:1.5;overflow-x:auto;white-space:pre}
+.cap{font-size:13px;color:var(--dim);margin:0 0 14px;line-height:1.5}
+.cap:last-child{margin-bottom:0}
+.opt{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin:0 0 5px}
+.facts{margin:0 0 26px;padding:0;list-style:none}
+.facts li{padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.5}
+.facts li:last-child{border-bottom:0}
+.facts b{font-weight:600}
+details{border:1px solid var(--line);border-radius:8px;background:var(--card);margin:0 0 26px}
+summary{cursor:pointer;padding:13px 15px;font-size:14px;font-weight:600;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'+';color:var(--dim);margin-right:9px;font-weight:400}
+details[open] summary::before{content:'−'}
+details .body{padding:0 15px 15px}
 nav{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 18px;font-size:14px;align-items:center;min-width:0}
 nav .links{display:flex;gap:16px;align-items:center;flex-wrap:wrap;min-width:0}
 nav .links a{white-space:nowrap}
@@ -302,97 +323,74 @@ export function renderProviderGuide({ account = null, apiHost, models, admin = f
 <h1>Run a provider</h1>
 <p class="sub">Contribute an Apple Silicon Mac and earn credits for the tokens it serves.</p>
 
-<div class="note">Requires Apple Silicon (M1 or later) and macOS 14+. An Intel Mac
-cannot run MLX and the installer will refuse. The agent holds one <em>outbound</em>
-connection — no inbound ports, no router configuration.</div>
+<div class="note">Apple Silicon (M1 or later) and macOS 14+. The agent holds one
+<em>outbound</em> connection, so there are no inbound ports and no router configuration.</div>
 
-<h2>What you get, plainly</h2>
-<div class="tablewrap"><table>
-<thead><tr><th>Question</th><th>Answer</th></tr></thead>
-<tbody>
-<tr><td>What is a credit?</td>
-    <td>A count of tokens your machine has served, recorded in the ledger. <strong>Credits are
-    not money and do not convert to money.</strong> There is no payout, no rate and no expiry
-    today. This is an alpha, and that is the whole of it.</td></tr>
-<tr><td>Do I need an invite code?</td>
-    <td><strong>No.</strong> Invite codes grant API tokens to consumers. Running a provider
-    needs no invite code at all — your machine earns credits by serving.</td></tr>
-<tr><td>What runs on my Mac?</td>
-    <td>A Python agent under <code>launchd</code>, and one model held in memory
-    (about 4.5 GB for the current coder model). It downloads roughly the same again on
-    first use.</td></tr>
-<tr><td>What can the operator see?</td>
-    <td>Tokens served, uptime, and the model you advertise. Not your files, and not
-    anything else on the machine.</td></tr>
-<tr><td>How do I stop?</td>
-    <td>One command, printed when the installer finishes. It removes the daemon and
-    everything it installed.</td></tr>
-</tbody></table></div>
+<h2>Worth knowing first</h2>
+<ul class="facts">
+<li><b>Credits are not money.</b> They count the tokens your machine has served. There is no payout and no expiry today.</li>
+<li><b>You need no invite code at all.</b> Codes give API tokens to consumers; a provider earns by serving.</li>
+<li><b>You will see the prompts.</b> Anything routed to your machine is visible to you in plaintext, and the same is true of every other provider.</li>
+<li><b>It holds one model in memory,</b> about 4.5 GB, and downloads roughly the same on first use.</li>
+</ul>
 
-<h2>1 · Issue a provider token</h2>
-<p class="muted">On the <a href="/">console</a>, under <strong>New provider token</strong>,
-issue a token and copy it. It is shown once.</p>
-<div class="note warn"><strong>A developer key is not a provider token.</strong>
-A provider token starts <code>ocm_host_</code> and authorises a machine to join the
-network. A developer key starts <code>ocm_live_</code> and authorises API calls. They
-are not interchangeable in either direction — a developer key in
-<code>OCM_HOST_TOKEN</code> is refused, and it is the most common reason a new
-provider never appears.</div>
+<h2>Install</h2>
 
-<h2>2 · Install the agent</h2>
-<p class="muted">If you have Homebrew, <code>brew install uv</code> first. The installer
-needs <code>uv</code>, and installing it yourself skips the one step where the installer
-pipes a third party's script into a root shell.</p>
-<pre>curl -fsSL https://${esc(apiHost)}/install.sh -o install.sh
-shasum -a 256 install.sh   # compare with the hash below
-less install.sh            # about 190 lines
-sudo OCM_HOST_TOKEN="ocm_host_…" OCM_AGENT_ID="my-mac" sh install.sh</pre>
-${installHash ? `<p class="muted">Published hash of the installer we are serving right now:<br>
-<code style="word-break:break-all">${esc(installHash)}</code><br>
-Also at <a href="https://${esc(apiHost)}/install.sh.sha256">/install.sh.sha256</a>. This
-proves the file you read is the file you run. It is not proof against a compromised
-gateway, since the same server publishes both.</p>` : ''}
-<p class="muted"><code>OCM_AGENT_ID</code> is the name your machine registers under.
-It is optional and defaults to the hostname — but set it, and keep it the same on
-every reinstall. A machine that comes back under a different name registers as a
-<em>second</em> provider rather than recovering the one you already had.</p>
-<p class="muted">The installer checks your token against the gateway <em>before</em> it
-installs anything, so a token that would be refused fails here with the reason rather
-than after the fact. It then refuses to run on an Intel Mac, sets up an isolated
-runtime with <code>uv</code>, stores your token root-only in
-<code>/etc/ocm/agent.env</code> rather than in the plist, and installs a
-<code>launchd</code> daemon so the agent survives reboot. It prints the uninstall
-command when it finishes.</p>
+<div class="step">
+  <h3><span class="num">1</span>Issue a provider token</h3>
+  <p class="cap">On the <a href="/">console</a>, under <strong>New provider token</strong>. It is shown once.</p>
+  <div class="note warn"><strong>A developer key is not a provider token.</strong> Provider
+  tokens start <code>ocm_host_</code>; developer keys start <code>ocm_live_</code> and are
+  refused here. This is the most common reason a new provider never appears.</div>
+</div>
 
-<h2>3 · Confirm it connected</h2>
-<pre>sudo /opt/ocm/bin/ocm-agent-run --doctor   # runtime, hardware, and token
-tail -f /var/log/ocm-agent.log             # logs
-launchctl print system/com.ocm.agent       # daemon status</pre>
-<p class="muted">Your Mac should appear within a few seconds, on the <a href="/">console</a>
-under <strong>Your providers</strong>. The agent reconnects on its own — dropped
-sockets are expected, not exceptional.</p>
-<div class="note"><strong>The first request your Mac serves takes up to about 90
-seconds</strong>, while the model loads into memory. Every request after that takes
-around a second. A slow first response is the system working, not failing.</div>
+<div class="step">
+  <h3><span class="num">2</span>Download the installer</h3>
+  <p class="opt">Optional, skips a root shell</p>
+  <code class="cmd">brew install uv</code>
+  <p class="cap">The installer needs <code>uv</code>. Installing it yourself avoids the one
+  step where the installer pipes a third party's script into a root shell.</p>
+  <code class="cmd">curl -fsSL https://${esc(apiHost)}/install.sh -o install.sh</code>
+</div>
+
+<div class="step">
+  <h3><span class="num">3</span>Check what you downloaded</h3>
+  <code class="cmd">shasum -a 256 install.sh</code>
+  ${installHash ? `<p class="cap">Should print <code style="word-break:break-all">${esc(installHash)}</code><br>
+  Also at <a href="https://${esc(apiHost)}/install.sh.sha256">/install.sh.sha256</a>.</p>`
+  : '<p class="cap">Compare with /install.sh.sha256.</p>'}
+  <code class="cmd">less install.sh</code>
+  <p class="cap">About 190 lines. It writes only to <code>/opt/ocm</code>,
+  <code>/etc/ocm</code> and <code>/Library/LaunchDaemons</code>.</p>
+</div>
+
+<div class="step">
+  <h3><span class="num">4</span>Run it</h3>
+  <code class="cmd">sudo OCM_HOST_TOKEN="ocm_host_…" OCM_AGENT_ID="my-mac" sh install.sh</code>
+  <p class="cap">Your token is checked before anything is written, so a bad one fails here
+  with the reason. Keep <code>OCM_AGENT_ID</code> the same on every reinstall, or the
+  machine registers as a second provider instead of recovering the first.</p>
+</div>
+
+<div class="step">
+  <h3><span class="num">5</span>Confirm it connected</h3>
+  <code class="cmd">sudo /opt/ocm/bin/ocm-agent-run --doctor</code>
+  <p class="cap">Expect <code>token ok</code>. Your Mac then appears on the
+  <a href="/">console</a> under <strong>Your providers</strong>.</p>
+  <div class="note">The first request your machine serves takes <strong>up to about 90
+  seconds</strong> while the model loads. Everything after that takes about a second.</div>
+</div>
 
 <h2>Changing the token later</h2>
-<pre>printf '%s' 'ocm_host_…' | sudo /opt/ocm/bin/ocm-agent-token</pre>
-<p class="muted">This verifies the new token, writes it to
-<code>/etc/ocm/agent.env</code>, and restarts the agent. If the gateway refuses it,
-nothing is changed. There is also
-<code>--token-file <em>path</em></code> if you would rather keep it in a file.</p>
-<div class="note warn"><strong>Never pass a token as a command-line argument.</strong>
-Arguments are visible to any local user through <code>ps</code> while the command runs,
-and they persist in your shell history afterwards. Piping from
-<code>printf</code> avoids both. The old
-<code>ocm-agent-token 'ocm_host_…'</code> form still works and warns.</div>
-<div class="note warn"><strong>Do not edit <code>/opt/ocm/bin/ocm-agent-run</code>.</strong>
-That file is a wrapper, it is regenerated on every reinstall, and it is not where the
-token lives.</div>
+<code class="cmd">printf '%s' 'ocm_host_…' | sudo /opt/ocm/bin/ocm-agent-token</code>
+<p class="cap">Verifies first and changes nothing if the gateway refuses it.
+<strong>Never pass a token as a command-line argument</strong>: it would be visible to any
+local user through <code>ps</code> and kept in your shell history.
+<strong>Do not edit</strong> <code>/opt/ocm/bin/ocm-agent-run</code>, which is generated on
+every reinstall and holds no token.</p>
 
-<h2>Setting this up with an AI agent?</h2>
-<p class="muted">Paste the block below. It gives an assistant what it needs to do this
-safely, and to tell you honestly what it is doing.</p>
+<details><summary>Setting this up with an AI agent</summary><div class="body">
+<p class="cap">Paste this to it.</p>
 <pre>You are installing the OCM provider agent on this Mac. It contributes idle GPU to a
 compute marketplace and earns credits, which are a token count and not money.
 
@@ -404,67 +402,39 @@ Verify before installing:
    Stop if they differ.
 4. Read it. About 190 lines. It writes only to /opt/ocm, /etc/ocm and
    /Library/LaunchDaemons, and sends the token only to /v1/provider/verify.
-5. \`brew install uv\` first if Homebrew is present. This skips the one step where the
-   installer pipes a third party's script into a root shell.
+5. \`brew install uv\` first if Homebrew is present, to skip the root-shell step.
 
-The credential: ask the user for a PROVIDER TOKEN, starting ocm_host_, issued in the
-console under New provider token. A developer key (ocm_live_) is a different thing and
-will be refused. The installer verifies the token before writing anything.
+Ask the user for a PROVIDER TOKEN starting ocm_host_, issued in the console under
+New provider token. A developer key (ocm_live_) is refused.
 
-Install:
   sudo OCM_HOST_TOKEN="ocm_host_…" OCM_AGENT_ID="a-stable-name" sh install.sh
-Keep OCM_AGENT_ID identical on every reinstall, or the machine registers as a second
-provider instead of recovering the first.
 
-Confirm: sudo /opt/ocm/bin/ocm-agent-run --doctor   (expect: token ok)
+Keep OCM_AGENT_ID identical on every reinstall or the machine registers twice.
+Confirm with: sudo /opt/ocm/bin/ocm-agent-run --doctor   (expect: token ok)
 The first request takes up to ~90s while the model loads. That is not a fault.
-To change the token later, never as an argument (ps and shell history expose it):
-  printf '%s' 'ocm_host_…' | sudo /opt/ocm/bin/ocm-agent-token
+Rotate later with: printf '%s' 'ocm_host_…' | sudo /opt/ocm/bin/ocm-agent-token
 Never edit /opt/ocm/bin/ocm-agent-run; it is generated and holds no token.
 
-Tell the user plainly: as a provider they can read every prompt routed to this machine
-in plaintext, and so can every other provider.</pre>
+Tell the user plainly: as a provider they can read every prompt routed to this
+machine in plaintext, and so can every other provider.</pre>
+</div></details>
 
-<h2>When it will not connect</h2>
+<details><summary>If it will not connect</summary><div class="body">
 <div class="tablewrap"><table>
-<thead><tr><th>What you see</th><th>What it means</th><th>What to do</th></tr></thead>
 <tbody>
-<tr><td>First request takes ~90s</td>
-    <td>The model is loading into memory.</td>
-    <td>Nothing. Later requests take about a second.</td></tr>
-<tr><td><code>REFUSED BY GATEWAY</code></td>
-    <td>The token is wrong, revoked, or was never issued here.</td>
-    <td>Issue a new one, then <code>ocm-agent-token</code>.</td></tr>
-<tr><td><code>a developer key, not a provider token</code></td>
-    <td>An <code>ocm_live_</code> key is in <code>OCM_HOST_TOKEN</code>.</td>
-    <td>Issue a <em>provider</em> token instead.</td></tr>
-<tr><td><code>disconnected: … retrying</code></td>
-    <td>Ordinary socket churn, or the gateway restarting.</td>
-    <td>Nothing — it reconnects itself.</td></tr>
-<tr><td>Connected, but not listed</td>
-    <td>The agent authenticated but reported no models.</td>
-    <td><code>--doctor</code> names the runtime problem.</td></tr>
-<tr><td><code>404</code> on <code>/host/connect</code></td>
-    <td>A plain request; that path only answers WebSocket upgrades.</td>
-    <td>Expected. Use <code>--doctor</code> to test.</td></tr>
+<tr><td>First request takes ~90s</td><td>The model is loading. Nothing to do.</td></tr>
+<tr><td><code>REFUSED BY GATEWAY</code></td><td>Token wrong, revoked, or never issued here. Issue a new one.</td></tr>
+<tr><td><code>a developer key…</code></td><td>An <code>ocm_live_</code> key is in <code>OCM_HOST_TOKEN</code>.</td></tr>
+<tr><td><code>disconnected… retrying</code></td><td>Ordinary churn. It reconnects itself.</td></tr>
+<tr><td>Connected, not listed</td><td>No models reported. <code>--doctor</code> names the problem.</td></tr>
 </tbody></table></div>
-<p class="muted" style="margin-top:12px">The backoff climbs to 60s, so after fixing a
-token you could wait a minute — <code>ocm-agent-token</code> restarts the agent
-immediately and skips the wait.</p>
+</div></details>
 
 <h2>What it will run</h2>
-<p class="muted">${models.length ? models.map(esc).join(', ') : 'No models are currently served.'}</p>
-
-<h2>What it costs you</h2>
-<p class="muted">The model stays resident in unified memory, about 4.5 GB for the
-current coder model, and roughly the same again is downloaded on first use. Expect the
-fans under sustained load. The agent does not currently yield the GPU back to you
-automatically, so treat it as a background tenant on a machine you are still using.</p>
-
-<div class="note warn"><strong>Be clear-eyed about privacy.</strong> As a provider you
-can see every prompt routed to your machine in plaintext. The same is true of every
-other provider, which is why prompts should not carry secrets.</div>
+<p class="muted">${models.length ? models.map(esc).join(', ') : 'No models are currently served.'}
+Expect the fans under sustained load. The agent does not yield the GPU back automatically,
+so treat it as a background tenant on a machine you are still using.</p>
 
 ${account ? '' : `<div class="note"><a href="/">Create an account</a> to issue a provider
-token. You do not need an invite code to run a provider.</div>`}`);
+token. No invite code is needed to run a provider.</div>`}`);
 }
