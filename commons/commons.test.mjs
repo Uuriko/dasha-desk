@@ -353,11 +353,7 @@ assert.deepEqual(STATES, [
   assert.equal(back.listings[1].kind, 'project');
 
   const boardFromCommons = B.listingsFromSeed({ bounties: fromPages.bounties });
-  assert.equal(boardFromCommons.length, 2);
-  assert.equal(boardFromCommons[0].name, feed.listings[0].name);
-  assert.equal(boardFromCommons[0].itemUrl, feed.listings[0].itemUrl);
-  assert.equal(boardFromCommons[0].amount, 25);
-  assert.equal(B.canList(boardFromCommons[0]), false);
+  assert.equal(boardFromCommons.length, 0, 'board reads listings, not Commons bounties, on this PR');
 
   const boardFromItems = B.listingsFromSeed(watchLegacy);
   assert.deepEqual(boardFromItems, []);
@@ -385,8 +381,6 @@ assert.deepEqual(STATES, [
   assert.equal(again.amount, 25);
   assert.equal(again.itemUrl, 'https://github.com/Uuriko/dasha-desk/issues/8');
   assert.notEqual(again.payoutStatus, 'not_implemented');
-  const viaBoard = B.listingFromCommons(canonical);
-  assert.equal(B.normalizeListing(viaBoard).payTo, PAYOUT);
   assert.equal(B.toFeed([again]).schema, LEGACY_FEED_SCHEMA);
   assert.equal(B.toFeed([again]).listings[0].itemUrl, funded.itemUrl);
 }

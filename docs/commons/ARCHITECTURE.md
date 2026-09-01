@@ -99,7 +99,7 @@ Remote `bounty-github-cta-honesty` has no open PR against current main.
 - Activity Tape event shape (not the live price digest)
 - tests for transitions, idempotency, legacy feeds
 
-`board.js` now ingests `listings`, `items`, or Commons `bounties` without changing published seed JSON or URLs.
+`board.js` still reads published `listings` (and a raw array). Commons `bounties` stay in `commons/`. Adapter consume/emit does not require the board to speak canonical records. Board create→fund UI stays on the signed-loop PR.
 
 Out of this PR: live Worker deploy, wallet create→fund→submit→select→pay UI, Community Starter Kit, Helius integration, Pocket app, faucet rewrite.
 
