@@ -32,7 +32,6 @@
   var GH_ACCEPT = 'application/vnd.github+json';
   var GH_VERSION = '2022-11-28';
   var EMPTY_OUTCOMES = 'No accepted outcomes in this cycle yet.';
-  var EMPTY_HUNT = 'No funded bounties right now.';
   var PROOF_RE =
     /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\/(issues|pull)\/(\d+)(?:#(?:issuecomment-\d+|pullrequestreview-\d+|discussion_r\d+))?$/i;
   var ITEM_RE =
@@ -487,67 +486,11 @@
     return out;
   }
 
-  function isCommonsBounty(raw) {
-    if (!raw || typeof raw !== 'object') return false;
-    if (raw.schema === 'commons.bounty/v1') return true;
-    return Boolean(raw.id && raw.title && raw.reward && raw.state);
-  }
-
-  function listingFromCommons(raw) {
-    if (!raw || typeof raw !== 'object') return null;
-    var reward = raw.reward || {};
-    var creator = raw.creator || {};
-    var source = raw.source || {};
-    var payTo = raw.creatorWallet || creator.wallet || null;
-    if (raw.funding && raw.funding.state === 'unfunded') payTo = payTo || null;
-    var winners = Array.isArray(raw.winners) ? raw.winners : [];
-    var submissions = Array.isArray(raw.submissions) ? raw.submissions : [];
-    var outcomes = winners
-      .map(function (winner) {
-        var submission = submissions.filter(function (row) {
-          return row && row.id === winner.submissionId;
-        })[0];
-        var url =
-          (submission && submission.proof && submission.proof.url) ||
-          (winner.proof && winner.proof.url) ||
-          '';
-        if (!url) return null;
-        return {
-          login: (winner.identity && (winner.identity.handle || winner.identity.id)) || '',
-          url: url,
-        };
-      })
-      .filter(Boolean);
-    return {
-      kind: raw.kind === 'item' || source.kind === 'issue' || source.url ? 'item' : 'project',
-      name: raw.title,
-      repo: source.repo || raw.repo || '',
-      itemUrl: source.url || raw.itemUrl || '',
-      amount: reward.amount != null && reward.amount !== '' ? Number(reward.amount) : null,
-      currency: reward.symbol || CURRENCY,
-      chain: reward.chain || CHAIN,
-      payTo: payTo,
-      tokenMint: reward.mint || USDC_MINT,
-      github: creator.kind === 'github' ? creator.id : '',
-      x: '',
-      createdAt: raw.createdAt,
-      eligibility: raw.rules && raw.rules.eligibility,
-      rules: raw.rules && raw.rules.text,
-      pays: raw.description,
-      outcomes: outcomes,
-    };
-  }
-
   function listingsFromSeed(seed, origin) {
-    var rows = [];
-    if (seed && Array.isArray(seed.listings)) rows = seed.listings;
-    else if (seed && Array.isArray(seed.items)) rows = seed.items;
-    else if (seed && Array.isArray(seed.bounties)) rows = seed.bounties;
-    else if (Array.isArray(seed)) rows = seed;
+    var rows = seed && Array.isArray(seed.listings) ? seed.listings : Array.isArray(seed) ? seed : [];
     var out = [];
     rows.forEach(function (raw) {
-      var mapped = isCommonsBounty(raw) ? listingFromCommons(raw) : raw;
-      var listing = normalizeListing(mapped, { origin: origin || 'seed' });
+      var listing = normalizeListing(raw, { origin: origin || 'seed' });
       if (listing) out.push(listing);
     });
     return out;
@@ -1115,7 +1058,7 @@
   function renderBoard(listings, filter, identity) {
     var rows = filterListings(listings, filter);
     if (!rows.length) {
-      return '<p class="bb-empty" role="status">' + esc(EMPTY_HUNT) + '</p>';
+      return '';
     }
     return rows
       .map(function (listing) {
@@ -1580,7 +1523,6 @@
     EXTRA_SEED_URLS: EXTRA_SEED_URLS,
     DEMIGOD_BOARD_NOTE: DEMIGOD_BOARD_NOTE,
     EMPTY_OUTCOMES: EMPTY_OUTCOMES,
-    EMPTY_HUNT: EMPTY_HUNT,
     isValidRepo: isValidRepo,
     normalizeRepo: normalizeRepo,
     parseGithubItem: parseGithubItem,
@@ -1591,8 +1533,6 @@
     isBountyIssue: isBountyIssue,
     listingFromIssue: listingFromIssue,
     listingsFromIssues: listingsFromIssues,
-    isCommonsBounty: isCommonsBounty,
-    listingFromCommons: listingFromCommons,
     listingsFromSeed: listingsFromSeed,
     listingsFromExtraUrls: listingsFromExtraUrls,
     mergeListings: mergeListings,

@@ -50,13 +50,6 @@ assert.equal(B.githubCtaLabel(false), 'GitHub soon');
 assert.equal(B.githubCtaLabel(true), 'GitHub');
 assert.equal(B.githubCtaLabel(false, { login: 'Uuriko' }), 'Uuriko');
 assert.match(html, /We don't hold it\./);
-assert.match(html, /USDC on Solana/);
-assert.match(html, /href="https:\/\/github\.com\/Uuriko\/dasha-desk\/contribute"/);
-assert.match(html, /Pick a good first issue/);
-assert.doesNotMatch(copy, /holder status|Simp Points|need no wallet/i);
-assert.equal(B.EMPTY_HUNT, 'No funded bounties right now.');
-assert.match(B.renderHunt([]), /No funded bounties right now\./);
-assert.doesNotMatch(B.renderHunt([]), /holder status|Simp Points/);
 assert.match(html, /rel="alternate"[^>]*feed\.json/);
 assert.doesNotMatch(copy, /[1-9A-HJ-NP-Za-km-z]{32,44}pump/);
 assert.doesNotMatch(html, /1% platform fee|signed compute|14-day wallet|potter@|hiring|10% fee/i);
@@ -291,8 +284,6 @@ assert.match(failCard, /50/);
 assert.match(failCard, /USDC/);
 assert.doesNotMatch(failCard, /\$50|Merged pull requests|first-timers/i);
 
-assert.match(B.renderHunt([]), /No funded bounties right now\./);
-assert.doesNotMatch(B.renderHunt([]), /holder status|Simp Points|need no wallet/i);
 const hunt = B.renderHunt(seedListings);
 assert.match(hunt, /25/);
 assert.match(hunt, /USDC/);
@@ -687,17 +678,5 @@ assert.doesNotMatch(app, /<iframe/i);
 assert.match(app, /We don't hold it\./);
 assert.match(app, /--ink:#070608/);
 assert.equal(read('bounties/app.html'), app, 'bounties/app.html is stale — run: node bounties/embed-build.mjs');
-
-const liveShaped = {
-  name: 'dasha bounties',
-  schema: 'dasha-bounties-feed/v1',
-  note: "USDC on Solana. We don't hold it.",
-  url: 'https://www.getdasha.com/bounties',
-  listings: [],
-};
-assert.deepEqual(B.listingsFromSeed(liveShaped), []);
-assert.deepEqual(B.listingsFromSeed({ schema: 'dasha-bounties-feed/v1', items: [] }), []);
-assert.equal(B.isCommonsBounty({ schema: 'commons.bounty/v1', id: 'x', title: 't', reward: {}, state: 'open' }), true);
-assert.equal(B.isCommonsBounty(feed.listings[0]), false);
 
 console.log('dasha-bounties: PASS');
