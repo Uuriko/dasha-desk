@@ -1,20 +1,84 @@
 /**
  * NodeBlink exact-USDC receipt adapter for declared Commons bounties.
+ * Pinned OpenAPI Version: 2026-03-01
  * Schema: commons.external-receipt/v1
  */
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
+export const NODEBLINK_API_VERSION = '2026-03-01';
 export const CANONICAL_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 export const CANONICAL_CHAIN = 'solana';
 export const CANONICAL_ASSET = 'spl-token';
 export const CANONICAL_SYMBOL = 'USDC';
+export const CANONICAL_DECIMALS = 6;
+
+const BASE58_PUBKEY_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
 // In-memory settlement registry for test-mode fixtures
 const settlementStore = new Map();
 
 /**
- * M0: Create settlement intent with idempotency guarantees.
+ * Validates a Solana Base58 public key.
+ */
+export function isValidSolanaAddress(address) {
+  return typeof address === 'string' && BASE58_PUBKEY_REGEX.test(address.trim());
+}
+
+/**
+ * Strict conversion from decimal string to integer base units (BigInt).
+ * Prevents floating-point rounding errors (e.g. 0.1 + 0.2 != 0.3).
+ */
+export function toBaseUnits(amountStr, decimals = CANONICAL_DECIMALS) {
+  if (typeof amountStr !== 'string' && typeof amountStr !== 'number') {
+    throw new TypeError('Amount must be a decimal string or integer number');
+  }
+
+  const str = String(amountStr).trim();
+  if (!/^\d+(\.\d+)?$/.test(str)) {
+    throw new Error(`Invalid positive decimal amount format: ${str}`);
+  }
+
+  const parts = str.split('.');
+  const wholePart = parts[0];
+  let fracPart = parts[1] || '';
+
+  if (fracPart.length > decimals) {
+    throw new Error(`Amount '${str}' exceeds maximum allowed precision of ${decimals} decimals`);
+  }
+
+  fracPart = fracPart.padEnd(decimals, '0');
+  const combined = wholePart + fracPart;
+  const baseUnits = BigInt(combined);
+
+  if (baseUnits <= 0n) {
+    throw new Error('Settlement amount in base units must be strictly positive');
+  }
+
+  return baseUnits;
+}
+
+/**
+ * Strict conversion from integer base units (BigInt) to normalized decimal string.
+ */
+export function fromBaseUnits(baseUnits, decimals = CANONICAL_DECIMALS) {
+  if (typeof baseUnits !== 'bigint') {
+    baseUnits = BigInt(baseUnits);
+  }
+
+  if (baseUnits <= 0n) {
+    throw new Error('Base units must be positive');
+  }
+
+  const str = baseUnits.toString().padStart(decimals + 1, '0');
+  const whole = str.slice(0, -decimals) || '0';
+  const frac = str.slice(-decimals).replace(/0+$/, '');
+
+  return frac ? `${whole}.${frac}` : whole;
+}
+
+/**
+ * M0: Create settlement intent with idempotency guarantees and integer base-unit validation.
  */
 export function createSettlement({
   bountyId,
@@ -24,19 +88,20 @@ export function createSettlement({
   recipient,
   idempotencyKey,
 }) {
-  if (!bountyId || !submissionId || !amount || !recipient || !idempotencyKey) {
+  if (!bountyId || !submissionId || amount === undefined || !recipient || !idempotencyKey) {
     throw new Error('Missing required settlement parameters: bountyId, submissionId, amount, recipient, idempotencyKey');
   }
 
-  const normalizedAmount = String(amount).trim();
-  const numAmount = Number.parseFloat(normalizedAmount);
-  if (Number.isNaN(numAmount) || numAmount <= 0) {
-    throw new Error(`Invalid settlement amount: ${amount}`);
+  if (!isValidSolanaAddress(recipient)) {
+    throw new Error(`Invalid Solana recipient address: ${recipient}`);
   }
 
   if (mint !== CANONICAL_USDC_MINT) {
-    throw new Error(`Non-canonical mint rejected: ${mint}. Expected: ${CANONICAL_USDC_MINT}`);
+    throw new Error(`Non-canonical mint rejected: ${mint}. Expected canonical USDC mint: ${CANONICAL_USDC_MINT}`);
   }
+
+  const baseUnits = toBaseUnits(amount, CANONICAL_DECIMALS);
+  const normalizedDecimal = fromBaseUnits(baseUnits, CANONICAL_DECIMALS);
 
   // Check idempotency
   if (settlementStore.has(idempotencyKey)) {
@@ -44,7 +109,7 @@ export function createSettlement({
     const isConflict =
       existing.bountyId !== bountyId ||
       existing.submissionId !== submissionId ||
-      existing.amount !== normalizedAmount ||
+      existing.baseUnits !== baseUnits ||
       existing.mint !== mint ||
       existing.recipient !== recipient;
 
@@ -56,11 +121,14 @@ export function createSettlement({
 
   const settlementId = `st_${idempotencyKey.slice(0, 12)}_${Date.now()}`;
   const record = {
+    apiVersion: NODEBLINK_API_VERSION,
     settlementId,
     idempotencyKey,
     bountyId,
     submissionId,
-    amount: normalizedAmount,
+    amount: normalizedDecimal,
+    baseUnits,
+    decimals: CANONICAL_DECIMALS,
     mint,
     recipient,
     status: 'pending_payment',
@@ -72,14 +140,14 @@ export function createSettlement({
 }
 
 /**
- * M0: Verify settlement state with signature. Returns payment_submitted, never paid directly.
+ * M0: Verify settlement state with signature.
+ * Invariant: Transitions to 'payment_submitted', never directly sets 'paid'.
  */
 export function verifySettlement({ settlementId, signature }) {
   if (!settlementId || !signature) {
     throw new Error('Missing settlementId or signature');
   }
 
-  // Find settlement
   let found = null;
   for (const s of settlementStore.values()) {
     if (s.settlementId === settlementId) {
@@ -97,16 +165,17 @@ export function verifySettlement({ settlementId, signature }) {
   }
 
   return {
+    apiVersion: NODEBLINK_API_VERSION,
     verified: true,
     settlementId,
     signature,
-    status: 'payment_submitted', // Enforces state invariant: never directly enters 'paid'
+    status: 'payment_submitted',
     verifiedAt: new Date().toISOString(),
   };
 }
 
 /**
- * M0: Verify webhook signature and digest.
+ * M0: Timing-safe HMAC webhook verification against pinned revision.
  */
 export function verifyWebhook({ headers, rawBody, webhookSecret }) {
   if (!headers || !rawBody || !webhookSecret) {
@@ -134,6 +203,7 @@ export function verifyWebhook({ headers, rawBody, webhookSecret }) {
   }
 
   return {
+    apiVersion: NODEBLINK_API_VERSION,
     verified: true,
     event: parsed.event || 'settlement.confirmed',
     data: parsed.data || parsed,
@@ -147,18 +217,21 @@ export function verifyWebhook({ headers, rawBody, webhookSecret }) {
 export function mapExternalReceipt({ settlement, externalId, signature, providerStatus = 'confirmed', webhookDigest }) {
   return {
     schema: 'commons.external-receipt/v1',
+    apiVersion: NODEBLINK_API_VERSION,
     provider: 'nodeblink',
     purpose: 'winner_payment',
     bountyId: settlement.bountyId,
     submissionId: settlement.submissionId,
     externalId: externalId || settlement.settlementId,
-    signature: signature,
+    signature,
     expected: {
       chain: CANONICAL_CHAIN,
       asset: CANONICAL_ASSET,
       symbol: CANONICAL_SYMBOL,
       mint: CANONICAL_USDC_MINT,
+      decimals: CANONICAL_DECIMALS,
       amount: String(settlement.amount),
+      baseUnits: String(settlement.baseUnits !== undefined ? settlement.baseUnits : toBaseUnits(settlement.amount)),
       recipientOwner: settlement.recipient,
       reference: settlement.submissionId,
     },
@@ -170,7 +243,7 @@ export function mapExternalReceipt({ settlement, externalId, signature, provider
 
 /**
  * M1 & M2: Reconcile external receipt with independent chain observation (commons.tx/v1).
- * Canonical 'paid' transition requires both evidence legs to agree.
+ * Exact integer base-unit and canonical identity equality required for 'paid'.
  */
 export function reconcilePayment({ externalReceipt, chainObservation }) {
   const reasons = [];
@@ -187,39 +260,38 @@ export function reconcilePayment({ externalReceipt, chainObservation }) {
     return { status: 'reconcile_required', reasons };
   }
 
-  // Check provider status
   if (externalReceipt.providerStatus !== 'confirmed') {
     reasons.push(`provider_status_unconfirmed:${externalReceipt.providerStatus}`);
   }
 
-  // Check transaction status on chain
-  if (!chainObservation.success || chainObservation.status !== 'confirmed' && chainObservation.status !== 'finalized') {
+  if (!chainObservation.success || (chainObservation.status !== 'confirmed' && chainObservation.status !== 'finalized')) {
     reasons.push('chain_tx_not_confirmed_or_successful');
   }
 
-  // Cross-verify signature
   if (externalReceipt.signature !== chainObservation.signature) {
     reasons.push('signature_mismatch');
   }
 
-  // Cross-verify mint
   if (chainObservation.mint !== CANONICAL_USDC_MINT || externalReceipt.expected.mint !== CANONICAL_USDC_MINT) {
     reasons.push('mint_mismatch_or_non_canonical');
   }
 
-  // Cross-verify amount
-  const expectedAmount = Number.parseFloat(externalReceipt.expected.amount);
-  const observedAmount = Number.parseFloat(chainObservation.amount);
-  if (Math.abs(expectedAmount - observedAmount) > 0.000001) {
-    reasons.push(`amount_mismatch:expected_${expectedAmount}_got_${observedAmount}`);
+  // Exact integer base-unit comparison (zero floating point drift)
+  try {
+    const expectedBaseUnits = BigInt(externalReceipt.expected.baseUnits || toBaseUnits(externalReceipt.expected.amount));
+    const observedBaseUnits = BigInt(chainObservation.baseUnits || toBaseUnits(chainObservation.amount));
+
+    if (expectedBaseUnits !== observedBaseUnits) {
+      reasons.push(`base_units_mismatch:expected_${expectedBaseUnits}_got_${observedBaseUnits}`);
+    }
+  } catch (err) {
+    reasons.push(`amount_parse_error:${err.message}`);
   }
 
-  // Cross-verify recipient owner
   if (externalReceipt.expected.recipientOwner !== chainObservation.recipientOwner) {
     reasons.push('recipient_owner_mismatch');
   }
 
-  // Fail closed if any discrepancies exist
   if (reasons.length > 0) {
     return {
       status: 'reconcile_required',
@@ -228,13 +300,13 @@ export function reconcilePayment({ externalReceipt, chainObservation }) {
     };
   }
 
-  // Success: canonical paid state transition
   return {
     status: 'paid',
     bountyId: externalReceipt.bountyId,
     submissionId: externalReceipt.submissionId,
     signature: chainObservation.signature,
     amount: externalReceipt.expected.amount,
+    baseUnits: externalReceipt.expected.baseUnits,
     recipient: externalReceipt.expected.recipientOwner,
     observedAt: chainObservation.observedAt || new Date().toISOString(),
     reconciledAt: new Date().toISOString(),
