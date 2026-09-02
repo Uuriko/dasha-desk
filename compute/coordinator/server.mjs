@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import http from "node:http";
 import { randomUUID, timingSafeEqual } from "node:crypto";
+import { unsupportedV1Decision } from "./unsupported-v1.mjs";
 
 const port = Number(process.env.PORT || 8787);
 const consumerKey = process.env.DASHA_API_KEY || "dasha-local-consumer";
@@ -29,6 +30,20 @@ function send(response, status, payload, headers = {}) {
   if (response.headersSent) return;
   response.writeHead(status, baseHeaders(headers));
   response.end(JSON.stringify(payload));
+}
+function maybeHead(request, response, status, payload, headers = {}) {
+  if (request.method === "HEAD") {
+    if (response.headersSent) return;
+    response.writeHead(status, baseHeaders(headers));
+    return response.end();
+  }
+  return send(response, status, payload, headers);
+}
+function sendDecision(request, response, decision) {
+  if (!decision) return false;
+  if (decision.emptyBody) maybeHead(request, response, decision.status, decision.body);
+  else send(response, decision.status, decision.body);
+  return true;
 }
 function bearer(request) {
   const value = request.headers.authorization || "";
@@ -199,6 +214,12 @@ const server = http.createServer(async (request, response) => {
       const online = [...providers.values()].filter((provider) => now - provider.lastSeenAt < providerFreshnessMs);
       return send(response, 200, { version: "0.3.0", providers_online: online.length, models_available: [...new Set(online.flatMap((provider) => provider.models))], jobs_queued: [...jobs.values()].filter((job) => job.status === "queued").length, jobs_completed: jobsCompleted, tokens_completed: tokensCompleted, streaming: true });
     }
+    const unsupported = unsupportedV1Decision({
+      pathname: url.pathname,
+      method: request.method,
+      authenticated: secretMatches(bearer(request), consumerKey),
+    });
+    if (sendDecision(request, response, unsupported)) return;
     if (request.method === "POST" && url.pathname === "/v1/chat/completions") return await handleChat(request, response);
     if (request.method === "POST" && url.pathname === "/v1/providers/poll") return await handleProviderPoll(request, response);
     const resultMatch = request.method === "POST" && url.pathname.match(/^\/v1\/providers\/jobs\/([^/]+)\/result$/);

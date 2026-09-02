@@ -16,6 +16,7 @@
   "console/app/v1/providers/poll/route.ts",
   "console/public/favicon.svg",
   "coordinator/server.mjs",
+  "coordinator/unsupported-v1.mjs",
   "examples/chat.py",
   "index.html",
   "install.sh",
@@ -27,5 +28,6 @@
   "release-files.json",
   "scripts/build-release.mjs",
   "tests/e2e.test.mjs",
-  "tests/release.test.mjs"
+  "tests/release.test.mjs",
+  "tests/unsupported-v1.test.mjs"
 ]

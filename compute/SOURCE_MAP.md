@@ -17,7 +17,7 @@ This directory is the canonical public source for the Dasha Compute open alpha.
 | Path | Purpose |
 |---|---|
 | [`console/`](console/) | React/CSS product interface and API-route examples |
-| [`coordinator/`](coordinator/) | Dependency-free coordinator and OpenAI-shaped HTTP protocol |
+| [`coordinator/`](coordinator/) | Dependency-free coordinator and OpenAI-shaped HTTP protocol (`unsupported-v1.mjs` is the auth-first table for embeddings/completions/responses) |
 | [`provider/`](provider/) | Python/Ollama provider agent plus macOS service commands |
 | [`examples/`](examples/) | Small client examples |
 | [`tests/`](tests/) | End-to-end protocol, streaming, installer, provider and release tests |

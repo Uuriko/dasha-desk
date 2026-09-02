@@ -102,6 +102,7 @@ running an alpha provider.
 | `GET` | `/v1/models` | OpenAI-shaped model list |
 | `GET` | `/v1/network` | Aggregate provider and job counts |
 | `POST` | `/v1/chat/completions` | Complete or SSE-streamed chat completion |
+| GET/HEAD | `/v1/{embeddings,completions,responses}` | Auth-first OpenAI 401/405. POST unauth 401; POST authed 400 not-supported. Same table as live `/compute/api/v1/*` |
 | `POST` | `/v1/providers/poll` | Provider heartbeat and job lease |
 | `POST` | `/v1/providers/jobs/:id/result` | Provider result |
 | `POST` | `/v1/providers/jobs/:id/chunk` | Provider stream delta or completion |
