@@ -1,129 +1,250 @@
 /**
  * NodeBlink exact-USDC receipt adapter for declared Commons bounties.
- * Pinned OpenAPI Revision: 2026-03-01
- * Protocols: commons.external-receipt/v1, commons.tx/v1
+ *
+ * Pinned official contract: nodeblink-sdk@2.1.0
+ * Host/routes: https://api.nodeblink.dev POST /api/v2/settlements
+ *              POST /api/v2/settlements/:id/verify
+ * Webhook: NodeBlink-Signature t=<unix>,v1=<hex hmac of `${t}.${rawBody}`>
+ *
+ * Provider receipts never set canonical paid. That requires a Commons-valid
+ * commons.tx/v1 observation that agrees with the stored intent.
  */
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from 'node:fs';
 import { dirname } from 'node:path';
+import {
+  EVENT_SCHEMA,
+  TX_SCHEMA,
+  isCanonicalAmount,
+  isSolanaAddress,
+  validateTx,
+} from '../commons/schema.mjs';
+import { apply as applyEvent } from '../commons/machine.mjs';
 
-export const NODEBLINK_API_VERSION = '2026-03-01';
-export const NODEBLINK_TESTNET_BASE_URL = 'https://api.testnet.nodeblink.io/v1';
+export {
+  EVENT_SCHEMA,
+  TX_SCHEMA,
+  applyEvent,
+  isCanonicalAmount,
+  isSolanaAddress,
+  validateTx,
+};
+
+export const NODEBLINK_SDK_NAME = 'nodeblink-sdk';
+export const NODEBLINK_SDK_VERSION = '2.1.0';
+export const NODEBLINK_SDK_INTEGRITY =
+  'sha512-Eavhk3mKxAHR0O6ORWrW8i7Fzq6oTrBM/BGg8GSxzmcIKHqORmz15537eMnUNQoRMxWpqDInDaQXR8gIetltwA==';
+export const NODEBLINK_SDK_JS_SHA256 =
+  'c263eafdbed2857969a57196fcff1770a2c7a902d48ce6fb02e8ab9c0645474f';
+export const NODEBLINK_API_BASE_URL = 'https://api.nodeblink.dev';
+export const NODEBLINK_SETTLEMENTS_PATH = '/api/v2/settlements';
+export const NODEBLINK_WEBHOOK_HEADER = 'NodeBlink-Signature';
+export const NODEBLINK_IDEMPOTENCY_HEADER = 'Idempotency-Key';
+
 export const CANONICAL_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 export const CANONICAL_CHAIN = 'solana';
-export const CANONICAL_ASSET = 'spl-token';
+export const CANONICAL_ASSET = 'spl';
 export const CANONICAL_SYMBOL = 'USDC';
 export const CANONICAL_DECIMALS = 6;
-export const WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS = 300; // 5 minutes
+export const WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS = 300;
 
-const BASE58_PUBKEY_REGEX = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+export const SETTLEMENT_WEBHOOK_TYPES = Object.freeze([
+  'settlement.detected',
+  'settlement.confirmed',
+  'settlement.finalized',
+  'settlement.failed',
+  'settlement.expired',
+]);
 
-/**
- * Validates a Solana Base58 public key.
- */
-export function isValidSolanaAddress(address) {
-  return typeof address === 'string' && BASE58_PUBKEY_REGEX.test(address.trim());
+const CONFIRMING_WEBHOOK_TYPES = new Set(['settlement.confirmed', 'settlement.finalized']);
+const FORBIDDEN_HOSTS = new Set(['api.testnet.nodeblink.io', 'api.testnet.nodeblink.dev']);
+const TEST_KEY_PREFIX = 'nb_test_';
+const LIVE_KEY_PREFIX = 'nb_live_';
+
+export class NodeBlinkTransportError extends Error {
+  constructor(message, { status = 0, code = 'error' } = {}) {
+    super(message);
+    this.name = 'NodeBlinkTransportError';
+    this.status = status;
+    this.code = code;
+  }
 }
 
-/**
- * Strict conversion from decimal string or integer to integer base units (BigInt).
- * Prevents floating-point rounding errors (e.g. 0.1 + 0.2 != 0.3).
- */
 export function toBaseUnits(amountStr, decimals = CANONICAL_DECIMALS) {
-  if (typeof amountStr !== 'string' && typeof amountStr !== 'number') {
-    throw new TypeError('Amount must be a decimal string or integer number');
+  if (typeof amountStr !== 'string') {
+    throw new TypeError('Amount must be a canonical decimal string');
   }
-
-  const str = String(amountStr).trim();
-  if (!/^\d+(\.\d+)?$/.test(str)) {
-    throw new Error(`Invalid positive decimal amount format: ${str}`);
+  if (!isCanonicalAmount(amountStr, decimals)) {
+    throw new Error(`Amount is not a canonical positive decimal with at most ${decimals} places: ${amountStr}`);
   }
-
-  const parts = str.split('.');
-  const wholePart = parts[0];
-  let fracPart = parts[1] || '';
-
-  if (fracPart.length > decimals) {
-    throw new Error(`Amount '${str}' exceeds maximum allowed precision of ${decimals} decimals`);
-  }
-
-  fracPart = fracPart.padEnd(decimals, '0');
-  const combined = wholePart + fracPart;
-  const baseUnits = BigInt(combined);
-
+  const [wholePart, rawFrac = ''] = amountStr.split('.');
+  const fracPart = rawFrac.padEnd(decimals, '0');
+  const baseUnits = BigInt(wholePart + fracPart);
   if (baseUnits <= 0n) {
     throw new Error('Settlement amount in base units must be strictly positive');
   }
-
   return baseUnits;
 }
 
-/**
- * Strict conversion from integer base units (BigInt) to normalized decimal string.
- */
 export function fromBaseUnits(baseUnits, decimals = CANONICAL_DECIMALS) {
-  if (typeof baseUnits !== 'bigint') {
-    baseUnits = BigInt(baseUnits);
-  }
-
-  if (baseUnits <= 0n) {
-    throw new Error('Base units must be positive');
-  }
-
+  if (typeof baseUnits !== 'bigint') baseUnits = BigInt(baseUnits);
+  if (baseUnits <= 0n) throw new Error('Base units must be positive');
   const str = baseUnits.toString().padStart(decimals + 1, '0');
   const whole = str.slice(0, -decimals) || '0';
   const frac = str.slice(-decimals).replace(/0+$/, '');
-
   return frac ? `${whole}.${frac}` : whole;
 }
 
+function publicView(record) {
+  if (!record) return record;
+  const {
+    rawProviderCreate,
+    rawProviderVerify,
+    rawWebhook,
+    ...visible
+  } = record;
+  return { ...visible };
+}
+
+function header(headers, name) {
+  if (!headers) return undefined;
+  const want = name.toLowerCase();
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === want) return value;
+  }
+  return undefined;
+}
+
+function assertOfficialHost(baseUrl) {
+  let parsed;
+  try {
+    parsed = new URL(baseUrl);
+  } catch {
+    throw new Error(`Invalid NodeBlink base URL: ${baseUrl}`);
+  }
+  if (FORBIDDEN_HOSTS.has(parsed.hostname)) {
+    throw new Error(`Undocumented NodeBlink host rejected: ${parsed.hostname}`);
+  }
+  if (parsed.hostname !== 'api.nodeblink.dev') {
+    throw new Error(`Unsupported NodeBlink host: ${parsed.hostname}. Official host is api.nodeblink.dev`);
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new Error('NodeBlink transport requires https');
+  }
+}
+
+export function assertTestSafeCredentials({ apiKey, baseUrl = NODEBLINK_API_BASE_URL, allowLive = false } = {}) {
+  if (!apiKey || typeof apiKey !== 'string') {
+    throw new Error('NodeBlink apiKey is required');
+  }
+  assertOfficialHost(baseUrl);
+  if (allowLive) return;
+  if (apiKey.startsWith(LIVE_KEY_PREFIX) || !apiKey.startsWith(TEST_KEY_PREFIX)) {
+    throw new Error('Mainnet/live NodeBlink key rejected outside an explicit live canary');
+  }
+}
+
+function serializeStore(records, processedDigests) {
+  return {
+    records: Array.from(records.values()).map((r) => {
+      const { rawProviderCreate, rawProviderVerify, rawWebhook, ...rest } = r;
+      return {
+        ...rest,
+        baseUnits: r.baseUnits.toString(),
+        rawProviderCreate: rawProviderCreate ?? null,
+        rawProviderVerify: rawProviderVerify ?? null,
+        rawWebhook: rawWebhook ?? null,
+      };
+    }),
+    processedDigests: Array.from(processedDigests),
+  };
+}
+
+function hydrateRecord(row) {
+  if (!row || typeof row !== 'object' || typeof row.idempotencyKey !== 'string' || !row.settlementId) {
+    throw new Error('Corrupt settlement store: record missing idempotencyKey or settlementId');
+  }
+  if (row.baseUnits == null) {
+    throw new Error('Corrupt settlement store: record missing baseUnits');
+  }
+  return {
+    ...row,
+    baseUnits: BigInt(row.baseUnits),
+  };
+}
+
 /**
- * File-backed durable settlement store ensuring persistence across restarts.
+ * File-backed durable settlement store. Persistence errors fail closed.
+ * In-memory use is opt-in via { ephemeral: true }.
  */
 export class DurableSettlementStore {
-  constructor(filePath = null) {
-    this.filePath = filePath;
+  constructor(filePath, { ephemeral = false } = {}) {
+    if (!ephemeral && (!filePath || typeof filePath !== 'string')) {
+      throw new Error('DurableSettlementStore requires a filePath; ephemeral memory must be explicit');
+    }
+    this.filePath = filePath || null;
+    this.ephemeral = ephemeral;
     this.records = new Map();
     this.processedDigests = new Set();
+    this.canonicalEvents = new Map();
     this.load();
   }
 
   load() {
-    if (!this.filePath || !existsSync(this.filePath)) return;
+    if (!this.filePath) return;
+    if (!existsSync(this.filePath)) return;
+    let text;
     try {
-      const data = JSON.parse(readFileSync(this.filePath, 'utf8'));
-      if (Array.isArray(data.records)) {
-        for (const r of data.records) {
-          this.records.set(r.idempotencyKey, {
-            ...r,
-            baseUnits: BigInt(r.baseUnits),
-          });
-        }
+      text = readFileSync(this.filePath, 'utf8');
+    } catch (err) {
+      throw new Error(`Settlement store read failed: ${err.message}`);
+    }
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      throw new Error(`Corrupt settlement store: ${err.message}`);
+    }
+    if (!data || !Array.isArray(data.records)) {
+      throw new Error('Corrupt settlement store: missing records array');
+    }
+    this.records = new Map();
+    for (const row of data.records) {
+      const record = hydrateRecord(row);
+      this.records.set(record.idempotencyKey, record);
+    }
+    if (data.processedDigests != null) {
+      if (!Array.isArray(data.processedDigests)) {
+        throw new Error('Corrupt settlement store: processedDigests must be an array');
       }
-      if (Array.isArray(data.processedDigests)) {
-        this.processedDigests = new Set(data.processedDigests);
+      this.processedDigests = new Set(data.processedDigests);
+    }
+    if (data.canonicalEvents != null) {
+      if (!Array.isArray(data.canonicalEvents)) {
+        throw new Error('Corrupt settlement store: canonicalEvents must be an array');
       }
-    } catch {
-      // If corrupted, fallback to clean memory store
+      this.canonicalEvents = new Map(data.canonicalEvents);
     }
   }
 
   save() {
-    if (!this.filePath) return;
+    if (!this.filePath) {
+      if (this.ephemeral) return;
+      throw new Error('Cannot persist settlement store without filePath');
+    }
+    const dir = dirname(this.filePath);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    const serialized = {
+      ...serializeStore(this.records, this.processedDigests),
+      canonicalEvents: Array.from(this.canonicalEvents.entries()),
+    };
+    const tmp = `${this.filePath}.tmp`;
     try {
-      const dir = dirname(this.filePath);
-      if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-      const serialized = {
-        records: Array.from(this.records.values()).map((r) => ({
-          ...r,
-          baseUnits: r.baseUnits.toString(),
-        })),
-        processedDigests: Array.from(this.processedDigests),
-      };
-      writeFileSync(this.filePath, JSON.stringify(serialized, null, 2), 'utf8');
-    } catch {
-      // Safe write error handling
+      writeFileSync(tmp, JSON.stringify(serialized, null, 2), 'utf8');
+      renameSync(tmp, this.filePath);
+    } catch (err) {
+      throw new Error(`Settlement store write failed: ${err.message}`);
     }
   }
 
@@ -145,6 +266,13 @@ export class DurableSettlementStore {
     return null;
   }
 
+  getBySignature(signature) {
+    for (const r of this.records.values()) {
+      if (r.signature === signature) return r;
+    }
+    return null;
+  }
+
   set(idempotencyKey, record) {
     this.records.set(idempotencyKey, record);
     this.save();
@@ -158,74 +286,140 @@ export class DurableSettlementStore {
     this.processedDigests.add(digest);
     this.save();
   }
+
+  rememberCanonical(key, event) {
+    if (this.canonicalEvents.has(key)) return this.canonicalEvents.get(key);
+    this.canonicalEvents.set(key, event);
+    this.save();
+    return event;
+  }
+
+  getCanonical(key) {
+    return this.canonicalEvents.get(key) || null;
+  }
 }
 
-// Global default store instance (can be injected)
-export const defaultStore = new DurableSettlementStore();
-
-/**
- * NodeBlink Test-Mode Transport Client
- */
 export class NodeBlinkClient {
   constructor({
-    apiKey = 'test_mock_key',
-    baseUrl = NODEBLINK_TESTNET_BASE_URL,
-    apiVersion = NODEBLINK_API_VERSION,
-    mockMode = true,
+    apiKey,
+    baseUrl = NODEBLINK_API_BASE_URL,
     fetchImpl = null,
+    timeoutMs = 20_000,
+    allowLive = false,
   } = {}) {
+    assertTestSafeCredentials({ apiKey, baseUrl, allowLive });
     this.apiKey = apiKey;
-    this.baseUrl = baseUrl;
-    this.apiVersion = apiVersion;
-    this.mockMode = mockMode;
-    this.fetchImpl = fetchImpl;
+    this.baseUrl = String(baseUrl).replace(/\/+$/, '');
+    this.timeoutMs = timeoutMs;
+    this.allowLive = allowLive;
+    this.fetchImpl = fetchImpl || globalThis.fetch;
+    if (typeof this.fetchImpl !== 'function') {
+      throw new Error('NodeBlink client requires fetch');
+    }
   }
 
-  async post(path, body) {
-    if (this.fetchImpl) {
-      const res = await this.fetchImpl(`${this.baseUrl}${path}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          'X-NodeBlink-Version': this.apiVersion,
-        },
-        body: JSON.stringify(body),
+  async request(method, path, { body, idempotencyKey } = {}) {
+    const headers = {
+      Authorization: `Bearer ${this.apiKey}`,
+      Accept: 'application/json',
+    };
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (idempotencyKey) headers[NODEBLINK_IDEMPOTENCY_HEADER] = idempotencyKey;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    let res;
+    try {
+      res = await this.fetchImpl(`${this.baseUrl}${path}`, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
       });
-      return res.json();
-    }
-
-    if (this.mockMode) {
-      return {
-        status: 'success',
-        apiVersion: this.apiVersion,
-        settlementId: `st_test_${Date.now()}`,
-        mode: 'testnet',
-        createdAt: new Date().toISOString(),
-      };
-    }
-
-    if (typeof fetch !== 'undefined') {
-      const res = await fetch(`${this.baseUrl}${path}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          'X-NodeBlink-Version': this.apiVersion,
-        },
-        body: JSON.stringify(body),
+    } catch (err) {
+      throw new NodeBlinkTransportError(`NodeBlink request failed: ${err.name === 'AbortError' ? 'timeout' : 'network'}`, {
+        status: 0,
+        code: err.name === 'AbortError' ? 'timeout' : 'network',
       });
-      return res.json();
+    } finally {
+      clearTimeout(timer);
     }
 
-    throw new Error('No fetch implementation available');
+    let rawText = '';
+    try {
+      rawText = await res.text();
+    } catch (err) {
+      throw new NodeBlinkTransportError(`NodeBlink response body unreadable: ${err.message}`, {
+        status: res.status,
+        code: 'body_read_failed',
+      });
+    }
+
+    let payload = {};
+    if (rawText) {
+      try {
+        payload = JSON.parse(rawText);
+      } catch {
+        throw new NodeBlinkTransportError('NodeBlink response was not JSON', {
+          status: res.status,
+          code: 'invalid_json',
+        });
+      }
+    }
+
+    if (res.status < 200 || res.status >= 300) {
+      const err = payload && payload.error;
+      throw new NodeBlinkTransportError(err?.message || `Request failed with ${res.status}`, {
+        status: res.status,
+        code: err?.code || 'error',
+      });
+    }
+
+    return { payload, rawText, status: res.status };
+  }
+
+  createSettlement(params) {
+    const { idempotencyKey, ...body } = params;
+    return this.request('POST', NODEBLINK_SETTLEMENTS_PATH, { body, idempotencyKey });
+  }
+
+  verifySettlement(id, params) {
+    return this.request('POST', `${NODEBLINK_SETTLEMENTS_PATH}/${id}/verify`, { body: params });
   }
 }
 
+function assertCreateParams({ bountyId, submissionId, amount, mint, recipient, idempotencyKey }) {
+  if (!bountyId || !submissionId || amount === undefined || !recipient || !idempotencyKey) {
+    throw new Error('Missing required settlement parameters: bountyId, submissionId, amount, recipient, idempotencyKey');
+  }
+  if (!isSolanaAddress(recipient)) {
+    throw new Error(`Invalid Solana recipient address: ${recipient}`);
+  }
+  if (mint !== CANONICAL_USDC_MINT) {
+    throw new Error(`Non-canonical mint rejected: ${mint}. Expected canonical USDC mint: ${CANONICAL_USDC_MINT}`);
+  }
+  if (!isCanonicalAmount(amount, CANONICAL_DECIMALS)) {
+    throw new Error(`Amount is not a canonical USDC decimal string: ${amount}`);
+  }
+}
+
+function intentConflict(existing, next) {
+  return (
+    existing.bountyId !== next.bountyId ||
+    existing.submissionId !== next.submissionId ||
+    existing.baseUnits !== next.baseUnits ||
+    existing.mint !== next.mint ||
+    existing.recipient !== next.recipient ||
+    existing.reference !== next.reference ||
+    (next.destinationTokenAccount && existing.destinationTokenAccount !== next.destinationTokenAccount)
+  );
+}
+
 /**
- * M0: Create settlement intent with idempotency, recipient immutability, and durable store.
+ * Create one NodeBlink test-mode settlement for an accepted Commons payout.
+ * Stores the provider-returned id and raw payload. Never invents st_ ids.
  */
-export function createSettlement(
+export async function createSettlement(
   {
     bountyId,
     submissionId,
@@ -233,53 +427,80 @@ export function createSettlement(
     mint = CANONICAL_USDC_MINT,
     recipient,
     reference = null,
+    destinationTokenAccount = null,
     idempotencyKey,
   },
-  store = defaultStore
+  { store, client } = {},
 ) {
-  if (!bountyId || !submissionId || amount === undefined || !recipient || !idempotencyKey) {
-    throw new Error('Missing required settlement parameters: bountyId, submissionId, amount, recipient, idempotencyKey');
-  }
+  if (!store) throw new Error('Durable store is required');
+  if (!client) throw new Error('NodeBlink client is required');
 
-  if (!isValidSolanaAddress(recipient)) {
-    throw new Error(`Invalid Solana recipient address: ${recipient}`);
-  }
-
-  if (mint !== CANONICAL_USDC_MINT) {
-    throw new Error(`Non-canonical mint rejected: ${mint}. Expected canonical USDC mint: ${CANONICAL_USDC_MINT}`);
+  assertCreateParams({ bountyId, submissionId, amount, mint, recipient, idempotencyKey });
+  if (destinationTokenAccount && !isSolanaAddress(destinationTokenAccount)) {
+    throw new Error(`Invalid destination token account: ${destinationTokenAccount}`);
   }
 
   const baseUnits = toBaseUnits(amount, CANONICAL_DECIMALS);
   const normalizedDecimal = fromBaseUnits(baseUnits, CANONICAL_DECIMALS);
   const canonicalReference = reference || `commons:${bountyId}:${submissionId}`;
+  const nextIntent = {
+    bountyId,
+    submissionId,
+    baseUnits,
+    mint,
+    recipient,
+    reference: canonicalReference,
+    destinationTokenAccount,
+  };
 
-  // Enforce selected submission recipient immutability
   const existingForSubmission = store.getByBountyAndSubmission(bountyId, submissionId);
   if (existingForSubmission && existingForSubmission.recipient !== recipient) {
-    throw new Error(`Recipient immutability violation: Submission ${submissionId} already bound to recipient ${existingForSubmission.recipient}`);
+    throw new Error(
+      `Recipient immutability violation: Submission ${submissionId} already bound to recipient ${existingForSubmission.recipient}`,
+    );
+  }
+  if (existingForSubmission && destinationTokenAccount && existingForSubmission.destinationTokenAccount && existingForSubmission.destinationTokenAccount !== destinationTokenAccount) {
+    throw new Error(`Destination token account immutability violation for submission ${submissionId}`);
   }
 
-  // Enforce idempotency key uniqueness & conflict check
-  if (store.get(idempotencyKey)) {
-    const existing = store.get(idempotencyKey);
-    const isConflict =
-      existing.bountyId !== bountyId ||
-      existing.submissionId !== submissionId ||
-      existing.baseUnits !== baseUnits ||
-      existing.mint !== mint ||
-      existing.recipient !== recipient ||
-      existing.reference !== canonicalReference;
-
-    if (isConflict) {
+  const existing = store.get(idempotencyKey);
+  if (existing) {
+    if (intentConflict(existing, nextIntent)) {
       throw new Error(`Idempotency conflict for key ${idempotencyKey}`);
     }
-    return { ...existing, idempotent_hit: true };
+    return { ...publicView(existing), idempotent_hit: true };
   }
 
-  const settlementId = `st_${idempotencyKey.slice(0, 12)}_${Date.now()}`;
+  const { payload, rawText } = await client.createSettlement({
+    amount: normalizedDecimal,
+    recipient,
+    reference: canonicalReference,
+    idempotencyKey,
+  });
+
+  if (!payload || typeof payload.id !== 'string' || !payload.id) {
+    throw new Error('Provider create response missing settlement id');
+  }
+  if (payload.object && payload.object !== 'settlement') {
+    throw new Error('Provider create response was not a settlement');
+  }
+  if (payload.mode === 'live' && !client.allowLive) {
+    throw new Error('Live-mode NodeBlink settlement rejected outside an explicit live canary');
+  }
+  if (payload.recipient && payload.recipient !== recipient) {
+    throw new Error('Provider recipient does not match the frozen Commons payout identity');
+  }
+  if (payload.mint && payload.mint !== CANONICAL_USDC_MINT) {
+    throw new Error('Provider mint is not canonical USDC');
+  }
+  if (payload.amount_minor && BigInt(payload.amount_minor) !== baseUnits) {
+    throw new Error('Provider amount_minor does not match the declared Commons amount');
+  }
+
+  const providerReference = payload.payment?.reference || payload.reference_key || null;
   const record = {
-    apiVersion: NODEBLINK_API_VERSION,
-    settlementId,
+    sdk: `${NODEBLINK_SDK_NAME}@${NODEBLINK_SDK_VERSION}`,
+    settlementId: payload.id,
     idempotencyKey,
     bountyId,
     submissionId,
@@ -288,23 +509,32 @@ export function createSettlement(
     decimals: CANONICAL_DECIMALS,
     mint,
     recipient,
+    destinationTokenAccount,
     reference: canonicalReference,
+    providerReference,
     status: 'pending_payment',
-    createdAt: new Date().toISOString(),
+    signature: null,
+    createdAt: payload.created_at || new Date().toISOString(),
+    providerStatus: payload.status || 'requires_payment',
+    providerMode: payload.mode || 'test',
+    rawProviderCreate: rawText,
+    rawProviderVerify: null,
+    rawWebhook: null,
   };
-
   store.set(idempotencyKey, record);
-  return record;
+  return publicView(record);
 }
 
 /**
- * M0: Verify settlement state with signature.
- * Invariant: Transitions to 'payment_submitted', never directly sets 'paid'.
+ * Ask NodeBlink to verify a signature against the stored settlement.
+ * A provider-confirmed result is payment_submitted, never canonical paid.
  */
-export function verifySettlement({ settlementId, signature }, store = defaultStore) {
+export async function verifySettlement({ settlementId, signature }, { store, client } = {}) {
   if (!settlementId || !signature) {
     throw new Error('Missing settlementId or signature');
   }
+  if (!store) throw new Error('Durable store is required');
+  if (!client) throw new Error('NodeBlink client is required');
 
   const found = store.getBySettlementId(settlementId);
   if (!found) {
@@ -315,86 +545,260 @@ export function verifySettlement({ settlementId, signature }, store = defaultSto
     };
   }
 
+  const boundToSignature = store.getBySignature(signature);
+  if (boundToSignature && boundToSignature.settlementId !== settlementId) {
+    return {
+      verified: false,
+      reason: 'signature_settlement_mismatch',
+      status: 'reconcile_required',
+    };
+  }
+
+  if (found.status === 'cancelled') {
+    return {
+      verified: false,
+      reason: 'late_confirmation_after_cancel',
+      status: 'reconcile_required',
+      settlementId,
+    };
+  }
+
+  let transport;
+  try {
+    transport = await client.verifySettlement(settlementId, { signature });
+  } catch (err) {
+    found.status = 'reconcile_required';
+    found.verifyError = err.code || err.message;
+    store.set(found.idempotencyKey, found);
+    return {
+      verified: false,
+      reason: err.code === 'timeout' ? 'verify_timeout' : 'provider_verify_failed',
+      status: 'reconcile_required',
+      settlementId,
+    };
+  }
+
+  const payload = transport.payload || {};
+  found.rawProviderVerify = transport.rawText;
+  found.signature = signature;
+  found.providerStatus = payload.status || payload.result || found.providerStatus;
+  found.providerResult = payload.result || null;
+
+  if (payload.mode === 'live' && !client.allowLive) {
+    found.status = 'reconcile_required';
+    store.set(found.idempotencyKey, found);
+    return {
+      verified: false,
+      reason: 'live_mode_rejected',
+      status: 'reconcile_required',
+      settlementId,
+    };
+  }
+
+  const providerConfirmed = payload.result === 'confirmed' || payload.status === 'confirmed';
+  if (!providerConfirmed) {
+    found.status = payload.result === 'pending' || payload.status === 'pending' ? 'payment_submitted' : 'reconcile_required';
+    store.set(found.idempotencyKey, found);
+    return {
+      verified: false,
+      reason: payload.reason || payload.result || 'provider_not_confirmed',
+      status: found.status,
+      settlementId,
+      signature,
+    };
+  }
+
+  found.status = 'payment_submitted';
+  found.verifiedAt = new Date().toISOString();
+  store.set(found.idempotencyKey, found);
+
   return {
-    apiVersion: NODEBLINK_API_VERSION,
+    sdk: `${NODEBLINK_SDK_NAME}@${NODEBLINK_SDK_VERSION}`,
     verified: true,
     settlementId,
     signature,
     reference: found.reference,
     status: 'payment_submitted',
-    verifiedAt: new Date().toISOString(),
+    providerResult: payload.result || 'confirmed',
+    verifiedAt: found.verifiedAt,
   };
 }
 
+function rawBodyString(rawBody) {
+  if (typeof rawBody === 'string') return rawBody;
+  if (Buffer.isBuffer(rawBody) || rawBody instanceof Uint8Array) {
+    return Buffer.from(rawBody).toString('utf8');
+  }
+  return null;
+}
+
+export function signNodeBlinkWebhook(rawBody, secret, timestampSeconds) {
+  const raw = rawBodyString(rawBody);
+  if (raw == null) throw new Error('Webhook signing requires raw bytes or a string');
+  const v1 = createHmac('sha256', secret).update(`${timestampSeconds}.${raw}`).digest('hex');
+  return `t=${timestampSeconds},v1=${v1}`;
+}
+
 /**
- * M0: Timing-safe HMAC webhook verification with timestamp, replay defense, and event checking.
+ * Official NodeBlink webhook verification (nodeblink-sdk 2.1.0 scheme).
+ * Fails closed on missing timestamp/event, object reserialization, or unbound settlement.
  */
-export function verifyWebhook({ headers, rawBody, webhookSecret, currentTime = Date.now() }, store = defaultStore) {
-  if (!headers || !rawBody || !webhookSecret) {
+export function verifyWebhook(
+  { headers, rawBody, webhookSecret, currentTime = Date.now() },
+  store,
+) {
+  if (!headers || rawBody == null || rawBody === '' || !webhookSecret) {
     return { verified: false, reason: 'missing_arguments' };
   }
+  if (!store) {
+    return { verified: false, reason: 'store_required' };
+  }
 
-  const sigHeader = headers['x-nodeblink-signature'] || headers['X-NodeBlink-Signature'];
-  const tsHeader = headers['x-nodeblink-timestamp'] || headers['X-NodeBlink-Timestamp'];
+  const raw = rawBodyString(rawBody);
+  if (raw == null) {
+    return { verified: false, reason: 'raw_body_required' };
+  }
 
+  const sigHeader = header(headers, NODEBLINK_WEBHOOK_HEADER);
   if (!sigHeader) {
     return { verified: false, reason: 'missing_signature_header' };
   }
 
-  // Verify timestamp freshness to defeat replay attacks
-  if (tsHeader) {
-    const tsNumber = Number(tsHeader);
-    const nowSeconds = Math.floor(currentTime / 1000);
-    if (isNaN(tsNumber) || Math.abs(nowSeconds - tsNumber) > WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS) {
-      return { verified: false, reason: 'webhook_timestamp_stale_or_skewed' };
-    }
+  let timestamp = null;
+  let v1 = null;
+  for (const part of String(sigHeader).split(',')) {
+    const eq = part.indexOf('=');
+    if (eq === -1) continue;
+    const key = part.slice(0, eq).trim();
+    const value = part.slice(eq + 1).trim();
+    if (key === 't') timestamp = Number(value);
+    else if (key === 'v1') v1 = value;
+  }
+  if (timestamp == null || !Number.isFinite(timestamp) || !v1) {
+    return { verified: false, reason: 'missing_timestamp_or_signature' };
   }
 
-  const bodyStr = typeof rawBody === 'string' ? rawBody : JSON.stringify(rawBody);
-  const payloadToSign = tsHeader ? `${tsHeader}.${bodyStr}` : bodyStr;
+  const nowSeconds = Math.floor(currentTime / 1000);
+  if (Math.abs(nowSeconds - timestamp) > WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS) {
+    return { verified: false, reason: 'webhook_timestamp_stale_or_skewed' };
+  }
 
-  const hmac = createHmac('sha256', webhookSecret).update(payloadToSign).digest('hex');
-  const provided = Buffer.from(sigHeader, 'utf8');
-  const expected = Buffer.from(hmac, 'utf8');
-
-  if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) {
+  const expectedHex = createHmac('sha256', webhookSecret).update(`${timestamp}.${raw}`).digest('hex');
+  let provided;
+  let expected;
+  try {
+    provided = Buffer.from(v1, 'hex');
+    expected = Buffer.from(expectedHex, 'hex');
+  } catch {
+    return { verified: false, reason: 'invalid_signature' };
+  }
+  if (provided.length !== expected.length || provided.length === 0 || !timingSafeEqual(provided, expected)) {
     return { verified: false, reason: 'invalid_signature' };
   }
 
-  // Replay check using digest
-  if (store.hasDigest(hmac)) {
-    return { verified: false, reason: 'webhook_replay_detected' };
-  }
-  store.addDigest(hmac);
-
   let parsed;
   try {
-    parsed = typeof rawBody === 'string' ? JSON.parse(rawBody) : rawBody;
+    parsed = JSON.parse(raw);
   } catch {
     return { verified: false, reason: 'invalid_json_body' };
   }
 
-  const eventType = parsed.event || 'settlement.confirmed';
-  if (eventType !== 'settlement.confirmed' && eventType !== 'settlement.failed') {
+  const eventType = parsed && parsed.type;
+  if (!eventType) {
+    return { verified: false, reason: 'missing_event_type' };
+  }
+  if (!SETTLEMENT_WEBHOOK_TYPES.includes(eventType)) {
     return { verified: false, reason: `unsupported_event_type:${eventType}` };
   }
 
+  const object = parsed.data && parsed.data.object;
+  const settlementId = object && object.id;
+  if (!settlementId) {
+    return { verified: false, reason: 'webhook_missing_settlement_id' };
+  }
+
+  const found = store.getBySettlementId(settlementId);
+  if (!found) {
+    return { verified: false, reason: 'settlement_not_bound' };
+  }
+  if (object.recipient && object.recipient !== found.recipient) {
+    return { verified: false, reason: 'webhook_recipient_mismatch', status: 'reconcile_required' };
+  }
+  if (object.mint && object.mint !== found.mint) {
+    return { verified: false, reason: 'webhook_mint_mismatch', status: 'reconcile_required' };
+  }
+  if (object.amount_minor && BigInt(object.amount_minor) !== found.baseUnits) {
+    return { verified: false, reason: 'webhook_amount_mismatch', status: 'reconcile_required' };
+  }
+
+  const digest = `${timestamp}.${expectedHex}`;
+  if (store.hasDigest(digest)) {
+    return {
+      verified: false,
+      reason: 'webhook_replay_detected',
+      settlementId,
+      event: eventType,
+    };
+  }
+  store.addDigest(digest);
+  found.rawWebhook = raw;
+  found.lastWebhookType = eventType;
+
+  if (found.status === 'cancelled') {
+    found.status = 'reconcile_required';
+    store.set(found.idempotencyKey, found);
+    return {
+      verified: true,
+      event: eventType,
+      settlementId,
+      status: 'reconcile_required',
+      reason: 'late_confirmation_after_cancel',
+      digest,
+    };
+  }
+
+  if (CONFIRMING_WEBHOOK_TYPES.has(eventType) && found.status === 'pending_payment') {
+    found.status = 'reconcile_required';
+    store.set(found.idempotencyKey, found);
+    return {
+      verified: true,
+      event: eventType,
+      settlementId,
+      status: 'reconcile_required',
+      reason: 'webhook_before_payment_submitted',
+      digest,
+      data: object,
+    };
+  }
+
+  if (CONFIRMING_WEBHOOK_TYPES.has(eventType) && found.status === 'payment_submitted') {
+    found.providerStatus = object.status || 'confirmed';
+    store.set(found.idempotencyKey, found);
+  } else {
+    store.set(found.idempotencyKey, found);
+  }
+
   return {
-    apiVersion: NODEBLINK_API_VERSION,
+    sdk: `${NODEBLINK_SDK_NAME}@${NODEBLINK_SDK_VERSION}`,
     verified: true,
     event: eventType,
-    data: parsed.data || parsed,
-    digest: hmac,
+    settlementId,
+    data: object,
+    digest,
+    status: found.status,
   };
 }
 
-/**
- * M1: Map confirmed external result into intermediate external receipt (commons.external-receipt/v1).
- */
-export function mapExternalReceipt({ settlement, externalId, signature, providerStatus = 'confirmed', webhookDigest }) {
+export function mapExternalReceipt({
+  settlement,
+  externalId,
+  signature,
+  providerStatus = 'confirmed',
+  webhookDigest,
+}) {
   return {
     schema: 'commons.external-receipt/v1',
-    apiVersion: NODEBLINK_API_VERSION,
+    sdk: `${NODEBLINK_SDK_NAME}@${NODEBLINK_SDK_VERSION}`,
     provider: 'nodeblink',
     purpose: 'winner_payment',
     bountyId: settlement.bountyId,
@@ -410,7 +814,10 @@ export function mapExternalReceipt({ settlement, externalId, signature, provider
       amount: String(settlement.amount),
       baseUnits: String(settlement.baseUnits !== undefined ? settlement.baseUnits : toBaseUnits(settlement.amount)),
       recipientOwner: settlement.recipient,
+      destination: settlement.recipient,
+      destinationTokenAccount: settlement.destinationTokenAccount || null,
       reference: settlement.reference || `commons:${settlement.bountyId}:${settlement.submissionId}`,
+      providerReference: settlement.providerReference || null,
     },
     providerStatus,
     providerObservedAt: new Date().toISOString(),
@@ -418,9 +825,54 @@ export function mapExternalReceipt({ settlement, externalId, signature, provider
   };
 }
 
+export function buildCommonsTx({
+  signature,
+  source,
+  destination,
+  amount,
+  mint = CANONICAL_USDC_MINT,
+  purpose = 'settlement',
+  status = 'confirmed',
+  success,
+  slot,
+  commitment,
+  observedBy,
+  reference = null,
+  destinationTokenAccount = null,
+  sourceTokenAccount = null,
+} = {}) {
+  const tx = {
+    schema: TX_SCHEMA,
+    signature,
+    chain: CANONICAL_CHAIN,
+    purpose,
+    status,
+    source,
+    destination,
+    asset: CANONICAL_ASSET,
+    symbol: CANONICAL_SYMBOL,
+    amount,
+    mint,
+    reference,
+    destinationTokenAccount,
+    sourceTokenAccount,
+  };
+  if (status === 'submitted') return tx;
+  tx.success = success === undefined ? status === 'confirmed' : success;
+  if (slot !== undefined) tx.slot = slot;
+  if (commitment) tx.commitment = commitment;
+  if (observedBy) tx.observedBy = observedBy;
+  if (status === 'confirmed') {
+    if (tx.slot === undefined) tx.slot = 0;
+    if (!tx.commitment) tx.commitment = 'finalized';
+    if (!tx.observedBy) tx.observedBy = 'independent-solana-rpc';
+  }
+  return tx;
+}
+
 /**
- * M1 & M2: Reconcile external receipt with independent chain observation (commons.tx/v1).
- * Exact integer base-unit, canonical identity, and reference equality required for 'paid'.
+ * Reconcile a NodeBlink receipt with an independent commons.tx/v1 observation.
+ * Uses Commons validateTx / canonical amounts. Never promotes receipt-only facts to paid.
  */
 export function reconcilePayment({ externalReceipt, chainObservation }) {
   const reasons = [];
@@ -428,11 +880,11 @@ export function reconcilePayment({ externalReceipt, chainObservation }) {
   if (!externalReceipt || externalReceipt.schema !== 'commons.external-receipt/v1') {
     reasons.push('invalid_external_receipt_schema');
   }
-
-  if (!chainObservation || chainObservation.schema !== 'commons.tx/v1') {
+  const tx = validateTx(chainObservation, { required: true, statuses: ['submitted', 'confirmed', 'failed', 'not_found'] });
+  if (!tx.ok) {
     reasons.push('invalid_chain_observation_schema');
+    for (const err of tx.errors) reasons.push(`tx.${err.path || 'value'}:${err.msg}`);
   }
-
   if (reasons.length > 0) {
     return { status: 'reconcile_required', reasons };
   }
@@ -440,24 +892,34 @@ export function reconcilePayment({ externalReceipt, chainObservation }) {
   if (externalReceipt.providerStatus !== 'confirmed') {
     reasons.push(`provider_status_unconfirmed:${externalReceipt.providerStatus}`);
   }
-
-  if (!chainObservation.success || (chainObservation.status !== 'confirmed' && chainObservation.status !== 'finalized')) {
+  if (chainObservation.status !== 'confirmed' || chainObservation.success !== true) {
     reasons.push('chain_tx_not_confirmed_or_successful');
   }
-
+  if (!['confirmed', 'finalized'].includes(chainObservation.commitment)) {
+    reasons.push('chain_commitment_not_confirmed_or_finalized');
+  }
+  if (chainObservation.purpose !== 'settlement') {
+    reasons.push('wrong_transaction_purpose');
+  }
   if (externalReceipt.signature !== chainObservation.signature) {
     reasons.push('signature_mismatch');
   }
-
   if (chainObservation.mint !== CANONICAL_USDC_MINT || externalReceipt.expected.mint !== CANONICAL_USDC_MINT) {
     reasons.push('mint_mismatch_or_non_canonical');
   }
+  if (chainObservation.symbol !== CANONICAL_SYMBOL) {
+    reasons.push('symbol_mismatch');
+  }
 
-  // Exact integer base-unit comparison (zero floating point drift)
   try {
+    if (!isCanonicalAmount(externalReceipt.expected.amount, CANONICAL_DECIMALS)) {
+      reasons.push('expected_amount_not_canonical');
+    }
+    if (!isCanonicalAmount(chainObservation.amount, CANONICAL_DECIMALS)) {
+      reasons.push('observed_amount_not_canonical');
+    }
     const expectedBaseUnits = BigInt(externalReceipt.expected.baseUnits || toBaseUnits(externalReceipt.expected.amount));
-    const observedBaseUnits = BigInt(chainObservation.baseUnits || toBaseUnits(chainObservation.amount));
-
+    const observedBaseUnits = toBaseUnits(chainObservation.amount);
     if (expectedBaseUnits !== observedBaseUnits) {
       reasons.push(`base_units_mismatch:expected_${expectedBaseUnits}_got_${observedBaseUnits}`);
     }
@@ -465,16 +927,21 @@ export function reconcilePayment({ externalReceipt, chainObservation }) {
     reasons.push(`amount_parse_error:${err.message}`);
   }
 
-  if (externalReceipt.expected.recipientOwner !== chainObservation.recipientOwner) {
+  const expectedOwner = externalReceipt.expected.recipientOwner || externalReceipt.expected.destination;
+  if (expectedOwner !== chainObservation.destination) {
     reasons.push('recipient_owner_mismatch');
   }
+  if (externalReceipt.expected.destinationTokenAccount) {
+    if (!chainObservation.destinationTokenAccount) {
+      reasons.push('destination_token_account_missing');
+    } else if (externalReceipt.expected.destinationTokenAccount !== chainObservation.destinationTokenAccount) {
+      reasons.push('destination_token_account_mismatch');
+    }
+  }
 
-  // Single-use reference check
-  if (
-    externalReceipt.expected.reference &&
-    chainObservation.reference &&
-    externalReceipt.expected.reference !== chainObservation.reference
-  ) {
+  if (!chainObservation.reference) {
+    reasons.push('reference_missing');
+  } else if (externalReceipt.expected.reference !== chainObservation.reference) {
     reasons.push('reference_mismatch');
   }
 
@@ -493,11 +960,88 @@ export function reconcilePayment({ externalReceipt, chainObservation }) {
     signature: chainObservation.signature,
     amount: externalReceipt.expected.amount,
     baseUnits: externalReceipt.expected.baseUnits,
-    recipient: externalReceipt.expected.recipientOwner,
+    recipient: expectedOwner,
     reference: externalReceipt.expected.reference,
-    observedSlot: chainObservation.observedSlot || null,
-    observer: chainObservation.observer || 'independent-solana-rpc',
-    observedAt: chainObservation.observedAt || new Date().toISOString(),
+    slot: chainObservation.slot,
+    observer: chainObservation.observedBy,
+    observedAt: new Date().toISOString(),
     reconciledAt: new Date().toISOString(),
   };
+}
+
+/**
+ * Drive the Commons observe_settlement transition. Duplicate webhook + poll
+ * inputs that share an idempotency key produce one canonical paid event.
+ */
+export function recordCanonicalSettlement({
+  bounty,
+  chainObservation,
+  externalReceipt,
+  idempotencyKey,
+  eventId,
+  ts,
+  store = null,
+}) {
+  const reconciled = reconcilePayment({ externalReceipt, chainObservation });
+  if (reconciled.status !== 'paid') return reconciled;
+
+  const key = idempotencyKey || `commons.observe_settlement:${chainObservation.signature}`;
+  if (store) {
+    const prior = store.getCanonical(key);
+    if (prior) {
+      return { ...prior, replayed: true };
+    }
+  }
+
+  const result = applyEvent(bounty, {
+    schema: EVENT_SCHEMA,
+    id: eventId || `evt-${key}`.replace(/[^A-Za-z0-9._:/-]/g, '').slice(0, 80),
+    type: 'observe_settlement',
+    bountyId: bounty.id,
+    ts,
+    idempotencyKey: key,
+    origin: 'chain',
+    tx: chainObservation,
+  });
+
+  if (!result.ok) {
+    return {
+      status: 'reconcile_required',
+      reasons: [result.error],
+      detail: result.detail,
+      replayed: Boolean(result.replayed),
+    };
+  }
+
+  const event = {
+    status: result.bounty.settlement.state === 'paid' ? 'paid' : 'reconcile_required',
+    replayed: Boolean(result.replayed),
+    bountyId: result.bounty.id,
+    signature: chainObservation.signature,
+    settlementState: result.bounty.settlement.state,
+  };
+  if (store) store.rememberCanonical(key, event);
+  return { ...event, bounty: result.bounty };
+}
+
+export function redactSecrets(value, secrets = []) {
+  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  return secrets.reduce((acc, secret) => {
+    if (!secret) return acc;
+    return acc.split(String(secret)).join('[redacted]');
+  }, text);
+}
+
+function inspectPublic(value) {
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value, (_key, item) => (typeof item === 'bigint' ? item.toString() : item));
+}
+
+export function assertNoSecretLeak(value, secrets) {
+  const text = inspectPublic(value);
+  for (const secret of secrets) {
+    if (secret && text.includes(String(secret))) {
+      throw new Error('Secret or private payload leaked into public output');
+    }
+  }
 }
