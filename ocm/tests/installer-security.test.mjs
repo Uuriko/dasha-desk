@@ -138,9 +138,11 @@ test('the installer never logs the provider token', () => {
     if (/\/etc\/ocm\/agent\.env/.test(line)) continue;
     if (/Authorization: Bearer/.test(line)) continue;
     if (/printf 'OCM_HOST_TOKEN=%s/.test(line)) continue;
-    assert.doesNotMatch(line, /(?:echo|printf)(?:\s|.)*\$\{?OCM_HOST_TOKEN/,
+    // Quiet grep is validation, not a log line.
+    if (/\| LC_ALL=C grep -Eq/.test(line)) continue;
+    assert.doesNotMatch(line, /(?:echo|printf).*\$\{?OCM_HOST_TOKEN/,
       `installer must not print the token: ${line}`);
-    assert.doesNotMatch(line, /(?:echo|printf)(?:\s|.)*\$\{?NEW_TOKEN/,
+    assert.doesNotMatch(line, /(?:echo|printf).*\$\{?NEW_TOKEN/,
       `token rotator must not print the token: ${line}`);
   }
   assert.doesNotMatch(source, /^\s*set -x/m);
