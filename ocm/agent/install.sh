@@ -12,8 +12,16 @@
 #   4. stores your provider token in an owner-only environment file
 #   5. installs a launchd daemon that runs as the invoking non-root user
 #
-# Usage:
-#   sudo env OCM_HOST_TOKEN="ocm_host_…" sh install.sh
+# Human path — prompt with echo off, then hand the variable to sudo. This keeps the
+# long-lived provider token out of argv and out of shell history:
+#   read -rsp "Provider token: " OCM_HOST_TOKEN
+#   printf '\n'
+#   sudo --preserve-env=OCM_HOST_TOKEN sh install.sh
+#
+# Running this script under sudo without OCM_HOST_TOKEN set also prompts, with
+# terminal echo disabled. Automation may use a secret file or stdin instead:
+#   sudo env OCM_HOST_TOKEN_FILE=/path/to/token sh install.sh
+#   sudo sh install.sh < /path/to/token
 #
 # Optional:
 #   OCM_AGENT_ID="my-mac"   the name this machine registers under; defaults to the
@@ -61,7 +69,33 @@ curl_https() {
 [ "$(uname -s)" = "Darwin" ] || die "this installer is for macOS"
 [ "$(uname -m)" = "arm64" ] || die "Apple Silicon is required — MLX cannot run on an Intel Mac"
 [ "$(id -u)" = "0" ] || die "run with sudo: installing the launchd daemon needs root"
-[ -n "${OCM_HOST_TOKEN:-}" ] || die "set OCM_HOST_TOKEN to the provider token from your console"
+
+# Resolve the provider token without requiring it on argv. Putting the secret
+# on sudo's environment command line would also put it in shell history and
+# the process list. Never print the value.
+if [ -z "${OCM_HOST_TOKEN:-}" ] && [ -n "${OCM_HOST_TOKEN_FILE:-}" ]; then
+  matches "$OCM_HOST_TOKEN_FILE" '^/[-A-Za-z0-9._/+]{1,512}$' \
+    || die "OCM_HOST_TOKEN_FILE must be a safe absolute path"
+  [ -f "$OCM_HOST_TOKEN_FILE" ] && [ -r "$OCM_HOST_TOKEN_FILE" ] \
+    || die "OCM_HOST_TOKEN_FILE is missing or unreadable"
+  IFS= read -r OCM_HOST_TOKEN < "$OCM_HOST_TOKEN_FILE" || true
+fi
+if [ -z "${OCM_HOST_TOKEN:-}" ]; then
+  if [ -t 0 ]; then
+    printf 'Provider token (input is hidden): ' >&2
+    if stty_state=$(stty -g 2>/dev/null); then
+      stty -echo
+      IFS= read -r OCM_HOST_TOKEN || true
+      stty "$stty_state"
+    else
+      IFS= read -r OCM_HOST_TOKEN || true
+    fi
+    printf '\n' >&2
+  else
+    IFS= read -r OCM_HOST_TOKEN || true
+  fi
+fi
+[ -n "${OCM_HOST_TOKEN:-}" ] || die "provide OCM_HOST_TOKEN via --preserve-env, OCM_HOST_TOKEN_FILE, stdin, or the hidden prompt"
 [ -n "$RUN_USER" ] || die "run through sudo from the account that should run inference, or set OCM_RUN_USER"
 [ "$RUN_USER" != root ] || die "the OCM inference daemon may not run as root; set OCM_RUN_USER to a normal account"
 
@@ -140,9 +174,8 @@ curl_https --fail "$SOURCE/agent.py" -o "$TMP_AGENT" \
 chmod 755 "$TMP_AGENT"
 
 printf 'checking the downloaded agent as %s …\n' "$RUN_USER"
-sudo -u "$RUN_USER" env \
+sudo -u "$RUN_USER" --preserve-env=OCM_HOST_TOKEN env \
   HOME="$RUN_HOME" \
-  OCM_HOST_TOKEN="$OCM_HOST_TOKEN" \
   OCM_GATEWAY_URL="$GATEWAY" \
   OCM_AGENT_ID="$AGENT_ID" \
   OCM_MODEL_MAP="$MODEL_MAP" \
@@ -181,16 +214,41 @@ chmod 755 "$PREFIX/bin/ocm-agent-run"
 cat > "$PREFIX/bin/ocm-agent-token" <<'TOK'
 #!/bin/sh
 # Replace this machine's provider token and restart the agent.
-#   sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_...'
+#   sudo /opt/ocm/bin/ocm-agent-token              # prompts, input hidden
+#   sudo /opt/ocm/bin/ocm-agent-token < token      # automation stdin
+#   sudo env OCM_HOST_TOKEN_FILE=/path /opt/ocm/bin/ocm-agent-token
 #
+# Do not pass the token as a command-line argument: it would appear in
+# process lists and shell history.
 # Use this rather than editing any file by hand: the token lives in
 # /etc/ocm/agent.env, and ocm-agent-run is regenerated on every reinstall.
 set -eu
 PATH=/usr/bin:/bin:/usr/sbin:/sbin
 export PATH
 [ "$(id -u)" = "0" ] || { echo "run with sudo" >&2; exit 1; }
-[ $# -eq 1 ] || { echo "usage: ocm-agent-token 'ocm_host_...'" >&2; exit 1; }
-printf '%s\n' "$1" | LC_ALL=C grep -Eq '^ocm_host_[-A-Za-z0-9_]{16,}$' \
+if [ $# -ne 0 ]; then
+  echo "usage: ocm-agent-token" >&2
+  echo "  do not pass the token on the command line" >&2
+  echo "  you will be prompted, or provide it on stdin / OCM_HOST_TOKEN_FILE" >&2
+  exit 1
+fi
+NEW_TOKEN=""
+if [ -n "${OCM_HOST_TOKEN_FILE:-}" ]; then
+  IFS= read -r NEW_TOKEN < "$OCM_HOST_TOKEN_FILE" || true
+elif [ -t 0 ]; then
+  printf 'Provider token (input is hidden): ' >&2
+  if stty_state=$(stty -g 2>/dev/null); then
+    stty -echo
+    IFS= read -r NEW_TOKEN || true
+    stty "$stty_state"
+  else
+    IFS= read -r NEW_TOKEN || true
+  fi
+  printf '\n' >&2
+else
+  IFS= read -r NEW_TOKEN || true
+fi
+printf '%s\n' "$NEW_TOKEN" | LC_ALL=C grep -Eq '^ocm_host_[-A-Za-z0-9_]{16,}$' \
   || { echo "error: expected an issued ocm_host_ provider token" >&2; exit 1; }
 OWNER=$(stat -f '%Su' /etc/ocm/agent.env 2>/dev/null || true)
 printf '%s\n' "$OWNER" | LC_ALL=C grep -Eq '^[-A-Za-z0-9._]{1,64}$' \
@@ -202,10 +260,10 @@ printf '%s\n' "$BASE" | LC_ALL=C grep -Eq '^https://[A-Za-z0-9.-]+(:[0-9]{1,5})?
 printf 'checking token ...\n'
 if ! curl --silent --show-error --location --fail \
   --proto '=https' --proto-redir '=https' --tlsv1.2 \
-  -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" >/dev/null 2>&1; then
+  -H "Authorization: Bearer $NEW_TOKEN" "$BASE/v1/provider/verify" >/dev/null 2>&1; then
   curl --silent --show-error --location \
     --proto '=https' --proto-redir '=https' --tlsv1.2 \
-    -H "Authorization: Bearer $1" "$BASE/v1/provider/verify" 2>/dev/null \
+    -H "Authorization: Bearer $NEW_TOKEN" "$BASE/v1/provider/verify" 2>/dev/null \
     | sed -n 's/.*"message":"\([^"]*\)".*/error: \1/p' >&2
   echo "nothing was changed" >&2
   exit 1
@@ -214,7 +272,7 @@ umask 077
 TMP=$(mktemp "${TMPDIR:-/tmp}/ocm-token.XXXXXX")
 trap 'rm -f "$TMP"' EXIT HUP INT TERM
 grep -v '^OCM_HOST_TOKEN=' /etc/ocm/agent.env > "$TMP" || true
-printf 'OCM_HOST_TOKEN=%s\n' "$1" >> "$TMP"
+printf 'OCM_HOST_TOKEN=%s\n' "$NEW_TOKEN" >> "$TMP"
 cat "$TMP" > /etc/ocm/agent.env
 chown "$OWNER" /etc/ocm/agent.env
 chmod 600 /etc/ocm/agent.env
@@ -274,7 +332,7 @@ installed. Inference runs as $RUN_USER, never as root.
   status   launchctl print system/com.ocm.agent
   logs     tail -f /var/log/ocm-agent.log
   check    sudo -u $RUN_USER $PREFIX/bin/ocm-agent-run --doctor
-  rotate   sudo $PREFIX/bin/ocm-agent-token 'ocm_host_…'
+  rotate   sudo $PREFIX/bin/ocm-agent-token
   stop     sudo launchctl bootout system/com.ocm.agent
   remove   sudo launchctl bootout system/com.ocm.agent; sudo rm -rf $PREFIX /etc/ocm \\
              /Library/LaunchDaemons/com.ocm.agent.plist /var/log/ocm-agent.log

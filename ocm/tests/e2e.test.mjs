@@ -697,6 +697,12 @@ test('the provider guide is private and warns about plaintext prompts', async ()
       'the guide must warn against hand-editing the run wrapper');
     assert.match(html, /OCM_AGENT_ID/,
       'the guide must name the identity variable, or a reinstall silently registers a second host');
+    assert.match(html, /read -rsp/,
+      'the human install path must prompt without echo');
+    assert.match(html, /--preserve-env=OCM_HOST_TOKEN/,
+      'sudo must inherit the prompted token from the environment, not from argv');
+    assert.doesNotMatch(html, /OCM_HOST_TOKEN=["']ocm_host_/,
+      'the guide must not teach a copy-paste command that puts the token on argv');
   } finally { await gw.close(); }
 });
 
@@ -714,7 +720,12 @@ test('minting a provider token hands back a command that names the machine', asy
     // recovering it. The label was just typed; carry it through.
     assert.match(html, /OCM_AGENT_ID="macbook-air-m5-24gb"/,
       'the install command must carry the label as the agent id, slugged');
-    assert.match(html, /OCM_HOST_TOKEN="ocm_host_/);
+    assert.match(html, /--preserve-env=OCM_HOST_TOKEN/,
+      'the minted-token page must use the hidden-prompt install path');
+    assert.doesNotMatch(html, /OCM_HOST_TOKEN=["']ocm_host_/,
+      'the minted token must not be inlined into an argv assignment');
+    assert.match(html, /ocm_host_/,
+      'the token itself is still shown once, separately from the install command');
 
     // A label with shell metacharacters must not survive into the command.
     const nasty = await form(gw, '/keys/new',

@@ -353,8 +353,9 @@ async def forever():
                     print(f"REFUSED BY GATEWAY: {detail}", file=sys.stderr, flush=True)
                     print("  This is a credential problem, not a network problem. "
                           "Retrying will not fix it.", file=sys.stderr, flush=True)
-                    print("  Fix: sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_...'  "
-                          "(issue one in the console under New provider token)",
+                    print("  Fix: sudo /opt/ocm/bin/ocm-agent-token  "
+                          "(issue one in the console under New provider token; "
+                          "the helper prompts and does not take the token on argv)",
                           file=sys.stderr, flush=True)
                     complained = True
                 delay = MAX_BACKOFF
@@ -386,7 +387,7 @@ def doctor():
         print()
         print("          Fix: issue a provider token in the console under")
         print("          New provider token, then:")
-        print("            sudo /opt/ocm/bin/ocm-agent-token 'ocm_host_…'")
+        print("            sudo /opt/ocm/bin/ocm-agent-token")
         ok = False
     return 0 if ok else 1
 

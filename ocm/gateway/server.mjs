@@ -466,8 +466,12 @@ ${granted
             title: isProvider ? 'Your provider token' : 'Your developer key',
             secret: cred.secret,
             whatNext: isProvider
-              ? `<p>Install the agent on the Mac you want to contribute:</p>
-<pre>OCM_HOST_TOKEN="${cred.secret}"${agentId ? ` OCM_AGENT_ID="${agentId}"` : ''} sh install.sh</pre>
+              ? `<p>This token is shown once. Do not put it on a command line — it would
+appear in shell history and the process list.</p>
+<p>Install the agent on the Mac you want to contribute:</p>
+<pre>read -rsp "Provider token: " OCM_HOST_TOKEN
+printf '\\n'
+sudo --preserve-env=OCM_HOST_TOKEN${agentId ? ` OCM_AGENT_ID="${agentId}"` : ''} sh install.sh</pre>
 ${agentId ? `<p class="muted">Keep <code>OCM_AGENT_ID</code> the same on every reinstall of this
 machine — a different name registers a second provider instead of recovering this one.</p>` : ''}
 <p class="muted">See <a href="/provider">Run a provider</a> for the full guide.</p>`

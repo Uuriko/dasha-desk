@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { renderProviderGuide } from '../gateway/console.mjs';
 
 const source = readFileSync(new URL('../agent/install.sh', import.meta.url), 'utf8');
+const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+const COPY_PASTE_TOKEN_ARGV = /OCM_HOST_TOKEN=["']ocm_host_/;
 
 test('the root installer never pipes downloaded code into a shell', () => {
   assert.doesNotMatch(source, /astral\.sh\/uv\/install\.sh/,
@@ -57,8 +60,8 @@ test('the inference daemon is explicitly forbidden from running as root', () => 
     'root must be rejected as the provider runtime user');
   assert.match(source, /id "\$RUN_USER" >\/dev\/null/,
     'the selected provider account must exist locally');
-  assert.match(source, /sudo -u "\$RUN_USER" env[\s\S]*"\$TMP_AGENT" --doctor/,
-    'the downloaded code must be proved as the same unprivileged account that will run it');
+  assert.match(source, /sudo -u "\$RUN_USER" --preserve-env=OCM_HOST_TOKEN env[\s\S]*"\$TMP_AGENT" --doctor/,
+    'the downloaded code must be proved as the same unprivileged account that will run it, without putting the token on env argv');
   assert.match(source, /<key>UserName<\/key><string>\$RUN_USER<\/string>/,
     'launchd must drop privileges before executing the agent');
   assert.doesNotMatch(source, /export HOME=\/var\/root/,
@@ -94,4 +97,51 @@ test('token rotation validates credential, gateway and runtime owner', () => {
   assert.match(rotation, /nothing was changed/);
   assert.match(rotation, /chown "\$OWNER" \/etc\/ocm\/agent\.env/);
   assert.match(rotation, /mktemp "\$\{TMPDIR:-\/tmp\}\/ocm-token\.XXXXXX"/);
+  assert.match(rotation, /do not pass the token on the command line/);
+  assert.match(rotation, /OCM_HOST_TOKEN_FILE/);
+  assert.match(rotation, /stty -echo/);
+});
+
+test('human and automation install paths never put the token on argv', () => {
+  assert.match(source, /read -rsp "Provider token: " OCM_HOST_TOKEN/,
+    'the documented human path must prompt without echo');
+  assert.match(source, /sudo --preserve-env=OCM_HOST_TOKEN sh install\.sh/,
+    'sudo must inherit the prompted token rather than receiving it as env argv');
+  assert.match(source, /OCM_HOST_TOKEN_FILE/,
+    'automation must have a secret-file path');
+  assert.match(source, /sudo sh install\.sh < \/path\/to\/token/,
+    'automation must have a stdin path');
+  assert.match(source, /stty -echo/,
+    'an interactive sudo without the env var must prompt with echo disabled');
+  assert.doesNotMatch(source, /sudo env OCM_HOST_TOKEN=/);
+});
+
+test('rendered provider guide, README and install comments reject copy-paste token argv', () => {
+  const guide = renderProviderGuide({
+    account: { email: 'provider@test.dev' },
+    apiHost: 'api.ocm.getdasha.com',
+    models: [],
+  });
+  assert.doesNotMatch(source, COPY_PASTE_TOKEN_ARGV,
+    'install.sh must not document OCM_HOST_TOKEN="ocm_host_…" as a command');
+  assert.doesNotMatch(readme, COPY_PASTE_TOKEN_ARGV,
+    'README must not document OCM_HOST_TOKEN="ocm_host_…" as a command');
+  assert.doesNotMatch(guide, COPY_PASTE_TOKEN_ARGV,
+    'the rendered provider guide must not document OCM_HOST_TOKEN="ocm_host_…" as a command');
+  assert.match(guide, /read -rsp/);
+  assert.match(guide, /--preserve-env=OCM_HOST_TOKEN/);
+});
+
+test('the installer never logs the provider token', () => {
+  for (const line of source.split('\n')) {
+    if (/^\s*#/.test(line)) continue;
+    if (/\/etc\/ocm\/agent\.env/.test(line)) continue;
+    if (/Authorization: Bearer/.test(line)) continue;
+    if (/printf 'OCM_HOST_TOKEN=%s/.test(line)) continue;
+    assert.doesNotMatch(line, /(?:echo|printf)(?:\s|.)*\$\{?OCM_HOST_TOKEN/,
+      `installer must not print the token: ${line}`);
+    assert.doesNotMatch(line, /(?:echo|printf)(?:\s|.)*\$\{?NEW_TOKEN/,
+      `token rotator must not print the token: ${line}`);
+  }
+  assert.doesNotMatch(source, /^\s*set -x/m);
 });
