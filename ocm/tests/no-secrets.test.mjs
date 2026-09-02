@@ -62,6 +62,12 @@ test('no file git would publish contains a secret or a deployment identifier', (
     `these would be published:\n  ${findings.join('\n  ')}`);
 });
 
+test('the public provider protocol stays published', () => {
+  const published = new Set(publishableFiles());
+  assert.equal(published.has('docs/PROVIDER-PROTOCOL.md'), true,
+    'PROVIDER-PROTOCOL.md must remain tracked; docs/ is otherwise ignored');
+});
+
 test('files that must never be published are ignored', () => {
   const published = new Set(publishableFiles());
   const mustNotPublish = [

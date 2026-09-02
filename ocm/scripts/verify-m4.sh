@@ -3,11 +3,16 @@ set -euo pipefail
 
 # Reproduce the final Apple Silicon proof from the exact reviewed commit.
 #
-# Required environment:
-#   OCM_GATEWAY_URL=wss://api.ocm.example
-#   OCM_HOST_TOKEN=ocm_host_...
-#   OPENAI_BASE_URL=https://api.ocm.example/v1
-#   OPENAI_API_KEY=ocm_live_...
+# Required (already exported, or via a secret file). Do not put provider or
+# developer credentials on the command line: they land in shell history and
+# the process list.
+#   export OCM_GATEWAY_URL
+#   export OPENAI_BASE_URL
+#   read -rsp "Provider token: " OCM_HOST_TOKEN; printf '\n'; export OCM_HOST_TOKEN
+#   read -rsp "Developer key: " OPENAI_API_KEY; printf '\n'; export OPENAI_API_KEY
+# Automation:
+#   export OCM_HOST_TOKEN_FILE=/path/to/token
+#   export OPENAI_API_KEY_FILE=/path/to/developer-key
 #
 # Optional:
 #   OCM_VERIFY_MODEL=ocm-coder
@@ -30,6 +35,22 @@ need_env() {
   local name="$1"
   [[ -n "${!name:-}" ]] || fail "$name is required"
 }
+
+read_secret_file() {
+  local dest="$1" path="$2"
+  [[ "$path" == /* ]] || fail "${dest}_FILE must be an absolute path"
+  [[ -f "$path" && -r "$path" ]] || fail "${dest}_FILE is missing or unreadable"
+  IFS= read -r "$dest" < "$path" || true
+}
+
+if [[ -z "${OCM_HOST_TOKEN:-}" && -n "${OCM_HOST_TOKEN_FILE:-}" ]]; then
+  read_secret_file OCM_HOST_TOKEN "$OCM_HOST_TOKEN_FILE"
+  export OCM_HOST_TOKEN
+fi
+if [[ -z "${OPENAI_API_KEY:-}" && -n "${OPENAI_API_KEY_FILE:-}" ]]; then
+  read_secret_file OPENAI_API_KEY "$OPENAI_API_KEY_FILE"
+  export OPENAI_API_KEY
+fi
 
 [[ "$(uname -s)" == "Darwin" ]] || fail "this verification must run on macOS"
 [[ "$(uname -m)" == "arm64" ]] || fail "Apple Silicon arm64 is required"

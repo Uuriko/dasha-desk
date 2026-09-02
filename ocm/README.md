@@ -2,7 +2,7 @@
 
 OCM is a working open-source alpha for routing OpenAI-compatible inference to independently operated compute. Apple Silicon with MLX is the first provider class; the gateway and provider contract are intended to admit other runtimes without changing the client API.
 
-OCM is under review in [`Uuriko/dasha-desk#44`](https://github.com/Uuriko/dasha-desk/pull/44). It is **not production-ready, payment-safe, or confidential from community providers**.
+The original contribution is Graham's [`#44`](https://github.com/Uuriko/dasha-desk/pull/44). Maintainer review and merge go through [`#76`](https://github.com/Uuriko/dasha-desk/pull/76) and its follow-on [`#131`](https://github.com/Uuriko/dasha-desk/pull/131). **Do not merge #44 alongside #76** — both start from the same history. OCM is **not production-ready, payment-safe, or confidential from community providers**.
 
 ## Current proof — August 2026
 
@@ -36,6 +36,16 @@ Before external provider traffic or money:
 - green CI and a fresh reproducible M4 run are required at the final merge commit.
 
 Do not describe granted alpha credits as money, revenue, provider earnings, or on-chain settlement.
+
+## Maintainer merge gates (human-only)
+
+Repository CI on this stack is the code-review gate. The remaining steps are human-only and are not claimed by this branch:
+
+1. Maintainer undraft and merge of #76, then the #131 follow-on (or a successor that already includes it). Do not merge #44.
+2. Inspect ALB/proxy access logs and rotate any provider credential that was previously sent in a WebSocket URL.
+3. A fresh M4/MLX `--doctor`, benchmark, and unmodified OpenAI SDK request from the final reviewed commit, using [`scripts/verify-m4.sh`](scripts/verify-m4.sh). Load credentials from a hidden prompt or `*_FILE`; do not put them on the command line. This repository does not invent that hardware proof.
+4. Confirm deployed agent/gateway versions match the reviewed commit before inviting external providers.
+5. No production deploy, provider payout, or Solana settlement from this stack. Granted alpha credits are not money.
 
 ## Architecture
 
@@ -118,9 +128,10 @@ ocm/
 
 ## Start here
 
-1. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-2. [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)
-3. [`docs/OVERLAP.md`](docs/OVERLAP.md)
-4. [`docs/AWS-ACCOUNT.md`](docs/AWS-ACCOUNT.md)
+1. [`docs/PROVIDER-PROTOCOL.md`](docs/PROVIDER-PROTOCOL.md) — published wire contract and 12-point conformance gate
+2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+3. [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md)
+4. [`docs/OVERLAP.md`](docs/OVERLAP.md)
+5. [`docs/AWS-ACCOUNT.md`](docs/AWS-ACCOUNT.md)
 
 Never commit deployment credentials or private operational identifiers to this public repository.

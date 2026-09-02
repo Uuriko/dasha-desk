@@ -5,7 +5,9 @@ import { renderProviderGuide } from '../gateway/console.mjs';
 
 const source = readFileSync(new URL('../agent/install.sh', import.meta.url), 'utf8');
 const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
-const COPY_PASTE_TOKEN_ARGV = /OCM_HOST_TOKEN=["']ocm_host_/;
+const verifyM4 = readFileSync(new URL('../scripts/verify-m4.sh', import.meta.url), 'utf8');
+// Quoted or unquoted — either form is a copy-paste argv / history assignment.
+const COPY_PASTE_TOKEN_ARGV = /OCM_HOST_TOKEN=["']?ocm_host_/;
 
 test('the root installer never pipes downloaded code into a shell', () => {
   assert.doesNotMatch(source, /astral\.sh\/uv\/install\.sh/,
@@ -128,8 +130,14 @@ test('rendered provider guide, README and install comments reject copy-paste tok
     'README must not document OCM_HOST_TOKEN="ocm_host_…" as a command');
   assert.doesNotMatch(guide, COPY_PASTE_TOKEN_ARGV,
     'the rendered provider guide must not document OCM_HOST_TOKEN="ocm_host_…" as a command');
+  assert.doesNotMatch(verifyM4, COPY_PASTE_TOKEN_ARGV,
+    'verify-m4.sh must not document OCM_HOST_TOKEN=ocm_host_… as a command');
   assert.match(guide, /read -rsp/);
   assert.match(guide, /--preserve-env=OCM_HOST_TOKEN/);
+  assert.match(verifyM4, /OCM_HOST_TOKEN_FILE/,
+    'M4 verification must offer a secret-file path');
+  assert.match(verifyM4, /read -rsp "Provider token: " OCM_HOST_TOKEN/,
+    'M4 verification must document a hidden-prompt path');
 });
 
 test('the installer never logs the provider token', () => {
