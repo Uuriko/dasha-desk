@@ -19,6 +19,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { checkComputeRelease } from './watch-compute-release.mjs';
+import { OFFICIAL_TG, pinDumpHits, unofficialTelegramHrefs } from './leftover-lobby.test.mjs';
 
 export const MINT = '53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump';
 export const ORIGIN = 'https://www.getdasha.com';
@@ -30,8 +31,6 @@ const GONE = [
   /not financial advice/i,
   /association is not endorsement/i,
   /not affiliated with dasha/i,
-  /t\.me\//i,
-  /telegram\.me\//i,
 ];
 const HOME_308 = ['/studio', '/verse', '/learn', '/graph'];
 const BUY_308 = ['/dasha', '/desk'];
@@ -327,6 +326,14 @@ export async function runWatch({ probe, skipPages = false } = {}) {
     forbid: [
       [/id=["']forum-play["']/, '/lobby: leftover id=forum-play'],
     ],
+    after: async (b, html) => {
+      fail(b, pinDumpHits(html).length === 0, '/lobby: quiet pin dumped mint/Buy/Chess/TG');
+      fail(
+        b,
+        unofficialTelegramHrefs(html).length === 0,
+        `/lobby: invented Telegram group — official is ${OFFICIAL_TG}`,
+      );
+    },
   });
 
   await page200(bag, probe, '/chess', {
@@ -346,6 +353,11 @@ export async function runWatch({ probe, skipPages = false } = {}) {
         );
       }
       fail(b, !playFindSurfacesBadResponse(html), '/chess: Play/Find surfaced "bad response"');
+      fail(
+        b,
+        unofficialTelegramHrefs(html).length === 0,
+        `/chess: invented Telegram group — official is ${OFFICIAL_TG}`,
+      );
     },
   });
 
