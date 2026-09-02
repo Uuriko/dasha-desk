@@ -35,6 +35,37 @@ No clone, no Node, no build.
 
 If you get stuck, comment with what you tried. Mentorship is welcome — ask early rather than disappearing.
 
+## Evidence-first contributions
+
+A pull request must implement the repository's actual contract, not an imagined product described in plausible prose.
+
+Before writing code:
+
+- Read the full issue and every linked blocker, predecessor PR, schema, and decision note that defines the scope.
+- Inspect the current repository. Do not assume an Anchor program, escrow account, API route, SDK method, webhook format, database, deployment, or partner integration exists because it would be convenient.
+- Verify every external interface against current official documentation, a pinned official SDK, or captured fixtures shaped from a reviewed real response. Do not invent endpoints, test hosts, headers, status values, program IDs, or partner approval.
+- If an issue says work is blocked pending a product, custody, authority, or settlement decision, do not bypass that decision with a simulation or local mock and call the issue complete.
+- A design document, pseudocode block, or generated “implementation solution” is not implementation. Add the actual files, tests, and reproducible evidence requested by the issue.
+
+For wallet, payment, settlement, custody, deployment, and external-provider work:
+
+- Reuse the repository's canonical validators, schemas, and state machine instead of creating a looser parallel model.
+- Bind financial facts to the exact chain, mint, amount, source, destination, purpose, transaction, status, slot, commitment, and observation source required by the current contract.
+- Treat a wallet-returned signature as submitted, not funded or paid. Ambiguous outcomes must enter reconciliation before retry.
+- Keep unit tests local and deterministic. No real funds, production credentials, or live deployment side effects belong in ordinary CI.
+- State what is simulated, captured, test-mode, devnet, externally observed, or production. Do not blur those categories.
+
+In the pull request, include:
+
+- the exact issue and acceptance criteria addressed;
+- the official external references or pinned fixtures used;
+- the commands you ran and their actual result;
+- the final commit tested;
+- remaining limitations and unverified claims;
+- a narrow explanation of why the change does not weaken custody, signing, identity, privacy, or deployment boundaries.
+
+AI coding tools and agents are welcome, but the human submitter remains responsible for inspecting the repository, verifying external facts, running the tests, and correcting fabricated assumptions. Automated claim-and-submit systems do not receive special review priority. Repeated submissions that invent infrastructure, paste hypothetical solutions, or falsely close issues may be closed without another full review.
+
 ## Make a code change
 
 1. Branch from `main`.
