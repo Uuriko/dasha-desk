@@ -24,7 +24,11 @@ bounties/app.html       inlined paste for Webflow — do not iframe
 bounties/feed.json      static listings feed (`schema: dasha-bounties-feed/v1`); GitHub Pages serves it at /dasha-desk/bounties/feed.json
 bounties.json           same feed at the Pages site root (/dasha-desk/bounties.json). Live www.getdasha.com/bounties.json is the edge feed (`x-dasha-edge: bounties-feed`).
 config/bounties.seed.json   same listings (seed copy)
+commons/                token-agnostic bounty schemas + state machine + v1 feed adapter
+docs/commons/           production map, Helius note, grant-evidence skeleton
 ```
+
+Commons map (Worker vs this repo, trust model, Pocket, faucet seam): [commons/ARCHITECTURE.md](commons/ARCHITECTURE.md).
 
 Edit the four on the left. Never edit the four on the right — `node build.mjs --check` fails if they
 drift, and CI runs it on every pull request.
@@ -73,7 +77,8 @@ Each of these exists because of a specific failure, not as ceremony.
 | `dasha-oss-docs.test.mjs` | The docs in this repo do not contradict each other. |
 | `studio/studio.test.mjs` | The Studio stays self-contained, every look id a remix URL can name still exists, and the embed is generated rather than hand-edited. |
 | `bounties/bounties.test.mjs` | Listing JSON parses (item + project), malformed issues are skipped, empty outcomes copy, proof URLs required, the form builds a GitHub `issues/new` URL, static feed matches root `bounties.json` and carries `schema: dasha-bounties-feed/v1`, seed has no fake leaderboard, extra Demigod feed merge/dedup is non-fatal. |
-| `watch.mjs` | What the **live Worker** actually serves. Contract is [`ROUTES.md`](ROUTES.md): privacy 200, Studio/verse/learn/graph 308 home, desk/dasha 308 how-to-buy, compute retired, chess `var API` = lobby host. Still fails on blank pages, wrong redirects, stale SRI, missing H1, broken OAuth start, wrong mint, `plugin.jup.ag`. Local: `node watch.mjs --fixture`. Do not invent the Worker here. |
+| `commons/commons.test.mjs` | Bounty state machine + `dasha-bounties-feed/v1` adapter (legacy listings/items, live empty feed, seed rows). |
+| `watch.mjs` | What the **live Worker** actually serves. Contract is [`ROUTES.md`](ROUTES.md): privacy 200, Studio/verse/learn/graph 308 home, desk/dasha 308 how-to-buy, `/compute` is a product page, chess `var API` = lobby host. Still fails on blank pages, wrong redirects, stale SRI, missing H1, broken OAuth start, wrong mint, `plugin.jup.ag`. Local: `node watch.mjs --fixture`. Do not invent the Worker here. |
 
 `watch.mjs` is the odd one out and the most important. Every other gate reads files in this repo, and
 the failures that reach visitors happen *between* the repo and the site: a Worker 308 that lands
@@ -104,6 +109,7 @@ python3 -m http.server 8766     # → http://127.0.0.1:8766/ and /bounties/ (loc
 node build.mjs --write          # after changing anything in src/
 node build.mjs --check          # what CI runs
 node bounties/bounties.test.mjs # listing parse / no fabricated ranks
+node commons/commons.test.mjs   # state machine + feed adapter
 ```
 
 The site and build have no runtime dependencies or install step. The full test suite uses one

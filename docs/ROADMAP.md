@@ -11,6 +11,7 @@ The Desk stays small. Work earns a place by making verification clearer, safer, 
 ## Now
 
 - keep the live Desk, generated builds, and mint config in sync
+- Commons schemas + `dasha-bounties-feed/v1` adapter live in `commons/` — do not invent a second bounty board. Wallet create→fund→submit→select→pay is the next slice, not this one.
 - improve keyboard, screen-reader, contrast, and reduced-motion behavior
 - make public-data failures obvious without breaking the mint or source paths
 - remove stale copy, links, and code

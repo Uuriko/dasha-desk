@@ -69,7 +69,7 @@ AI coding tools and agents are welcome, but the human submitter remains responsi
 ## Make a code change
 
 1. Branch from `main`.
-2. Edit **`src/`** (or docs / `studio/` / `bounties/` / `compute/` as relevant). Do **not** hand-edit generated `index.html`, `dist/`, or `src/app.html`.
+2. Edit **`src/`** (or docs / `studio/` / `bounties/` / `commons/` / `compute/` as relevant). Do **not** hand-edit generated `index.html`, `dist/`, or `src/app.html`.
 3. Regenerate and check:
 
    ```bash
