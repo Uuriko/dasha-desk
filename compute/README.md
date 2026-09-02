@@ -21,9 +21,21 @@ It has real request routing, streaming and end-to-end tests. The live queue inst
 
 ## Join the live community network
 
-Log in at `https://www.getdasha.com/compute`, open **Provide**, size your Mac, and choose **Register this Mac**. The page returns a one-time provider token and an exact command for this agent. Dasha stores only the token hash; live provider tokens and developer keys are account-bound and owner-revocable. The live queue supports complete and SSE-streamed responses. Ordinary queued and leased prompts are stored in the Durable Object until completion, failure, cancellation or expiry; terminal paths clear or delete prompt text, while completed answers, errors or chunks receive a ten-minute expiry and are removed by a subsequent prune. Night Shift retains its assignment prompt and up to five artifacts until the task is deleted.
+Log in at `https://www.getdasha.com/compute`, open **Provide**, size your Mac, and choose **Register this Mac**. The page returns a one-time provider token. Dasha stores only the token hash; live provider tokens and developer keys are account-bound and owner-revocable. The live queue supports complete and SSE-streamed responses. Ordinary queued and leased prompts are stored in the Durable Object until completion, failure, cancellation or expiry; terminal paths clear or delete prompt text, while completed answers, errors or chunks receive a ten-minute expiry and are removed by a subsequent prune. Night Shift retains its assignment prompt and up to five artifacts until the task is deleted.
 
-On macOS, the generated command runs `./install.sh`. It verifies the complete connection, stores the provider token in Keychain, installs a persistent `launchd` service, and adds `~/bin/dasha-compute`. Manage it with:
+On macOS, write that token to a 0600 file and run `./install.sh` without putting the token on the command line. The installer verifies the complete connection, stores the token in Keychain, deletes the file, installs a persistent `launchd` service, and adds `~/bin/dasha-compute`. The launchd job does not receive the token on `ProgramArguments`.
+
+```bash
+umask 077
+cat > .dasha-provider-key <<'KEY'
+paste-the-one-time-token
+KEY
+DASHA_PROVIDER_ID=your-provider-id \
+DASHA_MODEL_MAP=qwen3-8b=qwen3:8b \
+./install.sh
+```
+
+`./install.sh --help` prints the same handoff. `DASHA_PROVIDER_KEY_FILE` overrides the default `.dasha-provider-key` path. Manage the service with:
 
 ```bash
 dasha-compute status

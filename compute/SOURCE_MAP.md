@@ -22,7 +22,7 @@ This directory is the canonical public source for the Dasha Compute open alpha.
 | [`examples/`](examples/) | Small client examples |
 | [`tests/`](tests/) | End-to-end protocol, streaming, installer, provider and release tests |
 | [`scripts/`](scripts/) | Deterministic source-archive builder |
-| [`install.sh`](install.sh) | macOS provider installation entry point |
+| [`install.sh`](install.sh) | macOS provider installation entry point; reads a 0600 token file, stores Keychain, deletes the file |
 | [`release-files.json`](release-files.json) | Explicit list of every file shipped in the source archive |
 
 ## Request flow

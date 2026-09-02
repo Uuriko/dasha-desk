@@ -36,4 +36,4 @@
 
 ## Safe use
 
-Use version 0.3 only with trusted participants and non-sensitive evaluation prompts. Streaming changes response delivery, not the trust boundary. Bind locally or place the coordinator behind authenticated HTTPS. Rotate both local secrets after exposure; delete and reissue exposed live credentials. Do not describe this release as private from providers, end-to-end encrypted, hardware verified, audited or production ready.
+Use version 0.3 only with trusted participants and non-sensitive evaluation prompts. Streaming changes response delivery, not the trust boundary. Bind locally or place the coordinator behind authenticated HTTPS. Rotate both local secrets after exposure; delete and reissue exposed live credentials. The macOS installer reads the live provider token from a 0600 file, stores it in Keychain, and deletes the file; launchd reads Keychain and does not put the token on ProgramArguments. Do not describe this release as private from providers, end-to-end encrypted, hardware verified, audited or production ready.

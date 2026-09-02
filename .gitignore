@@ -6,6 +6,8 @@ node_modules/
 .idea/
 .vscode/
 compute/dist/
+.dasha-provider-key
+compute/.dasha-provider-key
 
 # Local experiment receipts — never publish (FOMO/raid eras)
 receipts/
