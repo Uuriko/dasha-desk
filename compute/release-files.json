@@ -26,6 +26,7 @@
   "provider/run-provider",
   "release-files.json",
   "scripts/build-release.mjs",
+  "tests/console-hopup.test.mjs",
   "tests/e2e.test.mjs",
   "tests/release.test.mjs"
 ]

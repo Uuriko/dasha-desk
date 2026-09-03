@@ -21,9 +21,11 @@ It has real request routing, streaming and end-to-end tests. The live queue inst
 
 ## Join the live community network
 
-Log in at `https://www.getdasha.com/compute`, open **Provide**, size your Mac, and choose **Register this Mac**. The page returns a one-time provider token and an exact command for this agent. Dasha stores only the token hash; live provider tokens and developer keys are account-bound and owner-revocable. The live queue supports complete and SSE-streamed responses. Ordinary queued and leased prompts are stored in the Durable Object until completion, failure, cancellation or expiry; terminal paths clear or delete prompt text, while completed answers, errors or chunks receive a ten-minute expiry and are removed by a subsequent prune. Night Shift retains its assignment prompt and up to five artifacts until the task is deleted.
+Log in at `https://www.getdasha.com/compute`. First paint is one step: **Use** or **Provide**. Use is one prompt and **Run**. Hosted is Workers AI. After the first successful run, Night, Build, status, and network open. Provide sizes the Mac and returns a one-time provider token. Write that token to a 0600 file. Do not put it on argv.
 
-On macOS, the generated command runs `./install.sh`. It verifies the complete connection, stores the provider token in Keychain, installs a persistent `launchd` service, and adds `~/bin/dasha-compute`. Manage it with:
+Dasha stores only the token hash; live provider tokens and developer keys are account-bound and owner-revocable. The live queue supports complete and SSE-streamed responses. Ordinary queued and leased prompts are stored in the Durable Object until completion, failure, cancellation or expiry; terminal paths clear or delete prompt text, while completed answers, errors or chunks receive a ten-minute expiry and are removed by a subsequent prune. Night Shift retains its assignment prompt and up to five artifacts until the task is deleted.
+
+On macOS, the live Provide paste writes that token to a 0600 file and runs `./install.sh` without putting the token on argv. The installer verifies the complete connection, stores the provider token in Keychain, installs a persistent `launchd` service, and adds `~/bin/dasha-compute`. Manage it with:
 
 ```bash
 dasha-compute status
@@ -110,7 +112,7 @@ The live `https://lobby.getdasha.com/compute/api` queue also renews active lease
 
 ## Live OpenAI-compatible API
 
-Create a developer key in the **Build** tab at `https://www.getdasha.com/compute`, then use `https://lobby.getdasha.com/compute/api/v1` as the OpenAI base URL. The live gateway supports model discovery plus complete and SSE-streamed chat completions through online community providers.
+After first success, **Build** shows the OpenAI base URL `https://lobby.getdasha.com/compute/api/v1`. Create a developer key there. The live gateway supports model discovery plus complete and SSE-streamed chat completions through online community providers. Hosted chat on the page is Workers AI, not this queue.
 
 ```bash
 curl https://lobby.getdasha.com/compute/api/v1/chat/completions \

@@ -6,7 +6,7 @@ This directory is the canonical public source for the Dasha Compute open alpha.
 
 | Surface | Public location | Source |
 |---|---|---|
-| Product | [getdasha.com/compute](https://www.getdasha.com/compute) | [`console/app/`](console/app/) |
+| Product | [getdasha.com/compute](https://www.getdasha.com/compute) | Worker-owned live HTML. In-repo hop-up: [`console/app/`](console/app/) |
 | Project index | [uuriko.github.io/dasha-desk/compute](https://uuriko.github.io/dasha-desk/compute/) | [`index.html`](index.html) |
 | Source browser | [GitHub](https://github.com/Uuriko/dasha-desk/tree/main/compute) | this directory |
 | Source archive | [download](https://www.getdasha.com/dasha-compute-open-alpha.tar.gz) | [`release-files.json`](release-files.json) + [`scripts/build-release.mjs`](scripts/build-release.mjs) |
@@ -16,7 +16,7 @@ This directory is the canonical public source for the Dasha Compute open alpha.
 
 | Path | Purpose |
 |---|---|
-| [`console/`](console/) | React/CSS product interface and API-route examples |
+| [`console/`](console/) | Typeform-first hop-up snapshot of the live product (Use or Provide, then prompt + Run) |
 | [`coordinator/`](coordinator/) | Dependency-free coordinator and OpenAI-shaped HTTP protocol |
 | [`provider/`](provider/) | Python/Ollama provider agent plus macOS service commands |
 | [`examples/`](examples/) | Small client examples |
