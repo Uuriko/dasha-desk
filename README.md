@@ -1,15 +1,15 @@
 # dasha
 
-Local + community AI compute for `$dasha` — **Ask** on Cloudflare Hosted, **Provide** community Macs, **Host** via OCM.
+Local + community AI compute for `$dasha`. Cold `/compute` is **Start.** — Ask · Provide · Pay · Credits. Gate **Log in** / **You**.
 
 ## Use it live (no clone)
 
-**[Ask ↗](https://www.getdasha.com/compute)** ·
+**[Start. ↗](https://www.getdasha.com/compute)** ·
 [Host guide](https://www.getdasha.com/compute/ocm/provider) ·
 [Marketplace](https://www.getdasha.com/compute/ocm) ·
 [getdasha.com](https://www.getdasha.com)
 
-**60 seconds:** open [Ask](https://www.getdasha.com/compute) → **Log in** → **Run** (Hosted). You do not need this repo to use the product.
+**60 seconds:** open [Start.](https://www.getdasha.com/compute) → **Ask** → **Log in** → **Run**. You do not need this repo.
 
 Also on www: [How to buy](https://www.getdasha.com/how-to-buy) ·
 [Lobby](https://www.getdasha.com/lobby) ·
@@ -29,13 +29,13 @@ Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Live www vs experimental kits in 
 
 ## What lives here
 
-Three live jobs: [`docs/COMPUTE.md`](docs/COMPUTE.md) (Ask vs Provide vs Host).
+Cold `/compute`: [`docs/COMPUTE.md`](docs/COMPUTE.md) (**Start.** Ask · Provide · Pay · Credits).
 
 | Path | Job |
 | --- | --- |
 | [`compute/`](compute/) | Community **open-alpha kit** (lobby coordinator): local coordinator, outbound macOS/Ollama provider, console states, protocol tests, security policy, threat model. Browseable MIT source for the product at [getdasha.com/compute](https://www.getdasha.com/compute). |
 | [`ocm/`](ocm/) | **Open Compute Marketplace** (Graham). On `main` (MIT). Landed through [PR #76](https://github.com/Uuriko/dasha-desk/pull/76) + [PR #131](https://github.com/Uuriko/dasha-desk/pull/131). Do not merge raw [#44](https://github.com/Uuriko/dasha-desk/pull/44); #44 was closed, not merged. Host docs live: [compute/ocm/provider](https://www.getdasha.com/compute/ocm/provider). Marketplace: [compute/ocm](https://www.getdasha.com/compute/ocm). |
-| Cloudflare Worker | Live www + lobby + Compute Ask / Provide / Hosted. **Not cloned from this repo.** |
+| Cloudflare Worker | Live www + lobby + Compute **Start.** **Not cloned from this repo.** |
 
 Compute is experimental. Provider operators can read prompts. Do not send secrets.
 
