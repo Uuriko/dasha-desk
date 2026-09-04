@@ -41,7 +41,20 @@ assert.match(readme, /Do not wrangler-deploy from here/, 'README must forbid wra
 assert.match(readme, /getdasha\.com\/compute/, 'README must link live Compute Ask');
 assert.match(readme, /getdasha\.com\/compute\/ocm\/provider/, 'README must link the Host guide');
 assert.match(readme, /getdasha\.com\/compute\/ocm/, 'README must link the OCM marketplace');
-assert.match(readme, /#76/, 'README must say ocm/ lands via PR #76, not raw #44');
+assert.ok(existsSync(join(root, 'ocm')), 'ocm/ must be present on main');
+assert.match(readme, /On `main` \(MIT\)/, 'README must say ocm/ is on main (MIT)');
+assert.doesNotMatch(readme, /Not on `main` yet/, 'README must not claim ocm/ is absent from main');
+assert.match(readme, /#76/, 'README must name #76 as the landed OCM path');
+assert.match(readme, /#131/, 'README must name #131 as the landed OCM path');
+assert.match(readme, /Do not merge raw #44/, 'README must forbid merging raw #44');
+assert.match(readme, /#44 was closed/, 'README must say #44 was closed, not merged');
+assert.doesNotMatch(readme, /lands through|lands via/, 'README must not say ocm/ still lands through an open PR');
+
+const ocmReadme = read('ocm/README.md');
+assert.match(ocmReadme, /landed on `main`/, 'ocm/README must say OCM landed on main');
+assert.match(ocmReadme, /#44 was closed/, 'ocm/README must say #44 was closed, not merged');
+assert.doesNotMatch(ocmReadme, /Maintainer undraft and merge of #76/, 'ocm/README must not treat #76 as still open');
+assert.doesNotMatch(ocmReadme, /merge go through/, 'ocm/README must not treat #76 as the still-open merge path');
 assert.match(readme, /getdasha\.com\/how-to-buy/, 'README must link live how-to-buy');
 assert.match(readme, /`\/desk` and `\/dasha` (go|308|redirect)/, 'README must say /desk and /dasha go to /how-to-buy');
 assert.doesNotMatch(readme, /\[Use it ↗\]\(https:\/\/www\.getdasha\.com\/studio\)/, 'README must not advertise live /studio');
@@ -56,6 +69,7 @@ assert.match(contrib, /issue|PR|pull request|fork/i, 'CONTRIBUTING must describe
 assert.match(contrib, /open-source project contributor|not a payment/i, 'CONTRIBUTING must disambiguate from payment/bag');
 assert.match(contrib, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'CONTRIBUTING must link /contribute');
 assert.match(contrib, /getdasha\.com\/compute/, 'CONTRIBUTING must point at live Compute');
+assert.match(contrib, /`ocm\/`/, 'CONTRIBUTING must include ocm/ as an in-repo surface');
 assert.doesNotMatch(contrib, /getdasha\.com\/#oss/, 'CONTRIBUTING must not link the retired #oss anchor');
 assert.match(contrib, /getdasha\.com\/simp/, 'CONTRIBUTING must link the Simp Board reward path');
 assert.match(contrib, /not active yet[\s\S]*no current pull request earns Simp Points/i, 'CONTRIBUTING must not promise inactive OSS points');
