@@ -10,3 +10,17 @@ compute/dist/
 # Local experiment receipts — never publish (FOMO/raid eras)
 receipts/
 *.local.json
+
+# OCM (ocm/) — local state only; never commit AWS material
+ocm/.env
+ocm/.data/
+ocm/.envrc.local
+ocm/.aws/
+ocm/infra/**/*.tfstate*
+ocm/infra/**/.terraform/
+ocm/**/cdk.out/
+*.pem
+
+# Working notes for Claude — operator context, not project documentation.
+# Excluded for now; promote deliberately if it ever becomes public guidance.
+CLAUDE.md

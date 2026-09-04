@@ -1,0 +1,41 @@
+name: OCM
+
+# Separate from Verify on purpose: the dasha-desk test chain is untouched, and this
+# runs only when ocm/ changes. The secret-leak guard in particular is worthless
+# unless something runs it without being asked.
+on:
+  push:
+    branches: [main]
+    paths: ['ocm/**', '.github/workflows/ocm.yml']
+  pull_request:
+    paths: ['ocm/**', '.github/workflows/ocm.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+      # No npm install step: the gateway and its tests are dependency-free by design.
+      # `pg` is imported dynamically and only when DATABASE_URL is set.
+      - name: Python syntax
+        working-directory: ocm
+        run: python3 -m py_compile agent/agent.py
+      - name: Tests
+        working-directory: ocm
+        run: node --test tests/*.test.mjs
+      - name: Shell syntax
+        working-directory: ocm
+        run: |
+          for f in scripts/*.sh agent/*.sh; do bash -n "$f" || exit 1; done
+      - name: Nothing published should carry a secret
+        working-directory: ocm
+        run: node --test tests/no-secrets.test.mjs
