@@ -26,6 +26,10 @@ For a typo, wording, a dead link, or any doc change, you never have to leave the
 2. Edit it — GitHub forks the repo for you.
 3. **Propose changes** → **Create pull request**.
 
+![GitHub.com browser edit of compute/README.md — pencil, editor, and Propose changes. No clone required.](assets/github-web-edit.png)
+
+*Editing [`compute/README.md`](https://github.com/Uuriko/dasha-desk/blob/main/compute/README.md) on GitHub.com. No clone required.*
+
 No clone, no Node, no build.
 
 ## Claim a good first issue

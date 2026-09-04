@@ -11,5 +11,6 @@ The current repository does not redistribute third-party photos or social-media 
 ## Project-generated
 
 - `assets/desk-demo.gif` — screenshot animation of the Desk UI for README; original project media (same MIT terms as code).
+- `assets/github-web-edit.png` — annotated crop of the GitHub.com web-edit path for `compute/README.md` in this repository (real file view plus editor / Propose changes chrome). Project documentation media (same MIT terms as code). GitHub UI © GitHub.
 
 Do not add third-party media to a release without recording its source and reuse rights here.
