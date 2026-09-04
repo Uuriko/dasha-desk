@@ -113,9 +113,9 @@ for (const match of bible.matchAll(/\/compute` retired/g)) {
 }
 
 const noSetup = contrib.split('## No setup needed')[1]?.split('## ')[0] || '';
-assert.match(noSetup, /1\. Open the file on GitHub, click the \*\*pencil\*\./, 'CONTRIBUTING No setup needed must keep step 1 (pencil)');
+assert.match(noSetup, /1\. Open the file on GitHub, click the \*\*pencil\*\*\./, 'CONTRIBUTING No setup needed must keep step 1 (pencil)');
 assert.match(noSetup, /2\. Edit it — GitHub forks the repo for you\./, 'CONTRIBUTING No setup needed must keep step 2 (fork in browser)');
-assert.match(noSetup, /3\. \*\*Propose changes\*\* → \*\*Create pull request\*\./, 'CONTRIBUTING No setup needed must keep step 3 (Propose changes)');
+assert.match(noSetup, /3\. \*\*Propose changes\*\* → \*\*Create pull request\*\*\./, 'CONTRIBUTING No setup needed must keep step 3 (Propose changes)');
 assert.match(noSetup, /assets\/github-web-edit\.png/, 'CONTRIBUTING No setup needed must link the GitHub web-edit screenshot');
 assert.match(noSetup, /compute\/README\.md/, 'CONTRIBUTING web-edit caption must name compute/README.md');
 assert.match(noSetup, /[Nn]o clone required/, 'CONTRIBUTING web-edit caption must say no clone required');
