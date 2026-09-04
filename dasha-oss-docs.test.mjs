@@ -21,6 +21,10 @@ const roadmap = read('docs/ROADMAP.md');
 const deploy = read('docs/DEPLOY.md');
 const archive = read('docs/ARCHIVE.md');
 const studio = read('studio/README.md');
+const status = read('docs/STATUS.md');
+const architecture = read('docs/ARCHITECTURE.md');
+const bible = read('docs/DASHA-BIBLE.md');
+const bibleOwner = bible.split('\n').find((line) => line.startsWith('**Owner surfaces:**')) || '';
 const issueConfig = read('.github/ISSUE_TEMPLATE/config.yml');
 const ideaTemplate = read('.github/ISSUE_TEMPLATE/idea.yml');
 const bugTemplate = read('.github/ISSUE_TEMPLATE/bug.yml');
@@ -84,6 +88,29 @@ assert.match(readme, /getdasha\.com\/bounties/, 'README must link the bounties b
 assert.doesNotMatch(readme, /getdasha\.com\/#oss/, 'README must not link the retired #oss anchor');
 assert.match(readme, /desk-demo\.(gif|png)/, 'README must embed demo visual');
 assert.match(readme, /Uploaded or\s+externally sourced images keep their own rights/i, 'README must bound Studio image rights');
+assert.match(readme, /docs\/STATUS\.md/, 'README must link docs/STATUS.md (live www vs experimental)');
+
+assert.ok(existsSync(join(root, 'docs/STATUS.md')), 'docs/STATUS.md missing');
+assert.match(status, /2026-09-04/, 'STATUS must be dated from the live curl');
+assert.match(status, /curl/, 'STATUS must say the routes were curled');
+assert.match(status, /Live Worker/, 'STATUS must name live Worker surfaces');
+assert.match(status, /Experimental open-alpha kit/, 'STATUS must mark compute/ as the experimental kit, not the Worker');
+assert.match(status, /#76/, 'STATUS must say ocm/ landed via #76');
+assert.match(status, /#131/, 'STATUS must mention #131 in the ocm landing stack');
+assert.match(status, /#44/, 'STATUS must mention raw #44');
+assert.match(status, /closed, not merged/, 'STATUS must say raw #44 was closed, not merged');
+assert.match(status, /\/compute\/ocm/, 'STATUS must include the live OCM console');
+assert.match(status, /\/compute\/ocm\/provider/, 'STATUS must include the live OCM provider page');
+assert.match(status, /308/, 'STATUS must record www /studio as 308 home');
+assert.match(status, /Local \/ Pages only/, 'STATUS must mark studio/ as local/Pages only');
+assert.doesNotMatch(status, /www `\/compute`[^\n]*[Rr]etired/, 'STATUS must not mark live /compute as retired');
+assert.doesNotMatch(architecture, /compute retired/, 'ARCHITECTURE must not claim /compute is retired');
+assert.match(bibleOwner, /\/compute/, 'BIBLE owner surfaces must list live /compute');
+assert.doesNotMatch(bibleOwner, /\/compute` retired/, 'BIBLE owner surfaces must not claim /compute is retired');
+for (const match of bible.matchAll(/\/compute` retired/g)) {
+  const around = bible.slice(Math.max(0, match.index - 40), match.index + 80);
+  assert.match(around, /historical/, 'BIBLE may quote /compute retired only as historical');
+}
 
 assert.match(contrib, /issue|PR|pull request|fork/i, 'CONTRIBUTING must describe how to help');
 assert.match(contrib, /open-source project contributor|not a payment/i, 'CONTRIBUTING must disambiguate from payment/bag');
