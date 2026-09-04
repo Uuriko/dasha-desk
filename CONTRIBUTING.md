@@ -6,9 +6,11 @@ It is not a payment, airdrop, bag check, or paid program.
 There is nothing to join. Open a pull request and you are a contributor — no invite, no org access,
 no application. Holder status and Board points are **never** required to contribute.
 
-**Product context:** [getdasha.com](https://www.getdasha.com/) · [Dasha Compute](https://www.getdasha.com/compute) · live buy [getdasha.com/how-to-buy](https://www.getdasha.com/how-to-buy)
+**Product context:** [Ask](https://www.getdasha.com/compute) · [Host](https://www.getdasha.com/compute/ocm/provider) · [Marketplace](https://www.getdasha.com/compute/ocm) · live buy [getdasha.com/how-to-buy](https://www.getdasha.com/how-to-buy)
 
-**Start here:** [good first issues](https://github.com/Uuriko/dasha-desk/contribute) · [Ideas welcome](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions)
+**Live path (no clone):** open [Ask](https://www.getdasha.com/compute) → Log in → Run (Hosted). Provide a Mac from the same page, or [Host via OCM](https://www.getdasha.com/compute/ocm/provider) on Apple Silicon. Studio is local / Pages only; www `/studio` 308s home.
+
+**Start here:** [good first issues](https://github.com/Uuriko/dasha-desk/contribute) (Compute + docs first) · [Ideas welcome](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions)
 
 **Maintainer:** [@Uuriko](https://github.com/Uuriko) reviews and merges.
 
@@ -80,7 +82,7 @@ AI coding tools and agents are welcome, but the human submitter remains responsi
 
 4. Open a pull request that says what changed and how it was checked.
 
-Good first contributions include keyboard and screen-reader fixes, clearer loading or error states, dead-link fixes, performance work, Compute provider diagnostics and tests, and documentation. Compute changes must preserve its explicit alpha and privacy limitations.
+Good first contributions are Compute + docs: Ask / Provide / Host copy, the open-alpha quickstart in [`compute/README.md`](compute/README.md), STATUS (live www vs experimental), and the GitHub web-edit screenshot. Keyboard, screen-reader, dead-link, and provider-diagnostic work still counts. Compute changes must preserve its explicit alpha and privacy limitations. Studio looks stay a local-only exercise — they do not ship on www.
 
 For a larger idea, [open an issue](https://github.com/Uuriko/dasha-desk/issues/new/choose) or post in [Discussions](https://github.com/Uuriko/dasha-desk/discussions) with the smallest useful first slice — crypto infra, consumer UX, or creative tools are all fair game.
 

@@ -26,6 +26,7 @@ body:
       label: Rough category (optional)
       options:
         - Not sure
+        - Compute / Ask / Provide / Host
         - Studio / creative tools
         - Simp / community
         - Contribution / bounties
