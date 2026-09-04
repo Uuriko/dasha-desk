@@ -112,6 +112,23 @@ for (const match of bible.matchAll(/\/compute` retired/g)) {
   assert.match(around, /historical/, 'BIBLE may quote /compute retired only as historical');
 }
 
+const noSetup = contrib.split('## No setup needed')[1]?.split('## ')[0] || '';
+assert.match(noSetup, /1\. Open the file on GitHub, click the \*\*pencil\*\*\./, 'CONTRIBUTING No setup needed must keep step 1 (pencil)');
+assert.match(noSetup, /2\. Edit it — GitHub forks the repo for you\./, 'CONTRIBUTING No setup needed must keep step 2 (fork in browser)');
+assert.match(noSetup, /3\. \*\*Propose changes\*\* → \*\*Create pull request\*\*\./, 'CONTRIBUTING No setup needed must keep step 3 (Propose changes)');
+assert.match(noSetup, /assets\/github-web-edit\.png/, 'CONTRIBUTING No setup needed must link the GitHub web-edit screenshot');
+assert.match(noSetup, /compute\/README\.md/, 'CONTRIBUTING web-edit caption must name compute/README.md');
+assert.match(noSetup, /[Nn]o clone required/, 'CONTRIBUTING web-edit caption must say no clone required');
+assert.doesNotMatch(noSetup, /Closes #8|#8\b/, 'CONTRIBUTING must not close or retarget retired #8');
+assert.ok(existsSync(join(root, 'assets/github-web-edit.png')), 'GitHub web-edit screenshot missing (assets/github-web-edit.png)');
+const webEditPng = readFileSync(join(root, 'assets/github-web-edit.png'));
+assert.deepEqual(
+  [...webEditPng.subarray(0, 8)],
+  [137, 80, 78, 71, 13, 10, 26, 10],
+  'assets/github-web-edit.png must be a PNG',
+);
+assert.ok(webEditPng.length > 20_000, 'assets/github-web-edit.png looks empty');
+
 assert.match(contrib, /issue|PR|pull request|fork/i, 'CONTRIBUTING must describe how to help');
 assert.match(contrib, /open-source project contributor|not a payment/i, 'CONTRIBUTING must disambiguate from payment/bag');
 assert.match(contrib, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'CONTRIBUTING must link /contribute');
