@@ -46,13 +46,13 @@ assert.match(readme, /On `main` \(MIT\)/, 'README must say ocm/ is on main (MIT)
 assert.doesNotMatch(readme, /Not on `main` yet/, 'README must not claim ocm/ is absent from main');
 assert.match(readme, /#76/, 'README must name #76 as the landed OCM path');
 assert.match(readme, /#131/, 'README must name #131 as the landed OCM path');
-assert.match(readme, /Do not merge raw #44/, 'README must forbid merging raw #44');
-assert.match(readme, /#44 was closed/, 'README must say #44 was closed, not merged');
+assert.match(readme, /Do not merge raw \[#44\]/, 'README must forbid merging raw #44');
+assert.match(readme, /#44[\s`]*was closed/, 'README must say #44 was closed, not merged');
 assert.doesNotMatch(readme, /lands through|lands via/, 'README must not say ocm/ still lands through an open PR');
 
 const ocmReadme = read('ocm/README.md');
 assert.match(ocmReadme, /landed on `main`/, 'ocm/README must say OCM landed on main');
-assert.match(ocmReadme, /#44 was closed/, 'ocm/README must say #44 was closed, not merged');
+assert.match(ocmReadme, /#44[`\s]*was closed/, 'ocm/README must say #44 was closed, not merged');
 assert.doesNotMatch(ocmReadme, /Maintainer undraft and merge of #76/, 'ocm/README must not treat #76 as still open');
 assert.doesNotMatch(ocmReadme, /merge go through/, 'ocm/README must not treat #76 as the still-open merge path');
 assert.match(readme, /getdasha\.com\/how-to-buy/, 'README must link live how-to-buy');
