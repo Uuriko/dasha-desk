@@ -49,6 +49,26 @@ assert.match(readme, /#131/, 'README must name #131 as the landed OCM path');
 assert.match(readme, /Do not merge raw \[#44\]/, 'README must forbid merging raw #44');
 assert.match(readme, /#44[\s`]*was closed/, 'README must say #44 was closed, not merged');
 assert.doesNotMatch(readme, /lands through|lands via/, 'README must not say ocm/ still lands through an open PR');
+assert.match(readme, /docs\/COMPUTE\.md/, 'README must link the Ask vs Provide vs Host one-pager');
+
+const computeJobs = read('docs/COMPUTE.md');
+assert.match(computeJobs, /\bAsk\b[\s\S]*\bProvide\b[\s\S]*\bHost\b/, 'COMPUTE.md must name Ask, Provide, and Host');
+assert.match(computeJobs, /getdasha\.com\/compute/, 'COMPUTE.md must link live Ask');
+assert.match(computeJobs, /getdasha\.com\/compute\/ocm\/provider/, 'COMPUTE.md must link the Host guide');
+assert.match(computeJobs, /getdasha\.com\/compute\/ocm/, 'COMPUTE.md must link the OCM marketplace');
+assert.match(computeJobs, /dasha-compute-open-alpha/, 'COMPUTE.md must name the Provide open-alpha kit');
+assert.match(computeJobs, /open-alpha kit/, 'COMPUTE.md must say compute/ is the open-alpha kit');
+assert.match(computeJobs, /On `main`/, 'COMPUTE.md must say ocm/ is on main');
+assert.match(computeJobs, /#76/, 'COMPUTE.md must name #76 as the landed OCM path');
+assert.match(computeJobs, /#131/, 'COMPUTE.md must name #131 as the landed OCM path');
+assert.match(computeJobs, /#44[\s`]*was closed/, 'COMPUTE.md must say #44 was closed, not merged');
+assert.match(computeJobs, /Do not merge #44/, 'COMPUTE.md must forbid merging #44');
+assert.match(computeJobs, /Not cloned/, 'COMPUTE.md must say the Worker is not cloned here');
+assert.match(computeJobs, /can read prompts/, 'COMPUTE.md must say providers can read prompts');
+assert.match(computeJobs, /not money/, 'COMPUTE.md must say OCM credits are not money');
+assert.doesNotMatch(computeJobs, /Not on `main` yet/, 'COMPUTE.md must not claim ocm/ is absent from main');
+assert.doesNotMatch(computeJobs, /lands through|lands via/, 'COMPUTE.md must not say ocm/ still lands through an open PR');
+assert.ok(computeJobs.trim().split(/\n/).length <= 45, 'COMPUTE.md one-pager must stay short');
 
 const ocmReadme = read('ocm/README.md');
 assert.match(ocmReadme, /landed on `main`/, 'ocm/README must say OCM landed on main');

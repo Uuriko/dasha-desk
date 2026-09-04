@@ -1,5 +1,7 @@
 # Dasha Compute · open alpha
 
+**Three live jobs:** [Ask vs Provide vs Host](../docs/COMPUTE.md). This directory is the community **open-alpha kit**, not the Worker.
+
 **[Live product](https://www.getdasha.com/compute)** ·
 **[Project index](https://uuriko.github.io/dasha-desk/compute/)** ·
 **[Source map](SOURCE_MAP.md)** ·

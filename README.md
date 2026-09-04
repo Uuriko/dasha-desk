@@ -29,6 +29,8 @@ Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Watch: `node watch.mjs` (producti
 
 ## What lives here
 
+Three live jobs: [`docs/COMPUTE.md`](docs/COMPUTE.md) (Ask vs Provide vs Host).
+
 | Path | Job |
 | --- | --- |
 | [`compute/`](compute/) | Community **open-alpha kit** (lobby coordinator): local coordinator, outbound macOS/Ollama provider, console states, protocol tests, security policy, threat model. Browseable MIT source for the product at [getdasha.com/compute](https://www.getdasha.com/compute). |
