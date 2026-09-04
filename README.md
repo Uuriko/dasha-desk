@@ -32,7 +32,7 @@ Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Watch: `node watch.mjs` (producti
 | Path | Job |
 | --- | --- |
 | [`compute/`](compute/) | Community **open-alpha kit** (lobby coordinator): local coordinator, outbound macOS/Ollama provider, console states, protocol tests, security policy, threat model. Browseable MIT source for the product at [getdasha.com/compute](https://www.getdasha.com/compute). |
-| `ocm/` | **Open Compute Marketplace** (Graham). Not on `main` yet. It lands through [PR #76](https://github.com/Uuriko/dasha-desk/pull/76) — the stabilization of Graham’s [#44](https://github.com/Uuriko/dasha-desk/pull/44). Do not merge raw #44. Do not copy `ocm/` into a drive-by PR. Host docs are already live: [compute/ocm/provider](https://www.getdasha.com/compute/ocm/provider). |
+| [`ocm/`](ocm/) | **Open Compute Marketplace** (Graham). On `main` (MIT). Landed through [PR #76](https://github.com/Uuriko/dasha-desk/pull/76) + [PR #131](https://github.com/Uuriko/dasha-desk/pull/131). Do not merge raw [#44](https://github.com/Uuriko/dasha-desk/pull/44); #44 was closed, not merged. Host docs live: [compute/ocm/provider](https://www.getdasha.com/compute/ocm/provider). Marketplace: [compute/ocm](https://www.getdasha.com/compute/ocm). |
 | Cloudflare Worker | Live www + lobby + Compute Ask / Provide / Hosted. **Not cloned from this repo.** |
 
 Compute is experimental. Provider operators can read prompts. Do not send secrets.
@@ -121,7 +121,7 @@ npm test
 The site itself has no install step or runtime dependencies. Tests use one development-only package
 and an installed Chrome/Chromium browser so the failure paths run in a real page.
 
-Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json) · [`bounties/`](bounties/) · [`compute/`](compute/) · [`studio/`](studio/)
+Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json) · [`bounties/`](bounties/) · [`compute/`](compute/) · [`ocm/`](ocm/) · [`studio/`](studio/)
 
 `src/app.html`, `index.html`, and `dist/index.html` are **generated** — do not edit by hand.
 
