@@ -8,7 +8,7 @@ This is **Worker-first getdasha.com**, the same product as the static desk files
 
 Live [www.getdasha.com](https://www.getdasha.com/) is owned by Cloudflare Worker **dasha-lobby** (www + lobby routes). Source ships from the operator Worker tree. This repo is pastes, docs, and Watch. **Do not invent a Worker here. Do not wrangler-deploy from here. Do not Designer-publish.**
 
-Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Watch: `node watch.mjs` (production) or `node watch.mjs --fixture` (local).
+Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Live www vs experimental kits in this tree: [`docs/STATUS.md`](docs/STATUS.md). Watch: `node watch.mjs` (production) or `node watch.mjs --fixture` (local).
 
 **[Use the site ↗](https://www.getdasha.com)** ·
 [How to buy](https://www.getdasha.com/how-to-buy) ·
