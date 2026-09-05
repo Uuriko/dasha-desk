@@ -5,9 +5,27 @@ LABEL=com.getdasha.compute.provider
 APP_DIR="$HOME/Library/Application Support/Dasha Compute"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 BIN_DIR="$HOME/bin"
+KEY_FILE=${DASHA_PROVIDER_KEY_FILE:-./.dasha-provider-key}
+KEY_FILE_TO_DELETE=
 
 if [ "${1:-}" = "--help" ]; then
-  echo "DASHA_PROVIDER_ID=... DASHA_PROVIDER_KEY=... DASHA_MODEL_MAP=... ./install.sh"
+  cat <<'EOF'
+Save the one-time provider token with hidden input, then run install.sh
+without putting the token in a shell command or here-document:
+
+  python3 provider/save-provider-key.py
+  DASHA_PROVIDER_ID=... DASHA_MODEL_MAP=... ./install.sh
+
+install.sh reads .dasha-provider-key (or DASHA_PROVIDER_KEY_FILE), stores
+the token in macOS Keychain, and deletes the file. launchd never receives
+the token on ProgramArguments. The prompt refuses an existing file or
+a terminal that cannot hide input. The one-time Keychain write still
+passes the token to security -w.
+
+Required: DASHA_PROVIDER_ID, DASHA_MODEL_MAP
+Optional: DASHA_COORDINATOR_URL (default https://lobby.getdasha.com/compute/api)
+Optional: DASHA_PROVIDER_KEY_FILE (default ./.dasha-provider-key)
+EOF
   exit 0
 fi
 if [ "$(uname -s)" != Darwin ]; then
@@ -15,9 +33,18 @@ if [ "$(uname -s)" != Darwin ]; then
   exit 1
 fi
 : "${DASHA_PROVIDER_ID:?Set DASHA_PROVIDER_ID from the Dasha registration page}"
-: "${DASHA_PROVIDER_KEY:?Set DASHA_PROVIDER_KEY from the Dasha registration page}"
 : "${DASHA_MODEL_MAP:?Set DASHA_MODEL_MAP, for example qwen3-8b=qwen3:8b}"
 DASHA_COORDINATOR_URL=${DASHA_COORDINATOR_URL:-https://lobby.getdasha.com/compute/api}
+
+if [ -f "$KEY_FILE" ]; then
+  chmod 600 "$KEY_FILE"
+  DASHA_PROVIDER_KEY=$(tr -d '\r\n' < "$KEY_FILE")
+  KEY_FILE_TO_DELETE=$KEY_FILE
+elif [ -z "${DASHA_PROVIDER_KEY:-}" ]; then
+  echo "Write the one-time provider token to $KEY_FILE (mode 0600), then rerun ./install.sh." >&2
+  echo "Do not put DASHA_PROVIDER_KEY on the command line." >&2
+  exit 1
+fi
 
 case "$DASHA_PROVIDER_ID" in (*[!A-Za-z0-9_-]*|'') echo "Invalid provider ID." >&2; exit 1;; esac
 case "$DASHA_PROVIDER_KEY" in (*[!A-Za-z0-9_-]*|'') echo "Invalid provider key." >&2; exit 1;; esac
@@ -44,6 +71,9 @@ umask 077
   printf "DASHA_BENCHMARK_PATH='%s'\n" "$APP_DIR/benchmark.json"
 } > "$APP_DIR/provider.env"
 security add-generic-password -U -a "$DASHA_PROVIDER_ID" -s "$LABEL" -w "$DASHA_PROVIDER_KEY" >/dev/null
+if [ -n "$KEY_FILE_TO_DELETE" ] && [ -f "$KEY_FILE_TO_DELETE" ]; then
+  rm -f "$KEY_FILE_TO_DELETE"
+fi
 DASHA_MODEL_MAP=$DASHA_MODEL_MAP DASHA_BENCHMARK_PATH="$APP_DIR/benchmark.json" "$PYTHON" "$APP_DIR/agent.py" --benchmark
 
 cat > "$PLIST" <<EOF

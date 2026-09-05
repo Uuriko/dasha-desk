@@ -57,16 +57,105 @@ async function pollForJob(base, providerId) {
 
 test("macOS installer and service scripts are shell-valid", () => {
   for (const file of ["install.sh", "provider/run-provider", "provider/dasha-compute"]) execFileSync("sh", ["-n", file], { cwd: new URL("..", import.meta.url) });
-  assert.match(execFileSync("sh", ["install.sh", "--help"], { cwd: new URL("..", import.meta.url), encoding: "utf8" }), /DASHA_PROVIDER_ID/);
+  const help = execFileSync("sh", ["install.sh", "--help"], { cwd: new URL("..", import.meta.url), encoding: "utf8" });
+  assert.match(help, /DASHA_PROVIDER_ID/);
+  assert.match(help, /\.dasha-provider-key/);
+  assert.match(help, /DASHA_PROVIDER_KEY_FILE/);
+  assert.doesNotMatch(help, /DASHA_PROVIDER_KEY=/);
+});
+
+async function fakeDarwinBin(directory) {
+  const fakeBin = join(directory, "bin");
+  await mkdir(fakeBin);
+  await writeFile(join(fakeBin, "uname"), "#!/bin/sh\nprintf 'Darwin\\n'\n", "utf8");
+  await chmod(join(fakeBin, "uname"), 0o755);
+  return fakeBin;
+}
+
+test("macOS installer consumes a 0600 key file and keeps the token off argv", async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), "dasha-compute-keyfile-"));
+  const fakeBin = await fakeDarwinBin(directory);
+  const token = "tok_9f3k2m8q1";
+  const keyFile = join(directory, "provider.key");
+  await writeFile(keyFile, `${token}\n`, { encoding: "utf8", mode: 0o600 });
+  await writeFile(join(fakeBin, "python3"), `#!/bin/sh\nprintf 'argv:%s\\n' "$*" >> "$HOME/python.argv"\nexit 0\n`, "utf8");
+  await writeFile(join(fakeBin, "security"), `#!/bin/sh\nprintf 'argv:%s\\n' "$*" >> "$HOME/security.argv"\nexit 0\n`, "utf8");
+  await writeFile(join(fakeBin, "launchctl"), `#!/bin/sh\nprintf 'argv:%s\\n' "$*" >> "$HOME/launchctl.argv"\nexit 0\n`, "utf8");
+  await chmod(join(fakeBin, "python3"), 0o755);
+  await chmod(join(fakeBin, "security"), 0o755);
+  await chmod(join(fakeBin, "launchctl"), 0o755);
+  context.after(() => rm(directory, { recursive: true, force: true }));
+
+  const child = spawn("sh", ["install.sh"], {
+    cwd: new URL("..", import.meta.url),
+    env: {
+      ...process.env,
+      HOME: directory,
+      PATH: `${fakeBin}:${process.env.PATH}`,
+      DASHA_PROVIDER_ID: "test-mac",
+      DASHA_MODEL_MAP: "qwen3-8b=qwen3:8b",
+      DASHA_PROVIDER_KEY_FILE: keyFile,
+    },
+  });
+  const argvLog = [];
+  child.on("spawn", () => argvLog.push(...child.spawnargs));
+  let stdout = "";
+  let stderr = "";
+  child.stdout.on("data", (chunk) => { stdout += chunk; });
+  child.stderr.on("data", (chunk) => { stderr += chunk; });
+  const code = await new Promise((resolve) => child.once("close", resolve));
+  assert.equal(code, 0, stderr || stdout);
+  assert.deepEqual(argvLog, ["sh", "install.sh"]);
+  assert.ok(!argvLog.join(" ").includes(token));
+  await assert.rejects(readFile(keyFile, "utf8"), { code: "ENOENT" });
+
+  const plist = await readFile(join(directory, "Library/LaunchAgents/com.getdasha.compute.provider.plist"), "utf8");
+  assert.match(plist, /<string>.*\/run-provider<\/string>/);
+  assert.doesNotMatch(plist, new RegExp(token));
+  assert.doesNotMatch(plist, /DASHA_PROVIDER_KEY/);
+
+  const providerEnv = await readFile(join(directory, "Library/Application Support/Dasha Compute/provider.env"), "utf8");
+  assert.doesNotMatch(providerEnv, new RegExp(token));
+  assert.doesNotMatch(providerEnv, /DASHA_PROVIDER_KEY/);
+
+  const launchctlArgv = await readFile(join(directory, "launchctl.argv"), "utf8");
+  assert.doesNotMatch(launchctlArgv, new RegExp(token));
+  const pythonArgv = await readFile(join(directory, "python.argv"), "utf8");
+  assert.doesNotMatch(pythonArgv, new RegExp(token));
+});
+
+test("macOS installer refuses a missing key file instead of a command-line token", async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), "dasha-compute-nokey-"));
+  const fakeBin = await fakeDarwinBin(directory);
+  context.after(() => rm(directory, { recursive: true, force: true }));
+  const child = spawn("sh", ["install.sh"], {
+    cwd: new URL("..", import.meta.url),
+    env: {
+      ...process.env,
+      HOME: directory,
+      PATH: `${fakeBin}:${process.env.PATH}`,
+      DASHA_PROVIDER_ID: "test-mac",
+      DASHA_MODEL_MAP: "qwen3-8b=qwen3:8b",
+    },
+  });
+  let stderr = "";
+  child.stderr.on("data", (chunk) => { stderr += chunk; });
+  const code = await new Promise((resolve) => child.once("close", resolve));
+  assert.equal(code, 1);
+  assert.match(stderr, /\.dasha-provider-key/);
+  assert.match(stderr, /Do not put DASHA_PROVIDER_KEY on the command line/);
+});
+
+test("kit README documents the file handoff for live registration", async () => {
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  assert.match(readme, /\.dasha-provider-key/);
+  assert.match(readme, /python3 provider\/save-provider-key\.py/);
+  assert.doesNotMatch(readme, /DASHA_PROVIDER_KEY=\S+.*\.\/install\.sh/s);
 });
 
 test("macOS installer rejects shell syntax in coordinator URLs", async (context) => {
   const directory = await mkdtemp(join(tmpdir(), "dasha-compute-installer-"));
-  const fakeBin = join(directory, "bin");
-  await mkdir(fakeBin);
-  const uname = join(fakeBin, "uname");
-  await writeFile(uname, "#!/bin/sh\nprintf 'Darwin\\n'\n", "utf8");
-  await chmod(uname, 0o755);
+  const fakeBin = await fakeDarwinBin(directory);
   context.after(() => rm(directory, { recursive: true, force: true }));
   const marker = join(directory, "must-not-exist");
   const child = spawn("sh", ["install.sh"], {

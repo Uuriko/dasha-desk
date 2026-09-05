@@ -23,11 +23,20 @@ Power users: create a developer key in the **Build** tab, then use `https://lobb
 
 ## 2. Join as a community Mac (Provide)
 
-Download the kit from [`dasha-compute-open-alpha.tar.gz`](https://www.getdasha.com/dasha-compute-open-alpha.tar.gz). Log in at `https://www.getdasha.com/compute`, open **Provide**, size your Mac, and choose **Register this Mac**. The page returns a one-time provider token and an exact command for this agent. Dasha stores only the token hash; live provider tokens and developer keys are account-bound and owner-revocable. The live queue supports complete and SSE-streamed responses. Ordinary queued and leased prompts are stored in the Durable Object until completion, failure, cancellation or expiry; terminal paths clear or delete prompt text, while completed answers, errors or chunks receive a ten-minute expiry and are removed by a subsequent prune. Night Shift retains its assignment prompt and up to five artifacts until the task is deleted.
+Download the kit from [`dasha-compute-open-alpha.tar.gz`](https://www.getdasha.com/dasha-compute-open-alpha.tar.gz). Log in at `https://www.getdasha.com/compute`, open **Provide**, size your Mac, and choose **Register this Mac**. The page returns a one-time provider token. Dasha stores only the token hash; live provider tokens and developer keys are account-bound and owner-revocable. The live queue supports complete and SSE-streamed responses. Ordinary queued and leased prompts are stored in the Durable Object until completion, failure, cancellation or expiry; terminal paths clear or delete prompt text, while completed answers, errors or chunks receive a ten-minute expiry and are removed by a subsequent prune. Night Shift retains its assignment prompt and up to five artifacts until the task is deleted.
 
 This is open alpha. Prompts assigned to this Mac are visible to the operator. Do not send secrets.
 
-On macOS, the generated command runs `./install.sh`. It verifies the complete connection, stores the provider token in Keychain, installs a persistent `launchd` service, and adds `~/bin/dasha-compute`. Manage it with:
+On macOS, use the hidden-input prompt below to save that token to a private 0600 file, then run `./install.sh`. Paste the token only at the prompt; it is not part of a shell command or here-document. The installer verifies the complete connection, stores the token in Keychain, deletes the file, installs a persistent `launchd` service, and adds `~/bin/dasha-compute`. The launchd job does not receive the token on `ProgramArguments`.
+
+```bash
+python3 provider/save-provider-key.py
+DASHA_PROVIDER_ID=your-provider-id \
+DASHA_MODEL_MAP=qwen3-8b=qwen3:8b \
+./install.sh
+```
+
+`./install.sh --help` prints the same handoff. The prompt refuses an existing file or a terminal that cannot hide input. `DASHA_PROVIDER_KEY_FILE` overrides the default `.dasha-provider-key` path for both the prompt and installer; set it consistently. The file stays available if validation, connection checks, or the Keychain write fail. The one-time macOS Keychain write still passes the token to `security -w`; this change does not remove that existing process-argument limitation. Manage the service with:
 
 ```bash
 dasha-compute status
