@@ -20,7 +20,7 @@ If another doc still says `/compute` is retired, this file and [`ROUTES.md`](ROU
 | www `/simp` | Live Worker | same | 200 · title `$dasha / Beat this` · H1 `Simp` |
 | www `/bounties` | Live Worker | same | 200 · title `Bounties — $dasha` · H1 `Bounties` |
 | www `/privacy` | Live Worker | same | 200 · title `Dasha privacy` · H1 `Privacy` |
-| www `/compute` Ask / Provide / Hosted | Live Worker | [getdasha.com/compute](https://www.getdasha.com/compute) | 200 · title `Dasha Compute — ask the Macs` · H1 `What do you want?` · page contains Ask, Provide, Hosted |
+| www `/compute` **Start.** | Live Worker | [getdasha.com/compute](https://www.getdasha.com/compute) | 200 · title `Dasha Compute — ask the Macs` · H1 `Start.` · doors Ask / Provide / Pay / Credits · gate Log in / You |
 | www `/compute/ocm` | Live Worker / OCM console | that URL | 200 · title `OCM console` · H1 `Open-Compute Marketplace` |
 | www `/compute/ocm/provider` | Live Worker / OCM console | that URL | 200 · title `Run a provider` · H1 `Run a provider` |
 | `compute/` in this repo | Experimental open-alpha kit | this tree; not the Worker | not a www route |

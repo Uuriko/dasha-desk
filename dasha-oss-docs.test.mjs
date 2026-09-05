@@ -54,9 +54,18 @@ assert.match(readme, /Do not merge raw \[#44\]/, 'README must forbid merging raw
 assert.match(readme, /#44[\s`]*was closed/, 'README must say #44 was closed, not merged');
 assert.doesNotMatch(readme, /lands through|lands via/, 'README must not say ocm/ still lands through an open PR');
 assert.match(readme, /docs\/COMPUTE\.md/, 'README must link the Ask vs Provide vs Host one-pager');
+assert.match(readme, /Start\./, 'README must name live /compute H1 Start.');
+assert.match(readme, /Ask · Provide · Pay · Credits/, 'README must name the four cold doors');
+assert.match(readme, /Log in/, 'README must name the logged-out gate');
+assert.match(readme, /Log in\*\* \/ \*\*You/, 'README must name the logged-in You gate');
+assert.doesNotMatch(readme, /Ask-first|What do you want\?|say something strange/i, 'README must not keep retired Ask-first cold-start copy');
 
 const computeJobs = read('docs/COMPUTE.md');
+assert.match(computeJobs, /Start\./, 'COMPUTE.md must name live H1 Start.');
+assert.match(computeJobs, /\bAsk\b[\s\S]*\bProvide\b[\s\S]*\bPay\b[\s\S]*\bCredits\b/, 'COMPUTE.md must name Ask, Provide, Pay, and Credits');
 assert.match(computeJobs, /\bAsk\b[\s\S]*\bProvide\b[\s\S]*\bHost\b/, 'COMPUTE.md must name Ask, Provide, and Host');
+assert.match(computeJobs, /Log in/, 'COMPUTE.md must name the logged-out gate');
+assert.doesNotMatch(computeJobs, /Ask-first|What do you want\?|say something strange/i, 'COMPUTE.md must not keep retired Ask-first cold-start copy');
 assert.match(computeJobs, /getdasha\.com\/compute/, 'COMPUTE.md must link live Ask');
 assert.match(computeJobs, /getdasha\.com\/compute\/ocm\/provider/, 'COMPUTE.md must link the Host guide');
 assert.match(computeJobs, /getdasha\.com\/compute\/ocm/, 'COMPUTE.md must link the OCM marketplace');
@@ -104,6 +113,10 @@ assert.match(status, /\/compute\/ocm\/provider/, 'STATUS must include the live O
 assert.match(status, /308/, 'STATUS must record www /studio as 308 home');
 assert.match(status, /Local \/ Pages only/, 'STATUS must mark studio/ as local/Pages only');
 assert.doesNotMatch(status, /www `\/compute`[^\n]*[Rr]etired/, 'STATUS must not mark live /compute as retired');
+assert.match(status, /H1 `Start\.`/, 'STATUS must record live /compute H1 Start.');
+assert.match(status, /Ask \/ Provide \/ Pay \/ Credits/, 'STATUS must record the four cold doors');
+assert.match(status, /Log in \/ You/, 'STATUS must record the quiet gate');
+assert.doesNotMatch(status, /What do you want\?|Ask-first|say something strange/i, 'STATUS must not keep retired Ask-first cold-start copy');
 assert.doesNotMatch(architecture, /compute retired/, 'ARCHITECTURE must not claim /compute is retired');
 assert.match(bibleOwner, /\/compute/, 'BIBLE owner surfaces must list live /compute');
 assert.doesNotMatch(bibleOwner, /\/compute` retired/, 'BIBLE owner surfaces must not claim /compute is retired');
@@ -133,6 +146,10 @@ assert.match(contrib, /issue|PR|pull request|fork/i, 'CONTRIBUTING must describe
 assert.match(contrib, /open-source project contributor|not a payment/i, 'CONTRIBUTING must disambiguate from payment/bag');
 assert.match(contrib, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'CONTRIBUTING must link /contribute');
 assert.match(contrib, /getdasha\.com\/compute/, 'CONTRIBUTING must point at live Compute');
+assert.match(contrib, /Start\./, 'CONTRIBUTING must name live /compute H1 Start.');
+assert.match(contrib, /Ask · Provide · Pay · Credits/, 'CONTRIBUTING must name the four cold doors');
+assert.match(contrib, /Log in/, 'CONTRIBUTING must name the logged-out gate');
+assert.doesNotMatch(contrib, /Ask-first|What do you want\?|say something strange/i, 'CONTRIBUTING must not keep retired Ask-first cold-start copy');
 assert.match(contrib, /`ocm\/`/, 'CONTRIBUTING must include ocm/ as an in-repo surface');
 assert.doesNotMatch(contrib, /getdasha\.com\/#oss/, 'CONTRIBUTING must not link the retired #oss anchor');
 assert.match(contrib, /getdasha\.com\/simp/, 'CONTRIBUTING must link the Simp Board reward path');
