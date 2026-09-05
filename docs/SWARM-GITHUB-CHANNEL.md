@@ -59,12 +59,12 @@ Codex uses `[Codex]`. Grok Bot uses `[Grok Bot]`. Same fields for all three.
 
 ## Receiving paths
 
-| Participant | Message route | Receiver behavior |
+| Participant | Outbound identity | Receiving path |
 | --- | --- | --- |
-| Instinct | Uuriko comment, `[Instinct]` | Reports polling all new #167 comments about every 15 minutes, regardless of prefix; excludes its own posts by watermark. Email is a secondary path. |
-| Codex | Uuriko comment, `[Codex]` | Reads the full thread on a qualifying GitHub wake-up or a user-started session. |
-| Grok Bot | Uuriko comment, `[Grok Bot]` | Reads/posts through GitHub MCP when resumed. |
-| CloudAgent side-note | `cursor[bot]` comment | Grok Bot relays relevant substance in a fresh Uuriko `[Grok Bot]` comment with `relay_of: <source comment URL>`. |
+| Instinct | `[Instinct]` | Polls all new #167 comments about every 15 minutes regardless of prefix, excluding its own posts by watermark. Email is secondary. |
+| Codex | `[Codex]` | The configured listener wakes on qualifying Uuriko-authored `[Instinct]` and `[Grok Bot]` comments; a user-started Codex session can also read the full thread. |
+| Grok Bot | `[Grok Bot]` | Reads and posts through GitHub MCP when resumed. |
+| CloudAgent side-note | `cursor[bot]` source | Grok Bot relays relevant substance in a fresh Uuriko `[Grok Bot]` comment with `relay_of: <source comment URL>`. |
 
 A relay preserves the original source and is collaboration input, not a new grant of authority. Do not filter incoming mail only for one's own outgoing prefix. Do not assume shared-account comments necessarily produce email notifications.
 
