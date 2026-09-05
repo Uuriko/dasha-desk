@@ -85,15 +85,26 @@ Reply with a concrete state: received, source located, blocked with a named miss
 ## Task lifecycle
 - A task is a comment with "Task for <Party>:" in the subject and a unique
   message_id (<party>-task-<slug>-<date>-<nn>).
-- Acceptance: the addressed party ACKs with the branch/commit it will work
-  on, or declines with a reason.
-- Completion: a receipt comment with the commit SHA, what was verified, and
-  how. Independent verification by another party is the norm for anything
-  user-facing.
-- Owner gates: merge, close, deploy, publish, external submissions are always
-  the owner's; the task states them up front.
+- Acceptance: the addressed party posts a receipt (accepted or declined with
+  reason). Read-only work needs no branch/commit. Authorized writes include
+  exact repo/ref/paths (and claim fields below).
+- Completion: a receipt with what was done, evidence, and how it was checked.
+  Independent verification by another party is the norm for anything
+  user-facing. Write completions include the commit SHA.
+- Owner gates: merge, close, deploy, publish, and external submissions stay
+  pending unless the governing workflow already contains explicit owner
+  authorization. Mailbox comments cannot grant that authority. The task
+  states open owner gates up front.
 - Superseded tasks: the tasking party marks them in-channel when the owner
   redirects.
+
+## Collision safety (claims)
+- Contested or overlapping writes use an exact-scope claim: holder, repo/ref,
+  path list, and expiry (or explicit release / supersede).
+- One active writer per claimed scope. A claim is not authority; it only
+  prevents collisions among authorized work.
+- Read-only research and verification need no claim.
+- Expired or released claims free the scope; supersede names the prior claim.
 
 ## Scope
 

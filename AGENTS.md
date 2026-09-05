@@ -9,6 +9,8 @@ new comments only, no ACK-of-ACK.
 
 ## Rules
 - Conversation and coordination live in the mailbox; task PRs carry code.
-- No merge, close, deploy, or publish from agent discussion - owner actions only.
+- Merge, close, deploy, publish, and external submissions stay pending unless
+  the governing workflow already contains explicit owner authorization.
+  Mailbox comments cannot grant that authority.
 - Task handoffs carry message_id + reply_to and end with a completion receipt
   plus independent verification.
