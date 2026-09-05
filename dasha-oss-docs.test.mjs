@@ -54,9 +54,20 @@ assert.match(readme, /Do not merge raw \[#44\]/, 'README must forbid merging raw
 assert.match(readme, /#44[\s`]*was closed/, 'README must say #44 was closed, not merged');
 assert.doesNotMatch(readme, /lands through|lands via/, 'README must not say ocm/ still lands through an open PR');
 assert.match(readme, /docs\/COMPUTE\.md/, 'README must link the Ask vs Provide vs Host one-pager');
+assert.match(readme, /Start\./, 'README must name live /compute H1 Start.');
+assert.match(readme, /\bAsk\b[\s\S]*\bProvide\b/, 'README must name Ask / Provide Start doors');
+assert.match(readme, /Sign in/, 'README must name the logged-out Start gate');
+assert.match(readme, /Prefer MLX/, 'README must name live Prefer MLX');
+assert.match(readme, /USDC/, 'README must name USDC credits');
+assert.doesNotMatch(readme, /Ask-first|What do you want\?|say something strange/i, 'README must not keep retired Ask-first cold-start copy');
 
 const computeJobs = read('docs/COMPUTE.md');
+assert.match(computeJobs, /Start\./, 'COMPUTE.md must name live H1 Start.');
 assert.match(computeJobs, /\bAsk\b[\s\S]*\bProvide\b[\s\S]*\bHost\b/, 'COMPUTE.md must name Ask, Provide, and Host');
+assert.match(computeJobs, /Sign in/, 'COMPUTE.md must name the logged-out Start gate');
+assert.match(computeJobs, /Prefer MLX/, 'COMPUTE.md must name live Prefer MLX');
+assert.match(computeJobs, /USDC/, 'COMPUTE.md must name USDC credits');
+assert.doesNotMatch(computeJobs, /Ask-first|What do you want\?|say something strange/i, 'COMPUTE.md must not keep retired Ask-first cold-start copy');
 assert.match(computeJobs, /getdasha\.com\/compute/, 'COMPUTE.md must link live Ask');
 assert.match(computeJobs, /getdasha\.com\/compute\/ocm\/provider/, 'COMPUTE.md must link the Host guide');
 assert.match(computeJobs, /getdasha\.com\/compute\/ocm/, 'COMPUTE.md must link the OCM marketplace');
@@ -91,7 +102,7 @@ assert.match(readme, /Uploaded or\s+externally sourced images keep their own rig
 assert.match(readme, /docs\/STATUS\.md/, 'README must link docs/STATUS.md (live www vs experimental)');
 
 assert.ok(existsSync(join(root, 'docs/STATUS.md')), 'docs/STATUS.md missing');
-assert.match(status, /2026-09-04/, 'STATUS must be dated from the live curl');
+assert.match(status, /2026-09-05/, 'STATUS must be dated from the live /compute recurl');
 assert.match(status, /curl/, 'STATUS must say the routes were curled');
 assert.match(status, /Live Worker/, 'STATUS must name live Worker surfaces');
 assert.match(status, /Experimental open-alpha kit/, 'STATUS must mark compute/ as the experimental kit, not the Worker');
@@ -104,6 +115,12 @@ assert.match(status, /\/compute\/ocm\/provider/, 'STATUS must include the live O
 assert.match(status, /308/, 'STATUS must record www /studio as 308 home');
 assert.match(status, /Local \/ Pages only/, 'STATUS must mark studio/ as local/Pages only');
 assert.doesNotMatch(status, /www `\/compute`[^\n]*[Rr]etired/, 'STATUS must not mark live /compute as retired');
+assert.match(status, /H1 `Start\.`/, 'STATUS must record live /compute H1 Start.');
+assert.match(status, /Ask \/ Provide/, 'STATUS must record Ask / Provide Start doors');
+assert.match(status, /Sign in \/ You/, 'STATUS must record the Start gate');
+assert.match(status, /Prefer MLX/, 'STATUS must record live Prefer MLX');
+assert.match(status, /USDC/, 'STATUS must record USDC credits');
+assert.doesNotMatch(status, /What do you want\?|Ask-first|say something strange/i, 'STATUS must not keep retired Ask-first cold-start copy');
 assert.doesNotMatch(architecture, /compute retired/, 'ARCHITECTURE must not claim /compute is retired');
 assert.match(bibleOwner, /\/compute/, 'BIBLE owner surfaces must list live /compute');
 assert.doesNotMatch(bibleOwner, /\/compute` retired/, 'BIBLE owner surfaces must not claim /compute is retired');
@@ -133,6 +150,11 @@ assert.match(contrib, /issue|PR|pull request|fork/i, 'CONTRIBUTING must describe
 assert.match(contrib, /open-source project contributor|not a payment/i, 'CONTRIBUTING must disambiguate from payment/bag');
 assert.match(contrib, /github\.com\/Uuriko\/dasha-desk\/contribute/, 'CONTRIBUTING must link /contribute');
 assert.match(contrib, /getdasha\.com\/compute/, 'CONTRIBUTING must point at live Compute');
+assert.match(contrib, /Start\./, 'CONTRIBUTING must name live /compute H1 Start.');
+assert.match(contrib, /Sign in/, 'CONTRIBUTING must name the logged-out Start gate');
+assert.match(contrib, /Prefer MLX/, 'CONTRIBUTING must name live Prefer MLX');
+assert.match(contrib, /USDC/, 'CONTRIBUTING must name USDC credits');
+assert.doesNotMatch(contrib, /Ask-first|What do you want\?|say something strange/i, 'CONTRIBUTING must not keep retired Ask-first cold-start copy');
 assert.match(contrib, /`ocm\/`/, 'CONTRIBUTING must include ocm/ as an in-repo surface');
 assert.doesNotMatch(contrib, /getdasha\.com\/#oss/, 'CONTRIBUTING must not link the retired #oss anchor');
 assert.match(contrib, /getdasha\.com\/simp/, 'CONTRIBUTING must link the Simp Board reward path');

@@ -1,6 +1,6 @@
 # Dasha Compute · open alpha
 
-**Three live jobs:** [Ask vs Provide vs Host](../docs/COMPUTE.md). This directory is the community **open-alpha kit**, not the Worker.
+**Live Start.:** [Ask / Provide](../docs/COMPUTE.md). This directory is the community **open-alpha kit**, not the Worker.
 
 **[Live product](https://www.getdasha.com/compute)** ·
 **[Project index](https://uuriko.github.io/dasha-desk/compute/)** ·
@@ -15,9 +15,9 @@ Pick **one** path. You do not need the other two first.
 
 ## 1. Use live (no clone)
 
-Open [https://www.getdasha.com/compute](https://www.getdasha.com/compute). Cold start is Ask-first **Hosted**. Log in, enter a prompt, **Run**.
+Open [https://www.getdasha.com/compute](https://www.getdasha.com/compute). Cold start is **Start.** Primary **Ask** / **Provide**. Quiet **Pay** / **Credits** (USDC or `$dasha`, no card). Gate **Sign in** / **You**. After Ask, Hosted; enter a prompt, **Run**.
 
-**Provide**, **Marketplace**, and **Host** stay quiet on that first paint. Host peeks in the Typeform; **Run** there goes to [`/compute/ocm/provider`](https://www.getdasha.com/compute/ocm/provider). Marketplace is [`/compute/ocm`](https://www.getdasha.com/compute/ocm). `ocm/` is on `main` via [#76](https://github.com/Uuriko/dasha-desk/pull/76) + [#131](https://github.com/Uuriko/dasha-desk/pull/131). Do not merge raw [#44](https://github.com/Uuriko/dasha-desk/pull/44).
+**Provide** is the Mac kit on the same page: **Prefer MLX when you can · Ollama ≥0.33.1 · models on internal SSD.** Marketplace / Host stay quieter: [`/compute/ocm`](https://www.getdasha.com/compute/ocm) and [`/compute/ocm/provider`](https://www.getdasha.com/compute/ocm/provider). `ocm/` is on `main` via [#76](https://github.com/Uuriko/dasha-desk/pull/76) + [#131](https://github.com/Uuriko/dasha-desk/pull/131). Do not merge raw [#44](https://github.com/Uuriko/dasha-desk/pull/44).
 
 Power users: create a developer key in the **Build** tab, then use `https://lobby.getdasha.com/compute/api/v1` as the OpenAI base URL (same base already documented below). Do not invent endpoints. Do not wrangler-deploy from this repo.
 

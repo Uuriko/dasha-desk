@@ -1,8 +1,8 @@
 # Live www vs this repository
 
-**Dated:** 2026-09-04
+**Dated:** 2026-09-05
 
-**Evidence:** `curl -sSI --max-redirs 0` of the www routes below. Contract: [`ROUTES.md`](ROUTES.md), `watch.mjs`.
+**Evidence:** `curl -sSI --max-redirs 0` of the www routes below. `/compute` recurl 2026-09-05; other rows last curled 2026-09-04. Contract: [`ROUTES.md`](ROUTES.md), `watch.mjs`.
 
 **Not claimed:** a deploy from this repo, a partnership, or that `compute/` or `ocm/` *are* the live Worker.
 
@@ -20,7 +20,7 @@ If another doc still says `/compute` is retired, this file and [`ROUTES.md`](ROU
 | www `/simp` | Live Worker | same | 200 · title `$dasha / Beat this` · H1 `Simp` |
 | www `/bounties` | Live Worker | same | 200 · title `Bounties — $dasha` · H1 `Bounties` |
 | www `/privacy` | Live Worker | same | 200 · title `Dasha privacy` · H1 `Privacy` |
-| www `/compute` Ask / Provide / Hosted | Live Worker | [getdasha.com/compute](https://www.getdasha.com/compute) | 200 · title `Dasha Compute — ask the Macs` · H1 `What do you want?` · page contains Ask, Provide, Hosted |
+| www `/compute` **Start.** | Live Worker | [getdasha.com/compute](https://www.getdasha.com/compute) | 200 · title `Dasha Compute — ask the Macs` · H1 `Start.` · Ask / Provide · quiet Pay / Credits · gate Sign in / You · Prefer MLX · USDC or $dasha |
 | www `/compute/ocm` | Live Worker / OCM console | that URL | 200 · title `OCM console` · H1 `Open-Compute Marketplace` |
 | www `/compute/ocm/provider` | Live Worker / OCM console | that URL | 200 · title `Run a provider` · H1 `Run a provider` |
 | `compute/` in this repo | Experimental open-alpha kit | this tree; not the Worker | not a www route |
