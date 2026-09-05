@@ -73,7 +73,7 @@ Each of these exists because of a specific failure, not as ceremony.
 | `dasha-oss-docs.test.mjs` | The docs in this repo do not contradict each other. |
 | `studio/studio.test.mjs` | The Studio stays self-contained, every look id a remix URL can name still exists, and the embed is generated rather than hand-edited. |
 | `bounties/bounties.test.mjs` | Listing JSON parses (item + project), malformed issues are skipped, empty outcomes copy, proof URLs required, the form builds a GitHub `issues/new` URL, static feed matches root `bounties.json` and carries `schema: dasha-bounties-feed/v1`, seed has no fake leaderboard, extra Demigod feed merge/dedup is non-fatal. |
-| `watch.mjs` | What the **live Worker** actually serves. Contract is [`ROUTES.md`](ROUTES.md): privacy 200, Studio/verse/learn/graph 308 home, desk/dasha 308 how-to-buy, compute retired, chess `var API` = lobby host. Still fails on blank pages, wrong redirects, stale SRI, missing H1, broken OAuth start, wrong mint, `plugin.jup.ag`. Local: `node watch.mjs --fixture`. Do not invent the Worker here. |
+| `watch.mjs` | What the **live Worker** actually serves. Contract is [`ROUTES.md`](ROUTES.md): privacy 200, Studio/verse/learn/graph 308 home, desk/dasha 308 how-to-buy, `/compute` 200 product page, chess `var API` = lobby host. Still fails on blank pages, wrong redirects, stale SRI, missing H1, broken OAuth start, wrong mint, `plugin.jup.ag`. Local: `node watch.mjs --fixture`. Do not invent the Worker here. Live vs this tree: [`STATUS.md`](STATUS.md). |
 
 `watch.mjs` is the odd one out and the most important. Every other gate reads files in this repo, and
 the failures that reach visitors happen *between* the repo and the site: a Worker 308 that lands

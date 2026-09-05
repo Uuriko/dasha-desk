@@ -1,5 +1,7 @@
 # Dasha Compute · open alpha
 
+**Three live jobs:** [Ask vs Provide vs Host](../docs/COMPUTE.md). This directory is the community **open-alpha kit**, not the Worker.
+
 **[Live product](https://www.getdasha.com/compute)** ·
 **[Project index](https://uuriko.github.io/dasha-desk/compute/)** ·
 **[Source map](SOURCE_MAP.md)** ·
@@ -7,35 +9,34 @@
 
 An independently written, local-first proof of concept for routing OpenAI-shaped chat requests to community-run model providers. It is designed to become the compute surface at `getdasha.com/compute` without copying Darkbloom code, branding, prose or private protocols.
 
-Version 0.3 supports both a local coordinator and the live getdasha.com community queue. The bundled local coordinator works as follows:
+Version 0.3 supports both a local coordinator and the live getdasha.com community queue. It has real request routing, streaming and end-to-end tests. The live queue stores short-lived jobs in a Durable Object and adds account-bound registration, hashed revocable credentials, rate limits, and complete or SSE-streamed responses. Neither mode has billing, hardware attestation or operator-blind prompts. Do not send secrets. See `THREAT_MODEL.md`.
 
-1. a client submits `POST /v1/chat/completions`;
-2. the coordinator holds the job in volatile memory;
-3. a provider polls outbound over HTTPS;
-4. the provider calls its local Ollama model;
-5. the result returns as a complete OpenAI-shaped response or streamed SSE chunks.
+Pick **one** path. You do not need the other two first.
 
-`console/` also includes the full React/CSS interface and the deliberately unavailable hosted-alpha routes, so the public artifact contains both sides of the product rather than only the daemon code.
+## 1. Use live (no clone)
 
-It has real request routing, streaming and end-to-end tests. The live queue instead stores short-lived jobs in a Durable Object and adds account-bound registration, hashed revocable credentials, rate limits, and complete or SSE-streamed responses. Neither mode has billing, hardware attestation or operator-blind prompts. Do not send secrets. See `THREAT_MODEL.md`.
+Open [https://www.getdasha.com/compute](https://www.getdasha.com/compute). Cold start is Ask-first **Hosted**. Log in, enter a prompt, **Run**.
 
-## Join the live community network
+**Provide**, **Marketplace**, and **Host** stay quiet on that first paint. Host peeks in the Typeform; **Run** there goes to [`/compute/ocm/provider`](https://www.getdasha.com/compute/ocm/provider). Marketplace is [`/compute/ocm`](https://www.getdasha.com/compute/ocm). `ocm/` is on `main` via [#76](https://github.com/Uuriko/dasha-desk/pull/76) + [#131](https://github.com/Uuriko/dasha-desk/pull/131). Do not merge raw [#44](https://github.com/Uuriko/dasha-desk/pull/44).
 
-Log in at `https://www.getdasha.com/compute`, open **Provide**, size your Mac, and choose **Register this Mac**. The page returns a one-time provider token. Dasha stores only the token hash; live provider tokens and developer keys are account-bound and owner-revocable. The live queue supports complete and SSE-streamed responses. Ordinary queued and leased prompts are stored in the Durable Object until completion, failure, cancellation or expiry; terminal paths clear or delete prompt text, while completed answers, errors or chunks receive a ten-minute expiry and are removed by a subsequent prune. Night Shift retains its assignment prompt and up to five artifacts until the task is deleted.
+Power users: create a developer key in the **Build** tab, then use `https://lobby.getdasha.com/compute/api/v1` as the OpenAI base URL (same base already documented below). Do not invent endpoints. Do not wrangler-deploy from this repo.
 
-On macOS, write that token to a 0600 file and run `./install.sh` without putting the token on the command line. The installer verifies the complete connection, stores the token in Keychain, deletes the file, installs a persistent `launchd` service, and adds `~/bin/dasha-compute`. The launchd job does not receive the token on `ProgramArguments`.
+## 2. Join as a community Mac (Provide)
+
+Download the kit from [`dasha-compute-open-alpha.tar.gz`](https://www.getdasha.com/dasha-compute-open-alpha.tar.gz). Log in at `https://www.getdasha.com/compute`, open **Provide**, size your Mac, and choose **Register this Mac**. The page returns a one-time provider token. Dasha stores only the token hash; live provider tokens and developer keys are account-bound and owner-revocable. The live queue supports complete and SSE-streamed responses. Ordinary queued and leased prompts are stored in the Durable Object until completion, failure, cancellation or expiry; terminal paths clear or delete prompt text, while completed answers, errors or chunks receive a ten-minute expiry and are removed by a subsequent prune. Night Shift retains its assignment prompt and up to five artifacts until the task is deleted.
+
+This is open alpha. Prompts assigned to this Mac are visible to the operator. Do not send secrets.
+
+On macOS, use the hidden-input prompt below to save that token to a private 0600 file, then run `./install.sh`. Paste the token only at the prompt; it is not part of a shell command or here-document. The installer verifies the complete connection, stores the token in Keychain, deletes the file, installs a persistent `launchd` service, and adds `~/bin/dasha-compute`. The launchd job does not receive the token on `ProgramArguments`.
 
 ```bash
-umask 077
-cat > .dasha-provider-key <<'KEY'
-paste-the-one-time-token
-KEY
+python3 provider/save-provider-key.py
 DASHA_PROVIDER_ID=your-provider-id \
 DASHA_MODEL_MAP=qwen3-8b=qwen3:8b \
 ./install.sh
 ```
 
-`./install.sh --help` prints the same handoff. `DASHA_PROVIDER_KEY_FILE` overrides the default `.dasha-provider-key` path. Manage the service with:
+`./install.sh --help` prints the same handoff. The prompt refuses an existing file or a terminal that cannot hide input. `DASHA_PROVIDER_KEY_FILE` overrides the default `.dasha-provider-key` path for both the prompt and installer; set it consistently. The file stays available if validation, connection checks, or the Keychain write fail. The one-time macOS Keychain write still passes the token to `security -w`; this change does not remove that existing process-argument limitation. Manage the service with:
 
 ```bash
 dasha-compute status
@@ -46,7 +47,19 @@ dasha-compute restart
 dasha-compute uninstall
 ```
 
-## Run it
+## 3. Run the local coordinator
+
+Local-only. The bundled coordinator binds to `127.0.0.1` by default. Default keys are not for the internet. Never expose them. Put the process behind a real HTTPS reverse proxy before any remote test.
+
+It works as follows:
+
+1. a client submits `POST /v1/chat/completions`;
+2. the coordinator holds the job in volatile memory;
+3. a provider polls outbound over HTTPS;
+4. the provider calls its local Ollama model;
+5. the result returns as a complete OpenAI-shaped response or streamed SSE chunks.
+
+`console/` also includes the full React/CSS interface and the deliberately unavailable hosted-alpha routes, so the public artifact contains both sides of the product rather than only the daemon code.
 
 Prerequisites: Node 20+, Python 3.10+, and [Ollama](https://ollama.com/) on the provider machine.
 
@@ -69,8 +82,6 @@ python3 provider/agent.py
 # terminal 3 · client
 DASHA_API_KEY=consumer-secret python3 examples/chat.py
 ```
-
-The coordinator binds to `127.0.0.1` by default. Put it behind a real HTTPS reverse proxy before any remote test. Never expose the default keys.
 
 Before joining a test, check the complete local chain:
 

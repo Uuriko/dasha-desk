@@ -24,8 +24,10 @@
   "provider/agent.py",
   "provider/dasha-compute",
   "provider/run-provider",
+  "provider/save-provider-key.py",
   "release-files.json",
   "scripts/build-release.mjs",
   "tests/e2e.test.mjs",
+  "tests/provider-key.test.mjs",
   "tests/release.test.mjs"
 ]

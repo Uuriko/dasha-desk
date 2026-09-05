@@ -149,7 +149,7 @@ test("macOS installer refuses a missing key file instead of a command-line token
 test("kit README documents the file handoff for live registration", async () => {
   const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
   assert.match(readme, /\.dasha-provider-key/);
-  assert.match(readme, /umask 077/);
+  assert.match(readme, /python3 provider\/save-provider-key\.py/);
   assert.doesNotMatch(readme, /DASHA_PROVIDER_KEY=\S+.*\.\/install\.sh/s);
 });
 

@@ -10,18 +10,17 @@ KEY_FILE_TO_DELETE=
 
 if [ "${1:-}" = "--help" ]; then
   cat <<'EOF'
-Write the one-time provider token to a 0600 file, then run install.sh
-without putting the token on the command line:
+Save the one-time provider token with hidden input, then run install.sh
+without putting the token in a shell command or here-document:
 
-  umask 077
-  cat > .dasha-provider-key <<'KEY'
-paste-the-one-time-token
-KEY
+  python3 provider/save-provider-key.py
   DASHA_PROVIDER_ID=... DASHA_MODEL_MAP=... ./install.sh
 
 install.sh reads .dasha-provider-key (or DASHA_PROVIDER_KEY_FILE), stores
 the token in macOS Keychain, and deletes the file. launchd never receives
-the token on ProgramArguments.
+the token on ProgramArguments. The prompt refuses an existing file or
+a terminal that cannot hide input. The one-time Keychain write still
+passes the token to security -w.
 
 Required: DASHA_PROVIDER_ID, DASHA_MODEL_MAP
 Optional: DASHA_COORDINATOR_URL (default https://lobby.getdasha.com/compute/api)

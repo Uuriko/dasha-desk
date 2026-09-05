@@ -1,24 +1,67 @@
 # dasha
 
-Open-source tools for `$dasha` on Solana — static, honest, remixable.
+Local + community AI compute for `$dasha` — **Ask** on Cloudflare Hosted, **Provide** community Macs, **Host** via OCM.
+
+## Use it live (no clone)
+
+**[Ask ↗](https://www.getdasha.com/compute)** ·
+[Host guide](https://www.getdasha.com/compute/ocm/provider) ·
+[Marketplace](https://www.getdasha.com/compute/ocm) ·
+[getdasha.com](https://www.getdasha.com)
+
+**60 seconds:** open [Ask](https://www.getdasha.com/compute) → **Log in** → **Run** (Hosted). You do not need this repo to use the product.
+
+Also on www: [How to buy](https://www.getdasha.com/how-to-buy) ·
+[Lobby](https://www.getdasha.com/lobby) ·
+[Simp](https://www.getdasha.com/simp) ·
+[Bounties](https://www.getdasha.com/bounties) ·
+[Privacy](https://www.getdasha.com/privacy)
 
 ## Worker-first getdasha.com
 
 This is **Worker-first getdasha.com**, the same product as the static desk files already here — one `$dasha` / dash_eats site, not a second coin.
 
-Live [www.getdasha.com](https://www.getdasha.com/) is owned by Cloudflare Worker **dasha-lobby** (www + lobby routes). Source ships from the operator Worker tree. This repo is pastes, docs, and Watch. **Do not invent a Worker here. Do not wrangler-deploy from here. Do not Designer-publish.**
+Live [www.getdasha.com](https://www.getdasha.com/) is owned by Cloudflare Worker **dasha-lobby** (www + lobby routes). Source ships from the operator Worker tree. This repo is pastes, docs, Watch, and the community Compute kit. **Do not invent a Worker here. Do not wrangler-deploy from here. Do not Designer-publish.**
 
-Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Watch: `node watch.mjs` (production) or `node watch.mjs --fixture` (local).
-
-**[Use the site ↗](https://www.getdasha.com)** ·
-[How to buy](https://www.getdasha.com/how-to-buy) ·
-[Lobby](https://www.getdasha.com/lobby) ·
-[Simp](https://www.getdasha.com/simp) ·
-[Bounties](https://www.getdasha.com/bounties) ·
-[Compute](https://www.getdasha.com/compute) ·
-[Privacy](https://www.getdasha.com/privacy)
+Route map: [`docs/ROUTES.md`](docs/ROUTES.md). Live www vs experimental kits in this tree: [`docs/STATUS.md`](docs/STATUS.md). Watch: `node watch.mjs` (production) or `node watch.mjs --fixture` (local).
 
 `/dasha` and `/desk` 308 to `/how-to-buy`. `/studio` is retired (308 home). Do not restore Meme Studio on www.
+
+## What lives here
+
+Three live jobs: [`docs/COMPUTE.md`](docs/COMPUTE.md) (Ask vs Provide vs Host).
+
+| Path | Job |
+| --- | --- |
+| [`compute/`](compute/) | Community **open-alpha kit** (lobby coordinator): local coordinator, outbound macOS/Ollama provider, console states, protocol tests, security policy, threat model. Browseable MIT source for the product at [getdasha.com/compute](https://www.getdasha.com/compute). |
+| [`ocm/`](ocm/) | **Open Compute Marketplace** (Graham). On `main` (MIT). Landed through [PR #76](https://github.com/Uuriko/dasha-desk/pull/76) + [PR #131](https://github.com/Uuriko/dasha-desk/pull/131). Do not merge raw [#44](https://github.com/Uuriko/dasha-desk/pull/44); #44 was closed, not merged. Host docs live: [compute/ocm/provider](https://www.getdasha.com/compute/ocm/provider). Marketplace: [compute/ocm](https://www.getdasha.com/compute/ocm). |
+| Cloudflare Worker | Live www + lobby + Compute Ask / Provide / Hosted. **Not cloned from this repo.** |
+
+Compute is experimental. Provider operators can read prompts. Do not send secrets.
+
+## Start contributing (open-source project)
+
+This is **code and docs contribution** to the public MIT repo — not a payment, bag check, or paid program. Open a pull request and you are a project contributor. No invite. **Maintainer:** [@Uuriko](https://github.com/Uuriko).
+
+**From getdasha.com:** the homepage **Contribute code ↗** button lands on [good first issues](https://github.com/Uuriko/dasha-desk/contribute).
+
+**Fastest path (no clone):**
+
+1. Open **[good first issues](https://github.com/Uuriko/dasha-desk/contribute)** (GitHub’s `/contribute` page). Prefer Compute + docs.
+2. Or fix a typo in the browser: open a file → pencil → **Propose changes** → PR.
+3. Full guide: [CONTRIBUTING.md](CONTRIBUTING.md) (we aim to first-reply within **7 days**).
+
+Also: [Ideas welcome (#7)](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions) · [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
+
+A prepared lane can recognize qualifying merged pull requests on the public
+[Simp Board](https://www.getdasha.com/simp) once it is activated. It is inactive today, so no current
+PR earns points. The maintainer will apply the PR's `impact:` label; contributors need no label
+permissions. [How that works](CONTRIBUTING.md#prepared-simp-points-lane). Points are recognition on a
+page, not payment or a token allocation. You never need points to open a PR.
+
+CI runs the complete build, mint, share, docs, Watch-fixture, browser-resilience, and Compute protocol gates on every PR.
+
+## Desk, bounties, Studio (not the on-ramp)
 
 **the desk** (this directory) — check the mint against independent explorers, then one neutral
 Jupiter route. Local / GitHub Pages copy. Not a live www pretty URL.
@@ -35,40 +78,13 @@ We don't hold it.
 **[studio/](studio/)** — local / Pages Meme Studio only. www `/studio` 308s home.
 Original drawings are public domain. Uploaded or externally sourced images keep their own rights.
 
-**[compute/](compute/)** — browseable MIT source for the Dasha Compute open alpha: the
-local coordinator, outbound macOS/Ollama provider, console states, protocol tests, security policy,
-and threat model. The live product is [getdasha.com/compute](https://www.getdasha.com/compute).
-It is experimental, provider operators can read prompts, and it must not receive secrets.
-
 None of the static tools here connects a wallet or moves anything.
 
 [GitHub Pages demo](https://uuriko.github.io/dasha-desk/) · [Website](https://www.getdasha.com)
 
 ![Dasha desk — mint, sources, buy rails](assets/desk-demo.gif)
 
-## Start contributing (open-source project)
-
-This is **code and docs contribution** to the public MIT repo — not a payment, bag check, or paid program. Open a pull request and you are a project contributor. No invite. **Maintainer:** [@Uuriko](https://github.com/Uuriko).
-
-**From getdasha.com:** the homepage **Contribute code ↗** button lands on [good first issues](https://github.com/Uuriko/dasha-desk/contribute).
-
-**Fastest path (no clone):**
-
-1. Open **[good first issues](https://github.com/Uuriko/dasha-desk/contribute)** (GitHub’s `/contribute` page).
-2. Or fix a typo in the browser: open a file → pencil → **Propose changes** → PR.
-3. Full guide: [CONTRIBUTING.md](CONTRIBUTING.md) (we aim to first-reply within **7 days**).
-
-Also: [Ideas welcome (#7)](https://github.com/Uuriko/dasha-desk/issues/7) · [Discussions](https://github.com/Uuriko/dasha-desk/discussions) · [open an idea or bug](https://github.com/Uuriko/dasha-desk/issues/new/choose) · [ROADMAP.md](docs/ROADMAP.md)
-
-A prepared lane can recognize qualifying merged pull requests on the public
-[Simp Board](https://www.getdasha.com/simp) once it is activated. It is inactive today, so no current
-PR earns points. The maintainer will apply the PR's `impact:` label; contributors need no label
-permissions. [How that works](CONTRIBUTING.md#prepared-simp-points-lane). Points are recognition on a
-page, not payment or a token allocation. You never need points to open a PR.
-
-CI runs the complete build, mint, share, docs, Watch-fixture, browser-resilience, and Compute protocol gates on every PR.
-
-## What it does
+## What the desk does
 
 - keeps the associated mint visible and easy to copy
 - checks pasted addresses against that mint
@@ -77,9 +93,9 @@ CI runs the complete build, mint, share, docs, Watch-fixture, browser-resilience
 - links explorers, chart, and one neutral Jupiter route
 - ships as static HTML, CSS, and JavaScript (no wallet connect)
 
-**Roadmap is community input** — open an issue and propose what to build next (infra, consumer, creative). Adding a new Studio look is the most self-contained local change here; [studio/README.md](studio/README.md) walks through it. That does not put Studio back on www.
+**Roadmap is community input** — open an issue and propose what to build next (infra, consumer, creative). Compute + docs are the OSS on-ramp. Adding a Studio look is still a self-contained *local* change ([studio/README.md](studio/README.md)); that does not put Studio back on www.
 
-## Run it
+## Run it locally
 
 ```bash
 git clone https://github.com/Uuriko/dasha-desk.git
@@ -90,6 +106,7 @@ python3 -m http.server 8766
 # → http://127.0.0.1:8766/lobby/
 # → http://127.0.0.1:8766/bounties/
 # → http://127.0.0.1:8766/privacy/
+# → http://127.0.0.1:8766/compute/   open-alpha kit
 # → http://127.0.0.1:8766/studio/    local only
 ```
 
@@ -106,7 +123,7 @@ npm test
 The site itself has no install step or runtime dependencies. Tests use one development-only package
 and an installed Chrome/Chromium browser so the failure paths run in a real page.
 
-Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json) · [`bounties/`](bounties/) · [`studio/`](studio/) · [`compute/`](compute/)
+Runtime sources: [`src/body.html`](src/body.html) · [`src/styles.css`](src/styles.css) · [`src/app.js`](src/app.js) · [`config/dasha.json`](config/dasha.json) · [`bounties/`](bounties/) · [`compute/`](compute/) · [`ocm/`](ocm/) · [`studio/`](studio/)
 
 `src/app.html`, `index.html`, and `dist/index.html` are **generated** — do not edit by hand.
 

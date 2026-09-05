@@ -7,7 +7,8 @@ last_verified: 2026-08-14
 # Dasha bible — culture, design, product truth
 
 **Updated:** 2026-08-14  
-**Owner surfaces:** getdasha.com (Worker dasha-lobby) · `/` · `/lobby` · `/how-to-buy` · `/bag` · `/which` · `/simp` · `/chess` · `/faucet` · `/bounties` · `/privacy` · `/contribute` · `/digest` · lobby.getdasha.com. `/studio` `/verse` `/learn` `/graph` 308 home. `/dasha` `/desk` 308 `/how-to-buy`. `/compute` retired. `/forum` 308 `/lobby`.  
+**Owner surfaces:** getdasha.com (Worker dasha-lobby) · `/` · `/lobby` · `/how-to-buy` · `/bag` · `/which` · `/simp` · `/chess` · `/faucet` · `/bounties` · `/privacy` · `/contribute` · `/digest` · `/compute` (live 200) · lobby.getdasha.com. `/studio` `/verse` `/learn` `/graph` 308 home. `/dasha` `/desk` 308 `/how-to-buy`. `/forum` 308 `/lobby`. Live vs this tree: [`STATUS.md`](STATUS.md).
+
 **Hard rule:** **Association is not endorsement.** Public posts ≠ brand deal, safety, or legal control of any mint.
 
 This doc is the shared design + culture spine for agents and humans shipping getdasha. Prefer primary sources linked below over vibes.
@@ -264,7 +265,8 @@ Dropped 2026-08-13: “≥4 culture images on home.” That gate produced a like
 | 2026-08-08 | Site wiring | Home tape + @dash_eats nav; desk avatar→pbs; studio/howto X links |
 | 2026-08-13 | Visual-spine overhaul | Board first-class; ticker required; likeness out of the mark; Desk must match landing tokens; GitHub-soon honesty |
 | 2026-08-13 ~20:19 ET | Live curl (www) | then-current: `/studio` `/dasha` 200; `/privacy` `/desk` 404 — **stale**. See 2026-08-25. |
-| 2026-08-25 | Intended Worker contract | `/` Chat+Buy; `/studio` `/verse` `/learn` `/graph` 308 `/`; `/dasha` `/desk` 308 `/how-to-buy`; `/privacy` 200 H1 Privacy; `/forum` 308 `/lobby`; `/compute` retired; sitemap omits those 308s |
+| 2026-08-25 | Intended Worker contract | `/` Chat+Buy; `/studio` `/verse` `/learn` `/graph` 308 `/`; `/dasha` `/desk` 308 `/how-to-buy`; `/privacy` 200 H1 Privacy; `/forum` 308 `/lobby`; **then** `/compute` retired (historical; superseded 2026-09-04 — live `/compute` is 200); sitemap omits those 308s |
+| 2026-09-04 | Live curl (www, no follow) | `/` `/how-to-buy` `/lobby` `/simp` `/bounties` `/privacy` `/compute` `/compute/ocm` `/compute/ocm/provider` all 200; `/studio` 308 → `/`. See [`STATUS.md`](STATUS.md). |
 
 ---
 
