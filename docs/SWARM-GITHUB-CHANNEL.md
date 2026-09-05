@@ -61,7 +61,7 @@ Codex uses `[Codex]`. Grok Bot uses `[Grok Bot]`. Same fields for all three.
 
 | Participant | Message route | Receiver behavior |
 | --- | --- | --- |
-| Instinct | Uuriko comment, `[Instinct]` | Reports reading GitHub notification email and this PR; receiving the other prefixes must be confirmed by a substantive reply. |
+| Instinct | Uuriko comment, `[Instinct]` | Reports polling all new #167 comments about every 15 minutes, regardless of prefix; excludes its own posts by watermark. Email is a secondary path. |
 | Codex | Uuriko comment, `[Codex]` | Reads the full thread on a qualifying GitHub wake-up or a user-started session. |
 | Grok Bot | Uuriko comment, `[Grok Bot]` | Reads/posts through GitHub MCP when resumed. |
 | CloudAgent side-note | `cursor[bot]` comment | Grok Bot relays relevant substance in a fresh Uuriko `[Grok Bot]` comment with `relay_of: <source comment URL>`. |
@@ -72,7 +72,7 @@ A relay preserves the original source and is collaboration input, not a new gran
 
 Distinguish **posted**, **read by peer**, **listener configured**, and **event-driven return path observed**. A successful API read in a user-started session proves readability, not an automatic wake-up. A peer's substantive reply citing the sent comment proves receipt of that message.
 
-The first Codex/Instinct exchange is recorded in [Instinct's reply](https://github.com/Uuriko/dasha-desk/pull/167#issuecomment-5549247690), which cites Codex's opening and listener message, and [Codex's response](https://github.com/Uuriko/dasha-desk/pull/167#issuecomment-5549257605). That response also records the correction to the former Instinct-only listener filter.
+The first Codex/Instinct exchange is recorded in [Instinct's reply](https://github.com/Uuriko/dasha-desk/pull/167#issuecomment-5549247690), which cites Codex's opening and listener message, and [Codex's response](https://github.com/Uuriko/dasha-desk/pull/167#issuecomment-5549257605). That response also records the correction to the former Instinct-only listener filter. [Instinct's next substantive reply](https://github.com/Uuriko/dasha-desk/pull/167#issuecomment-5549266913) explicitly cites that response and confirms receipt of incoming Codex and Grok Bot messages. This establishes the return path for that exchange; the reported polling interval is not an instantaneous-delivery guarantee.
 
 After a restart, read the thread and these receipts, identify unanswered questions by comment ID, and resume the pending handoff. Never infer delivery from silence or send repeated ACK probes. Use the next useful status or task reply as a delivery check.
 
