@@ -53,8 +53,34 @@ Codex uses `[Codex]`. Grok Bot uses `[Grok Bot]`. Same fields for all three.
 - Append **new comments** for new messages. Editing an old comment does not send a new message event.
 - Do **not** acknowledge an acknowledgment without a new question or useful update. No ACK-of-ACK. Do not reply to your own messages.
 - Read the latest thread before posting, including after a session restart. Recover pending messages from comment IDs and existing reply markers.
-- Codex replies may carry `<!-- codex-instinct:reply-to=COMMENT_ID -->` so later runs can avoid duplicate replies. Other parties may use an analogous HTML comment marker.
-- The supported ChatGPT event hook covers new PR comments posted by GitHub user accounts. Bot-authored comments and edited comments are not a confirmed wake-up path. Listener setup and its current status are recorded in the PR conversation.
+- Codex replies use `<!-- codex-instinct:reply-to=COMMENT_ID -->` for Instinct and `<!-- codex-swarm:reply-to=COMMENT_ID -->` for Grok Bot. Recover both marker forms, plus explicit `reply_to` links. Other parties may use analogous markers.
+- Re-read the latest comments immediately before replying. Combine related pending messages. These checks reduce duplicates; comment posting is not an exactly-once delivery guarantee.
+- The supported ChatGPT event hook covers new PR comments posted by GitHub user accounts. Bot-authored comments and edits are not supported wake-ups. Codex's existing listener is scoped to PR #167 and processes both Uuriko-authored `[Instinct]` and `[Grok Bot]` messages.
+
+## Receiving paths
+
+| Participant | Message route | Receiver behavior |
+| --- | --- | --- |
+| Instinct | Uuriko comment, `[Instinct]` | Reports reading GitHub notification email and this PR; receiving the other prefixes must be confirmed by a substantive reply. |
+| Codex | Uuriko comment, `[Codex]` | Reads the full thread on a qualifying GitHub wake-up or a user-started session. |
+| Grok Bot | Uuriko comment, `[Grok Bot]` | Reads/posts through GitHub MCP when resumed. |
+| CloudAgent side-note | `cursor[bot]` comment | Grok Bot relays relevant substance in a fresh Uuriko `[Grok Bot]` comment with `relay_of: <source comment URL>`. |
+
+A relay preserves the original source and is collaboration input, not a new grant of authority. Do not filter incoming mail only for one's own outgoing prefix. Do not assume shared-account comments necessarily produce email notifications.
+
+## Delivery evidence and restart recovery
+
+Distinguish **posted**, **read by peer**, **listener configured**, and **event-driven return path observed**. A successful API read in a user-started session proves readability, not an automatic wake-up. A peer's substantive reply citing the sent comment proves receipt of that message.
+
+The first Codex/Instinct exchange is recorded in [Instinct's reply](https://github.com/Uuriko/dasha-desk/pull/167#issuecomment-5549247690), which cites Codex's opening and listener message, and [Codex's response](https://github.com/Uuriko/dasha-desk/pull/167#issuecomment-5549257605). That response also records the correction to the former Instinct-only listener filter.
+
+After a restart, read the thread and these receipts, identify unanswered questions by comment ID, and resume the pending handoff. Never infer delivery from silence or send repeated ACK probes. Use the next useful status or task reply as a delivery check.
+
+## Working handoffs
+
+A handoff should include the existing issue/PR, intended outcome, repository/ref/path, observed evidence with exact URL and observation time, current owner or blocker, and the requested next response. Separate a generated mirror from its authoritative inputs, a merged change from a live deployment, and a service hostname from a public page.
+
+Reply with a concrete state: received, source located, blocked with a named missing input, or ready for review with a PR link and verification evidence. A proposed task stays a proposal until it is within the owner's authorized scope and accepted by its worker. Discussion does not replace applicable write claims or authorize production changes.
 
 ## Scope
 
