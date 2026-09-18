@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock — OCM console "Costs &amp; net" block (spec EARNINGS-NET-VIEW-SPEC.md)</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: ui-sans-serif, system-ui, sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 24px; }
+  main { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 28px 0 8px; }
+  .note { color: #8b949e; font-size: 13px; max-width: 70ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 12px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px 14px; }
+  .card .k { font-size: 12px; color: #8b949e; }
+  .card .v { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .card .v.negative { color: #f85149; }
+  .card .v.positive { color: #3fb950; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #21262d; }
+  th { color: #8b949e; font-weight: 600; font-size: 12px; }
+  input[type="number"] { width: 92px; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 6px 8px; }
+  input[type="checkbox"] { width: 18px; height: 18px; }
+  code { background: #161b22; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+  .flag { background: #1c2b1f; border: 1px solid #2ea043; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 16px; }
+  .est { color: #8b949e; font-size: 11px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Costs &amp; net <span class="est">est. · mock only</span></h1>
+  <p class="note">Mock of the input rows from <code>ocm/docs/EARNINGS-NET-VIEW-SPEC.md</code>.
+  Ledger rows (credited completion tokens, requests) are the P5 view above this block; this block
+  adds provider-entered cost inputs so the same rows show a net estimate.
+  Static file — nothing is sent anywhere, nothing is stored.</p>
+
+  <h2>Input rows</h2>
+  <table id="inputs">
+    <thead><tr>
+      <th>Machine</th><th>$/kWh</th><th>Watts</th><th>Hrs/day</th><th>Purchase $</th><th>Amort months</th><th>$dasha +10%</th>
+    </tr></thead>
+    <tbody>
+      <tr data-machine="m1" data-requests="2400" data-tokens="9600000">
+        <td><code>mac-studio-01</code></td>
+        <td><input type="number" data-k="electricity_per_kwh" value="0.28" min="0" step="0.01"></td>
+        <td><input type="number" data-k="watts" value="68" min="0" step="1"></td>
+        <td><input type="number" data-k="hours_per_day" value="12" min="0" max="24" step="0.5"></td>
+        <td><input type="number" data-k="hardware_purchase_price" value="3999" min="0" step="1"></td>
+        <td><input type="number" data-k="hardware_amort_months" value="36" min="1" step="1"></td>
+        <td><input type="checkbox" data-k="dasha_bonus" checked></td>
+      </tr>
+      <tr data-machine="m2" data-requests="300" data-tokens="900000">
+        <td><code>mini-m2-02</code></td>
+        <td><input type="number" data-k="electricity_per_kwh" value="0.28" min="0" step="0.01"></td>
+        <td><input type="number" data-k="watts" value="24" min="0" step="1"></td>
+        <td><input type="number" data-k="hours_per_day" value="6" min="0" max="24" step="0.5"></td>
+        <td><input type="number" data-k="hardware_purchase_price" value="599" min="0" step="1"></td>
+        <td><input type="number" data-k="hardware_amort_months" value="36" min="1" step="1"></td>
+        <td><input type="checkbox" data-k="dasha_bonus"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Net estimate (same formula as the spec)</h2>
+  <div class="grid" id="results"></div>
+
+  <div class="flag">
+    Rate card: <strong>$0.05/job + $0.01/1k completion tokens</strong>
+    (+10% $dasha toggle). A provisional <strong>$0.06/$0.012</strong> figure exists
+    in dasha-local materials — it is an open question, not applied here.
+  </div>
+  <p class="note">Credits are the completion tokens your machines produced, counted at the gateway
+  rather than by the machine. Estimated values use the standing rate card and your own cost
+  inputs; they are not money and have no payout today. No base reward, tax, downtime,
+  network fees, or hardware failure included. This is math, not a promise.</p>
+</main>
+
+<script>
+// Mirrors ocm/gateway/earnings-net.mjs (kept in sync by the pinned node:test).
+const PER_JOB = 0.05, PER_1K = 0.01, BONUS = 1.10, DAYS = 30;
+function estimate(row) {
+  const inp = {};
+  row.querySelectorAll('input').forEach(el => {
+    inp[el.dataset.k] = el.type === 'checkbox' ? el.checked : Number(el.value);
+  });
+  const requests = Number(row.dataset.requests), tokens = Number(row.dataset.tokens);
+  const gross = (requests * PER_JOB + (tokens / 1000) * PER_1K) * (inp.dasha_bonus ? BONUS : 1);
+  const power = (Math.max(0, inp.watts) / 1000) * Math.max(0, inp.hours_per_day) * DAYS * Math.max(0, inp.electricity_per_kwh);
+  const hardware = Math.max(0, inp.hardware_purchase_price) / Math.max(1, Math.floor(inp.hardware_amort_months) || 1);
+  return { machine: row.querySelector('code').textContent, gross, power, hardware, net: gross - power - hardware };
+}
+const money = n => (n < 0 ? '−' : '') + '$' + Math.abs(n).toFixed(2);
+function render() {
+  const box = document.getElementById('results');
+  box.innerHTML = '';
+  document.querySelectorAll('#inputs tbody tr').forEach(row => {
+    const e = estimate(row);
+    const cls = e.net < 0 ? 'negative' : 'positive';
+    box.innerHTML += `<div class="card"><div class="k"><code>${e.machine}</code> · est. gross</div>
+      <div class="v">${money(e.gross)}</div></div>
+      <div class="card"><div class="k">est. power</div><div class="v">−${money(e.power).replace('−','')}</div></div>
+      <div class="card"><div class="k">est. hardware/mo</div><div class="v">−${money(e.hardware).replace('−','')}</div></div>
+      <div class="card"><div class="k">est. net</div><div class="v ${cls}">${money(e.net)}</div></div>`;
+  });
+}
+document.getElementById('inputs').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
