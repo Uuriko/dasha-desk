@@ -91,6 +91,10 @@ python3 provider/agent.py --doctor
 
 The doctor exits nonzero when the coordinator, Ollama, or any configured model is unavailable.
 
+What happens when the coordinator goes away mid-job (backoff schedule, job
+reassignment via lease expiry, lid-close behavior) is documented in
+[`docs/PROVIDER-OFFLINE-RESILIENCE.md`](../docs/PROVIDER-OFFLINE-RESILIENCE.md).
+
 Measure actual model throughput with `python3 provider/agent.py --benchmark`. Set `DASHA_BENCHMARK_TOKENS` between 16 and 256 to trade speed for a longer calibrated run.
 
 ### OpenRouter lane (external integrations)
