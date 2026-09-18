@@ -23,6 +23,8 @@
   "pnpm-lock.yaml",
   "provider/agent.py",
   "provider/dasha-compute",
+  "provider/earnings-calculator.html",
+  "provider/earnings-calculator.mjs",
   "provider/run-provider",
   "provider/save-provider-key.py",
   "release-files.json",
@@ -30,6 +32,7 @@
   "tests/auth-boundaries.test.mjs",
   "tests/e2e.test.mjs",
   "tests/openrouter-provider.test.mjs",
+  "tests/provider-earnings.test.mjs",
   "tests/provider-key.test.mjs",
   "tests/release.test.mjs"
 ]
