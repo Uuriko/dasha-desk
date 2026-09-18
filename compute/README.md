@@ -92,6 +92,7 @@ python3 provider/agent.py --doctor
 The doctor exits nonzero when the coordinator, Ollama, or any configured model is unavailable.
 
 Measure actual model throughput with `python3 provider/agent.py --benchmark`. Set `DASHA_BENCHMARK_TOKENS` between 16 and 256 to trade speed for a longer calibrated run.
+The report format (v2 schema: prefill/decode tok/s, TTFT, context length, watts, chip, backend) is specified in `../docs/BENCHMARK-HARNESS-SPEC.md`; validate a report with `node scripts/validate-benchmark.mjs`.
 
 ### OpenRouter lane (external integrations)
 
