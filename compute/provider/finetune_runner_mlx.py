@@ -251,11 +251,16 @@ def run(config, ctx):
     if watchdog.tripped == "memory_exceeded":
         raise RuntimeError("trainer killed: memory cap exceeded")
     if watchdog.tripped == "wall_clock_exceeded" or cancelled.is_set():
-        checkpoint_ref = None
+        # A preempted result requires a checkpoint_ref (server rejects the
+        # result otherwise), so an upload failure degrades to failed.
         try:
             checkpoint_ref = core.upload_adapter_dir(ctx.coordinator, ctx.token, ctx.job_id, ctx.adapter_dir)
-        except Exception:
-            pass
+        except Exception as exc:
+            return {**base_result, "status": "failed",
+                    "error": f"preempted but checkpoint upload failed: {exc}"}
+        if not checkpoint_ref:
+            return {**base_result, "status": "failed",
+                    "error": "preempted but checkpoint upload returned no ref"}
         return {**base_result, "status": "preempted", "checkpoint_ref": checkpoint_ref}
     if process.returncode != 0:
         return {**base_result, "status": "failed",
