@@ -19,6 +19,9 @@ PROVIDER_KEY = os.getenv("DASHA_PROVIDER_KEY", "dasha-local-provider")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 PROVIDER_ID = os.getenv("DASHA_PROVIDER_ID", f"mac-{uuid.uuid5(uuid.NAMESPACE_DNS, socket.gethostname()).hex[:12]}")
 PROVIDER_NAME = os.getenv("DASHA_PROVIDER_NAME", socket.gethostname())
+# Execution backend: "ollama" (chat inference, default) or "finetune"
+# (declarative LoRA training via compute/provider/finetune_runner.py).
+DASHA_BACKEND = os.getenv("DASHA_BACKEND", "ollama")
 RUNNING = True
 
 
@@ -152,6 +155,8 @@ def stream_ollama(job, cancelled):
 
 
 def doctor():
+    if DASHA_BACKEND == "finetune":
+        return doctor_finetune()
     failures = 0
     print("Dasha Compute provider doctor")
     print(f"hardware  {platform.system()} {platform.machine()} · Python {platform.python_version()}")
@@ -179,6 +184,105 @@ def doctor():
         failures += 1
         print(f"ollama    failed · {error}", file=sys.stderr)
     return failures
+
+
+def doctor_gateway_only():
+    failures = 0
+    try:
+        if COORDINATOR.endswith('/compute/api'):
+            health = request_json(coordinator_path("/healthz", "/providers/verify"), method="POST", payload={"provider_id": PROVIDER_ID}, token=PROVIDER_KEY, timeout=5)
+            detail = health.get("name", PROVIDER_ID)
+        else:
+            health = request_json(coordinator_path("/healthz", "/providers/verify"), timeout=5)
+            detail = f"v{health.get('version', 'unknown')}"
+        print(f"gateway   ok · {detail} · {COORDINATOR}")
+    except Exception as error:
+        failures += 1
+        print(f"gateway   failed · {error}", file=sys.stderr)
+    return failures
+
+
+def doctor_finetune():
+    import finetune_runner
+    print("Dasha Compute provider doctor (finetune lane)")
+    failures = doctor_gateway_only()
+    failures += finetune_runner.doctor()
+    return failures
+
+
+def run_finetune_lane(args):
+    import finetune_runner
+    hw = hardware()
+    headroom = finetune_runner.finetune_memory_gb(hw.get("memory_gb"))
+    if headroom is None:
+        raise SystemExit("DASHA_BACKEND=finetune needs readable total memory for finetune_memory_gb")
+    engines = finetune_runner.supported_engines()
+    if not engines:
+        raise SystemExit("DASHA_BACKEND=finetune but no engine backend is available")
+    print(f"dasha-compute finetune provider {PROVIDER_NAME} ({PROVIDER_ID})")
+    print(f"finetune  advertise finetune_engines={engines} · {headroom} GB headroom")
+    backoff = 1
+    while RUNNING:
+        try:
+            response = request_json(
+                coordinator_path("/v1/providers/poll", "/providers/poll"),
+                method="POST",
+                payload={"provider_id": PROVIDER_ID, "name": PROVIDER_NAME,
+                         "models": list(finetune_runner.get_engine("mlx").BASE_MODELS),
+                         "hardware": hw,
+                         "finetune_engines": engines, "finetune_memory_gb": headroom},
+                token=PROVIDER_KEY,
+                timeout=35,
+            )
+            backoff = 1
+            if not response:
+                if args.once:
+                    break
+                time.sleep(1)
+                continue
+            job = response["job"]
+            if job.get("kind") != "finetune":
+                print(f"ignoring non-finetune job {job.get('id')}", file=sys.stderr)
+                if args.once:
+                    break
+                time.sleep(1)
+                continue
+            spec = job.get("spec", {})
+            print(f"tune job {job['id']} · {spec.get('base_model')} · {spec.get('iters')} iters")
+
+            def progress(update, _job_id=job["id"]):
+                try:
+                    renew_lease(_job_id)
+                except Exception as error:
+                    print(f"heartbeat failed {_job_id}: {error}", file=sys.stderr)
+                try:
+                    finetune_runner.report_progress(COORDINATOR, PROVIDER_KEY, _job_id, update)
+                except Exception as error:
+                    print(f"progress failed {_job_id}: {error}", file=sys.stderr)
+
+            try:
+                result = finetune_runner.run_job(COORDINATOR, PROVIDER_KEY, job, progress_callback=progress)
+                finetune_runner.report_result(COORDINATOR, PROVIDER_KEY, job["id"], result)
+                print(f"tune {result.get('status')} {job['id']} · iters {result.get('iters_done')}")
+            except Exception as error:
+                print(f"tune failed {job['id']}: {error}", file=sys.stderr)
+                try:
+                    finetune_runner.report_result(COORDINATOR, PROVIDER_KEY, job["id"], {
+                        "job_id": job["id"], "status": "failed",
+                        "error": f"provider tune failed: {type(error).__name__}: {error}",
+                        "iters_done": 0,
+                    })
+                except Exception:
+                    pass
+            if args.once:
+                break
+        except Exception as error:
+            print(f"coordinator unavailable: {error}; retrying in {backoff}s", file=sys.stderr)
+            if args.once:
+                break
+            time.sleep(backoff)
+            backoff = min(backoff * 2, 30)
+    print("finetune provider stopped")
 
 
 def benchmark():
@@ -214,6 +318,15 @@ def main():
     parser.add_argument("--benchmark", action="store_true", help="measure configured Ollama model throughput")
     parser.add_argument("--once", action="store_true", help="poll once and exit")
     args = parser.parse_args()
+    if DASHA_BACKEND == "finetune":
+        signal.signal(signal.SIGINT, stop)
+        signal.signal(signal.SIGTERM, stop)
+        if args.doctor:
+            raise SystemExit(doctor_finetune())
+        if args.benchmark:
+            raise SystemExit("--benchmark is an Ollama-lane check; use --doctor for the finetune lane")
+        run_finetune_lane(args)
+        return
     if not MODELS:
         raise SystemExit("DASHA_MODEL_MAP contains no valid public=ollama mappings")
     if args.doctor:
