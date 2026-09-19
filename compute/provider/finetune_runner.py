@@ -172,7 +172,7 @@ def finetune_memory_gb(memory_gb, reserve_gb=OS_RESERVE_GB):
 
 _ENGINE_MODULES = {
     "mlx": "finetune_runner_mlx",
-    # Future: "cuda": "finetune_runner_cuda"  (Unsloth/Axolotl, not implemented)
+    "cuda": "finetune_runner_cuda",  # Unsloth on Nvidia; gated by is_ready()
 }
 
 _ENGINE_CACHE = {}
@@ -199,17 +199,33 @@ def get_engine(engine_id):
     return _ENGINE_CACHE[engine_id]
 
 
+def _engine_ready(engine_id):
+    """Import-availability plus the backend's own readiness gate.
+
+    Backends may define `is_ready() -> bool` (e.g. cuda checks for a usable
+    GPU + driver + compute capability). Backends without the hook keep the
+    old behavior: importable means available.
+    """
+    try:
+        module = get_engine(engine_id)
+    except EngineMismatchError:
+        return False
+    is_ready = getattr(module, "is_ready", None)
+    if callable(is_ready):
+        try:
+            return bool(is_ready())
+        except Exception:
+            return False
+    return True
+
+
 def supported_engines():
     """Engine ids this kit can actually run (for poll advertisement)."""
-    return [engine_id for engine_id in _ENGINE_MODULES if _engine_available(engine_id)]
+    return [engine_id for engine_id in _ENGINE_MODULES if _engine_ready(engine_id)]
 
 
 def _engine_available(engine_id):
-    try:
-        get_engine(engine_id)
-        return True
-    except EngineMismatchError:
-        return False
+    return _engine_ready(engine_id)
 
 
 # ---------------------------------------------------------------------------

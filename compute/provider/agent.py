@@ -213,14 +213,30 @@ def doctor_finetune():
 def run_finetune_lane(args):
     import finetune_runner
     hw = hardware()
-    headroom = finetune_runner.finetune_memory_gb(hw.get("memory_gb"))
-    if headroom is None:
-        raise SystemExit("DASHA_BACKEND=finetune needs readable total memory for finetune_memory_gb")
     engines = finetune_runner.supported_engines()
     if not engines:
         raise SystemExit("DASHA_BACKEND=finetune but no engine backend is available")
+    # Engine-typed capability: providers advertise finetune_engines + the
+    # memory visible to the training engine. cuda reports dedicated VRAM
+    # minus its 2 GB reserve; mlx reports unified memory minus 4 GB.
+    # (A machine runs one training engine in practice; cuda wins the tie.)
+    payload_extra = {}
+    if "cuda" in engines:
+        cuda = finetune_runner.get_engine("cuda")
+        gpu = cuda.gpu_info()
+        if gpu is None:
+            raise SystemExit("DASHA_BACKEND=finetune: cuda engine listed but no usable GPU")
+        headroom = finetune_runner.finetune_memory_gb(
+            gpu["vram_gb"], reserve_gb=cuda.VRAM_RESERVE_GB)
+        payload_extra["gpu"] = gpu
+    else:
+        headroom = finetune_runner.finetune_memory_gb(hw.get("memory_gb"))
+    if headroom is None:
+        raise SystemExit("DASHA_BACKEND=finetune needs readable GPU/CPU memory for finetune_memory_gb")
     print(f"dasha-compute finetune provider {PROVIDER_NAME} ({PROVIDER_ID})")
     print(f"finetune  advertise finetune_engines={engines} · {headroom} GB headroom")
+    advertised_models = sorted({model for engine_id in engines
+                                for model in finetune_runner.get_engine(engine_id).BASE_MODELS})
     backoff = 1
     while RUNNING:
         try:
@@ -228,9 +244,10 @@ def run_finetune_lane(args):
                 coordinator_path("/v1/providers/poll", "/providers/poll"),
                 method="POST",
                 payload={"provider_id": PROVIDER_ID, "name": PROVIDER_NAME,
-                         "models": list(finetune_runner.get_engine("mlx").BASE_MODELS),
+                         "models": advertised_models,
                          "hardware": hw,
-                         "finetune_engines": engines, "finetune_memory_gb": headroom},
+                         "finetune_engines": engines, "finetune_memory_gb": headroom,
+                         **payload_extra},
                 token=PROVIDER_KEY,
                 timeout=35,
             )

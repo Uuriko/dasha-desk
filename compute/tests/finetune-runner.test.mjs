@@ -130,10 +130,10 @@ test("the runner can only ever execute the fixed trainer command", async () => {
 
 test("engine mismatch refuses the job cleanly without training", async () => {
   const job = {
-    id: "job_cuda",
+    id: "job_tpu",
     spec: VALID_SPEC,
     spec_hash: python(`fr.spec_hash(${sanitized()})`),
-    engine: "cuda",
+    engine: "tpu",
   };
   const dir = await mkdtemp(join(tmpdir(), "dasha-finetune-refuse-"));
   try {
@@ -142,16 +142,19 @@ test("engine mismatch refuses the job cleanly without training", async () => {
       { DASHA_FINETUNE_WORKDIR: dir },
     );
     assert.equal(out.status, "refused");
-    assert.equal(out.engine, "cuda");
+    assert.equal(out.engine, "tpu");
     assert.equal(out.iters_done, 0);
-    assert.ok(out.error.includes("cuda"));
+    assert.ok(out.error.includes("tpu"));
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
-  assert.throws(() => python(`fr.get_engine("cuda")`), /not supported/);
+  assert.throws(() => python(`fr.get_engine("tpu")`), /not supported/);
 });
 
 test("engine registry exposes the mlx seam for a future cuda backend", async () => {
+  // cuda registers but is_ready() gates on a real GPU; on this CPU-only
+  // machine only mlx is advertised. (See finetune-runner-cuda.test.mjs for
+  // the cuda-ready path via DASHA_CUDA_FAKE_PROBE.)
   assert.deepEqual(python("fr.supported_engines()"), ["mlx"]);
   assert.equal(python("mlx.ENGINE_ID"), "mlx");
   for (const method of ["generate_config", "run", "report_telemetry", "doctor"]) {
