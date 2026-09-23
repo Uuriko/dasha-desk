@@ -1,44 +1,16 @@
-{
-  "name": "dasha bounties",
-  "schema": "dasha-bounties-feed/v1",
-  "note": "USDC on Solana. We don't hold it.",
-  "url": "https://www.getdasha.com/bounties",
-  "listings": [
-    {
-      "kind": "item",
-      "name": "docs: add CONTRIBUTING screenshot of GitHub web edit flow",
-      "repo": "Uuriko/dasha-desk",
-      "itemUrl": "https://github.com/Uuriko/dasha-desk/issues/8",
-      "amount": 25,
-      "currency": "USDC",
-      "chain": "solana",
-      "payTo": null,
-      "payoutStatus": "not_implemented",
-      "tokenMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "github": "",
-      "x": "",
-      "createdAt": "2026-08-13T00:00:00.000Z",
-      "outcomes": []
-    },
-    {
-      "kind": "project",
-      "name": "dasha desk",
-      "repo": "Uuriko/dasha-desk",
-      "itemUrl": null,
-      "amount": 50,
-      "currency": "USDC",
-      "chain": "solana",
-      "payTo": null,
-      "payoutStatus": "not_implemented",
-      "tokenMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "github": "",
-      "x": "",
-      "pool": {
-        "amount": 50,
-        "currency": "USDC"
-      },
-      "createdAt": "2026-08-13T00:00:00.000Z",
-      "outcomes": []
-    }
-  ]
-}
+[
+  {
+    "id": "dasha-compute-launch",
+    "title": "Launch dasha-compute on mainnet",
+    "deadline": "2024-12-31T23:59:59Z",
+    "reward": "$2000",
+    "description": "Help launch the dasha-compute compute kit on Solana mainnet with full documentation and CI integration."
+  },
+  {
+    "id": "breakpoint-2026-ocm-video",
+    "title": "Breakpoint ticket content bounty — OCM machine‑paid inference video",
+    "deadline": "2026-09-07T21:59:00Z",
+    "reward": "$800 ticket code (per winner, up to 10 winners)",
+    "description": "Create an original English X post (video preferred) expressing excitement for Breakpoint 2026, with a clear Germany / Superteam Germany angle. Tag `@SolanaEvents` and `@SuperteamDE`, quote‑retweet the sponsor’s announcement with a thoughtful comment, and submit both URLs through Superteam Earn. The post should reference the technical question:\n\n> Can Solana become the settlement layer for machines buying variable‑cost inference from independently operated hardware?\n\nThe 40‑second vertical video script (provided in the bounty description) should be followed. No generic conference ad or `$DASHA` pitch; focus on the OCM inference network concept.\n\n**Requirements**\n- Original English X post (video preferred, ≤ 40 seconds, vertical format)\n- Clear German / Superteam Germany angle\n- Tag `@SolanaEvents` and `@SuperteamDE`\n- Quote‑retweet sponsor announcement with thoughtful comment\n- Submit both URLs via Superteam Earn before the deadline\n\n**Reward**: Up to ten winners receive a ticket code valued at $800 each (travel, lodging, food, and visa not included)."
+  }
+]
