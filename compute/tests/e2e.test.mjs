@@ -396,3 +396,16 @@ test("relays provider deltas as OpenAI-compatible SSE", async (context) => {
   assert.match(events, /"finish_reason":"stop"/);
   assert.match(events, /data: \[DONE\]/);
 });
+
+
+test("installed doctor command consumes its subcommand and forwards options", async () => {
+  const wrapper = await readFile(new URL("../provider/dasha-compute", import.meta.url), "utf8");
+  const dispatch = wrapper.slice(wrapper.indexOf('case "${1:-status}" in'));
+  assert.ok(dispatch.startsWith("case "));
+  // Exercise the actual shell dispatch without reading the operator's Keychain.
+  const harness = 'set -eu\nrun_agent() { printf "%s\\n" "$@"; }\n' + dispatch;
+  for (const options of [[], ["--json"]]) {
+    const output = execFileSync("sh", ["-c", harness, "dasha-compute", "doctor", ...options], { encoding: "utf8" });
+    assert.deepEqual(output.trim().split("\n"), ["--doctor", ...options]);
+  }
+});
