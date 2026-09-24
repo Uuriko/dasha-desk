@@ -68,16 +68,25 @@ function baseRoutes(overrides = {}) {
 }
 
 async function runDoctor(env, extraArgs = []) {
-  const child = spawn(python, ["provider/agent.py", "--doctor", ...extraArgs], {
-    cwd: new URL("..", import.meta.url),
-    env: { ...process.env, ...env },
-  });
-  let stdout = "";
-  let stderr = "";
-  child.stdout.on("data", (chunk) => { stdout += chunk; });
-  child.stderr.on("data", (chunk) => { stderr += chunk; });
-  const code = await new Promise((resolve) => child.once("close", resolve));
-  return { code, stdout, stderr };
+  const testHome = await fs.promises.mkdtemp(path.join(os.tmpdir(), "dasha-doctor-isolated-"));
+  try {
+    const child = spawn(python, ["provider/agent.py", "--doctor", ...extraArgs], {
+      cwd: new URL("..", import.meta.url),
+      // Avoid contacting the operator's real LaunchAgent or Keychain on macOS.
+      env: { ...process.env, HOME: testHome, DASHA_DOCTOR_TEST_KEYCHAIN: "ok", DASHA_DOCTOR_TEST_LAUNCHCTL: "loaded", ...env },
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => { stdout += chunk; });
+    child.stderr.on("data", (chunk) => { stderr += chunk; });
+    const code = await new Promise((resolve, reject) => {
+      child.once("close", resolve);
+      child.once("error", reject);
+    });
+    return { code, stdout, stderr };
+  } finally {
+    await fs.promises.rm(testHome, { recursive: true, force: true });
+  }
 }
 
 function doctorEnv(port, extra = {}) {

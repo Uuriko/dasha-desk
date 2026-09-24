@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import http from "node:http";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import net from "node:net";
 import test from "node:test";
 
@@ -48,16 +51,24 @@ function baseRoutes(overrides = {}) {
 }
 
 async function runDoctor(env, extraArgs = []) {
-  const child = spawn(python, ["provider/agent.py", "--doctor", ...extraArgs], {
-    cwd: new URL("..", import.meta.url),
-    env: { ...process.env, ...env },
-  });
-  let stdout = "";
-  let stderr = "";
-  child.stdout.on("data", (chunk) => { stdout += chunk; });
-  child.stderr.on("data", (chunk) => { stderr += chunk; });
-  const code = await new Promise((resolve) => child.once("close", resolve));
-  return { code, stdout, stderr };
+  const testHome = await mkdtemp(join(tmpdir(), "dasha-doctor-isolated-"));
+  try {
+    const child = spawn(python, ["provider/agent.py", "--doctor", ...extraArgs], {
+      cwd: new URL("..", import.meta.url),
+      env: { ...process.env, HOME: testHome, ...env },
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => { stdout += chunk; });
+    child.stderr.on("data", (chunk) => { stderr += chunk; });
+    const code = await new Promise((resolve, reject) => {
+      child.once("close", resolve);
+      child.once("error", reject);
+    });
+    return { code, stdout, stderr };
+  } finally {
+    await rm(testHome, { recursive: true, force: true });
+  }
 }
 
 function doctorEnv(port, extra = {}) {
@@ -76,7 +87,7 @@ function doctorEnv(port, extra = {}) {
 test("doctor G4 fails when Ollama is below the version floor", async (context) => {
   const port = await mockServer(context, baseRoutes({ "GET /api/version": { status: 200, body: { version: "0.15.3" } } }));
   const { code, stderr } = await runDoctor(doctorEnv(port));
-  assert.equal(code, 1);
+  assert.equal(code, 1, stderr);
   assert.match(stderr, /ollama-version\s+failed · found 0\.15\.3, need ≥ 0\.33\.1/);
   assert.match(stderr, /run: brew upgrade ollama/);
 });

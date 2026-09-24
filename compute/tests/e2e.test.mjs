@@ -197,6 +197,8 @@ test("macOS installer rejects shell syntax in coordinator URLs", async (context)
 });
 
 test("provider doctor fails when a configured Ollama model is missing", async (context) => {
+  const testHome = await mkdtemp(join(tmpdir(), "dasha-doctor-isolated-"));
+  context.after(() => rm(testHome, { recursive: true, force: true }));
   const port = await freePort();
   const server = http.createServer((request, response) => {
     response.setHeader("Content-Type", "application/json");
@@ -206,7 +208,7 @@ test("provider doctor fails when a configured Ollama model is missing", async (c
   context.after(() => server.close());
   const child = spawn(python, ["provider/agent.py", "--doctor"], {
     cwd: new URL("..", import.meta.url),
-    env: { ...process.env, DASHA_COORDINATOR_URL: `http://127.0.0.1:${port}`, OLLAMA_URL: `http://127.0.0.1:${port}`, DASHA_MODEL_MAP: "qwen3-8b=qwen3:8b", DASHA_DOCTOR_TEST_PLATFORM: "Darwin:arm64:15.0" },
+    env: { ...process.env, HOME: testHome, DASHA_COORDINATOR_URL: `http://127.0.0.1:${port}`, OLLAMA_URL: `http://127.0.0.1:${port}`, DASHA_MODEL_MAP: "qwen3-8b=qwen3:8b", DASHA_DOCTOR_TEST_PLATFORM: "Darwin:arm64:15.0" },
   });
   let stderr = "";
   child.stderr.on("data", (chunk) => { stderr += chunk; });
