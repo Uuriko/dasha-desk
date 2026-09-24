@@ -17,8 +17,9 @@ Two different moves live under "add a model":
   (`if [ "$(uname -s)" != Darwin ]`), and the inference paths are Apple-Silicon
   builds.
 - **Ollama** installed and serving on `http://127.0.0.1:11434`
-  (override with `OLLAMA_URL`). The live Provide page asks for
-  **Ollama ≥0.33.1**; Ollama ≥0.19 also unlocks the MLX-weight lane.
+  (override with `OLLAMA_URL`). The kit
+  guidance requires **Ollama ≥0.33.1**. This guide does not guarantee a
+  particular Ollama inference backend.
 - **Models on the internal SSD.** The live Provide guidance is explicit here;
   large weights on external volumes are slow and the doctor will not warn you
   about it.
@@ -101,8 +102,9 @@ dasha-compute doctor      # exits nonzero on any failure
 dasha-compute benchmark   # measures throughput, writes benchmark.json
 ```
 
-`--doctor` checks, in order: the gateway (`DASHA_COORDINATOR_URL`), Ollama
-(`/api/tags`), and that every tag in your map is installed. `--benchmark`
+`--doctor` checks the gateway (`DASHA_COORDINATOR_URL`), Ollama, and
+model availability; newer releases also check platform, capacity, credentials,
+and installed service state. `--benchmark`
 runs `DASHA_BENCHMARK_TOKENS` tokens (default 64, clamped to 16–256) through
 each installed mapped model and prints rows like:
 
@@ -117,14 +119,14 @@ each installed mapped model and prints rows like:
 ```
 
 together with `measured_at` and `hardware` (system, machine, Python,
-`memory_gb`). The agent attaches this same data to its poll payload, so the
-coordinator always knows what each provider can do. **Keep this file** — it is
+`memory_gb`). The agent attaches benchmark data to its poll payload when available.
+A benchmark records one run; it does not guarantee future throughput. **Keep this file** — it is
 the `benchmark.json` submission your catalog PR needs.
 
 Sanity-run one job before trusting the service:
 
 ```bash
-DASHA_MODEL_MAP=... python3 provider/agent.py --once
+DASHA_COORDINATOR_URL=<your-coordinator> DASHA_MODEL_MAP=... python3 provider/agent.py --once
 ```
 
 ## Step 5 (optional) — propose a new public id to the shared catalog
@@ -151,7 +153,7 @@ submit. Do not hand-edit the numbers.
 ## Verification checklist
 
 - [ ] `ollama list` shows every tag in your `DASHA_MODEL_MAP`.
-- [ ] `dasha-compute doctor` exits 0 (`ollama ok · ready: …` lists every pair).
+- [ ] `dasha-compute doctor` exits 0 and confirms mapped models are installed.
 - [ ] `dasha-compute benchmark` exits 0 and `benchmark.json` was written
       (`measured_at` + one row per model).
 - [ ] `python3 provider/agent.py --once` completes a real job end to end.
@@ -160,23 +162,15 @@ submit. Do not hand-edit the numbers.
 - [ ] Catalog PR (if applicable): new id in `models`, `benchmark.json`
       attached, `min_memory_gb` declared.
 
-## MLX status — what "Prefer MLX" actually means
+## MLX status — what the kit actually runs
 
-- The live `/compute` Provide page says **"Prefer MLX when you can ·
-  Ollama ≥0.33.1"**. That preference is real on the OCM lane
-  (`ocm/agent/agent.py`): it runs MLX natively via `mlx_lm`, with
-  `OCM_MLX_MODEL` (default `mlx-community/Qwen2.5-Coder-7B-Instruct-4bit`)
-  and `OCM_MODEL_MAP` for public→repo mapping.
-- **This `compute/` kit does not have an MLX lane yet.** `agent.py` speaks to
-  Ollama's `/api/chat` only; there is no `DASHA_BACKEND` variable in the code
-  today. The MLX backend design
-  ([PR #216](https://github.com/Uuriko/dasha-desk/pull/216)) is a
-  design doc — Phase 1 (`DASHA_BACKEND=mlx`: Ollama serving MLX weights) and
-  Phase 2 (a supervised `mlx_lm.server`) are proposed, not implemented.
-- What you **can** do today: point your map entry at an Ollama tag that ships
-  MLX-optimized weights (Ollama ≥0.19 serves those through the same daemon
-  the agent already talks to). The public id, the doctor, and the benchmark
-  flow are unchanged — the benchmark numbers will reflect the faster path.
+This `compute/` kit calls Ollama's `/api/chat`; it does not choose or verify
+Ollama's internal backend. It has no implemented `DASHA_BACKEND` switch.
+The separate `ocm/agent/agent.py` implements an MLX provider; its configuration
+is not interchangeable with this kit's `DASHA_MODEL_MAP`.
+
+Use a model tag supported by your installed Ollama version and verify the
+actual measured throughput. Proposed backend designs are not installed features.
 
 ## Troubleshooting
 
