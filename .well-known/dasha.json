@@ -1,0 +1,23 @@
+{
+  "schema": "dasha.identity/v1",
+  "name": "dash_eats",
+  "symbol": "DASHA",
+  "brand": "Dasha",
+  "mint": "53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
+  "chain": "solana",
+  "pool": "https://www.geckoterminal.com/solana/pools/9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7",
+  "logo": "https://www.getdasha.com/assets/dasha-token.png",
+  "ipfsLogo": "https://ipfs.io/ipfs/Qmb4fcJYbM1RSU43bvNPwUjhwGXK42L9xGvjEEijmWtAcg",
+  "contact": "team@getdasha.com",
+  "submitter": "John / @potterlab (maintainer)",
+  "authority": "community-maintainer",
+  "repository": "https://github.com/Uuriko/dasha-desk",
+  "links": {
+    "website": "https://www.getdasha.com",
+    "x": "https://x.com/dash_eats",
+    "coingecko": "https://www.coingecko.com/en/coins/dash_eats",
+    "dexscreener": "https://dexscreener.com/solana/9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7",
+    "solscan": "https://solscan.io/token/53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
+    "jupiter": "https://jup.ag/swap?sell=So11111111111111111111111111111111111111112&buy=53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump"
+  }
+}

@@ -12,5 +12,6 @@ The current repository does not redistribute third-party photos or social-media 
 
 - `assets/desk-demo.gif` — screenshot animation of the Desk UI for README; original project media (same MIT terms as code).
 - `assets/github-web-edit.png` — annotated crop of the GitHub.com web-edit path for `compute/README.md` in this repository (real file view plus editor / Propose changes chrome). Project documentation media (same MIT terms as code). GitHub UI © GitHub.
+- `assets/dasha-token.png` — 400×400 square PNG token logo for directory and registry review (Solscan, CoinMarketCap, Jupiter VRFD). Sourced from canonical on-chain mint art (IPFS CID `Qmb4fcJYbM1RSU43bvNPwUjhwGXK42L9xGvjEEijmWtAcg`, metadata CID `QmU9TM9DYc8YCxZiZSmvdBcdwWvhHhZvBneoxEAkmgiLxV`, mint `53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump`). Original JPEG bytes preserved at SHA-256 `99af4d07ca80185e658fdd6c83146a7342aca99d141b01f69a33eeacae624e72`. Served directly as neutral project metadata from `https://www.getdasha.com/assets/dasha-token.png` without claiming proprietary likeness or issuer update authority.
 
 Do not add third-party media to a release without recording its source and reuse rights here.
