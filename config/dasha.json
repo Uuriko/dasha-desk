@@ -4,6 +4,8 @@
   "symbol": "$dasha",
   "chain": "solana",
   "mint": "53uxQtB9pcjWvCHguz3JTTndvuKqGxhrD37EetnCpump",
+  "logo": "https://www.getdasha.com/assets/dasha-token.png",
+  "ipfsLogo": "https://ipfs.io/ipfs/Qmb4fcJYbM1RSU43bvNPwUjhwGXK42L9xGvjEEijmWtAcg",
   "pairUrl": "https://www.geckoterminal.com/solana/pools/9KkDpvUQRqXjiuyMFcy1CwqrxLwDcGGUR2Cap2Qt7bU7",
   "links": {
     "x": "https://x.com/dash_eats",

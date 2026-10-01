@@ -4,6 +4,8 @@
 
 getdasha.com / lobby / native bounties / Studio SRI / one Buy CTA / acid ticker / payTo / GitHub OAuth honesty live in **[SITE-ROADMAP.md](SITE-ROADMAP.md)**. Laptop canonical: `/home/potter/DASHA-ROADMAP.md`.
 
+P0 execution plan (Sep 2–15: OCM proof + Dasha identity/mobile gates) lives in **[EXECUTION-PLAN-SEP-2-15.md](EXECUTION-PLAN-SEP-2-15.md)**. Canonical identity packet lives in **[IDENTITY-PACKET.md](IDENTITY-PACKET.md)**.
+
 That slice is additive. It does not retire the Desk-small list below. Do not clobber this product history. Do not dump Webflow-only chrome into this repository as if it were Desk features. Do not dispatch Claude, TUI, or eliza from these files.
 
 The Desk stays small. Work earns a place by making verification clearer, safer, or more reliable.

@@ -27,6 +27,20 @@ const app = read('src/app.js');
 assert.ok(body.includes(mint), 'src/body.html missing config mint');
 assert.ok(app.includes(mint), 'src/app.js missing config mint');
 
+/* Identity packet P0: verify project-domain direct square token asset and manifest */
+assert.equal(cfg.logo, 'https://www.getdasha.com/assets/dasha-token.png', 'config/dasha.json missing canonical logo URL');
+const logoBuf = readFileSync(join(root, 'assets/dasha-token.png'));
+assert.deepEqual([...logoBuf.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], 'assets/dasha-token.png is not a valid PNG');
+const logoWidth = logoBuf.readUInt32BE(16);
+const logoHeight = logoBuf.readUInt32BE(20);
+assert.ok(logoWidth >= 256 && logoHeight >= 256, 'token logo must be at least 256x256');
+assert.equal(logoWidth, logoHeight, 'token logo must be square');
+
+const wellKnown = JSON.parse(read('.well-known/dasha.json'));
+assert.equal(wellKnown.schema, 'dasha.identity/v1');
+assert.equal(wellKnown.mint, MINT);
+assert.equal(wellKnown.logo, cfg.logo);
+
 /* Any pump-suffixed address on our own surfaces must be ours. This used to match
    /53uxQtB9[A-Za-z0-9]+/ — the current mint's own prefix — so a full substitution matched nothing
    and the loop body never ran. Keyed on the address shape instead, it still catches the paste-typo
